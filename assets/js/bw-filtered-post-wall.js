@@ -319,6 +319,7 @@
     // ============================================
 
     var filterState = {};
+    var widgetPagingState = {};
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -385,6 +386,162 @@
 
             if (callNow) func.apply(context, args);
         };
+    }
+
+    function parseInteger(value, fallback) {
+        var parsed = parseInt(value, 10);
+        return isNaN(parsed) ? fallback : parsed;
+    }
+
+    function parseBoolData(value) {
+        var normalized = String(value || '').toLowerCase();
+        return normalized === '1' || normalized === 'true' || normalized === 'yes';
+    }
+
+    function disconnectInfiniteObserver(widgetId) {
+        var state = widgetPagingState[widgetId];
+
+        if (state && state.observer) {
+            state.observer.disconnect();
+            state.observer = null;
+        }
+    }
+
+    function getWidgetPagingState(widgetId) {
+        var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
+
+        if (!$grid.length) {
+            return null;
+        }
+
+        var state = widgetPagingState[widgetId] || {};
+
+        if (state.gridEl && state.gridEl !== $grid[0]) {
+            disconnectInfiniteObserver(widgetId);
+            state = {};
+        }
+
+        state.gridEl = $grid[0];
+        state.perPage = parseInteger($grid.attr('data-per-page'), typeof state.perPage === 'number' ? state.perPage : 12);
+        state.currentPage = Math.max(1, parseInteger($grid.attr('data-current-page'), typeof state.currentPage === 'number' ? state.currentPage : 1));
+        state.nextPage = Math.max(0, parseInteger($grid.attr('data-next-page'), typeof state.nextPage === 'number' ? state.nextPage : state.currentPage + 1));
+        state.hasMore = parseBoolData($grid.attr('data-has-more'));
+        state.infiniteEnabled = parseBoolData($grid.attr('data-infinite-enabled')) && state.perPage > 0;
+        state.loadTriggerOffset = Math.max(0, parseInteger($grid.attr('data-load-trigger-offset'), typeof state.loadTriggerOffset === 'number' ? state.loadTriggerOffset : 300));
+        state.isLoading = !!state.isLoading;
+
+        widgetPagingState[widgetId] = state;
+
+        return state;
+    }
+
+    function updateInfiniteUi(widgetId) {
+        var state = getWidgetPagingState(widgetId);
+
+        if (!state) {
+            return;
+        }
+
+        var $loadState = $('.bw-fpw-load-state[data-widget-id="' + widgetId + '"]');
+
+        if (!$loadState.length) {
+            return;
+        }
+
+        var isActive = state.infiniteEnabled && state.hasMore;
+        var isComplete = state.infiniteEnabled && !state.hasMore;
+
+        $loadState.toggleClass('bw-fpw-load-state--disabled', !state.infiniteEnabled);
+        $loadState.toggleClass('bw-fpw-load-state--complete', isComplete);
+        $loadState.toggleClass('is-active', isActive);
+        $loadState.toggleClass('is-loading', !!state.isLoading);
+        $loadState.attr('data-has-more', state.hasMore ? '1' : '0');
+    }
+
+    function updateWidgetPagingState(widgetId, metadata) {
+        var state = getWidgetPagingState(widgetId);
+        var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
+
+        if (!state || !$grid.length) {
+            return null;
+        }
+
+        metadata = metadata || {};
+
+        if (typeof metadata.perPage !== 'undefined') {
+            state.perPage = parseInteger(metadata.perPage, state.perPage);
+        }
+
+        if (typeof metadata.currentPage !== 'undefined') {
+            state.currentPage = Math.max(1, parseInteger(metadata.currentPage, state.currentPage));
+        }
+
+        if (typeof metadata.nextPage !== 'undefined') {
+            state.nextPage = Math.max(0, parseInteger(metadata.nextPage, state.nextPage));
+        }
+
+        if (typeof metadata.hasMore !== 'undefined') {
+            state.hasMore = !!metadata.hasMore;
+        }
+
+        if (typeof metadata.infiniteEnabled !== 'undefined') {
+            state.infiniteEnabled = !!metadata.infiniteEnabled && state.perPage > 0;
+        }
+
+        if (typeof metadata.isLoading !== 'undefined') {
+            state.isLoading = !!metadata.isLoading;
+        }
+
+        $grid.attr('data-per-page', state.perPage);
+        $grid.attr('data-current-page', state.currentPage);
+        $grid.attr('data-next-page', state.nextPage);
+        $grid.attr('data-has-more', state.hasMore ? '1' : '0');
+        $grid.attr('data-infinite-enabled', state.infiniteEnabled ? 'yes' : 'no');
+
+        widgetPagingState[widgetId] = state;
+        updateInfiniteUi(widgetId);
+
+        return state;
+    }
+
+    function syncInfiniteObserver(widgetId) {
+        var state = getWidgetPagingState(widgetId);
+        var $loadState = $('.bw-fpw-load-state[data-widget-id="' + widgetId + '"]');
+
+        disconnectInfiniteObserver(widgetId);
+
+        if (
+            !state ||
+            !state.infiniteEnabled ||
+            !state.hasMore ||
+            state.isLoading ||
+            typeof window.IntersectionObserver === 'undefined' ||
+            !$loadState.length
+        ) {
+            return;
+        }
+
+        var $sentinel = $loadState.find('.bw-fpw-load-sentinel');
+
+        if (!$sentinel.length) {
+            return;
+        }
+
+        state.observer = new window.IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    disconnectInfiniteObserver(widgetId);
+                    loadNextPage(widgetId);
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '0px 0px ' + state.loadTriggerOffset + 'px 0px',
+            threshold: 0
+        });
+
+        state.observer.observe($sentinel[0]);
+        widgetPagingState[widgetId] = state;
     }
 
     function initFilterState(widgetId) {
@@ -667,40 +824,135 @@
         }
     }
 
-    function animatePostsStaggered($grid) {
-        if (!$grid || !$grid.length) {
+    function createResponseNodes(html) {
+        var trimmedHtml = $.trim(html || '');
+
+        if (!trimmedHtml) {
+            return $();
+        }
+
+        return $($.parseHTML(trimmedHtml, document, true));
+    }
+
+    function getResponseItems($nodes) {
+        if (!$nodes || !$nodes.length) {
+            return $();
+        }
+
+        return $nodes.filter('.bw-fpw-item').add($nodes.find('.bw-fpw-item'));
+    }
+
+    function prepareItemsForReveal($items) {
+        if (!$items || !$items.length) {
             return;
         }
 
-        var $items = $grid.find('.bw-fpw-item');
+        $items.addClass('bw-fpw-item--reveal').removeClass('bw-fpw-item--visible');
+    }
 
-        if (!$items.length) {
+    function animatePostsStaggered($items) {
+        if (!$items || !$items.length) {
             return;
         }
 
-        // Reset all items to invisible state first
-        $items.removeClass('bw-fpw-item--visible');
+        var $revealItems = $items.filter('.bw-fpw-item--reveal');
 
-        // Apply staggered fade-in with delay
-        $items.each(function (index) {
+        if (!$revealItems.length) {
+            return;
+        }
+
+        $revealItems.each(function (index) {
             var $item = $(this);
-            var delay = index * 80; // 80ms delay between each item
+            var delay = index * 70;
 
             setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
             }, delay);
         });
-
-        console.log('✨ Staggered animation applied to', $items.length, 'posts');
     }
 
-    function filterPosts(widgetId) {
+    function finalizeGridUpdate($grid, $items, appendMode, callback) {
+        var runFinalize = function () {
+            if (appendMode) {
+                layoutGrid($grid, false);
+            } else {
+                initGrid($grid);
+                $grid.css('opacity', '1');
+            }
+
+            animatePostsStaggered($items);
+
+            if (!useCssGrid($grid)) {
+                setTimeout(function () {
+                    var instance = getMasonryInstance($grid);
+                    if (instance && typeof instance.layout === 'function') {
+                        instance.layout();
+                        updateGridHeight($grid);
+                    }
+                }, 200);
+
+                if (!appendMode) {
+                    setTimeout(function () {
+                        var instance = getMasonryInstance($grid);
+                        if (instance && typeof instance.layout === 'function') {
+                            instance.layout();
+                            updateGridHeight($grid);
+                        }
+                    }, 500);
+                }
+            }
+
+            if (typeof callback === 'function') {
+                callback();
+            }
+        };
+
+        if (useCssGrid($grid)) {
+            runFinalize();
+            return;
+        }
+
+        var $imageScope = appendMode && $items && $items.length ? $items : $grid;
+        withImagesLoaded($imageScope, runFinalize);
+    }
+
+    function loadNextPage(widgetId) {
+        var state = getWidgetPagingState(widgetId);
+
+        if (!state || !state.infiniteEnabled || !state.hasMore || state.isLoading) {
+            return;
+        }
+
+        var nextPage = state.nextPage > 0 ? state.nextPage : state.currentPage + 1;
+        filterPosts(widgetId, {
+            append: true,
+            page: nextPage
+        });
+    }
+
+    function filterPosts(widgetId, options) {
+        options = options || {};
+
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
         var $wrapper = $grid.closest('.bw-filtered-post-wall');
         var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+        var pagingState = getWidgetPagingState(widgetId);
+        var appendMode = !!options.append;
 
         if (!$grid.length) {
             console.error('❌ Grid not found for widget:', widgetId);
+            return;
+        }
+
+        if (!pagingState) {
+            return;
+        }
+
+        var requestedPage = appendMode
+            ? Math.max(1, parseInteger(options.page, pagingState.nextPage > 0 ? pagingState.nextPage : pagingState.currentPage + 1))
+            : 1;
+
+        if (appendMode && (!pagingState.infiniteEnabled || !pagingState.hasMore || pagingState.isLoading)) {
             return;
         }
 
@@ -713,6 +965,7 @@
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
+        var perPage = parseInteger($grid.attr('data-per-page'), pagingState.perPage);
 
         console.log('🔍 Filtering posts:', state);
 
@@ -721,6 +974,8 @@
             ajaxRequestQueue[widgetId].abort();
             console.log('⚠️ Cancelled pending request for widget:', widgetId);
         }
+
+        disconnectInfiniteObserver(widgetId);
 
         // Check cache first
         var cacheKey = getCacheKey('filter_posts', {
@@ -731,22 +986,50 @@
             tags: state.tags,
             order_by: orderBy,
             order: order,
-            image_mode: imageMode
+            image_mode: imageMode,
+            per_page: perPage,
+            page: requestedPage
         });
 
         var cachedResponse = getCachedData(cacheKey);
         if (cachedResponse) {
+            if (appendMode) {
+                updateWidgetPagingState(widgetId, {
+                    isLoading: true
+                });
+                $wrapper.addClass('bw-filtered-post-wall--loading-more');
+            } else {
+                $grid.css('opacity', '0');
+                $wrapper.addClass('bw-filtered-post-wall--loading');
+                $filters.addClass('loading');
+            }
+
             console.log('⚡ Using cached filter results - INSTANT!');
-            processFilterResponse(cachedResponse, widgetId, $grid, $wrapper, $filters, false);
+            processFilterResponse(cachedResponse, widgetId, $grid, $wrapper, $filters, {
+                append: appendMode,
+                hadMasonryBefore: !!getMasonryInstance($grid),
+                requestedPage: requestedPage,
+                perPage: perPage
+            });
             return;
         }
 
-        // Fade out grid before filtering
-        $grid.css('opacity', '0');
-
-        // Show loading state
-        $wrapper.addClass('bw-filtered-post-wall--loading');
-        $filters.addClass('loading');
+        if (appendMode) {
+            updateWidgetPagingState(widgetId, {
+                isLoading: true
+            });
+            $wrapper.addClass('bw-filtered-post-wall--loading-more');
+        } else {
+            $grid.css('opacity', '0');
+            $wrapper.addClass('bw-filtered-post-wall--loading');
+            $filters.addClass('loading');
+            updateWidgetPagingState(widgetId, {
+                currentPage: 1,
+                nextPage: 0,
+                hasMore: false,
+                isLoading: false
+            });
+        }
 
         // OPTIMIZATION: Only destroy masonry if necessary
         // Store current instance to check if we need full reinit
@@ -769,6 +1052,8 @@
                 open_cart_popup: openCartPopup,
                 order_by: orderBy,
                 order: order,
+                per_page: perPage,
+                page: requestedPage,
                 nonce: bwFilteredPostWallAjax.nonce
             },
             success: function (response) {
@@ -777,7 +1062,12 @@
                 // Clear request queue
                 delete ajaxRequestQueue[widgetId];
                 // Process response
-                processFilterResponse(response, widgetId, $grid, $wrapper, $filters, hadMasonryBefore);
+                processFilterResponse(response, widgetId, $grid, $wrapper, $filters, {
+                    append: appendMode,
+                    hadMasonryBefore: hadMasonryBefore,
+                    requestedPage: requestedPage,
+                    perPage: perPage
+                });
             },
             error: function (xhr, status, error) {
                 // Clear request queue
@@ -790,6 +1080,16 @@
                 }
 
                 console.error('❌ AJAX error:', error);
+
+                if (appendMode) {
+                    $wrapper.removeClass('bw-filtered-post-wall--loading-more');
+                    updateWidgetPagingState(widgetId, {
+                        isLoading: false
+                    });
+                    syncInfiniteObserver(widgetId);
+                    return;
+                }
+
                 $grid.html('<div class="bw-fpw-placeholder">Error loading posts.</div>');
                 $wrapper.removeClass('bw-filtered-post-wall--loading');
                 $filters.removeClass('loading');
@@ -799,18 +1099,62 @@
         });
     }
 
-    function processFilterResponse(response, widgetId, $grid, $wrapper, $filters, hadMasonryBefore) {
+    function processFilterResponse(response, widgetId, $grid, $wrapper, $filters, options) {
+        options = options || {};
+
+        var appendMode = !!options.append;
+        var fallbackPage = Math.max(1, parseInteger(options.requestedPage, appendMode ? 2 : 1));
+        var fallbackPerPage = parseInteger(options.perPage, 12);
+        var currentPagingState = getWidgetPagingState(widgetId);
+        var paginationMeta = {
+            perPage: parseInteger(response && response.data ? response.data.per_page : fallbackPerPage, fallbackPerPage),
+            currentPage: Math.max(1, parseInteger(response && response.data ? response.data.page : fallbackPage, fallbackPage)),
+            hasMore: !!(response && response.data && response.data.has_more),
+            nextPage: Math.max(0, parseInteger(response && response.data ? response.data.next_page : 0, 0)),
+            infiniteEnabled: currentPagingState ? currentPagingState.infiniteEnabled : parseBoolData($grid.attr('data-infinite-enabled'))
+        };
+
+        if (paginationMeta.perPage <= 0) {
+            paginationMeta.infiniteEnabled = false;
+            paginationMeta.hasMore = false;
+            paginationMeta.nextPage = 0;
+        }
+
         if (response.success && response.data) {
             var hasPosts = !!response.data.has_posts;
+            var $responseNodes = createResponseNodes(response.data.html);
+            var $responseItems = getResponseItems($responseNodes);
+
+            prepareItemsForReveal($responseItems);
+
+            if (appendMode) {
+                if ($responseNodes.length) {
+                    $grid.append($responseNodes);
+                }
+
+                updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
+                    isLoading: true
+                }));
+
+                finalizeGridUpdate($grid, $responseItems, true, function () {
+                    $wrapper.removeClass('bw-filtered-post-wall--loading-more');
+                    updateWidgetPagingState(widgetId, {
+                        isLoading: false
+                    });
+                    syncInfiniteObserver(widgetId);
+                });
+
+                console.log('✅ Posts appended successfully');
+                return;
+            }
+
             $filters.attr('data-has-posts', hasPosts ? '1' : '0');
 
-            // OPTIMIZATION: Only destroy masonry if content changed
-            if (hadMasonryBefore) {
+            if (options.hadMasonryBefore) {
                 destroyGridInstance($grid);
             }
 
-            // Replace grid content
-            $grid.html(response.data.html);
+            $grid.empty().append($responseNodes);
 
             var $subcatRow = $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"]');
             var $subcatOptions = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
@@ -891,46 +1235,31 @@
                 }
             }
 
-            // CRITICAL: Wait for images to load before reinitializing masonry
-            withImagesLoaded($grid, function () {
-                console.log('📸 Images loaded, reinitializing grid');
+            updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
+                isLoading: false
+            }));
 
-                // Reinitialize masonry after images are loaded
-                initGrid($grid);
-
-                // Fade in grid and apply staggered animation to posts
-                setTimeout(function () {
-                    $grid.css('opacity', '1');
-
-                    // Apply staggered fade-in animation to posts
-                    animatePostsStaggered($grid);
-                }, 100);
-
-                // Additional layout passes for stability
-                setTimeout(function () {
-                    var instance = getMasonryInstance($grid);
-                    if (instance && typeof instance.layout === 'function') {
-                        instance.layout();
-                        updateGridHeight($grid);
-                    }
-                }, 200);
-
-                setTimeout(function () {
-                    var instance = getMasonryInstance($grid);
-                    if (instance && typeof instance.layout === 'function') {
-                        instance.layout();
-                        updateGridHeight($grid);
-                    }
-                }, 500);
-
-                // Remove loading state after images loaded
+            finalizeGridUpdate($grid, $responseItems, false, function () {
                 $wrapper.removeClass('bw-filtered-post-wall--loading');
                 $filters.removeClass('loading');
+                syncInfiniteObserver(widgetId);
             });
 
             console.log('✅ Posts filtered successfully');
         } else {
             console.error('❌ Filter response error:', response);
+
+            if (appendMode) {
+                $wrapper.removeClass('bw-filtered-post-wall--loading-more');
+                updateWidgetPagingState(widgetId, {
+                    isLoading: false,
+                    hasMore: false,
+                    nextPage: 0
+                });
+                syncInfiniteObserver(widgetId);
+                return;
+            }
+
             var emptyStateHtml = '<div class="bw-fpw-empty-state">';
             emptyStateHtml += '<p class="bw-fpw-empty-message">No content available</p>';
             emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
@@ -941,6 +1270,12 @@
             $wrapper.removeClass('bw-filtered-post-wall--loading');
             $filters.removeClass('loading');
             $filters.attr('data-has-posts', '0');
+            updateWidgetPagingState(widgetId, {
+                currentPage: 1,
+                hasMore: false,
+                nextPage: 0,
+                isLoading: false
+            });
             $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
         }
     }
@@ -1283,13 +1618,10 @@
                 filterState[widgetId].tags = initialTags;
             }
             initGrid($grid);
-
-            // Apply staggered animation on initial load
-            withImagesLoaded($grid, function () {
-                setTimeout(function () {
-                    animatePostsStaggered($grid);
-                }, 100);
+            updateWidgetPagingState(widgetId, {
+                isLoading: false
             });
+            syncInfiniteObserver(widgetId);
         });
     }
 

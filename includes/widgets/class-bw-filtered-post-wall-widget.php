@@ -1868,6 +1868,9 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $posts_per_page = -1;
         }
 
+        $pagination_per_page = $posts_per_page > 0 ? $posts_per_page : -1;
+        $infinite_enabled    = $pagination_per_page > 0;
+
         $desktop_columns = isset( $settings['desktop_columns'] ) ? absint( $settings['desktop_columns'] ) : 4;
         if ( ! in_array( $desktop_columns, [ 3, 4 ], true ) ) {
             $desktop_columns = 4;
@@ -1934,8 +1937,10 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
 
         $query_args = [
             'post_type'      => $post_type,
-            'posts_per_page' => $posts_per_page > 0 ? $posts_per_page : -1,
+            'posts_per_page' => $infinite_enabled ? $pagination_per_page + 1 : -1,
             'post_status'    => 'publish',
+            'no_found_rows'  => true,
+            'ignore_sticky_posts' => true,
             'orderby'        => $order_by,
             'order'          => $order,
         ];
@@ -1974,6 +1979,14 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             }
         }
 
+        $query = new \WP_Query( $query_args );
+
+        $has_posts         = $query->have_posts();
+        $has_more          = $infinite_enabled && $query->post_count > $pagination_per_page;
+        $current_page      = 1;
+        $next_page         = $has_more ? 2 : 0;
+        $load_trigger_px   = 300;
+
         $wrapper_classes = [ 'bw-filtered-post-wall' ];
         $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
         $grid_attributes = [
@@ -1998,6 +2011,12 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             'data-open-cart-popup'        => 'no',
             'data-order-by'               => $order_by,
             'data-order'                  => $order,
+            'data-per-page'               => $pagination_per_page,
+            'data-current-page'           => $current_page,
+            'data-next-page'              => $next_page,
+            'data-has-more'               => $has_more ? '1' : '0',
+            'data-infinite-enabled'       => $infinite_enabled ? 'yes' : 'no',
+            'data-load-trigger-offset'    => $load_trigger_px,
         ];
 
         $grid_attr_html = '';
@@ -2009,15 +2028,26 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
             $grid_attr_html .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( (string) $value ) );
         }
 
-        $query = new \WP_Query( $query_args );
+        $load_state_classes = [ 'bw-fpw-load-state' ];
+        if ( ! $infinite_enabled ) {
+            $load_state_classes[] = 'bw-fpw-load-state--disabled';
+        } elseif ( ! $has_more ) {
+            $load_state_classes[] = 'bw-fpw-load-state--complete';
+        }
+
+        $rendered_posts = 0;
         ?>
         <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>" style="<?php echo esc_attr( $wrapper_style ); ?>">
             <div<?php echo $grid_attr_html; ?>>
-                <?php if ( $query->have_posts() ) : ?>
+                <?php if ( $has_posts ) : ?>
                     <?php
                     while ( $query->have_posts() ) :
                         $query->the_post();
+                        if ( $infinite_enabled && $rendered_posts >= $pagination_per_page ) {
+                            break;
+                        }
                         $this->render_post_item( $settings, $post_type, $image_toggle, $image_size, $image_mode, $hover_effect, $open_cart_popup );
+                        $rendered_posts++;
                     endwhile;
                     ?>
                 <?php else : ?>
@@ -2028,6 +2058,13 @@ class BW_Filtered_Post_Wall_Widget extends Widget_Base {
                         </button>
                     </div>
                 <?php endif; ?>
+            </div>
+            <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
+                <div class="bw-fpw-load-indicator" role="status">
+                    <span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
+                    <span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
+                </div>
+                <div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
             </div>
         </div>
         <?php

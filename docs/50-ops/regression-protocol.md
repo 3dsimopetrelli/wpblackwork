@@ -44,6 +44,21 @@ Wave-specific checks:
   - one-time shared core initialization
   - widget-specific adapter behavior preserved
 
+## BW Product Grid Infinite Loading
+- Task: `BW-TASK-20260312-ELW-01`
+- Scope:
+  - `bw-filtered-post-wall` / `BW-UI Product Grid`
+- Required checks:
+  - initial server-rendered batch count matches subsequent AJAX `per_page`
+  - filter changes reset pagination to page 1 and replace grid content cleanly
+  - infinite loading appends the next batch without full-grid destruction
+  - one in-flight request max per widget instance under rapid scroll
+  - bottom loading indicator appears only during append fetches
+  - sequential reveal is applied to appended/replaced items without hiding untouched initial markup
+  - CSS-grid mode remains stable across filter changes and append batches
+  - Masonry mode reflows safely after append/filter changes with no broken overlap
+  - legacy unlimited `posts_per_page` instances keep replace-mode behavior and do not enter infinite loading
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

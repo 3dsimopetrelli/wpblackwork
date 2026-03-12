@@ -1289,7 +1289,7 @@ function bw_fpw_get_default_per_page()
 
 function bw_fpw_get_max_per_page()
 {
-    return 48;
+    return 100;
 }
 
 function bw_fpw_get_tag_source_posts_limit()
@@ -1809,12 +1809,16 @@ function bw_fpw_filter_posts()
     $open_cart_popup = bw_fpw_normalize_bool(isset($_POST['open_cart_popup']) ? wp_unslash($_POST['open_cart_popup']) : null, false);
     $order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
     $order = bw_fpw_normalize_order(isset($_POST['order']) ? wp_unslash($_POST['order']) : 'DESC');
-    $per_page = bw_fpw_normalize_positive_int(
-        isset($_POST['per_page']) ? wp_unslash($_POST['per_page']) : bw_fpw_get_default_per_page(),
-        bw_fpw_get_default_per_page(),
-        1,
-        bw_fpw_get_max_per_page()
-    );
+    $raw_per_page = isset($_POST['per_page']) ? wp_unslash($_POST['per_page']) : bw_fpw_get_default_per_page();
+    $normalized_per_page = is_numeric($raw_per_page) ? (int) $raw_per_page : bw_fpw_get_default_per_page();
+    $per_page = $normalized_per_page <= 0
+        ? -1
+        : bw_fpw_normalize_positive_int(
+            $normalized_per_page,
+            bw_fpw_get_default_per_page(),
+            1,
+            bw_fpw_get_max_per_page()
+        );
     $page = bw_fpw_normalize_positive_int(
         isset($_POST['page']) ? wp_unslash($_POST['page']) : 1,
         1,
@@ -1865,9 +1869,11 @@ function bw_fpw_filter_posts()
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
     $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
 
+    $query_posts_per_page = $per_page > 0 ? $per_page + 1 : -1;
+
     $query_args = [
         'post_type' => $post_type,
-        'posts_per_page' => $per_page,
+        'posts_per_page' => $query_posts_per_page,
         'paged' => $page,
         'post_status' => 'publish',
         'no_found_rows' => true,
@@ -1917,12 +1923,20 @@ function bw_fpw_filter_posts()
     $query = new WP_Query($query_args);
 
     $has_posts = $query->have_posts();
+    $has_more = $per_page > 0 && $has_posts && $query->post_count > $per_page;
+    $next_page = $has_more ? $page + 1 : 0;
+    $rendered_posts = 0;
+    $image_loading = $page > 1 ? 'lazy' : 'eager';
 
     ob_start();
 
     if ($has_posts) {
         while ($query->have_posts()) {
             $query->the_post();
+
+            if ($per_page > 0 && $rendered_posts >= $per_page) {
+                break;
+            }
 
             $post_id = get_the_ID();
 
@@ -1965,6 +1979,7 @@ function bw_fpw_filter_posts()
                             'placeholder_classes' => 'bw-fpw-image-placeholder',
                         ]
                     );
+                    $rendered_posts++;
                     continue;
                 }
             }
@@ -1992,7 +2007,7 @@ function bw_fpw_filter_posts()
                         $image_size,
                         false,
                         [
-                            'loading' => 'eager',
+                            'loading' => $image_loading,
                             'class' => 'bw-slider-main',
                         ]
                     );
@@ -2010,7 +2025,7 @@ function bw_fpw_filter_posts()
                         false,
                         [
                             'class' => 'bw-slider-hover',
-                            'loading' => 'eager',
+                            'loading' => $image_loading,
                         ]
                     );
                 }
@@ -2112,8 +2127,9 @@ function bw_fpw_filter_posts()
                 </div>
             </article>
             <?php
+            $rendered_posts++;
         }
-    } else {
+    } elseif (1 === $page) {
         ?>
         <div class="bw-fpw-empty-state">
             <p class="bw-fpw-empty-message"><?php esc_html_e('No content available', 'bw-elementor-widgets'); ?></p>
@@ -2136,6 +2152,10 @@ function bw_fpw_filter_posts()
         'tags_html' => bw_fpw_render_tag_markup($related_tags),
         'available_tags' => $available_tags,
         'has_posts' => $has_posts,
+        'page' => $page,
+        'per_page' => $per_page,
+        'has_more' => $has_more,
+        'next_page' => $next_page,
     ];
 
     // PERFORMANCE: Cache result for 3 minutes (skip random order)
