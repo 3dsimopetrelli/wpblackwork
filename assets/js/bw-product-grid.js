@@ -361,39 +361,6 @@
         };
     }
 
-    function clearWidgetCache(widgetId) {
-        Object.keys(ajaxCache).forEach(function (key) {
-            if (key.indexOf('_' + widgetId) > -1) {
-                delete ajaxCache[key];
-            }
-        });
-    }
-
-    // ============================================
-    // DEBOUNCING SYSTEM
-    // ============================================
-
-    var debounceTimers = {};
-
-    function debounce(func, wait, immediate) {
-        var timeout;
-        return function executedFunction() {
-            var context = this;
-            var args = arguments;
-
-            var later = function () {
-                timeout = null;
-                if (!immediate) func.apply(context, args);
-            };
-
-            var callNow = immediate && !timeout;
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-
-            if (callNow) func.apply(context, args);
-        };
-    }
-
     function parseInteger(value, fallback) {
         var parsed = parseInt(value, 10);
         return isNaN(parsed) ? fallback : parsed;
@@ -846,30 +813,6 @@
                     $mobileTagGroup.removeClass('is-open');
                     $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'true');
                 }
-            }
-        }
-    }
-
-    function loadAndOpenTagsInMobile(categoryId, widgetId) {
-        var $mobileTagGroup = $('.bw-fpw-mobile-filter-group--tags[data-widget-id="' + widgetId + '"]');
-        var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
-
-        // Check if tags are available in the mobile panel
-        if ($mobileTagGroup.length && $tagOptions.length) {
-            var hasTags = $tagOptions.find('.bw-fpw-tag-button').length > 0;
-
-            if (hasTags) {
-                // Auto-open tags dropdown in mobile
-                setTimeout(function () {
-                    if (!$mobileTagGroup.hasClass('is-open')) {
-                        $mobileTagGroup.addClass('is-open');
-                        $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
-                    }
-                }, 300);
-            } else {
-                // Close tags dropdown if no tags available
-                $mobileTagGroup.removeClass('is-open');
-                $mobileTagGroup.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'true');
             }
         }
     }

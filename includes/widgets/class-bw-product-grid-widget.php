@@ -35,8 +35,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
     protected function register_controls() {
         $this->register_filter_controls();
+        $this->register_responsive_filter_controls();
         $this->register_query_controls();
         $this->register_rebuild_layout_controls();
+        $this->register_image_controls();
     }
 
     private function register_rebuild_layout_controls() {
