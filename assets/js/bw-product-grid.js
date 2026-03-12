@@ -165,6 +165,39 @@
         callback();
     }
 
+    function withImagesLoadedFallback($grid, timeoutMs, callback) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        var hasCompleted = false;
+        var fallbackDelay = Math.max(0, parseInteger(timeoutMs, 0));
+        var fallbackTimer = null;
+
+        var completeOnce = function () {
+            if (hasCompleted) {
+                return;
+            }
+
+            hasCompleted = true;
+
+            if (fallbackTimer) {
+                clearTimeout(fallbackTimer);
+                fallbackTimer = null;
+            }
+
+            callback();
+        };
+
+        if (fallbackDelay > 0) {
+            fallbackTimer = setTimeout(function () {
+                completeOnce();
+            }, fallbackDelay);
+        }
+
+        withImagesLoaded($grid, completeOnce);
+    }
+
     function updateGridHeight($grid) {
         if (!$grid || !$grid.length) {
             return;
@@ -882,6 +915,14 @@
             .removeClass('bw-fpw-item--visible');
     }
 
+    function cleanupRevealClasses($item) {
+        if (!$item || !$item.length) {
+            return;
+        }
+
+        $item.removeClass('bw-fpw-item--reveal bw-fpw-item--reveal-initial bw-fpw-item--reveal-append bw-fpw-item--visible');
+    }
+
     function animatePostsStaggered($items, mode, widgetId) {
         if (!$items || !$items.length) {
             return;
@@ -890,6 +931,8 @@
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
         var baseDelay = revealMode === 'initial' ? 72 : 58;
+        var transitionDuration = revealMode === 'initial' ? 620 : 540;
+        var cleanupDelay = transitionDuration + 40;
         if (!$revealItems.length) {
             return;
         }
@@ -905,6 +948,14 @@
 
             var revealTimer = setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
+
+                var cleanupTimer = setTimeout(function () {
+                    cleanupRevealClasses($item);
+                }, cleanupDelay);
+
+                if (widgetId && staggerTimersByWidget[widgetId]) {
+                    staggerTimersByWidget[widgetId].push(cleanupTimer);
+                }
             }, delay);
 
             if (widgetId && staggerTimersByWidget[widgetId]) {
@@ -949,6 +1000,12 @@
         }
 
         var $imageScope = appendMode && $items && $items.length ? $items : $grid;
+
+        if (appendMode) {
+            withImagesLoadedFallback(getPrimaryImageScope($imageScope), 450, runFinalize);
+            return;
+        }
+
         withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize);
     }
 
