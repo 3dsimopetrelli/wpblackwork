@@ -365,7 +365,7 @@
                 percentPosition: false,
                 gutter: gap,
                 horizontalOrder: true,
-                transitionDuration: '0.3s'
+                transitionDuration: '0'
             };
 
             $grid.masonry(masonryOptions);
@@ -949,7 +949,7 @@
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
         var baseDelay = revealMode === 'initial' ? 72 : 58;
-        var cleanupDelay = revealMode === 'initial' ? 720 : 640;
+        var cleanupDelay = revealMode === 'initial' ? 600 : 520;
 
         if (!$revealItems.length) {
             return;
@@ -984,31 +984,19 @@
 
     function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
         var widgetId = $grid.attr('data-widget-id');
+
+        var doAnimate = function () {
+            animatePostsStaggered($items, revealMode, widgetId);
+            if (typeof callback === 'function') {
+                callback();
+            }
+        };
+
         var runFinalize = function () {
-            var completeReveal = function () {
-                animatePostsStaggered($items, revealMode, widgetId);
-
-                if (!useCssGrid($grid)) {
-                    setTimeout(function () {
-                        var instance = getMasonryInstance($grid);
-                        if (instance && typeof instance.layout === 'function') {
-                            instance.layout();
-                            updateGridHeight($grid);
-                        }
-                    }, 200);
-
-                }
-
-                if (typeof callback === 'function') {
-                    callback();
-                }
-            };
-
             if (appendMode) {
-                layoutGrid($grid, false);
-                completeReveal();
+                layoutGrid($grid, false, doAnimate);
             } else {
-                initGrid($grid, completeReveal);
+                initGrid($grid, doAnimate);
             }
         };
 
@@ -1032,21 +1020,15 @@
         }
 
         var widgetId = $grid.attr('data-widget-id');
-        var $items = $grid.children('.bw-fpw-item');
+        var $items = $grid.children('.bw-fpw-item').filter('.bw-fpw-item--reveal');
 
         if (!$items.length) {
             $grid.attr('data-initial-reveal-done', 'yes');
             return;
         }
 
-        prepareItemsForReveal($items, 'initial');
-
-        requestAnimationFrame(function () {
-            withImagesLoaded(getPrimaryImageScope($grid), function () {
-                animatePostsStaggered($items, 'initial', widgetId);
-                $grid.attr('data-initial-reveal-done', 'yes');
-            });
-        });
+        animatePostsStaggered($items, 'initial', widgetId);
+        $grid.attr('data-initial-reveal-done', 'yes');
     }
 
     function loadNextPage(widgetId) {
@@ -1762,6 +1744,14 @@
                 });
                 filterState[widgetId].tags = initialTags;
             }
+
+            if (!isElementorEditor()) {
+                var $initialItems = $grid.children('.bw-fpw-item');
+                if ($initialItems.length) {
+                    prepareItemsForReveal($initialItems, 'initial');
+                }
+            }
+
             initGrid($grid, function () {
                 runInitialReveal($grid);
             });

@@ -294,23 +294,19 @@
 
 .bw-fpw-item.bw-fpw-item--reveal {
   opacity: 0;
-  will-change: opacity, transform;
-  backface-visibility: hidden;
+  will-change: opacity;
 }
 
 .bw-fpw-item.bw-fpw-item--reveal-initial {
-  transform: translateY(1px);
-  transition: opacity 0.62s cubic-bezier(0.22, 1, 0.36, 1), transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bw-fpw-item.bw-fpw-item--reveal-append {
-  transform: translateY(2px);
-  transition: opacity 0.54s cubic-bezier(0.22, 1, 0.36, 1), transform 0.54s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bw-fpw-item.bw-fpw-item--reveal.bw-fpw-item--visible {
   opacity: 1;
-  transform: translateY(0);
 }
 
 .bw-fpw-load-state {
@@ -397,9 +393,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bw-fpw-item.bw-fpw-item--reveal {
+  .bw-fpw-item.bw-fpw-item--reveal-initial,
+  .bw-fpw-item.bw-fpw-item--reveal-append {
     transition: none;
-    transform: none;
   }
 
   .bw-fpw-load-indicator__spinner {
