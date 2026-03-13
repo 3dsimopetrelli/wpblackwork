@@ -956,8 +956,12 @@
         }
 
         if (widgetId) {
-            clearStaggerTimers(widgetId);
-            staggerTimersByWidget[widgetId] = [];
+            if (revealMode !== 'append') {
+                clearStaggerTimers(widgetId);
+            }
+            if (!staggerTimersByWidget[widgetId]) {
+                staggerTimersByWidget[widgetId] = [];
+            }
         }
 
         $revealItems.each(function (index) {
@@ -1071,7 +1075,9 @@
             return;
         }
 
-        clearStaggerTimers(widgetId);
+        if (!appendMode) {
+            clearStaggerTimers(widgetId);
+        }
 
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
