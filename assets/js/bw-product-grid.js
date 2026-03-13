@@ -261,7 +261,7 @@
         $grid.removeClass('bw-fpw-initialized');
     }
 
-    function layoutGrid($grid, forceReinit, onReady) {
+    function layoutGrid($grid, forceReinit, onReady, imageWaitTimeout) {
         var finalizeLayout = function () {
             if (typeof onReady === 'function') {
                 onReady();
@@ -351,7 +351,7 @@
                 instance.layout();
                 updateGridHeight($grid);
                 finalizeLayout();
-            });
+            }, imageWaitTimeout);
             return;
         }
 
@@ -994,7 +994,7 @@
 
         var runFinalize = function () {
             if (appendMode) {
-                layoutGrid($grid, false, doAnimate);
+                layoutGrid($grid, false, doAnimate, 600);
             } else {
                 initGrid($grid, doAnimate);
             }
