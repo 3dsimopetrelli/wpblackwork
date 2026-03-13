@@ -995,11 +995,18 @@
         });
     }
 
-    // Per-item IntersectionObserver reveal for appended cards.
-    // Each card gets its own observer and fades in exactly when IT enters the
-    // viewport — fully independent of scroll speed. A small per-column delay
-    // (35ms × column index) preserves the left-to-right stagger within a row.
-    // Falls back to immediate animatePostsStaggered if IO is unavailable.
+    // Per-item reveal for appended cards.
+    //
+    // Strategy:
+    //   • Cards already visible in the viewport at append time → apply a
+    //     DOM-order sequential stagger (80ms × index), identical to the
+    //     initial load animation.
+    //   • Cards below the fold → each gets its own IntersectionObserver and
+    //     fades in when it scrolls into view, with a col × 80ms left-to-right
+    //     stagger within the row.
+    //
+    // The 12-second safety fallback only fires for genuinely stuck items
+    // (hidden containers, scroll disabled, etc.) — not for normal slow scrolling.
     function revealItemsPerViewport($items, widgetId) {
         if (!$items || !$items.length) {
             return;
@@ -1010,8 +1017,9 @@
             return;
         }
 
-        var COL_STAGGER = 35;  // ms extra delay per column
+        var STAGGER = 80;       // ms — matches initial-load stagger
         var cleanupDelay = 1200;
+        var FALLBACK_MS = 12000; // safety net only
 
         if (widgetId) {
             if (!staggerTimersByWidget[widgetId]) {
@@ -1022,68 +1030,71 @@
             }
         }
 
+        var vph = window.innerHeight || document.documentElement.clientHeight;
+        var immediateIndex = 0; // sequential counter for already-visible cards
+
+        function scheduleReveal($item, delay) {
+            var revealTimer = setTimeout(function () {
+                $item.addClass('bw-fpw-item--visible');
+
+                var cleanTimer = setTimeout(function () {
+                    $item.removeClass(
+                        'bw-fpw-item--reveal bw-fpw-item--reveal-initial ' +
+                        'bw-fpw-item--reveal-append bw-fpw-item--visible'
+                    );
+                }, cleanupDelay);
+
+                if (widgetId && staggerTimersByWidget[widgetId]) {
+                    staggerTimersByWidget[widgetId].push(cleanTimer);
+                }
+            }, delay);
+
+            if (widgetId && staggerTimersByWidget[widgetId]) {
+                staggerTimersByWidget[widgetId].push(revealTimer);
+            }
+        }
+
         $items.filter('.bw-fpw-item--reveal').each(function () {
             var $item = $(this);
             var el = $item[0];
+            var rect = el.getBoundingClientRect();
+            var alreadyVisible = rect.top < vph && rect.bottom > 0;
+
+            if (alreadyVisible) {
+                // Card is in viewport right now — stagger sequentially by DOM order.
+                scheduleReveal($item, immediateIndex * STAGGER);
+                immediateIndex++;
+                return;
+            }
+
+            // Card is below the fold — reveal when it enters the viewport.
             var revealed = false;
             var fallbackTimer = null;
             var observer;
 
-            var reveal = function (colIndex) {
-                if (revealed) {
+            observer = new window.IntersectionObserver(function (entries) {
+                if (!entries[0] || !entries[0].isIntersecting || revealed) {
                     return;
                 }
                 revealed = true;
-                if (fallbackTimer) {
-                    clearTimeout(fallbackTimer);
-                }
-                if (observer) {
-                    observer.disconnect();
-                }
-
-                // Column index drives left-to-right stagger within a row.
-                // offsetLeft / offsetWidth gives a reliable column number for
-                // both Masonry (absolute positioned) and CSS grid layouts.
-                var col = (typeof colIndex === 'number') ? colIndex : 0;
-                var delay = col * COL_STAGGER;
-
-                var revealTimer = setTimeout(function () {
-                    $item.addClass('bw-fpw-item--visible');
-
-                    var cleanTimer = setTimeout(function () {
-                        $item.removeClass(
-                            'bw-fpw-item--reveal bw-fpw-item--reveal-initial ' +
-                            'bw-fpw-item--reveal-append bw-fpw-item--visible'
-                        );
-                    }, cleanupDelay);
-
-                    if (widgetId && staggerTimersByWidget[widgetId]) {
-                        staggerTimersByWidget[widgetId].push(cleanTimer);
-                    }
-                }, delay);
-
-                if (widgetId && staggerTimersByWidget[widgetId]) {
-                    staggerTimersByWidget[widgetId].push(revealTimer);
-                }
-            };
-
-            observer = new window.IntersectionObserver(function (entries) {
-                if (entries[0] && entries[0].isIntersecting) {
-                    var col = Math.min(
-                        5,
-                        Math.round(el.offsetLeft / Math.max(1, el.offsetWidth))
-                    );
-                    reveal(col);
-                }
+                clearTimeout(fallbackTimer);
+                observer.disconnect();
+                // Left-to-right stagger within the row via column position.
+                var col = Math.min(5, Math.round(el.offsetLeft / Math.max(1, el.offsetWidth)));
+                scheduleReveal($item, col * STAGGER);
             }, { threshold: 0 });
 
             observer.observe(el);
 
-            // Safety fallback: reveal with no stagger if the card never
-            // enters the viewport (e.g. layout shift, hidden container).
+            // Safety net only — not meant to fire during normal scrolling.
             fallbackTimer = setTimeout(function () {
-                reveal(0);
-            }, 3000);
+                if (revealed) {
+                    return;
+                }
+                revealed = true;
+                observer.disconnect();
+                scheduleReveal($item, 0);
+            }, FALLBACK_MS);
 
             if (widgetId) {
                 staggerObserversByWidget[widgetId].push(observer);
