@@ -306,7 +306,7 @@
 
 .bw-fpw-item.bw-fpw-item--reveal-initial,
 .bw-fpw-item.bw-fpw-item--reveal-append {
-  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bw-fpw-item.bw-fpw-item--reveal.bw-fpw-item--visible {
