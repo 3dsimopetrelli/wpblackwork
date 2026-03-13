@@ -150,15 +150,34 @@
         return $primaryImages.length ? $primaryImages : $scope;
     }
 
-    function withImagesLoaded($grid, callback) {
+    function withImagesLoaded($scope, callback, timeout) {
         if (typeof callback !== 'function') {
             return;
         }
 
-        if (typeof $grid.imagesLoaded === 'function') {
-            $grid.imagesLoaded(function () {
-                callback();
-            });
+        var maxWait = typeof timeout === 'number' && timeout > 0 ? timeout : 0;
+
+        if (typeof $scope.imagesLoaded === 'function') {
+            if (maxWait > 0) {
+                var fired = false;
+                var fallbackTimer = setTimeout(function () {
+                    if (!fired) {
+                        fired = true;
+                        callback();
+                    }
+                }, maxWait);
+                $scope.imagesLoaded(function () {
+                    if (!fired) {
+                        fired = true;
+                        clearTimeout(fallbackTimer);
+                        callback();
+                    }
+                });
+            } else {
+                $scope.imagesLoaded(function () {
+                    callback();
+                });
+            }
             return;
         }
 
@@ -910,9 +929,8 @@
         var revealMode = mode === 'initial' ? 'initial' : 'append';
 
         $items
-            .addClass('bw-fpw-item--reveal bw-fpw-item--reveal-' + revealMode)
-            .removeClass('bw-fpw-item--reveal-initial bw-fpw-item--reveal-append')
-            .removeClass('bw-fpw-item--visible');
+            .removeClass('bw-fpw-item--reveal-initial bw-fpw-item--reveal-append bw-fpw-item--visible')
+            .addClass('bw-fpw-item--reveal bw-fpw-item--reveal-' + revealMode);
     }
 
     function cleanupRevealClasses($item) {
@@ -931,8 +949,8 @@
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
         var baseDelay = revealMode === 'initial' ? 72 : 58;
-        var transitionDuration = revealMode === 'initial' ? 620 : 540;
-        var cleanupDelay = transitionDuration + 40;
+        var cleanupDelay = revealMode === 'initial' ? 720 : 640;
+
         if (!$revealItems.length) {
             return;
         }
@@ -950,7 +968,7 @@
                 $item.addClass('bw-fpw-item--visible');
 
                 var cleanupTimer = setTimeout(function () {
-                    cleanupRevealClasses($item);
+                    $item.removeClass('bw-fpw-item--reveal bw-fpw-item--reveal-initial bw-fpw-item--reveal-append bw-fpw-item--visible');
                 }, cleanupDelay);
 
                 if (widgetId && staggerTimersByWidget[widgetId]) {
@@ -1000,13 +1018,7 @@
         }
 
         var $imageScope = appendMode && $items && $items.length ? $items : $grid;
-
-        if (appendMode) {
-            withImagesLoadedFallback(getPrimaryImageScope($imageScope), 450, runFinalize);
-            return;
-        }
-
-        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize);
+        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize, appendMode ? 450 : 0);
     }
 
     function runInitialReveal($grid) {
@@ -1273,7 +1285,7 @@
             prepareItemsForReveal($responseItems, appendMode ? 'append' : 'initial');
 
             if (appendMode) {
-                if ($responseItems && $responseItems.length) {
+                if ($responseItems.length) {
                     $grid.append($responseItems);
                 }
 
