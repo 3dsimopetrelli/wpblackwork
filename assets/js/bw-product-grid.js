@@ -1758,13 +1758,13 @@
                 }
             }
 
-            initGrid($grid, function () {
-                runInitialReveal($grid);
-            });
             updateWidgetPagingState(widgetId, {
                 isLoading: false
             });
-            syncInfiniteObserver(widgetId);
+            initGrid($grid, function () {
+                runInitialReveal($grid);
+                syncInfiniteObserver(widgetId);
+            });
         });
     }
 
