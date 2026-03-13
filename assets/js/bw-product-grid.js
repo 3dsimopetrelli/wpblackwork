@@ -995,18 +995,24 @@
         });
     }
 
-    // Per-item reveal for appended cards.
+    // Per-batch reveal for appended cards.
     //
-    // Strategy:
-    //   • Cards already visible in the viewport at append time → apply a
-    //     DOM-order sequential stagger (80ms × index), identical to the
-    //     initial load animation.
-    //   • Cards below the fold → each gets its own IntersectionObserver and
-    //     fades in when it scrolls into view, with a col × 80ms left-to-right
-    //     stagger within the row.
+    // Two mechanisms work together so cards always fade in regardless of
+    // scroll speed:
     //
-    // The 12-second safety fallback only fires for genuinely stuck items
-    // (hidden containers, scroll disabled, etc.) — not for normal slow scrolling.
+    //   1. IntersectionObserver — handles normal scrolling.  All entries that
+    //      arrive in the same IO callback are treated as one batch.
+    //
+    //   2. Scroll + rAF sweep — on every animation frame where a scroll
+    //      occurred, any still-pending card whose bounding rect is inside the
+    //      viewport is swept up.  This catches items the browser skipped
+    //      during fast / inertia scrolling (items that entered and left the
+    //      viewport between two IO frames and were never reported as
+    //      isIntersecting: true).
+    //
+    // Both paths call revealBatch(), which sorts items by position
+    // (top → left) and staggers them sequentially so the order is always
+    // natural and never random.
     function revealItemsPerViewport($items, widgetId) {
         if (!$items || !$items.length) {
             return;
@@ -1017,9 +1023,9 @@
             return;
         }
 
-        var STAGGER = 80;       // ms — matches initial-load stagger
-        var cleanupDelay = 1200;
-        var FALLBACK_MS = 12000; // safety net only
+        var STAGGER = 80;        // ms between items within a batch
+        var cleanupDelay = 2200; // must be >= CSS transition duration (1.8s)
+        var FALLBACK_MS = 15000; // safety net for genuinely stuck items only
 
         if (widgetId) {
             if (!staggerTimersByWidget[widgetId]) {
@@ -1030,75 +1036,163 @@
             }
         }
 
-        var vph = window.innerHeight || document.documentElement.clientHeight;
-        var immediateIndex = 0; // sequential counter for already-visible cards
+        // Pending items tracked by a temp attribute for O(1) lookup.
+        var ATTR = 'data-bw-rid';
+        var uidCounter = 0;
+        var pendingMap = {};   // uid → DOM element
+        var pendingCount = 0;
 
-        function scheduleReveal($item, delay) {
-            var revealTimer = setTimeout(function () {
+        $items.filter('.bw-fpw-item--reveal').each(function () {
+            var uid = ++uidCounter;
+            this.setAttribute(ATTR, uid);
+            pendingMap[uid] = this;
+            pendingCount++;
+        });
+
+        if (!pendingCount) {
+            return;
+        }
+
+        function scheduleItemReveal($item, delay) {
+            var t = setTimeout(function () {
                 $item.addClass('bw-fpw-item--visible');
-
-                var cleanTimer = setTimeout(function () {
+                var ct = setTimeout(function () {
+                    $item.removeAttr(ATTR);
                     $item.removeClass(
                         'bw-fpw-item--reveal bw-fpw-item--reveal-initial ' +
                         'bw-fpw-item--reveal-append bw-fpw-item--visible'
                     );
                 }, cleanupDelay);
-
                 if (widgetId && staggerTimersByWidget[widgetId]) {
-                    staggerTimersByWidget[widgetId].push(cleanTimer);
+                    staggerTimersByWidget[widgetId].push(ct);
                 }
             }, delay);
-
             if (widgetId && staggerTimersByWidget[widgetId]) {
-                staggerTimersByWidget[widgetId].push(revealTimer);
+                staggerTimersByWidget[widgetId].push(t);
             }
         }
 
-        $items.filter('.bw-fpw-item--reveal').each(function () {
-            var $item = $(this);
-            var el = $item[0];
-            var rect = el.getBoundingClientRect();
-            var alreadyVisible = rect.top < vph && rect.bottom > 0;
+        // Sort elements by visual position: top row first, left-to-right within
+        // the same row.  Guarantees a natural reading-order stagger every time.
+        function sortByPosition(elements) {
+            return elements.slice().sort(function (a, b) {
+                var ra = a.getBoundingClientRect();
+                var rb = b.getBoundingClientRect();
+                var dy = ra.top - rb.top;
+                if (Math.abs(dy) > 20) {
+                    return dy;
+                }
+                return ra.left - rb.left;
+            });
+        }
 
-            if (alreadyVisible) {
-                // Card is in viewport right now — stagger sequentially by DOM order.
-                scheduleReveal($item, immediateIndex * STAGGER);
-                immediateIndex++;
+        function revealBatch(elements) {
+            // Filter to only still-pending items (avoid double-reveal).
+            var toReveal = elements.filter(function (el) {
+                var uid = el.getAttribute(ATTR);
+                return uid && pendingMap[uid];
+            });
+            if (!toReveal.length) {
                 return;
             }
+            sortByPosition(toReveal).forEach(function (el, i) {
+                var uid = el.getAttribute(ATTR);
+                delete pendingMap[uid];
+                pendingCount--;
+                scheduleItemReveal($(el), i * STAGGER);
+            });
+            if (!pendingCount) {
+                teardown();
+            }
+        }
 
-            // Card is below the fold — reveal when it enters the viewport.
-            var revealed = false;
-            var fallbackTimer = null;
-            var observer;
+        var io = null;
+        var scrollNs = 'scroll.bwreveal' + (widgetId || uidCounter);
 
-            observer = new window.IntersectionObserver(function (entries) {
-                if (!entries[0] || !entries[0].isIntersecting || revealed) {
+        function teardown() {
+            if (io) {
+                io.disconnect();
+                io = null;
+            }
+            $(window).off(scrollNs);
+        }
+
+        function getPendingInViewport() {
+            var vph = window.innerHeight || document.documentElement.clientHeight;
+            var result = [];
+            Object.keys(pendingMap).forEach(function (uid) {
+                var el = pendingMap[uid];
+                if (!el) {
                     return;
                 }
-                revealed = true;
-                clearTimeout(fallbackTimer);
-                observer.disconnect();
-                // Left-to-right stagger within the row via column position.
-                var col = Math.min(5, Math.round(el.offsetLeft / Math.max(1, el.offsetWidth)));
-                scheduleReveal($item, col * STAGGER);
-            }, { threshold: 0 });
+                var r = el.getBoundingClientRect();
+                if (r.bottom > 0 && r.top < vph) {
+                    result.push(el);
+                }
+            });
+            return result;
+        }
 
-            observer.observe(el);
-
-            // Safety net only — not meant to fire during normal scrolling.
-            fallbackTimer = setTimeout(function () {
-                if (revealed) {
+        // 1. IntersectionObserver — normal scrolling
+        io = new window.IntersectionObserver(function (entries) {
+            var entering = [];
+            entries.forEach(function (e) {
+                if (!e.isIntersecting) {
                     return;
                 }
-                revealed = true;
-                observer.disconnect();
-                scheduleReveal($item, 0);
+                var uid = e.target.getAttribute(ATTR);
+                if (uid && pendingMap[uid]) {
+                    entering.push(e.target);
+                }
+            });
+            if (entering.length) {
+                revealBatch(entering);
+            }
+        }, { threshold: 0 });
+
+        Object.keys(pendingMap).forEach(function (uid) {
+            io.observe(pendingMap[uid]);
+        });
+
+        if (widgetId && staggerObserversByWidget[widgetId]) {
+            staggerObserversByWidget[widgetId].push(io);
+        }
+
+        // 2. Scroll + rAF sweep — fast / inertia scrolling safety net
+        var ticking = false;
+        $(window).on(scrollNs, function () {
+            if (ticking || !pendingCount) {
+                return;
+            }
+            ticking = true;
+            requestAnimationFrame(function () {
+                ticking = false;
+                var inView = getPendingInViewport();
+                if (inView.length) {
+                    revealBatch(inView);
+                }
+            });
+        });
+
+        // Initial sweep — reveals items already in the viewport at append time.
+        var initialVisible = getPendingInViewport();
+        if (initialVisible.length) {
+            revealBatch(initialVisible);
+        }
+
+        // Per-item safety fallback — only for genuinely stuck items.
+        Object.keys(pendingMap).forEach(function (uid) {
+            var el = pendingMap[uid];
+            if (!el) {
+                return;
+            }
+            var ft = setTimeout(function () {
+                if (pendingMap[uid]) {
+                    revealBatch([el]);
+                }
             }, FALLBACK_MS);
-
-            if (widgetId) {
-                staggerObserversByWidget[widgetId].push(observer);
-                staggerTimersByWidget[widgetId].push(fallbackTimer);
+            if (widgetId && staggerTimersByWidget[widgetId]) {
+                staggerTimersByWidget[widgetId].push(ft);
             }
         });
     }
