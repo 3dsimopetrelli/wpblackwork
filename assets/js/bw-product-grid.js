@@ -184,6 +184,39 @@
         callback();
     }
 
+    function withImagesLoadedFallback($grid, timeoutMs, callback) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        var hasCompleted = false;
+        var fallbackDelay = Math.max(0, parseInteger(timeoutMs, 0));
+        var fallbackTimer = null;
+
+        var completeOnce = function () {
+            if (hasCompleted) {
+                return;
+            }
+
+            hasCompleted = true;
+
+            if (fallbackTimer) {
+                clearTimeout(fallbackTimer);
+                fallbackTimer = null;
+            }
+
+            callback();
+        };
+
+        if (fallbackDelay > 0) {
+            fallbackTimer = setTimeout(function () {
+                completeOnce();
+            }, fallbackDelay);
+        }
+
+        withImagesLoaded($grid, completeOnce);
+    }
+
     function updateGridHeight($grid) {
         if (!$grid || !$grid.length) {
             return;
@@ -900,6 +933,14 @@
             .addClass('bw-fpw-item--reveal bw-fpw-item--reveal-' + revealMode);
     }
 
+    function cleanupRevealClasses($item) {
+        if (!$item || !$item.length) {
+            return;
+        }
+
+        $item.removeClass('bw-fpw-item--reveal bw-fpw-item--reveal-initial bw-fpw-item--reveal-append bw-fpw-item--visible');
+    }
+
     function animatePostsStaggered($items, mode, widgetId) {
         if (!$items || !$items.length) {
             return;
@@ -944,27 +985,30 @@
     function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
         var widgetId = $grid.attr('data-widget-id');
         var runFinalize = function () {
+            var completeReveal = function () {
+                animatePostsStaggered($items, revealMode, widgetId);
+
+                if (!useCssGrid($grid)) {
+                    setTimeout(function () {
+                        var instance = getMasonryInstance($grid);
+                        if (instance && typeof instance.layout === 'function') {
+                            instance.layout();
+                            updateGridHeight($grid);
+                        }
+                    }, 200);
+
+                }
+
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            };
+
             if (appendMode) {
                 layoutGrid($grid, false);
+                completeReveal();
             } else {
-                initGrid($grid);
-            }
-
-            animatePostsStaggered($items, revealMode, widgetId);
-
-            if (!useCssGrid($grid)) {
-                setTimeout(function () {
-                    var instance = getMasonryInstance($grid);
-                    if (instance && typeof instance.layout === 'function') {
-                        instance.layout();
-                        updateGridHeight($grid);
-                    }
-                }, 200);
-
-            }
-
-            if (typeof callback === 'function') {
-                callback();
+                initGrid($grid, completeReveal);
             }
         };
 
@@ -1049,10 +1093,10 @@
 
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
-        var imageToggle = $grid.attr('data-image-toggle') || 'no';
-        var imageSize = $grid.attr('data-image-size') || 'large';
-        var imageMode = $grid.attr('data-image-mode') || 'proportional';
-        var hoverEffect = $grid.attr('data-hover-effect') || 'no';
+        var imageToggle = 'yes';
+        var imageSize = 'large';
+        var imageMode = 'proportional';
+        var hoverEffect = 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
