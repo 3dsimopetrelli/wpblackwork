@@ -958,7 +958,7 @@
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
         var baseDelay = 80;
-        var cleanupDelay = 780;
+        var cleanupDelay = 1200;
 
         if (!$revealItems.length) {
             return;
@@ -1011,7 +1011,7 @@
         }
 
         var COL_STAGGER = 35;  // ms extra delay per column
-        var cleanupDelay = 780;
+        var cleanupDelay = 1200;
 
         if (widgetId) {
             if (!staggerTimersByWidget[widgetId]) {
