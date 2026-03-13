@@ -292,6 +292,13 @@
   min-width: 0;
 }
 
+/* Hide items before JS initializes the grid to prevent flash of unstyled content.
+   Masonry adds .bw-fpw-initialized once layout is ready; at that point the
+   --reveal class takes over and keeps items at opacity:0 until the stagger runs. */
+.bw-fpw-grid:not(.bw-fpw-initialized) .bw-fpw-item {
+  opacity: 0;
+}
+
 .bw-fpw-item.bw-fpw-item--reveal {
   opacity: 0;
   will-change: opacity;
