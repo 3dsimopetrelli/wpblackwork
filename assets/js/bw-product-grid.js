@@ -948,8 +948,8 @@
 
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
-        var baseDelay = revealMode === 'initial' ? 72 : 58;
-        var cleanupDelay = revealMode === 'initial' ? 600 : 520;
+        var baseDelay = 50;
+        var cleanupDelay = 560;
 
         if (!$revealItems.length) {
             return;
