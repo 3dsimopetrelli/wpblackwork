@@ -986,11 +986,62 @@
         });
     }
 
+    // Start the reveal animation only when the first new card actually enters
+    // the viewport. This prevents the user from missing the fade because it
+    // completed while they were still scrolling toward the new cards.
+    // Falls back to immediate animation if IntersectionObserver is unavailable,
+    // or after 1500ms if the card never enters the viewport.
+    function animateWhenVisible($items, revealMode, widgetId) {
+        if (!$items || !$items.length) {
+            return;
+        }
+
+        if (typeof window.IntersectionObserver === 'undefined') {
+            animatePostsStaggered($items, revealMode, widgetId);
+            return;
+        }
+
+        var $first = $items.first();
+        if (!$first.length || !$first[0]) {
+            animatePostsStaggered($items, revealMode, widgetId);
+            return;
+        }
+
+        var started = false;
+        var fallbackTimer = null;
+        var revealObserver;
+
+        var start = function () {
+            if (started) {
+                return;
+            }
+            started = true;
+            if (fallbackTimer) {
+                clearTimeout(fallbackTimer);
+            }
+            revealObserver.disconnect();
+            animatePostsStaggered($items, revealMode, widgetId);
+        };
+
+        revealObserver = new window.IntersectionObserver(function (entries) {
+            if (entries[0] && entries[0].isIntersecting) {
+                start();
+            }
+        }, { threshold: 0 });
+
+        revealObserver.observe($first[0]);
+        fallbackTimer = setTimeout(start, 1500);
+    }
+
     function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
         var widgetId = $grid.attr('data-widget-id');
 
         var doAnimate = function () {
-            animatePostsStaggered($items, revealMode, widgetId);
+            if (appendMode) {
+                animateWhenVisible($items, revealMode, widgetId);
+            } else {
+                animatePostsStaggered($items, revealMode, widgetId);
+            }
             if (typeof callback === 'function') {
                 callback();
             }
