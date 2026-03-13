@@ -400,6 +400,7 @@
     var filterState = {};
     var widgetPagingState = {};
     var staggerTimersByWidget = {};
+    var staggerObserversByWidget = {};
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -910,15 +911,23 @@
     }
 
     function clearStaggerTimers(widgetId) {
-        if (!widgetId || !staggerTimersByWidget[widgetId]) {
+        if (!widgetId) {
             return;
         }
 
-        staggerTimersByWidget[widgetId].forEach(function (timerId) {
-            clearTimeout(timerId);
-        });
+        if (staggerTimersByWidget[widgetId]) {
+            staggerTimersByWidget[widgetId].forEach(function (timerId) {
+                clearTimeout(timerId);
+            });
+            staggerTimersByWidget[widgetId] = [];
+        }
 
-        staggerTimersByWidget[widgetId] = [];
+        if (staggerObserversByWidget[widgetId]) {
+            staggerObserversByWidget[widgetId].forEach(function (obs) {
+                obs.disconnect();
+            });
+            staggerObserversByWidget[widgetId] = [];
+        }
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -986,51 +995,101 @@
         });
     }
 
-    // Start the reveal animation only when the first new card actually enters
-    // the viewport. This prevents the user from missing the fade because it
-    // completed while they were still scrolling toward the new cards.
-    // Falls back to immediate animation if IntersectionObserver is unavailable,
-    // or after 1500ms if the card never enters the viewport.
-    function animateWhenVisible($items, revealMode, widgetId) {
+    // Per-item IntersectionObserver reveal for appended cards.
+    // Each card gets its own observer and fades in exactly when IT enters the
+    // viewport — fully independent of scroll speed. A small per-column delay
+    // (35ms × column index) preserves the left-to-right stagger within a row.
+    // Falls back to immediate animatePostsStaggered if IO is unavailable.
+    function revealItemsPerViewport($items, widgetId) {
         if (!$items || !$items.length) {
             return;
         }
 
         if (typeof window.IntersectionObserver === 'undefined') {
-            animatePostsStaggered($items, revealMode, widgetId);
+            animatePostsStaggered($items, 'append', widgetId);
             return;
         }
 
-        var $first = $items.first();
-        if (!$first.length || !$first[0]) {
-            animatePostsStaggered($items, revealMode, widgetId);
-            return;
+        var COL_STAGGER = 35;  // ms extra delay per column
+        var cleanupDelay = 780;
+
+        if (widgetId) {
+            if (!staggerTimersByWidget[widgetId]) {
+                staggerTimersByWidget[widgetId] = [];
+            }
+            if (!staggerObserversByWidget[widgetId]) {
+                staggerObserversByWidget[widgetId] = [];
+            }
         }
 
-        var started = false;
-        var fallbackTimer = null;
-        var revealObserver;
+        $items.filter('.bw-fpw-item--reveal').each(function () {
+            var $item = $(this);
+            var el = $item[0];
+            var revealed = false;
+            var fallbackTimer = null;
+            var observer;
 
-        var start = function () {
-            if (started) {
-                return;
-            }
-            started = true;
-            if (fallbackTimer) {
-                clearTimeout(fallbackTimer);
-            }
-            revealObserver.disconnect();
-            animatePostsStaggered($items, revealMode, widgetId);
-        };
+            var reveal = function (colIndex) {
+                if (revealed) {
+                    return;
+                }
+                revealed = true;
+                if (fallbackTimer) {
+                    clearTimeout(fallbackTimer);
+                }
+                if (observer) {
+                    observer.disconnect();
+                }
 
-        revealObserver = new window.IntersectionObserver(function (entries) {
-            if (entries[0] && entries[0].isIntersecting) {
-                start();
-            }
-        }, { threshold: 0 });
+                // Column index drives left-to-right stagger within a row.
+                // offsetLeft / offsetWidth gives a reliable column number for
+                // both Masonry (absolute positioned) and CSS grid layouts.
+                var col = (typeof colIndex === 'number') ? colIndex : 0;
+                var delay = col * COL_STAGGER;
 
-        revealObserver.observe($first[0]);
-        fallbackTimer = setTimeout(start, 1500);
+                var revealTimer = setTimeout(function () {
+                    $item.addClass('bw-fpw-item--visible');
+
+                    var cleanTimer = setTimeout(function () {
+                        $item.removeClass(
+                            'bw-fpw-item--reveal bw-fpw-item--reveal-initial ' +
+                            'bw-fpw-item--reveal-append bw-fpw-item--visible'
+                        );
+                    }, cleanupDelay);
+
+                    if (widgetId && staggerTimersByWidget[widgetId]) {
+                        staggerTimersByWidget[widgetId].push(cleanTimer);
+                    }
+                }, delay);
+
+                if (widgetId && staggerTimersByWidget[widgetId]) {
+                    staggerTimersByWidget[widgetId].push(revealTimer);
+                }
+            };
+
+            observer = new window.IntersectionObserver(function (entries) {
+                if (entries[0] && entries[0].isIntersecting) {
+                    var col = Math.min(
+                        5,
+                        Math.round(el.offsetLeft / Math.max(1, el.offsetWidth))
+                    );
+                    reveal(col);
+                }
+            }, { threshold: 0 });
+
+            observer.observe(el);
+
+            // Safety fallback: reveal with no stagger if the card never
+            // enters the viewport (e.g. layout shift, hidden container).
+            fallbackTimer = setTimeout(function () {
+                reveal(0);
+            }, 3000);
+
+            if (widgetId) {
+                staggerObserversByWidget[widgetId].push(observer);
+                staggerTimersByWidget[widgetId].push(fallbackTimer);
+            }
+        });
     }
 
     function finalizeGridUpdate($grid, $items, appendMode, callback, revealMode) {
@@ -1038,7 +1097,7 @@
 
         var doAnimate = function () {
             if (appendMode) {
-                animateWhenVisible($items, revealMode, widgetId);
+                revealItemsPerViewport($items, widgetId);
             } else {
                 animatePostsStaggered($items, revealMode, widgetId);
             }
