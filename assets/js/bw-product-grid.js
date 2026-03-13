@@ -478,7 +478,7 @@
         state.nextOffset = Math.max(0, parseInteger($grid.attr('data-next-offset'), typeof state.nextOffset === 'number' ? state.nextOffset : state.loadedCount));
         state.hasMore = parseBoolData($grid.attr('data-has-more'));
         state.infiniteEnabled = parseBoolData($grid.attr('data-infinite-enabled')) && state.perPage > 0;
-        state.loadTriggerOffset = Math.max(0, parseInteger($grid.attr('data-load-trigger-offset'), typeof state.loadTriggerOffset === 'number' ? state.loadTriggerOffset : 300));
+        state.loadTriggerOffset = Math.max(0, parseInteger($grid.attr('data-load-trigger-offset'), typeof state.loadTriggerOffset === 'number' ? state.loadTriggerOffset : 600));
         state.isLoading = !!state.isLoading;
 
         if (state.initialItems === 0) {
@@ -948,8 +948,8 @@
 
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
-        var baseDelay = 50;
-        var cleanupDelay = 560;
+        var baseDelay = 80;
+        var cleanupDelay = 780;
 
         if (!$revealItems.length) {
             return;
