@@ -382,7 +382,7 @@
 
             updateGridHeight($grid);
             finalizeLayout();
-        });
+        }, imageWaitTimeout || 800);
     }
 
     function initGrid($grid, onReady) {
@@ -1010,7 +1010,7 @@
         }
 
         var $imageScope = appendMode && $items && $items.length ? $items : $grid;
-        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize, appendMode ? 450 : 0);
+        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize, appendMode ? 450 : 800);
     }
 
     function runInitialReveal($grid) {
@@ -1834,12 +1834,6 @@
 
         setTimeout(function () {
             initWidget($targetScope);
-
-            setTimeout(function () {
-                $targetScope.find('.bw-fpw-grid').each(function () {
-                    layoutGrid($(this), true);
-                });
-            }, 220);
         }, 80);
     }
 
