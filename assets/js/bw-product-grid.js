@@ -506,6 +506,24 @@
         return state;
     }
 
+    // Updates the load-state element classes and manages the "loading more"
+    // visual indicator.
+    //
+    // TWO SEPARATE CONCERNS — keep them distinct:
+    //
+    //   is-loading          Logical flag.  Set as soon as an AJAX request
+    //                       starts.  Read by syncInfiniteObserver() to block
+    //                       a new observer while a request is in flight.
+    //                       NEVER remove this class manually — always go
+    //                       through updateWidgetPagingState({ isLoading: … }).
+    //
+    //   is-loading-visible  Visual flag.  Added only after a 400 ms delay so
+    //                       the "LOADING MORE" indicator never flickers for
+    //                       fast (cached) responses.  Drives the CSS
+    //                       opacity transition on .bw-fpw-load-indicator.
+    //
+    // If you ever refactor is-loading away, audit syncInfiniteObserver() and
+    // loadNextPage() — both guard on state.isLoading directly.
     function updateInfiniteUi(widgetId) {
         var state = getWidgetPagingState(widgetId);
 
@@ -525,11 +543,10 @@
         $loadState.toggleClass('bw-fpw-load-state--disabled', !state.infiniteEnabled);
         $loadState.toggleClass('bw-fpw-load-state--complete', isComplete);
         $loadState.toggleClass('is-active', isActive);
-        $loadState.toggleClass('is-loading', !!state.isLoading);
+        $loadState.toggleClass('is-loading', !!state.isLoading); // logical — see note above
         $loadState.attr('data-has-more', state.hasMore ? '1' : '0');
 
-        // Show the loading indicator only if the request takes longer than
-        // 400 ms — prevents a distracting flash for fast (cached) loads.
+        // is-loading-visible: visual only — delayed to avoid flash on fast loads.
         if (state.isLoading) {
             if (!loadingIndicatorTimers[widgetId]) {
                 loadingIndicatorTimers[widgetId] = setTimeout(function () {
