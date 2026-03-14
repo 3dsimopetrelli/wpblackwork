@@ -578,14 +578,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
         if ( ! in_array( $desktop_columns, [ 3, 4 ], true ) ) {
             $desktop_columns = 4;
         }
-        $gap_desktop_size = 24;
+        $gap_desktop_size = 10;
         $breakpoint_tablet_min = 768;
         $breakpoint_tablet_max = 1024;
         $columns_tablet = 2;
-        $gap_tablet_size = 20;
+        $gap_tablet_size = 10;
         $breakpoint_mobile_max = 767;
         $columns_mobile = 2;
-        $gap_mobile_size = 16;
+        $gap_mobile_size = 10;
 
         $container_max_width = isset( $settings['container_max_width'] ) ? absint( $settings['container_max_width'] ) : 2000;
         if ( $container_max_width < 800 ) {
