@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   --bw-wallpost-columns: 4;
-  --bw-wallpost-gap: 15px;
+  --bw-wallpost-gap: 10px;
   --bw-wallpost-image-height: 625px;
   --bw-wallpost-hover-opacity: 0.7;
   --bw-wallpost-overlay-buttons-background: #ffffff;
@@ -271,7 +271,7 @@
 /* Contenuto testuale identico a BW Slick Slider */
 .bw-wallpost-content,
 .bw-wallpost .bw-slick-item__content {
-  padding: 0;
+  padding: 10px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -288,7 +288,9 @@
 .bw-wallpost .bw-slick-item__title,
 .bw-wallpost .bw-slick-title {
   margin: 0;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -309,9 +311,10 @@
 .bw-wallpost .bw-slick-item__excerpt,
 .bw-wallpost .bw-slick-description {
   color: #080808;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
-  line-height: 1.4;
   font-weight: 400;
+  line-height: 1.4;
 }
 
 .bw-wallpost-description p,
@@ -327,6 +330,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
   font-weight: 400;
   color: #080808;
 }
@@ -452,4 +457,23 @@ body.elementor-editor-active .bw-wallpost-item {
 .elementor-editor-active .bw-wallpost--loading::after,
 .elementor-edit-mode .bw-wallpost--loading::after {
   display: block;
+}
+
+/* ===================================
+   Responsive: tablet & mobile
+   =================================== */
+@media (max-width: 1024px) {
+  .bw-wallpost-overlay-button,
+  .bw-wallpost .overlay-button,
+  .bw-wallpost .bw-slide-button {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .bw-wallpost-overlay-button,
+  .bw-wallpost .overlay-button,
+  .bw-wallpost .bw-slide-button {
+    font-size: 12px;
+  }
 }
