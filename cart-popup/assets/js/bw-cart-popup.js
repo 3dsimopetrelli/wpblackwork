@@ -1385,6 +1385,12 @@
                 // e ripristina il testo dei pulsanti se necessario
                 self.updateAllButtonStates();
             });
+
+            // Quando la product grid aggiunge nuovi item (infinite scroll o filtri),
+            // marca subito i pulsanti dei prodotti già nel carrello usando la cache locale.
+            $(document.body).on('bw:grid_rendered', function (e, $container) {
+                self.markContainerButtonsFromCache($container);
+            });
         },
 
         /**
@@ -1439,6 +1445,31 @@
                         self.changeButtonTextToAdded($btn);
                     }
                 });
+            });
+        },
+
+        /**
+         * Marca come "Added to cart" i pulsanti di un container usando la cache locale
+         * (senza fare chiamate AJAX — usato dopo append di nuovi item da infinite scroll).
+         */
+        markContainerButtonsFromCache: function ($container) {
+            const self = this;
+            if (!self.cartItems || !self.cartItems.length) return;
+
+            const cartProductIds = {};
+            self.cartItems.forEach(function (item) {
+                if (item.product_id) {
+                    cartProductIds[String(item.product_id)] = true;
+                }
+            });
+
+            var $scope = ($container && $container.length) ? $container : $(document.body);
+            $scope.find('.bw-btn-addtocart[data-product_id]').each(function () {
+                const $btn = $(this);
+                const pid = String($btn.data('product_id') || $btn.attr('data-product_id') || '');
+                if (pid && cartProductIds[pid]) {
+                    self.changeButtonTextToAdded($btn);
+                }
             });
         },
 

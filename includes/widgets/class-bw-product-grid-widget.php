@@ -955,7 +955,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                                         <span class="bw-fpw-overlay-button__label overlay-button__label"><?php echo $view_label; ?></span>
                                     </a>
                                     <?php if ( 'product' === $post_type && $has_add_to_cart && $add_to_cart_url ) : ?>
-                                        <a class="bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
+                                        <a class="bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-product_id="<?php echo esc_attr( $post_id ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
                                             <span class="bw-fpw-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
                                         </a>
                                     <?php endif; ?>
