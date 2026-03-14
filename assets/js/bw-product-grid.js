@@ -409,6 +409,10 @@
     var ajaxCache = {};
     var ajaxRequestQueue = {};
     var loadingIndicatorTimers = {}; // delayed show timers keyed by widgetId
+    // Tracks the fade-out clear timers for subcats/tags containers so they can
+    // be cancelled if a new load fires before the 150 ms delay completes.
+    // Keys: widgetId + '_subcats' | widgetId + '_tags'
+    var filterAnimTimers = {};
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
     function getCacheKey(action, params) {
@@ -690,11 +694,24 @@
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
         var isMobile = isInMobileMode(widgetId);
+        var queueKey = widgetId + '_subcats';
 
-        // Fade out before clearing
+        // Abort any in-flight subcategory request for this widget so a rapid
+        // category change never lets a stale response overwrite the current one.
+        if (ajaxRequestQueue[queueKey]) {
+            ajaxRequestQueue[queueKey].abort();
+            delete ajaxRequestQueue[queueKey];
+        }
+
+        // Fade out before clearing.  Cancel any pending clear timer first so a
+        // previous 150 ms delay cannot empty the container we are about to fill.
         if ($subcatContainers.length) {
             $subcatContainers.removeClass('bw-fpw-animating').css('opacity', '0');
-            setTimeout(function () {
+            if (filterAnimTimers[queueKey]) {
+                clearTimeout(filterAnimTimers[queueKey]);
+            }
+            filterAnimTimers[queueKey] = setTimeout(function () {
+                delete filterAnimTimers[queueKey];
                 $subcatContainers.empty();
             }, 150);
         }
@@ -712,7 +729,7 @@
             return;
         }
 
-        $.ajax({
+        ajaxRequestQueue[queueKey] = $.ajax({
             url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
@@ -722,11 +739,15 @@
                 nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
-                // Cache the response
+                delete ajaxRequestQueue[queueKey];
                 setCachedData(cacheKey, response);
                 processSubcategoriesResponse(response, widgetId, $subcatContainers, $subcatRow, hasPosts, isMobile, autoOpenMobile);
             },
-            error: function () {
+            error: function (xhr, status) {
+                delete ajaxRequestQueue[queueKey];
+                if (status === 'abort') {
+                    return;
+                }
                 $subcatContainers.html('<p class="bw-fpw-error">Error loading subcategories</p>');
                 if ($subcatRow.length) {
                     if (hasPosts) {
@@ -798,11 +819,22 @@
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
         var isMobile = isInMobileMode(widgetId);
+        var queueKey = widgetId + '_tags';
 
-        // Fade out before clearing
+        // Abort any in-flight tag request for this widget.
+        if (ajaxRequestQueue[queueKey]) {
+            ajaxRequestQueue[queueKey].abort();
+            delete ajaxRequestQueue[queueKey];
+        }
+
+        // Fade out before clearing.  Cancel any pending clear timer first.
         if ($tagContainers.length) {
             $tagContainers.removeClass('bw-fpw-animating').css('opacity', '0');
-            setTimeout(function () {
+            if (filterAnimTimers[queueKey]) {
+                clearTimeout(filterAnimTimers[queueKey]);
+            }
+            filterAnimTimers[queueKey] = setTimeout(function () {
+                delete filterAnimTimers[queueKey];
                 $tagContainers.empty();
             }, 150);
         }
@@ -821,7 +853,7 @@
             return;
         }
 
-        $.ajax({
+        ajaxRequestQueue[queueKey] = $.ajax({
             url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
@@ -832,11 +864,15 @@
                 nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
-                // Cache the response
+                delete ajaxRequestQueue[queueKey];
                 setCachedData(cacheKey, response);
                 processTagsResponse(response, widgetId, $tagContainers, $tagRow, hasPosts, isMobile, autoOpenMobile);
             },
-            error: function () {
+            error: function (xhr, status) {
+                delete ajaxRequestQueue[queueKey];
+                if (status === 'abort') {
+                    return;
+                }
                 $tagContainers.html('<p class="bw-fpw-error">Error loading tags</p>');
                 if ($tagRow.length) {
                     if (hasPosts) {
