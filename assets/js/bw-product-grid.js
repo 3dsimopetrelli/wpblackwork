@@ -1826,9 +1826,7 @@
             initFilterState(widgetId);
 
             // Update active state
-            $('.bw-fpw-cat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-cat-button').removeClass('active');
             $button.addClass('active');
 
             // Update filter state
@@ -1837,14 +1835,10 @@
             filterState[widgetId].tags = [];
 
             // Reset tag visual state
-            $('.bw-fpw-tag-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-tag-button').removeClass('active');
 
             // Clear subcategory active states
-            $('.bw-fpw-subcat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-subcat-button').removeClass('active');
 
             var isMobileMode = isInMobileMode(widgetId);
 
@@ -2005,25 +1999,17 @@
             };
 
             // Reset all category buttons
-            $('.bw-fpw-cat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-cat-button').removeClass('active');
 
             // Activate the default category button
-            var $defaultCatButton = $('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            });
+            var $defaultCatButton = $filters.find('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]');
             $defaultCatButton.addClass('active');
 
             // Reset all subcategory buttons
-            $('.bw-fpw-subcat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-subcat-button').removeClass('active');
 
             // Reset all tag buttons
-            $('.bw-fpw-tag-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-tag-button').removeClass('active');
 
             // Close mobile panel if open
             var isMobile = isInMobileMode(widgetId);

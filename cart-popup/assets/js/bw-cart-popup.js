@@ -154,8 +154,15 @@
 
             // Gestione visibilità trigger flottante su scroll
             if (bwCartPopupConfig.settings.show_floating_trigger) {
+                var _rafPending = false;
                 $(window).on('scroll.bwCartPopup', function () {
-                    self.onFloatingScroll();
+                    if (!_rafPending) {
+                        _rafPending = true;
+                        requestAnimationFrame(function () {
+                            self.onFloatingScroll();
+                            _rafPending = false;
+                        });
+                    }
                 });
             }
 
@@ -168,7 +175,10 @@
             });
 
             // Floating label promo input (stile checkout/my-account)
-            $(document).on('input change keyup blur focus', '.bw-promo-input', function () {
+            $(document).on('input change', '.bw-promo-input', function () {
+                self.syncPromoFloatingLabel($(this));
+            });
+            $(document).on('blur focus', '.bw-promo-input', function () {
                 self.syncPromoFloatingLabel($(this));
             });
 
@@ -194,6 +204,7 @@
             });
 
             // Controlli quantità (+/-)
+            var _qtyDebounceTimers = {};
             this.$itemsContainer.on('click', '.bw-qty-btn', function (e) {
                 e.preventDefault();
                 const $btn = $(this);
@@ -209,7 +220,11 @@
                 }
 
                 $value.text(newQty);
-                self.updateQuantity(cartItemKey, newQty);
+                clearTimeout(_qtyDebounceTimers[cartItemKey]);
+                _qtyDebounceTimers[cartItemKey] = setTimeout(function () {
+                    self.updateQuantity(cartItemKey, newQty);
+                    delete _qtyDebounceTimers[cartItemKey];
+                }, 300);
             });
 
             // Chiudi con ESC
