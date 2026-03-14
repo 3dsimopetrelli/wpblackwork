@@ -259,9 +259,24 @@
         onDocumentReady();
     }
 
-    if (window.elementorFrontend) {
-        window.elementorFrontend.hooks.addAction('frontend/element_ready/bw-about-menu.default', (scope) => {
-            initAboutMenu(scope);
-        });
+    function registerElementorHook() {
+        if (
+            typeof window.elementorFrontend === 'undefined' ||
+            !window.elementorFrontend.hooks ||
+            typeof window.elementorFrontend.hooks.addAction !== 'function'
+        ) {
+            return;
+        }
+        window.elementorFrontend.hooks.addAction(
+            'frontend/element_ready/bw-about-menu.default',
+            (scope) => { initAboutMenu(scope); }
+        );
+    }
+
+    registerElementorHook();
+    // elementorFrontend exists before .hooks is populated; re-run once
+    // Elementor fires this event to ensure the hook is always registered.
+    if (typeof jQuery !== 'undefined') {
+        jQuery(window).on('elementor/frontend/init', registerElementorHook);
     }
 })();
