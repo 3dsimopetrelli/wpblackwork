@@ -1,5 +1,12 @@
 /* BW Product Grid */
 
+/* Toggle title/description/price via data attributes on the grid container.
+   No AJAX params needed — CSS applies instantly to all items including
+   those loaded later via infinite scroll. */
+.bw-fpw-grid[data-show-title="no"] .bw-fpw-title { display: none; }
+.bw-fpw-grid[data-show-description="no"] .bw-fpw-description { display: none; }
+.bw-fpw-grid[data-show-price="no"] .bw-fpw-price { display: none; }
+
 .bw-product-grid-wrapper {
   position: relative;
 }

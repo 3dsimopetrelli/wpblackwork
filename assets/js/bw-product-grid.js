@@ -1461,9 +1461,6 @@
         var imageMode = $grid.attr('data-image-mode') || 'proportional';
         var hoverEffect = $grid.attr('data-hover-effect') || 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
-        var showTitle = $grid.attr('data-show-title') || 'yes';
-        var showDescription = $grid.attr('data-show-description') || 'yes';
-        var showPrice = $grid.attr('data-show-price') || 'yes';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
         var requestPerPage = appendMode ? pagingState.loadBatchSize : pagingState.initialItems;
@@ -1557,9 +1554,6 @@
                 image_mode: imageMode,
                 hover_effect: hoverEffect,
                 open_cart_popup: openCartPopup,
-                show_title: showTitle,
-                show_description: showDescription,
-                show_price: showPrice,
                 order_by: orderBy,
                 order: order,
                 per_page: requestPerPage,
