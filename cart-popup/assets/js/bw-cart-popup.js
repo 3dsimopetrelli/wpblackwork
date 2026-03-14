@@ -93,6 +93,9 @@
             // Monitora il carrello per aggiornare lo stato dei pulsanti
             this.monitorCartChanges();
 
+            // Segna come "Added to cart" i pulsanti dei prodotti già nel carrello
+            this.markButtonsAlreadyInCart();
+
             // Aggiorna badge e trigger floating se abilitato
             if (bwCartPopupConfig.settings.show_floating_trigger) {
                 this.setupFloatingTriggerWatcher();
@@ -1372,6 +1375,42 @@
         },
 
         /**
+         * Al caricamento pagina, segna come "Added to cart" i pulsanti dei prodotti già presenti nel carrello
+         */
+        markButtonsAlreadyInCart: function () {
+            const self = this;
+
+            $.ajax({
+                url: bwCartPopupConfig.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'bw_cart_popup_get_contents',
+                    nonce: bwCartPopupConfig.nonce
+                }
+            }).done(function (response) {
+                if (!response || !response.success) return;
+                const items = (response.data && response.data.items) ? response.data.items : [];
+                self.cartItems = items;
+                if (!items.length) return;
+
+                const cartProductIds = {};
+                items.forEach(function (item) {
+                    if (item.product_id) {
+                        cartProductIds[String(item.product_id)] = true;
+                    }
+                });
+
+                $('.bw-btn-addtocart[data-product_id]').each(function () {
+                    const $btn = $(this);
+                    const pid = String($btn.data('product_id') || $btn.attr('data-product_id') || '');
+                    if (pid && cartProductIds[pid]) {
+                        self.changeButtonTextToAdded($btn);
+                    }
+                });
+            });
+        },
+
+        /**
          * Mostra pop-up dedicato quando il prodotto è già nel carrello
          * @param {string} message - Messaggio da mostrare
          * @param {string} cartUrl - URL del carrello
@@ -1394,7 +1433,9 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-color: rgba(0, 0, 0, 0.35);
+                    background-color: rgba(0, 0, 0, 0.55);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1403,39 +1444,56 @@
                     transition: opacity 0.3s ease;
                 ">
                     <div class="bw-cart-already-modal" style="
-                        background: #fff;
-                        border-radius: 10px;
-                        padding: 36px 32px 28px;
-                        max-width: 520px;
+                        background: #2c2c2c;
+                        border-radius: 16px;
+                        padding: 40px 32px 32px;
+                        max-width: 480px;
                         width: 90%;
-                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
                         position: relative;
                         transform: scale(0.9);
                         transition: transform 0.3s ease;
                     ">
-                        <div class="bw-cart-already-modal__content" style="text-align: center; margin-bottom: 24px;">
+                        <button class="bw-cart-already-modal__close" aria-label="Close" style="
+                            position: absolute;
+                            top: 14px;
+                            right: 16px;
+                            background: none;
+                            border: none;
+                            color: #888;
+                            font-size: 18px;
+                            line-height: 1;
+                            cursor: pointer;
+                            padding: 4px 6px;
+                            transition: color 0.2s;
+                        ">&#x2715;</button>
+                        <div class="bw-cart-already-modal__content" style="text-align: center; margin-bottom: 28px;">
                             <div class="bw-cart-already-modal__message" style="
                                 font-size: 16px;
-                                line-height: 1.6;
-                                color: #333;
-                                margin-bottom: 6px;
+                                font-weight: 700;
+                                line-height: 1.5;
+                                color: #ffffff;
+                                margin-bottom: 10px;
                             "></div>
                             <div class="bw-cart-already-modal__hint" style="
                                 font-size: 14px;
-                                color: #666;
+                                color: #999;
                             ">This item is sold individually.</div>
                         </div>
-                        <div class="bw-cart-already-modal__actions" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <div class="bw-cart-already-modal__actions" style="display: flex; flex-direction: column; gap: 10px;">
                             <button class="bw-cart-already-modal__btn bw-cart-already-modal__btn--continue" style="
-                                background-color: #f4f4f4;
+                                background-color: #80FD03;
                                 color: #000;
-                                border: 1px solid #e0e0e0;
-                                padding: 12px 26px;
-                                border-radius: 6px;
-                                font-size: 14px;
+                                border: none;
+                                padding: 16px 26px;
+                                border-radius: 50px;
+                                font-size: 13px;
                                 font-weight: 700;
+                                letter-spacing: 0.06em;
+                                text-transform: uppercase;
                                 cursor: pointer;
-                                transition: all 0.3s ease;
+                                width: 100%;
+                                transition: all 0.2s ease;
                             ">${continueLabel}</button>
                         </div>
                     </div>
@@ -1469,6 +1527,11 @@
                 }
             });
 
+            $modalOverlay.on('click', '.bw-cart-already-modal__close', function (e) {
+                e.preventDefault();
+                self.closeAlreadyInCartModal();
+            });
+
             $modalOverlay.on('click', function (e) {
                 if ($(e.target).hasClass('bw-cart-already-modal-overlay')) {
                     self.closeAlreadyInCartModal();
@@ -1483,8 +1546,9 @@
 
             const hoverStyles = `
                 <style id="bw-cart-already-modal-styles">
-                    .bw-cart-already-modal__btn--continue:hover { background-color: #e9e9e9; transform: translateY(-1px); }
+                    .bw-cart-already-modal__btn--continue:hover { background-color: #6ee000; transform: translateY(-1px); }
                     .bw-cart-already-modal__btn:active { transform: translateY(0); }
+                    .bw-cart-already-modal__close:hover { color: #fff; }
                 </style>
             `;
 
