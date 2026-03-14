@@ -418,3 +418,13 @@
     animation: none;
   }
 }
+
+/* Invisible spacer injected by JS while an infinite-scroll batch loads.
+   Prevents the user from scrolling to the footer before posts arrive.
+   Must have no visible rendering — height is set inline by JS (100 vh). */
+.bw-fpw-load-spacer {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+  background: transparent;
+}

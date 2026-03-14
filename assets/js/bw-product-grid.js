@@ -409,6 +409,10 @@
     var ajaxCache = {};
     var ajaxRequestQueue = {};
     var loadingIndicatorTimers = {}; // delayed show timers keyed by widgetId
+    // Spacer elements inserted after .bw-fpw-load-state while an infinite-scroll
+    // batch is loading.  Height = 100 vh → prevents the user from scrolling past
+    // the loading indicator to the footer before new posts arrive.
+    var infiniteLoadSpacers = {};
     // Tracks the fade-out clear timers for subcats/tags containers so they can
     // be cancelled if a new load fires before the 150 ms delay completes.
     // Keys: widgetId + '_subcats' | widgetId + '_tags'
@@ -701,6 +705,37 @@
             };
         }
     }
+
+    // ── Infinite-scroll load spacer ───────────────────────────────────────────
+    // While a batch of posts is loading the footer must not be reachable.
+    // We insert a full-viewport-height div after .bw-fpw-load-state so the user
+    // stays in the loading area.  The spacer is removed once posts are appended
+    // (they take its place) or on error/abort.
+
+    function addLoadSpacer(widgetId) {
+        removeLoadSpacer(widgetId); // clear any leftover first
+        var $loadState = $('.bw-fpw-load-state[data-widget-id="' + widgetId + '"]');
+        if (!$loadState.length) {
+            return;
+        }
+        var $spacer = $('<div>')
+            .addClass('bw-fpw-load-spacer')
+            .attr('data-widget-id', widgetId)
+            .attr('aria-hidden', 'true')
+            .css('height', (window.innerHeight || 600) + 'px');
+        $loadState.after($spacer);
+        infiniteLoadSpacers[widgetId] = $spacer[0];
+    }
+
+    function removeLoadSpacer(widgetId) {
+        if (infiniteLoadSpacers[widgetId]) {
+            $(infiniteLoadSpacers[widgetId]).remove();
+            delete infiniteLoadSpacers[widgetId];
+        }
+        // Safety net: remove any stale spacer left in the DOM
+        $('.bw-fpw-load-spacer[data-widget-id="' + widgetId + '"]').remove();
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     function loadSubcategories(categoryId, widgetId, autoOpenMobile) {
         var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
@@ -1043,12 +1078,16 @@
         // Scroll reveal listener (namespaced per widget)
         $(window).off('scroll.bwreveal' + widgetId);
 
+        // Infinite-scroll load spacer
+        removeLoadSpacer(widgetId);
+
         // Per-widget state objects
         delete filterState[widgetId];
         delete widgetPagingState[widgetId];
         delete staggerTimersByWidget[widgetId];
         delete staggerObserversByWidget[widgetId];
         delete lastDeviceByGrid[widgetId];
+        delete infiniteLoadSpacers[widgetId];
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -1463,6 +1502,7 @@
                 updateWidgetPagingState(widgetId, {
                     isLoading: true
                 });
+                addLoadSpacer(widgetId);
             } else {
                 $filters.addClass('loading');
             }
@@ -1481,7 +1521,9 @@
             updateWidgetPagingState(widgetId, {
                 isLoading: true
             });
+            addLoadSpacer(widgetId);
         } else {
+            removeLoadSpacer(widgetId); // clear any spacer left from a previous append
             $filters.addClass('loading');
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
@@ -1545,6 +1587,7 @@
                 if (appendMode) {
                     // Stop infinite scroll — retrying a failed request (e.g. 403)
                     // would immediately re-trigger the sentinel and loop forever.
+                    removeLoadSpacer(widgetId);
                     updateWidgetPagingState(widgetId, {
                         isLoading: false,
                         hasMore: false
@@ -1621,6 +1664,7 @@
                 }));
 
                 finalizeGridUpdate($grid, $responseItems, true, function () {
+                    removeLoadSpacer(widgetId);
                     updateWidgetPagingState(widgetId, {
                         isLoading: false
                     });
