@@ -104,6 +104,24 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'default'      => 'yes',
         ] );
 
+        $this->add_control( 'show_title', [
+            'label'        => __( 'Show Title', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'show_description', [
+            'label'        => __( 'Show Description', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -604,6 +622,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $image_mode      = 'proportional';
         $hover_effect    = true;
         $open_cart_popup = false;
+        $show_title       = 'no' !== ( $settings['show_title'] ?? 'yes' );
+        $show_description = 'no' !== ( $settings['show_description'] ?? 'yes' );
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
@@ -753,7 +773,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                         }
                         $image_loading       = $rendered_posts < $initial_eager_items ? 'eager' : 'lazy';
                         $hover_image_loading = 'lazy';
-                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode );
+                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode, $show_title, $show_description );
                         $rendered_posts++;
                     endwhile;
                     ?>
@@ -778,7 +798,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         wp_reset_postdata();
     }
 
-    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional' ) {
+    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional', $show_title = true, $show_description = true ) {
         $post_id = get_the_ID();
 
         if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
@@ -795,8 +815,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
                         'show_image'             => true,
                         'show_hover_image'       => true,
                         'hover_image_source'     => 'meta',
-                        'show_title'             => true,
-                        'show_description'       => true,
+                        'show_title'             => $show_title,
+                        'show_description'       => $show_description,
                         'description_mode'       => 'auto',
                         'show_price'             => true,
                         'show_buttons'           => true,
