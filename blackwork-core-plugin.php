@@ -1817,7 +1817,10 @@ function bw_fpw_filter_posts()
     $image_size = bw_fpw_normalize_image_size(isset($_POST['image_size']) ? wp_unslash($_POST['image_size']) : 'large');
     $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
     $hover_effect = bw_fpw_normalize_bool(isset($_POST['hover_effect']) ? wp_unslash($_POST['hover_effect']) : null, false);
-    $open_cart_popup = bw_fpw_normalize_bool(isset($_POST['open_cart_popup']) ? wp_unslash($_POST['open_cart_popup']) : null, false);
+    $open_cart_popup  = bw_fpw_normalize_bool(isset($_POST['open_cart_popup']) ? wp_unslash($_POST['open_cart_popup']) : null, false);
+    $show_title       = bw_fpw_normalize_bool(isset($_POST['show_title']) ? wp_unslash($_POST['show_title']) : null, true);
+    $show_description = bw_fpw_normalize_bool(isset($_POST['show_description']) ? wp_unslash($_POST['show_description']) : null, true);
+    $show_price       = bw_fpw_normalize_bool(isset($_POST['show_price']) ? wp_unslash($_POST['show_price']) : null, true);
     $order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
     $order = bw_fpw_normalize_order(isset($_POST['order']) ? wp_unslash($_POST['order']) : 'DESC');
     $raw_per_page = isset($_POST['per_page']) ? wp_unslash($_POST['per_page']) : bw_fpw_get_default_per_page();
@@ -1864,6 +1867,9 @@ function bw_fpw_filter_posts()
             'image_mode' => $image_mode,
             'hover_effect' => $hover_effect,
             'open_cart_popup' => $open_cart_popup,
+            'show_title' => $show_title,
+            'show_description' => $show_description,
+            'show_price' => $show_price,
             'order_by' => $order_by,
             'order' => $order,
             'per_page' => $per_page,
@@ -1978,10 +1984,10 @@ function bw_fpw_filter_posts()
                             'show_image' => $image_toggle,
                             'show_hover_image' => $image_toggle && $hover_effect,
                             'hover_image_source' => 'meta',
-                            'show_title' => true,
-                            'show_description' => true,
+                            'show_title' => $show_title,
+                            'show_description' => $show_description,
                             'description_mode' => 'auto',
-                            'show_price' => true,
+                            'show_price' => $show_price,
                             'show_buttons' => true,
                             'show_add_to_cart' => true,
                             'open_cart_popup' => $open_cart_popup,
