@@ -409,6 +409,33 @@
     var ajaxCache = {};
     var ajaxRequestQueue = {};
     var loadingIndicatorTimers = {}; // delayed show timers keyed by widgetId
+
+    // Nonce refresh: single shared promise so concurrent requests don't fire
+    // multiple refreshes simultaneously.
+    var _nonceRefreshPromise = null;
+
+    function refreshNonce() {
+        if (_nonceRefreshPromise) {
+            return _nonceRefreshPromise;
+        }
+        _nonceRefreshPromise = $.ajax({
+            url: bwProductGridAjax.ajaxurl,
+            type: 'POST',
+            data: { action: 'bw_fpw_refresh_nonce' }
+        }).then(
+            function (response) {
+                _nonceRefreshPromise = null;
+                if (response && response.success && response.data && response.data.nonce) {
+                    bwProductGridAjax.nonce = response.data.nonce;
+                }
+            },
+            function () {
+                _nonceRefreshPromise = null;
+                return $.Deferred().reject().promise();
+            }
+        );
+        return _nonceRefreshPromise;
+    }
     // Spacer elements inserted after .bw-fpw-load-state while an infinite-scroll
     // batch is loading.  Height = 100 vh → prevents the user from scrolling past
     // the loading indicator to the footer before new posts arrive.
@@ -1581,6 +1608,14 @@
 
                 // Don't show error if request was aborted
                 if (status === 'abort') {
+                    return;
+                }
+
+                // 403 = nonce expired. Refresh nonce and retry once.
+                if (xhr.status === 403 && !options._nonceRetry) {
+                    refreshNonce().then(function () {
+                        filterPosts(widgetId, $.extend({}, options, { _nonceRetry: true }));
+                    });
                     return;
                 }
 
