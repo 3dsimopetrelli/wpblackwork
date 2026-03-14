@@ -1548,8 +1548,8 @@ function bw_fpw_get_subcategories()
         ];
     }
 
-    // PERFORMANCE: Cache result for 5 minutes
-    set_transient($transient_key, $result, 5 * MINUTE_IN_SECONDS);
+    // PERFORMANCE: Cache result for 15 minutes
+    set_transient($transient_key, $result, 15 * MINUTE_IN_SECONDS);
 
     wp_send_json_success($result);
 }
@@ -1590,13 +1590,13 @@ function bw_fpw_get_tags()
 
     if (empty($tags)) {
         // Cache empty result too to avoid repeated queries
-        set_transient($transient_key, [], 5 * MINUTE_IN_SECONDS);
+        set_transient($transient_key, [], 15 * MINUTE_IN_SECONDS);
         wp_send_json_success([]);
         return;
     }
 
-    // PERFORMANCE: Cache result for 5 minutes
-    set_transient($transient_key, $tags, 5 * MINUTE_IN_SECONDS);
+    // PERFORMANCE: Cache result for 15 minutes
+    set_transient($transient_key, $tags, 15 * MINUTE_IN_SECONDS);
 
     wp_send_json_success($tags);
 }
@@ -2183,9 +2183,9 @@ function bw_fpw_filter_posts()
         'next_offset' => $has_more ? $offset + $rendered_posts : 0,
     ];
 
-    // PERFORMANCE: Cache result for 3 minutes (skip random order)
+    // PERFORMANCE: Cache result for 10 minutes (skip random order)
     if (!$skip_cache && isset($transient_key)) {
-        set_transient($transient_key, $response_data, 3 * MINUTE_IN_SECONDS);
+        set_transient($transient_key, $response_data, 10 * MINUTE_IN_SECONDS);
     }
 
     wp_send_json_success($response_data);
