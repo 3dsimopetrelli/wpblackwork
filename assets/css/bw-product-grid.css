@@ -327,7 +327,7 @@
 }
 
 .bw-fpw-load-indicator {
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 11px;
@@ -335,15 +335,18 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.70);
-}
-
-.bw-fpw-load-state.is-loading .bw-fpw-load-indicator {
-  display: inline-flex;
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.bw-fpw-load-state.is-loading-visible .bw-fpw-load-indicator {
+  opacity: 1;
 }
 
 .bw-fpw-load-indicator__spinner {

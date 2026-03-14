@@ -408,6 +408,7 @@
 
     var ajaxCache = {};
     var ajaxRequestQueue = {};
+    var loadingIndicatorTimers = {}; // delayed show timers keyed by widgetId
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
     function getCacheKey(action, params) {
@@ -522,6 +523,23 @@
         $loadState.toggleClass('is-active', isActive);
         $loadState.toggleClass('is-loading', !!state.isLoading);
         $loadState.attr('data-has-more', state.hasMore ? '1' : '0');
+
+        // Show the loading indicator only if the request takes longer than
+        // 400 ms — prevents a distracting flash for fast (cached) loads.
+        if (state.isLoading) {
+            if (!loadingIndicatorTimers[widgetId]) {
+                loadingIndicatorTimers[widgetId] = setTimeout(function () {
+                    delete loadingIndicatorTimers[widgetId];
+                    $loadState.addClass('is-loading-visible');
+                }, 400);
+            }
+        } else {
+            if (loadingIndicatorTimers[widgetId]) {
+                clearTimeout(loadingIndicatorTimers[widgetId]);
+                delete loadingIndicatorTimers[widgetId];
+            }
+            $loadState.removeClass('is-loading-visible');
+        }
     }
 
     function updateWidgetPagingState(widgetId, metadata) {
