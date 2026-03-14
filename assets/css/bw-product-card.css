@@ -24,6 +24,7 @@
   background: transparent;
   overflow: hidden;
   position: relative;
+  border-radius: 24px;
 }
 
 .bw-product-card .bw-wallpost-media,
@@ -38,6 +39,7 @@
   position: relative;
   overflow: hidden;
   z-index: 0;
+  border-radius: inherit;
 }
 
 /* Link invisibile che copre l'intera area dell'immagine */
@@ -260,7 +262,7 @@
 
 .bw-product-card .bw-slick-slider-text-box {
   background-color: transparent;
-  padding: 15px;
+  padding: 15px 0;
   box-sizing: border-box;
   transition: background-color 0.3s ease;
 }
