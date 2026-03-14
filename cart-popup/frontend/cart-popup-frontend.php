@@ -731,9 +731,10 @@ function bw_cart_popup_ajax_add_to_cart()
 
     wp_send_json_success(
         [
-            'status' => 'added',
+            'status'    => 'added',
             'fragments' => $fragments,
             'cart_hash' => $cart_hash,
+            'cart_data' => bw_cart_popup_build_cart_data($cart),
         ]
     );
 }
@@ -761,6 +762,85 @@ function bw_cart_popup_hex_to_rgb($hex)
 }
 
 /**
+ * Costruisce l'array dati del carrello.
+ * Condiviso tra bw_cart_popup_ajax_add_to_cart e bw_cart_popup_get_cart_contents
+ * così una singola AJAX add-to-cart restituisce già tutto il necessario.
+ */
+function bw_cart_popup_build_cart_data($cart)
+{
+    $cart_items = [];
+    $subtotal   = 0;
+    $discount   = 0;
+    $tax        = 0;
+    $total      = 0;
+    $item_count = 0;
+
+    if (!$cart->is_empty()) {
+        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+            $product    = $cart_item['data'];
+            $product_id = $cart_item['product_id'];
+            $quantity   = $cart_item['quantity'];
+
+            $price_display         = wc_get_price_to_display($product, ['qty' => $quantity]);
+            $regular_price_display = wc_get_price_to_display($product, ['qty' => $quantity, 'price' => $product->get_regular_price()]);
+
+            $cart_items[] = [
+                'key'                  => $cart_item_key,
+                'product_id'           => $product_id,
+                'name'                 => $product->get_name(),
+                'quantity'             => $quantity,
+                'sold_individually'    => (bool) $product->is_sold_individually(),
+                'price'                => wc_price($product->get_price()),
+                'price_raw'            => (float) $product->get_price(),
+                'regular_price'        => wc_price($product->get_regular_price()),
+                'regular_price_raw'    => (float) $product->get_regular_price(),
+                'subtotal'             => wc_price($price_display),
+                'subtotal_raw'         => (float) $price_display,
+                'regular_subtotal'     => wc_price($regular_price_display),
+                'regular_subtotal_raw' => (float) $regular_price_display,
+                'image'                => $product->get_image('thumbnail'),
+                'permalink'            => $product->get_permalink(),
+            ];
+        }
+
+        $subtotal   = $cart->get_subtotal();
+        $discount   = $cart->get_discount_total();
+        $tax        = $cart->get_total_tax();
+        $total      = $cart->get_total('');
+        $item_count = $cart->get_cart_contents_count();
+    }
+
+    $raw_coupons    = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
+    $coupon_amounts = is_callable([$cart, 'get_coupon_discount_amounts']) ? $cart->get_coupon_discount_amounts() : [];
+
+    $detailed_coupons = [];
+    foreach ($raw_coupons as $code) {
+        $amount             = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
+        $detailed_coupons[] = [
+            'code'       => $code,
+            'amount'     => wc_price(-$amount),
+            'amount_raw' => -$amount,
+        ];
+    }
+
+    return [
+        'items'           => $cart_items,
+        'item_count'      => $item_count,
+        'coupons'         => $detailed_coupons,
+        'subtotal'        => wc_price($subtotal),
+        'subtotal_raw'    => $subtotal,
+        'discount'        => wc_price($discount),
+        'discount_raw'    => $discount,
+        'tax'             => wc_price($tax),
+        'tax_raw'         => $tax,
+        'total'           => wc_price($total),
+        'total_raw'       => $total,
+        'empty'           => $cart->is_empty(),
+        'applied_coupons' => $raw_coupons,
+    ];
+}
+
+/**
  * AJAX: Ottieni il contenuto del carrello
  */
 function bw_cart_popup_get_cart_contents()
@@ -776,86 +856,8 @@ function bw_cart_popup_get_cart_contents()
     if (!$cart) {
         wp_send_json_error(['message' => 'Cart not initialized']);
     }
-    $cart_items = [];
-    $subtotal = 0;
-    $discount = 0;
-    $tax = 0;
-    $total = 0;
-    $item_count = 0;
-    $applied_coupons = [];
 
-    if (!$cart->is_empty()) {
-        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-            $product = $cart_item['data'];
-            $product_id = $cart_item['product_id'];
-            $quantity = $cart_item['quantity'];
-
-            $price_display = wc_get_price_to_display($product, ['qty' => $quantity]);
-            $regular_price_display = wc_get_price_to_display($product, ['qty' => $quantity, 'price' => $product->get_regular_price()]);
-
-            $cart_items[] = [
-                'key' => $cart_item_key,
-                'product_id' => $product_id,
-                'name' => $product->get_name(),
-                'quantity' => $quantity,
-                'sold_individually' => (bool) $product->is_sold_individually(),
-                'price' => wc_price($product->get_price()),
-                'price_raw' => (float) $product->get_price(),
-                'regular_price' => wc_price($product->get_regular_price()),
-                'regular_price_raw' => (float) $product->get_regular_price(),
-                'subtotal' => wc_price($price_display),
-                'subtotal_raw' => (float) $price_display,
-                'regular_subtotal' => wc_price($regular_price_display),
-                'regular_subtotal_raw' => (float) $regular_price_display,
-                'image' => $product->get_image('thumbnail'),
-                'permalink' => $product->get_permalink(),
-            ];
-        }
-
-        $subtotal = $cart->get_subtotal();
-        $discount = $cart->get_discount_total();
-        $tax = $cart->get_total_tax();
-        $total = $cart->get_total('');
-        $item_count = $cart->get_cart_contents_count();
-        // $applied_coupons assignment removed here, handling below
-    }
-
-    // Prepare detailed coupons
-    $detailed_coupons = [];
-    $raw_coupons = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
-
-    $coupon_amounts = [];
-    if (is_callable([$cart, 'get_coupon_discount_amounts'])) {
-        $coupon_amounts = $cart->get_coupon_discount_amounts();
-    } elseif (is_callable([$cart, 'get_coupons'])) {
-        // Fallback logic if needed, or leave empty
-    }
-
-    foreach ($raw_coupons as $code) {
-        $amount = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
-
-        $detailed_coupons[] = [
-            'code' => $code,
-            'amount' => wc_price(-$amount), // Formatted as discount (negative)
-            'amount_raw' => -$amount
-        ];
-    }
-
-    wp_send_json_success([
-        'items' => $cart_items,
-        'item_count' => $item_count,
-        'coupons' => $detailed_coupons, // Now array of objects
-        'subtotal' => wc_price($subtotal),
-        'subtotal_raw' => $subtotal,
-        'discount' => wc_price($discount),
-        'discount_raw' => $discount,
-        'tax' => wc_price($tax),
-        'tax_raw' => $tax,
-        'total' => wc_price($total),
-        'total_raw' => $total,
-        'empty' => $cart->is_empty(),
-        'applied_coupons' => $raw_coupons, // Keep simple list if needed for legacy
-    ]);
+    wp_send_json_success(bw_cart_popup_build_cart_data($cart));
 }
 add_action('wp_ajax_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents');
 add_action('wp_ajax_nopriv_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents');
