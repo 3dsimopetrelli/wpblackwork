@@ -622,8 +622,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $image_mode      = 'proportional';
         $hover_effect    = true;
         $open_cart_popup = false;
-        $show_title       = 'no' !== ( $settings['show_title'] ?? 'yes' );
-        $show_description = 'no' !== ( $settings['show_description'] ?? 'yes' );
+        $show_title       = 'yes' === ( $settings['show_title'] ?? 'yes' );
+        $show_description = 'yes' === ( $settings['show_description'] ?? 'yes' );
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
