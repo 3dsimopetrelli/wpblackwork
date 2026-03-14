@@ -61,7 +61,7 @@ All widgets are located in `includes/widgets/` and follow this pattern:
 
 **Key Widgets (current):**
 - `class-bw-slick-slider-widget.php` - Slick carousel for posts/products
-- `class-bw-product-grid-widget.php` - Filterable masonry grid with category/tag filters
+- `class-bw-product-grid-widget.php` - Filterable masonry/CSS-grid with category/tag filters (see `docs/30-features/product-grid/`)
 - `class-bw-wallpost-widget.php` - Masonry layout using WordPress native masonry
 - `class-bw-product-slide-widget.php` - Product slider with variations
 - `class-bw-related-products-widget.php` - Related products display
@@ -154,6 +154,8 @@ Located in `blackwork-core-plugin.php`:
    - `bw_fpw_filter_posts` - Filter posts by category/subcategories/tags
    - Uses transient caching (3-5 minutes) for performance
    - Skips cache for random order results
+   - Rate limiting via `bw_fpw_is_throttled_request()`: anonymous users 60/50/35 req/min, authenticated users 300/300/200 req/min (keyed by user ID, not IP)
+   - See `docs/30-features/product-grid/product-grid-architecture.md` for full data-attribute contract and JS architecture
 
 ## Metaboxes
 
@@ -224,6 +226,7 @@ Use `bw_register_widget_assets($slug)` helper from `includes/helpers.php` for st
 3. **Checkout URL:** Hardcoded to `/checkout/` instead of `wc_get_checkout_url()` to avoid misconfiguration
 4. **Standard WooCommerce Types:** Never modify standard product types - only add custom ones
 5. **Widget Discovery:** Widget loader automatically finds widgets by filename pattern - no manual registration needed
+6. **Product Grid PHP→JS contract:** render settings (`image_size`, `image_mode`, `hover_effect`, `open_cart_popup`) are passed from PHP to JS exclusively via `data-*` attributes on `.bw-fpw-grid`. Never hardcode these in JS — always add a data-attribute in PHP first.
 
 ## Useful Functions
 
