@@ -322,7 +322,7 @@ class BW_Product_Card_Component {
 					<span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
 				</a>
 				<?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-					<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $cart_button_classes ) ) ); ?>" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-product_id="<?php echo esc_attr( $post_id ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
+					<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $cart_button_classes ) ) ); ?>" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-product_id="<?php echo esc_attr( $post_id ); ?>" data-open-cart-popup="1">
 						<span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
 					</a>
 				<?php endif; ?>
