@@ -1350,10 +1350,10 @@
 
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
-        var imageToggle = 'yes';
-        var imageSize = 'large';
-        var imageMode = 'proportional';
-        var hoverEffect = 'yes';
+        var imageToggle = 'yes'; // always true — no per-widget control yet
+        var imageSize = $grid.attr('data-image-size') || 'large';
+        var imageMode = $grid.attr('data-image-mode') || 'proportional';
+        var hoverEffect = $grid.attr('data-hover-effect') || 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';

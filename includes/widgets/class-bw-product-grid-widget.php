@@ -598,7 +598,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $masonry_effect = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
         $layout_mode    = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
 
-        $image_toggle    = true;
+        // These are not yet exposed as Elementor controls; declared here so that
+        // adding a control in the future only requires reading from $settings.
         $image_size      = 'large';
         $image_mode      = 'proportional';
         $hover_effect    = true;
@@ -704,7 +705,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-breakpoint-mobile-max'  => $breakpoint_mobile_max,
             'data-columns-mobile'         => $columns_mobile,
             'data-gap-mobile'             => $gap_mobile_size,
-            'data-open-cart-popup'        => 'no',
+            'data-image-size'             => $image_size,
+            'data-image-mode'             => $image_mode,
+            'data-hover-effect'           => $hover_effect ? 'yes' : 'no',
+            'data-open-cart-popup'        => $open_cart_popup ? 'yes' : 'no',
             'data-order-by'               => $order_by,
             'data-order'                  => $order,
             'data-initial-items'          => $initial_items,
@@ -749,7 +753,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                         }
                         $image_loading       = $rendered_posts < $initial_eager_items ? 'eager' : 'lazy';
                         $hover_image_loading = 'lazy';
-                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading );
+                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode );
                         $rendered_posts++;
                     endwhile;
                     ?>
@@ -774,10 +778,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
         wp_reset_postdata();
     }
 
-    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy' ) {
+    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional' ) {
         $post_id = get_the_ID();
-        $image_size = 'large';
-        $image_mode = 'proportional';
 
         if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
             $product = wc_get_product( $post_id );
