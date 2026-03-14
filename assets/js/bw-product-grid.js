@@ -1422,10 +1422,13 @@
                 }
 
                 if (appendMode) {
+                    // Stop infinite scroll — retrying a failed request (e.g. 403)
+                    // would immediately re-trigger the sentinel and loop forever.
                     updateWidgetPagingState(widgetId, {
-                        isLoading: false
+                        isLoading: false,
+                        hasMore: false
                     });
-                    syncInfiniteObserver(widgetId);
+                    updateInfiniteUi(widgetId);
                     return;
                 }
 
