@@ -1804,6 +1804,18 @@ function bw_fpw_generate_cache_key($params)
 add_action('wp_ajax_bw_fpw_filter_posts', 'bw_fpw_filter_posts');
 add_action('wp_ajax_nopriv_bw_fpw_filter_posts', 'bw_fpw_filter_posts');
 
+/**
+ * Endpoint leggero per rinnovare il nonce scaduto (es. tab lasciato inattivo).
+ * Non richiede autenticazione — il nonce stesso è la protezione CSRF.
+ */
+add_action('wp_ajax_bw_fpw_refresh_nonce', 'bw_fpw_ajax_refresh_nonce');
+add_action('wp_ajax_nopriv_bw_fpw_refresh_nonce', 'bw_fpw_ajax_refresh_nonce');
+
+function bw_fpw_ajax_refresh_nonce()
+{
+    wp_send_json_success(['nonce' => wp_create_nonce('bw_fpw_nonce')]);
+}
+
 function bw_fpw_filter_posts()
 {
     check_ajax_referer('bw_fpw_nonce', 'nonce');
