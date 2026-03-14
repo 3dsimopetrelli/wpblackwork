@@ -409,6 +409,10 @@
     var ajaxCache = {};
     var ajaxRequestQueue = {};
     var loadingIndicatorTimers = {}; // delayed show timers keyed by widgetId
+    // Tracks the fade-out clear timers for subcats/tags containers so they can
+    // be cancelled if a new load fires before the 150 ms delay completes.
+    // Keys: widgetId + '_subcats' | widgetId + '_tags'
+    var filterAnimTimers = {};
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
     function getCacheKey(action, params) {
@@ -502,6 +506,24 @@
         return state;
     }
 
+    // Updates the load-state element classes and manages the "loading more"
+    // visual indicator.
+    //
+    // TWO SEPARATE CONCERNS — keep them distinct:
+    //
+    //   is-loading          Logical flag.  Set as soon as an AJAX request
+    //                       starts.  Read by syncInfiniteObserver() to block
+    //                       a new observer while a request is in flight.
+    //                       NEVER remove this class manually — always go
+    //                       through updateWidgetPagingState({ isLoading: … }).
+    //
+    //   is-loading-visible  Visual flag.  Added only after a 400 ms delay so
+    //                       the "LOADING MORE" indicator never flickers for
+    //                       fast (cached) responses.  Drives the CSS
+    //                       opacity transition on .bw-fpw-load-indicator.
+    //
+    // If you ever refactor is-loading away, audit syncInfiniteObserver() and
+    // loadNextPage() — both guard on state.isLoading directly.
     function updateInfiniteUi(widgetId) {
         var state = getWidgetPagingState(widgetId);
 
@@ -521,11 +543,10 @@
         $loadState.toggleClass('bw-fpw-load-state--disabled', !state.infiniteEnabled);
         $loadState.toggleClass('bw-fpw-load-state--complete', isComplete);
         $loadState.toggleClass('is-active', isActive);
-        $loadState.toggleClass('is-loading', !!state.isLoading);
+        $loadState.toggleClass('is-loading', !!state.isLoading); // logical — see note above
         $loadState.attr('data-has-more', state.hasMore ? '1' : '0');
 
-        // Show the loading indicator only if the request takes longer than
-        // 400 ms — prevents a distracting flash for fast (cached) loads.
+        // is-loading-visible: visual only — delayed to avoid flash on fast loads.
         if (state.isLoading) {
             if (!loadingIndicatorTimers[widgetId]) {
                 loadingIndicatorTimers[widgetId] = setTimeout(function () {
@@ -690,11 +711,24 @@
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
         var isMobile = isInMobileMode(widgetId);
+        var queueKey = widgetId + '_subcats';
 
-        // Fade out before clearing
+        // Abort any in-flight subcategory request for this widget so a rapid
+        // category change never lets a stale response overwrite the current one.
+        if (ajaxRequestQueue[queueKey]) {
+            ajaxRequestQueue[queueKey].abort();
+            delete ajaxRequestQueue[queueKey];
+        }
+
+        // Fade out before clearing.  Cancel any pending clear timer first so a
+        // previous 150 ms delay cannot empty the container we are about to fill.
         if ($subcatContainers.length) {
             $subcatContainers.removeClass('bw-fpw-animating').css('opacity', '0');
-            setTimeout(function () {
+            if (filterAnimTimers[queueKey]) {
+                clearTimeout(filterAnimTimers[queueKey]);
+            }
+            filterAnimTimers[queueKey] = setTimeout(function () {
+                delete filterAnimTimers[queueKey];
                 $subcatContainers.empty();
             }, 150);
         }
@@ -712,7 +746,7 @@
             return;
         }
 
-        $.ajax({
+        ajaxRequestQueue[queueKey] = $.ajax({
             url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
@@ -722,11 +756,15 @@
                 nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
-                // Cache the response
+                delete ajaxRequestQueue[queueKey];
                 setCachedData(cacheKey, response);
                 processSubcategoriesResponse(response, widgetId, $subcatContainers, $subcatRow, hasPosts, isMobile, autoOpenMobile);
             },
-            error: function () {
+            error: function (xhr, status) {
+                delete ajaxRequestQueue[queueKey];
+                if (status === 'abort') {
+                    return;
+                }
                 $subcatContainers.html('<p class="bw-fpw-error">Error loading subcategories</p>');
                 if ($subcatRow.length) {
                     if (hasPosts) {
@@ -798,11 +836,22 @@
         var hasPostsAttr = $filters.attr('data-has-posts');
         var hasPosts = typeof hasPostsAttr === 'undefined' ? true : hasPostsAttr === '1';
         var isMobile = isInMobileMode(widgetId);
+        var queueKey = widgetId + '_tags';
 
-        // Fade out before clearing
+        // Abort any in-flight tag request for this widget.
+        if (ajaxRequestQueue[queueKey]) {
+            ajaxRequestQueue[queueKey].abort();
+            delete ajaxRequestQueue[queueKey];
+        }
+
+        // Fade out before clearing.  Cancel any pending clear timer first.
         if ($tagContainers.length) {
             $tagContainers.removeClass('bw-fpw-animating').css('opacity', '0');
-            setTimeout(function () {
+            if (filterAnimTimers[queueKey]) {
+                clearTimeout(filterAnimTimers[queueKey]);
+            }
+            filterAnimTimers[queueKey] = setTimeout(function () {
+                delete filterAnimTimers[queueKey];
                 $tagContainers.empty();
             }, 150);
         }
@@ -821,7 +870,7 @@
             return;
         }
 
-        $.ajax({
+        ajaxRequestQueue[queueKey] = $.ajax({
             url: bwProductGridAjax.ajaxurl,
             type: 'POST',
             data: {
@@ -832,11 +881,15 @@
                 nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
-                // Cache the response
+                delete ajaxRequestQueue[queueKey];
                 setCachedData(cacheKey, response);
                 processTagsResponse(response, widgetId, $tagContainers, $tagRow, hasPosts, isMobile, autoOpenMobile);
             },
-            error: function () {
+            error: function (xhr, status) {
+                delete ajaxRequestQueue[queueKey];
+                if (status === 'abort') {
+                    return;
+                }
                 $tagContainers.html('<p class="bw-fpw-error">Error loading tags</p>');
                 if ($tagRow.length) {
                     if (hasPosts) {
@@ -946,6 +999,56 @@
             });
             staggerObserversByWidget[widgetId] = [];
         }
+    }
+
+    // Full cleanup for one widget instance.  Call when a widget is destroyed
+    // (editor deletion) or replaced by a fresh render (Elementor re-render).
+    function destroyWidgetState(widgetId) {
+        if (!widgetId) {
+            return;
+        }
+
+        // Reveal animation timers and observers
+        clearStaggerTimers(widgetId);
+
+        // Infinite-scroll sentinel observer
+        disconnectInfiniteObserver(widgetId);
+
+        // Filter animation timers (fade-out clear on subcats / tags)
+        var subcatKey = widgetId + '_subcats';
+        var tagKey    = widgetId + '_tags';
+        if (filterAnimTimers[subcatKey]) {
+            clearTimeout(filterAnimTimers[subcatKey]);
+            delete filterAnimTimers[subcatKey];
+        }
+        if (filterAnimTimers[tagKey]) {
+            clearTimeout(filterAnimTimers[tagKey]);
+            delete filterAnimTimers[tagKey];
+        }
+
+        // In-flight AJAX requests
+        [widgetId, subcatKey, tagKey].forEach(function (key) {
+            if (ajaxRequestQueue[key]) {
+                ajaxRequestQueue[key].abort();
+                delete ajaxRequestQueue[key];
+            }
+        });
+
+        // Loading-indicator delay timer
+        if (loadingIndicatorTimers[widgetId]) {
+            clearTimeout(loadingIndicatorTimers[widgetId]);
+            delete loadingIndicatorTimers[widgetId];
+        }
+
+        // Scroll reveal listener (namespaced per widget)
+        $(window).off('scroll.bwreveal' + widgetId);
+
+        // Per-widget state objects
+        delete filterState[widgetId];
+        delete widgetPagingState[widgetId];
+        delete staggerTimersByWidget[widgetId];
+        delete staggerObserversByWidget[widgetId];
+        delete lastDeviceByGrid[widgetId];
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -1314,10 +1417,10 @@
 
         var state = filterState[widgetId];
         var postType = $grid.attr('data-post-type') || 'product';
-        var imageToggle = 'yes';
-        var imageSize = 'large';
-        var imageMode = 'proportional';
-        var hoverEffect = 'yes';
+        var imageToggle = 'yes'; // always true — no per-widget control yet
+        var imageSize = $grid.attr('data-image-size') || 'large';
+        var imageMode = $grid.attr('data-image-mode') || 'proportional';
+        var hoverEffect = $grid.attr('data-hover-effect') || 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
@@ -1959,6 +2062,14 @@
             var $grid = $(this);
             var widgetId = $grid.attr('data-widget-id');
 
+            // If this widget was previously initialised with a different DOM
+            // element it has been re-rendered by Elementor — purge stale state
+            // before starting fresh.
+            var existingState = widgetPagingState[widgetId];
+            if (existingState && existingState.gridEl && existingState.gridEl !== $grid[0]) {
+                destroyWidgetState(widgetId);
+            }
+
             initFilterState(widgetId);
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
 
@@ -2089,6 +2200,32 @@
         hooksRegistered = true;
 
         elementorFrontend.hooks.addAction('frontend/element_ready/bw-product-grid.default', addElementorHandler);
+
+        // In the Elementor editor, watch for widget DOM nodes being removed so
+        // we can release all state tied to that widget ID.  MutationObserver is
+        // used only inside the editor to avoid any overhead on the frontend.
+        if (isElementorEditor() && typeof window.MutationObserver !== 'undefined') {
+            var domObserver = new window.MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    mutation.removedNodes.forEach(function (node) {
+                        if (!node || node.nodeType !== 1) {
+                            return;
+                        }
+                        var $node = $(node);
+                        var $grids = $node.hasClass('bw-fpw-grid')
+                            ? $node
+                            : $node.find('.bw-fpw-grid');
+                        $grids.each(function () {
+                            var wId = $(this).attr('data-widget-id');
+                            if (wId) {
+                                destroyWidgetState(wId);
+                            }
+                        });
+                    });
+                });
+            });
+            domObserver.observe(document.body, { childList: true, subtree: true });
+        }
     }
 
     registerElementorHooks();
