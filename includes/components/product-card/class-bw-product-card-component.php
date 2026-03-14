@@ -301,14 +301,10 @@ class BW_Product_Card_Component {
 			$settings['cart_button_classes']
 		);
 
-		if ( $settings['show_add_to_cart'] ) {
-			if ( $product->is_type( 'variable' ) ) {
-				$add_to_cart_url = $permalink;
-			} else {
-				$cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
-				if ( $cart_url ) {
-					$add_to_cart_url = add_query_arg( 'add-to-cart', $product->get_id(), $cart_url );
-				}
+		if ( $settings['show_add_to_cart'] && ! $product->is_type( 'variable' ) ) {
+			$cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
+			if ( $cart_url ) {
+				$add_to_cart_url = add_query_arg( 'add-to-cart', $product->get_id(), $cart_url );
 			}
 
 			if ( ! $add_to_cart_url ) {
@@ -326,7 +322,7 @@ class BW_Product_Card_Component {
 					<span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'View Product', 'bw-elementor-widgets' ); ?></span>
 				</a>
 				<?php if ( $has_add_to_cart && $add_to_cart_url ) : ?>
-					<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $cart_button_classes ) ) ); ?>" href="<?php echo esc_url( $add_to_cart_url ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
+					<a class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $cart_button_classes ) ) ); ?>" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-product_id="<?php echo esc_attr( $post_id ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
 						<span class="bw-wallpost-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
 					</a>
 				<?php endif; ?>
