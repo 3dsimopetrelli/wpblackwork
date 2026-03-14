@@ -984,6 +984,56 @@
         }
     }
 
+    // Full cleanup for one widget instance.  Call when a widget is destroyed
+    // (editor deletion) or replaced by a fresh render (Elementor re-render).
+    function destroyWidgetState(widgetId) {
+        if (!widgetId) {
+            return;
+        }
+
+        // Reveal animation timers and observers
+        clearStaggerTimers(widgetId);
+
+        // Infinite-scroll sentinel observer
+        disconnectInfiniteObserver(widgetId);
+
+        // Filter animation timers (fade-out clear on subcats / tags)
+        var subcatKey = widgetId + '_subcats';
+        var tagKey    = widgetId + '_tags';
+        if (filterAnimTimers[subcatKey]) {
+            clearTimeout(filterAnimTimers[subcatKey]);
+            delete filterAnimTimers[subcatKey];
+        }
+        if (filterAnimTimers[tagKey]) {
+            clearTimeout(filterAnimTimers[tagKey]);
+            delete filterAnimTimers[tagKey];
+        }
+
+        // In-flight AJAX requests
+        [widgetId, subcatKey, tagKey].forEach(function (key) {
+            if (ajaxRequestQueue[key]) {
+                ajaxRequestQueue[key].abort();
+                delete ajaxRequestQueue[key];
+            }
+        });
+
+        // Loading-indicator delay timer
+        if (loadingIndicatorTimers[widgetId]) {
+            clearTimeout(loadingIndicatorTimers[widgetId]);
+            delete loadingIndicatorTimers[widgetId];
+        }
+
+        // Scroll reveal listener (namespaced per widget)
+        $(window).off('scroll.bwreveal' + widgetId);
+
+        // Per-widget state objects
+        delete filterState[widgetId];
+        delete widgetPagingState[widgetId];
+        delete staggerTimersByWidget[widgetId];
+        delete staggerObserversByWidget[widgetId];
+        delete lastDeviceByGrid[widgetId];
+    }
+
     function prepareItemsForReveal($items, mode) {
         if (!$items || !$items.length) {
             return;
@@ -1995,6 +2045,14 @@
             var $grid = $(this);
             var widgetId = $grid.attr('data-widget-id');
 
+            // If this widget was previously initialised with a different DOM
+            // element it has been re-rendered by Elementor — purge stale state
+            // before starting fresh.
+            var existingState = widgetPagingState[widgetId];
+            if (existingState && existingState.gridEl && existingState.gridEl !== $grid[0]) {
+                destroyWidgetState(widgetId);
+            }
+
             initFilterState(widgetId);
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
 
@@ -2125,6 +2183,32 @@
         hooksRegistered = true;
 
         elementorFrontend.hooks.addAction('frontend/element_ready/bw-product-grid.default', addElementorHandler);
+
+        // In the Elementor editor, watch for widget DOM nodes being removed so
+        // we can release all state tied to that widget ID.  MutationObserver is
+        // used only inside the editor to avoid any overhead on the frontend.
+        if (isElementorEditor() && typeof window.MutationObserver !== 'undefined') {
+            var domObserver = new window.MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    mutation.removedNodes.forEach(function (node) {
+                        if (!node || node.nodeType !== 1) {
+                            return;
+                        }
+                        var $node = $(node);
+                        var $grids = $node.hasClass('bw-fpw-grid')
+                            ? $node
+                            : $node.find('.bw-fpw-grid');
+                        $grids.each(function () {
+                            var wId = $(this).attr('data-widget-id');
+                            if (wId) {
+                                destroyWidgetState(wId);
+                            }
+                        });
+                    });
+                });
+            });
+            domObserver.observe(document.body, { childList: true, subtree: true });
+        }
     }
 
     registerElementorHooks();
