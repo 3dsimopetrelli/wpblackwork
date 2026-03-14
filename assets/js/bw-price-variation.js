@@ -375,7 +375,7 @@
                                 }
                         })
                         .always(function() {
-                                $button.removeClass('loading added');
+                                $button.removeClass('loading');
 
                                 if (!variation || variation.is_in_stock !== false) {
                                         $button.removeClass('disabled');

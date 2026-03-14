@@ -1692,6 +1692,7 @@
             if (appendMode) {
                 if ($responseItems.length) {
                     $grid.append($responseItems);
+                    $(document.body).trigger('bw:grid_rendered', [$grid]);
                 }
 
                 updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
@@ -1717,6 +1718,7 @@
 
             clearStaggerTimers(widgetId);
             $grid.empty().append($responseNodes);
+            $(document.body).trigger('bw:grid_rendered', [$grid]);
 
             var $subcatRow = $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"]');
             var $subcatOptions = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
