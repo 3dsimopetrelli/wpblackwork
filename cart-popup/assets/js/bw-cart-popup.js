@@ -41,6 +41,7 @@
         lastAddedButton: null,
         cartItems: [],
         appliedCoupons: [],
+        _cartDataFromResponse: null, // Dati carrello inclusi nella risposta add-to-cart (evita 2a AJAX)
 
         /**
          * Inizializzazione
@@ -479,6 +480,11 @@
                     }
 
                     if (payload && payload.fragments) {
+                        // Salva i dati carrello già disponibili: fetchCartData li userà
+                        // direttamente invece di fare una seconda chiamata AJAX.
+                        if (payload.cart_data) {
+                            self._cartDataFromResponse = payload.cart_data;
+                        }
                         $(document.body).trigger('added_to_cart', [payload.fragments, payload.cart_hash, $button]);
                         $button.removeClass('loading');
                         return;
@@ -598,6 +604,20 @@
             const self = this;
             const opts = Object.assign({ render: true, skipLoading: false }, options);
 
+            // OTTIMIZZAZIONE: se abbiamo già i dati dal add-to-cart, usiamoli direttamente
+            // senza fare una seconda chiamata AJAX.
+            if (opts.render && self._cartDataFromResponse) {
+                const data = self._cartDataFromResponse;
+                self._cartDataFromResponse = null;
+                self.cartItems = (data && data.items) ? data.items : [];
+                self.renderCartItems(data);
+                self.updateTotals(data);
+                self.updateCouponDisplay(data.applied_coupons || []);
+                self.isLoading = false;
+                self.hideLoading();
+                return $.Deferred().resolve(self.cartItems).promise();
+            }
+
             if (!opts.skipLoading) {
                 this.showLoading();
             }
@@ -646,15 +666,12 @@
                     self.isLoading = false;
 
                     if (!opts.skipLoading) {
-                        // Nascondi loading con un leggero delay per evitare flickering
-                        setTimeout(function () {
-                            self.hideLoading();
+                        self.hideLoading();
 
-                            // Final safety check: if nothing is visible, show empty state
-                            if (opts.render && !self.$fullContent.is(':visible') && !self.$emptyState.is(':visible')) {
-                                self.showEmptyState();
-                            }
-                        }, opts.render ? 200 : 0);
+                        // Final safety check: if nothing is visible, show empty state
+                        if (opts.render && !self.$fullContent.is(':visible') && !self.$emptyState.is(':visible')) {
+                            self.showEmptyState();
+                        }
                     }
                 });
         },
