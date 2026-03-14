@@ -1,0 +1,310 @@
+# Product Grid — Architecture Map
+
+## 1) Purpose
+
+`bw-product-grid` renders a filterable masonry or CSS-grid layout of
+products (or any post type).  The initial HTML is server-rendered by the
+PHP widget class; subsequent filter and pagination changes are handled
+entirely in JS via AJAX calls to handlers in `blackwork-core-plugin.php`.
+
+---
+
+## 2) Files
+
+| File | Responsibility |
+|------|----------------|
+| `includes/widgets/class-bw-product-grid-widget.php` | Elementor widget: controls, `render()`, `render_posts()`, `render_post_item()` |
+| `assets/js/bw-product-grid.js` | All frontend behaviour — filter state, AJAX, caching, animations, infinite scroll, Elementor lifecycle |
+| `assets/css/bw-product-grid.css` | Layout (masonry / CSS-grid), filter bar, loading states, animations |
+| `blackwork-core-plugin.php` | AJAX handlers (`bw_fpw_get_subcategories`, `bw_fpw_get_tags`, `bw_fpw_filter_posts`), rate limiting, server-side transient cache |
+
+---
+
+## 3) PHP Architecture
+
+### 3.1 Controls
+
+Controls are registered across three private methods:
+
+| Method | Controls |
+|--------|----------|
+| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns, max-width, masonry toggle |
+| `register_filter_controls()` | Show filters, default category, show categories/subcategories/tags, filter bar titles |
+| `register_query_controls()` | Post type, parent category, subcategory (multi-select), specific IDs, order by, order direction |
+
+### 3.2 Render pipeline
+
+```
+render()
+├── render_wrapper_start()   — outer wrapper + data-filter-breakpoint
+├── render_filters()         — category / subcategory / tag filter rows + mobile panel
+└── render_posts()           — WP_Query + grid HTML + render_post_item() per post
+    └── render_post_item()   — delegates to BW_Product_Card_Component or generic fallback
+```
+
+### 3.3 PHP → JS data contract (data-attributes on `.bw-fpw-grid`)
+
+All values that the JS layer must know at runtime are serialised as
+`data-*` attributes on the `.bw-fpw-grid` element during `render_posts()`.
+This is the canonical bridge between PHP and JS.  Do not hardcode these
+values in JS — always add a matching data-attribute in PHP first.
+
+| Attribute | Source in PHP | Read by JS |
+|-----------|---------------|------------|
+| `data-widget-id` | `$this->get_id()` | all state lookups |
+| `data-post-type` | `$settings['post_type']` | filter/AJAX calls |
+| `data-layout-mode` | masonry_effect control | `initGrid()` |
+| `data-columns-desktop/tablet/mobile` | controls | `setItemWidths()` |
+| `data-gap-desktop/tablet/mobile` | controls | CSS vars / layout |
+| `data-breakpoint-tablet-min/max`, `data-breakpoint-mobile-max` | hardcoded defaults | `getCurrentDevice()` |
+| `data-image-size` | `$image_size` (default `large`) | `filterPosts()` AJAX payload |
+| `data-image-mode` | `$image_mode` (default `proportional`) | `filterPosts()` AJAX payload |
+| `data-hover-effect` | `$hover_effect` (default `yes`) | `filterPosts()` AJAX payload |
+| `data-open-cart-popup` | `$open_cart_popup` (default `no`) | `filterPosts()` AJAX payload |
+| `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
+| `data-initial-items`, `data-load-batch-size`, `data-per-page` | controls | paging state |
+| `data-current-page`, `data-next-page`, `data-next-offset` | `render_posts()` derived | paging state |
+| `data-loaded-count`, `data-has-more` | `render_posts()` derived | paging state |
+| `data-infinite-enabled` | `infinite_scroll` control | `syncInfiniteObserver()` |
+| `data-load-trigger-offset` | hardcoded 300 px | `syncInfiniteObserver()` |
+
+> **Invariant:** when adding a new Elementor control that must reach the
+> AJAX handler, (1) read it in `render_posts()` from `$settings`, (2) add
+> a `data-*` attribute to the grid, (3) read it in `filterPosts()` via
+> `$grid.attr()`.  Never add a new hardcoded default only in JS.
+
+### 3.4 render_post_item() signature
+
+```php
+private function render_post_item(
+    string $post_type,
+    bool   $open_cart_popup,
+    string $image_loading       = 'lazy',
+    string $hover_image_loading = 'lazy',
+    string $image_size          = 'large',
+    string $image_mode          = 'proportional'
+)
+```
+
+`$image_size` and `$image_mode` are passed from `render_posts()` so the
+initial server render always matches what the AJAX handler produces.
+
+---
+
+## 4) JavaScript Architecture
+
+### 4.1 Module structure
+
+`bw-product-grid.js` is a self-contained IIFE.  All state is module-level
+(not global).  There are no exported symbols; Elementor integration is
+done via `elementorFrontend.hooks.addAction`.
+
+### 4.2 Per-widget state objects
+
+Each live widget instance owns two state objects keyed by `widgetId`:
+
+```
+filterState[widgetId]       = { category, subcategories[], tags[] }
+widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
+                                perPage, currentPage, nextPage,
+                                loadedCount, nextOffset, hasMore,
+                                infiniteEnabled, loadTriggerOffset,
+                                isLoading, observer }
+```
+
+`filterState` is initialised by `initFilterState()` (once per widget) and
+reset only when `destroyWidgetState()` is called.
+
+`widgetPagingState` is updated on every AJAX response via
+`updateWidgetPagingState()`.  `getWidgetPagingState()` automatically
+resets the object and disconnects the observer when it detects that
+`gridEl !== $grid[0]` (Elementor re-render).
+
+### 4.3 AJAX request queue
+
+```
+ajaxRequestQueue[widgetId]           — filterPosts() active request
+ajaxRequestQueue[widgetId + '_subcats'] — loadSubcategories() active request
+ajaxRequestQueue[widgetId + '_tags']    — loadTags() active request
+```
+
+Each caller aborts any previous entry before issuing a new one.  This
+prevents stale responses from overwriting current results when the user
+changes filters rapidly.
+
+### 4.4 Client-side cache
+
+`ajaxCache` stores responses from all three AJAX endpoints.  Keys are
+produced by `getCacheKey(type, params)` (SHA-ish hash of sorted params).
+TTL: 5 minutes (`CACHE_DURATION`).
+
+Cache is checked first in `filterPosts()`, `loadSubcategories()`, and
+`loadTags()`.  Random-order (`order_by=rand`) always skips the cache.
+
+### 4.5 Filter animation timers
+
+```
+filterAnimTimers[widgetId + '_subcats']  — 150 ms clear timer for subcategories container
+filterAnimTimers[widgetId + '_tags']     — 150 ms clear timer for tags container
+```
+
+The fade-out is: `opacity → 0` immediately, then `empty()` after 150 ms.
+If a new `loadSubcategories()` / `loadTags()` call fires before the timer
+expires the timer is cancelled so it cannot empty freshly-rendered content.
+
+### 4.6 Loading-state classes (coupling contract)
+
+Two CSS classes on `.bw-fpw-load-state` serve different roles and must not
+be confused:
+
+| Class | Role | Set by |
+|-------|------|--------|
+| `is-loading` | Logical flag. Read by `syncInfiniteObserver()` and `loadNextPage()` to prevent concurrent requests. | `updateWidgetPagingState({ isLoading: true/false })` |
+| `is-loading-visible` | Visual flag. Controls CSS opacity transition on `.bw-fpw-load-indicator`. Added only after a 400 ms delay (`loadingIndicatorTimers`) to avoid flash on fast/cached loads. | `updateInfiniteUi()` internal timer |
+
+> **Invariant:** never remove `is-loading` without auditing
+> `syncInfiniteObserver()` and `loadNextPage()`.
+
+### 4.7 Stagger animation
+
+Items entering the viewport are animated in sequence by
+`animatePostsStaggered()`.  Per-widget timers are tracked in
+`staggerTimersByWidget[widgetId]` and per-widget observers in
+`staggerObserversByWidget[widgetId]`.  Both are cleared by
+`clearStaggerTimers(widgetId)`.
+
+### 4.8 Infinite scroll
+
+`syncInfiniteObserver(widgetId)` creates an `IntersectionObserver` that
+watches `.bw-fpw-load-sentinel`.  When the sentinel enters the viewport
+and `state.hasMore && !state.isLoading`, it calls `loadNextPage()`.
+
+The observer reference is stored in `widgetPagingState[widgetId].observer`
+and disconnected via `disconnectInfiniteObserver(widgetId)`.
+
+### 4.9 Responsive / device modes
+
+`getCurrentDevice($grid)` returns `desktop`, `tablet`, or `mobile` based
+on `window.innerWidth` vs. the grid's breakpoint data-attributes.
+
+`isInMobileMode(widgetId)` returns true when the wrapper has the class
+`bw-fpw-mobile-filters-enabled` (set by `toggleResponsiveFilters()`).
+
+In mobile mode a slide-out panel replaces the inline filter bar.
+
+---
+
+## 5) AJAX Handlers (PHP)
+
+All three handlers are in `blackwork-core-plugin.php`.
+
+### 5.1 bw_fpw_get_subcategories
+
+- Action: `wp_ajax[_nopriv]_bw_fpw_get_subcategories`
+- Input: `category_id`, `post_type`, `nonce`
+- Returns: `[{ term_id, name, count }]`
+- Server cache: `bw_fpw_subcats_{post_type}_{category_id}` — 5 min transient
+- Rate limit: 60 req/min (anon), 300 req/min (auth)
+
+### 5.2 bw_fpw_get_tags
+
+- Action: `wp_ajax[_nopriv]_bw_fpw_get_tags`
+- Input: `category_id`, `post_type`, `subcategories[]`, `nonce`
+- Returns: `[{ term_id, name, count }]`
+- Server cache: `bw_fpw_tags_{post_type}_{category_id}_{subcats_hash}` — 5 min transient
+- Rate limit: 50 req/min (anon), 300 req/min (auth)
+
+### 5.3 bw_fpw_filter_posts
+
+- Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
+- Input: `widget_id`, `post_type`, `category`, `subcategories[]`, `tags[]`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
+- Returns: `{ html, tags_html, available_tags[], has_posts, has_more, next_offset, loaded_count, current_page }`
+- Server cache: SHA-256 transient keyed on canonical payload — 3 min (skipped for `rand`)
+- Rate limit: 35 req/min (anon), 200 req/min (auth)
+
+### 5.4 Rate limiting
+
+`bw_fpw_is_throttled_request($action_key)` maintains a per-fingerprint
+counter in a short-lived transient.
+
+- **Anonymous users:** fingerprint = `md5(IP + '|' + UA[:128])`
+- **Authenticated users:** fingerprint = `'u' + user_id`
+
+Using `user_id` for authenticated users avoids false positives on shared
+networks (offices, NAT) while still protecting against scripted abuse from
+a single account.
+
+---
+
+## 6) Elementor Lifecycle Integration
+
+### 6.1 Initialisation
+
+```
+elementorFrontend.hooks.addAction(
+    'frontend/element_ready/bw-product-grid.default',
+    addElementorHandler    // → setTimeout(initWidget, 80)
+)
+```
+
+`initWidget($scope)` finds all `.bw-fpw-grid` in scope and, for each:
+1. Checks if a prior state exists for the same `widgetId` with a **different** `gridEl` (re-render) → calls `destroyWidgetState(widgetId)`.
+2. Calls `initFilterState(widgetId)`.
+3. Reads active filter buttons from the DOM to seed `filterState`.
+4. Calls `initGrid($grid, callback)` which sets up masonry/CSS-grid layout and then runs the initial reveal animation.
+5. Calls `syncInfiniteObserver(widgetId)`.
+
+### 6.2 destroyWidgetState(widgetId)
+
+Full teardown for one widget instance.  Must be called on re-render and on
+deletion to prevent memory leaks and orphaned timers.
+
+Actions performed:
+- `clearStaggerTimers(widgetId)` — cancel all reveal timers and observers
+- `disconnectInfiniteObserver(widgetId)` — disconnect sentinel IO
+- Cancel `filterAnimTimers` for subcats and tags keys
+- Abort all in-flight AJAX requests (`widgetId`, `_subcats`, `_tags` keys)
+- Clear `loadingIndicatorTimers[widgetId]`
+- Unbind `scroll.bwreveal{widgetId}` listener
+- Delete: `filterState`, `widgetPagingState`, `staggerTimersByWidget`, `staggerObserversByWidget`, `lastDeviceByGrid`
+
+### 6.3 Editor deletion via MutationObserver
+
+`registerElementorHooks()` attaches a `MutationObserver` on `document.body`
+(subtree, childList) **only when `isElementorEditor()` is true**.  When a
+`.bw-fpw-grid` node is removed from the DOM, `destroyWidgetState()` is
+called for its `data-widget-id`.
+
+---
+
+## 7) Known Constraints
+
+1. **Breakpoints are hardcoded** (`$breakpoint_tablet_min = 768`, etc.).
+   There are no Elementor controls for them.  To make them configurable,
+   add controls and map them to data-attributes following the contract in
+   §3.3.
+
+2. **`$image_size`, `$image_mode`, `$hover_effect`, `$open_cart_popup`**
+   have no Elementor controls yet.  They are declared as named variables in
+   `render_posts()` and exposed via data-attributes so adding a control
+   later requires only: read from `$settings`, update the variable — the
+   data-attribute and JS pipeline carry the value automatically.
+
+3. **Transient cache is per-server.**  In multi-server environments, a
+   request to a different server may miss cache and generate a fresh query.
+   This is acceptable — the query is still rate-limited.
+
+4. **Client-side cache is per-page-load.**  Navigating away and back clears
+   the JS cache.  The server-side transient provides cross-session coverage.
+
+---
+
+## 8) Risk Surfaces
+
+| Surface | Risk | Severity |
+|---------|------|----------|
+| `bw_fpw_filter_posts` AJAX handler | Any change to the response shape breaks JS rendering | High |
+| `data-*` attribute contract on `.bw-fpw-grid` | Adding/renaming an attribute without updating both PHP and JS breaks the pipeline | High |
+| `destroyWidgetState()` completeness | If a new timer or observer is added without a matching cleanup entry, leaks accumulate in the editor | Medium |
+| Rate-limit transient key format | If `bw_fpw_get_request_fingerprint()` changes, existing buckets are orphaned (harmless but effective limit resets) | Low |
+| `is-loading` / `is-loading-visible` class split | CSS rules that depend on only one class will break if the split is collapsed | Medium |
