@@ -1425,18 +1425,29 @@ function bw_fpw_get_request_fingerprint()
 
 function bw_fpw_is_throttled_request($action_key)
 {
-    if (is_user_logged_in()) {
-        return false;
+    $is_logged_in = is_user_logged_in();
+
+    // Authenticated users get higher limits keyed by user ID (accurate, avoids
+    // IP collisions on shared networks). Anonymous users get tighter limits
+    // keyed by IP + UA fingerprint.
+    if ($is_logged_in) {
+        $limits = [
+            'bw_fpw_get_subcategories' => ['limit' => 300, 'window' => 60],
+            'bw_fpw_get_tags'          => ['limit' => 300, 'window' => 60],
+            'bw_fpw_filter_posts'      => ['limit' => 200, 'window' => 60],
+        ];
+        $fingerprint = 'u' . get_current_user_id();
+    } else {
+        $limits = [
+            'bw_fpw_get_subcategories' => ['limit' => 60, 'window' => 60],
+            'bw_fpw_get_tags'          => ['limit' => 50, 'window' => 60],
+            'bw_fpw_filter_posts'      => ['limit' => 35, 'window' => 60],
+        ];
+        $fingerprint = bw_fpw_get_request_fingerprint();
     }
 
-    $limits = [
-        'bw_fpw_get_subcategories' => ['limit' => 60, 'window' => 60],
-        'bw_fpw_get_tags' => ['limit' => 50, 'window' => 60],
-        'bw_fpw_filter_posts' => ['limit' => 35, 'window' => 60],
-    ];
-
     $config = isset($limits[$action_key]) ? $limits[$action_key] : ['limit' => 40, 'window' => 60];
-    $transient_key = 'bw_fpw_rl_' . md5($action_key . '|' . bw_fpw_get_request_fingerprint());
+    $transient_key = 'bw_fpw_rl_' . md5($action_key . '|' . $fingerprint);
     $bucket = get_transient($transient_key);
 
     if (!is_array($bucket) || !isset($bucket['count'])) {
