@@ -345,3 +345,14 @@
   text-decoration: none;
   font-weight: inherit;
 }
+
+/* ===================================
+   Image Mode: proportional
+   =================================== */
+.bw-product-card-media--proportional {
+  background: var(--bw-card-image-bg, #ffffff);
+}
+
+.bw-product-card img.bw-product-card-image-el--proportional {
+  object-fit: contain;
+}
