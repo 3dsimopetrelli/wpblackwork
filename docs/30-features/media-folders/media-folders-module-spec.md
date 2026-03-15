@@ -124,6 +124,13 @@ Rationale:
   - post type context enabled via module flags,
   - `bw_media_folder` or `bw_media_unassigned=1` provided.
 - Taxonomy used is resolved deterministically by post type (`attachment/post/page/product`).
+- Screen/post type resolution contract:
+  - prefer `get_current_screen()` when available,
+  - fail-open fallback to admin page globals:
+    - `upload.php` -> `attachment`
+    - `edit.php` with missing `post_type` -> `post`
+    - `edit.php?post_type=page|product` -> `page|product`
+- This prevents list-table folder filters from silently no-op'ing on admin screens where screen metadata is incomplete or WooCommerce-adjusted.
 
 ### Grid mode (`ajax_query_attachments_args`)
 - Applies only when:
@@ -270,8 +277,10 @@ Corner markers payload:
 - Handle icon: 4-arrows (`dashicons-move`), drag start source is handle only.
 - Drag ghost label shows current row title.
 - Row/checkbox drag start is disabled for non-media post types.
+- Shared list-table sizing contract (when the corresponding post type is enabled):
+  - drag-handle column uses compact fixed width on Posts, Pages, and Products
+  - Pages and Posts keep the same compact drag-handle footprint as Products for alignment consistency
 - Products-only UI polish contract (`edit.php?post_type=product`, when product support is enabled):
-  - drag-handle column (`bw_mf_drag_handle`) uses compact fixed width.
   - checkbox column (`check-column`) uses compact fixed width.
   - product thumbnail source size uses Woo/WP thumbnail target (`150x150` default, override via `BW_MF_PRODUCT_ADMIN_THUMB_SIZE` or `bw_mf_product_admin_thumbnail_size` filter), then rendered at compact square `130x130` via product-screen-scoped CSS.
 

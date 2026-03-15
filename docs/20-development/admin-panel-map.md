@@ -169,12 +169,14 @@ Current adoption:
       - folder tree + summary counters are cache-backed per taxonomy/context (`taxonomy + post_type`)
       - assignment batching invalidates cache once per operation (no per-item invalidation storms)
       - list-table filters mutate queries only when folder params are present (fail-open otherwise)
+      - list-table screen resolution prefers `get_current_screen()` and falls back to `upload.php` / `edit.php` + sanitized `post_type` when needed, so folder filters remain deterministic on Posts/Pages/Products admin tables
     - products list UI polish contract (`edit.php?post_type=product`, when `media_folders_use_products=1`):
       - compact fixed widths for drag-handle and checkbox columns
       - admin product thumbnail source target set to `150x150` (overridable via Media Folders admin filter/constant) and rendered as compact square `130x130` with product-screen-only CSS
     - list-table UX contract (posts/pages/products):
       - dedicated drag-handle column before `Title`
       - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps
+      - drag-handle column uses compact fixed width across Posts, Pages, and Products
       - drag start only from handle (`dashicons-move`)
       - single-item drag assignment only (no list-table bulk drag)
       - folder node pencil context menu actions: Rename, New Subfolder, Pin/Unpin, Icon Color, Delete
