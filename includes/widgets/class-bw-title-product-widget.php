@@ -56,6 +56,15 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'default' => 'h1',
         ] );
 
+        $this->add_control( 'product_id', [
+            'label'       => __( 'Product ID', 'bw' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => '',
+            'placeholder' => __( 'Leave empty to use current product', 'bw' ),
+            'description' => __( 'ID of the product to display. Leave empty on single-product templates.', 'bw' ),
+            'label_block' => true,
+        ] );
+
         $this->end_controls_section();
 
         /* ── Style: Typography ───────────────────────────────────────────── */
@@ -217,12 +226,16 @@ class Widget_Bw_Title_Product extends Widget_Base {
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
-        // Resolve product ID: context helper → current post only if it is a product.
-        $product_id = 0;
-        if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+        // 1. Product ID explicitly set in widget settings.
+        $product_id = ! empty( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
+
+        // 2. Context helper (Theme Builder single-product template preview).
+        if ( ! $product_id && function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
             $resolution = bw_tbl_resolve_product_context_id( array_merge( $settings, [ '__widget_class' => __CLASS__ ] ) );
             $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
         }
+
+        // 3. Current post, only when it is a product.
         if ( ! $product_id ) {
             $post_id = absint( get_the_ID() );
             if ( 'product' === get_post_type( $post_id ) ) {
