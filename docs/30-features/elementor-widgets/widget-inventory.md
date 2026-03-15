@@ -19,6 +19,7 @@ Canonical transition note:
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
+| `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slide` | `includes/widgets/class-bw-product-slide-widget.php` | Product Slider | canonical product slider target |
 | `bw-related-post` | `includes/widgets/class-bw-related-post-widget.php` | Query/List | non-product |
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | uses `BW_Product_Card_Component` |
@@ -30,6 +31,7 @@ Canonical transition note:
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-product-slide` -> `BW-SP Gallery Product` (visible title)
+- `bw-title-product` -> `Title Product` (visible title)
 - Internal slugs above remain the runtime authority.
 
 ## Current implementation deltas (status)
