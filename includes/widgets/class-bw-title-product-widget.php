@@ -7,17 +7,24 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-class BW_Title_Product_Widget extends Widget_Base {
+/**
+ * BW-SP Title Product Widget
+ *
+ * Displays the WooCommerce product title with configurable HTML tag,
+ * typography and alignment. Designed for single-product templates.
+ */
+class Widget_Bw_Title_Product extends Widget_Base {
+
     public function get_name() {
         return 'bw-title-product';
     }
 
     public function get_title() {
-        return __( 'Title Product', 'bw-elementor-widgets' );
+        return __( 'Title Product', 'bw' );
     }
 
     public function get_icon() {
-        return 'eicon-t-letter';
+        return 'eicon-product-title';
     }
 
     public function get_categories() {
@@ -25,187 +32,243 @@ class BW_Title_Product_Widget extends Widget_Base {
     }
 
     protected function register_controls() {
-        $this->start_controls_section(
-            'section_content',
-            [
-                'label' => __( 'Content', 'bw-elementor-widgets' ),
-                'tab'   => Controls_Manager::TAB_CONTENT,
-            ]
-        );
 
-        $this->add_control(
-            'html_tag',
-            [
-                'label'   => __( 'HTML Tag', 'bw-elementor-widgets' ),
-                'type'    => Controls_Manager::SELECT,
-                'default' => 'h1',
-                'options' => [
-                    'h1'   => 'H1',
-                    'h2'   => 'H2',
-                    'h3'   => 'H3',
-                    'h4'   => 'H4',
-                    'h5'   => 'H5',
-                    'h6'   => 'H6',
-                    'div'  => 'div',
-                    'span' => 'span',
-                    'p'    => 'p',
-                ],
-            ]
-        );
+        /* ── Content ─────────────────────────────────────────────────────── */
+
+        $this->start_controls_section( 'section_content', [
+            'label' => __( 'Content', 'bw' ),
+        ] );
+
+        $this->add_control( 'html_tag', [
+            'label'   => __( 'HTML Tag', 'bw' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'h1'   => 'H1',
+                'h2'   => 'H2',
+                'h3'   => 'H3',
+                'h4'   => 'H4',
+                'h5'   => 'H5',
+                'h6'   => 'H6',
+                'div'  => 'div',
+                'span' => 'span',
+                'p'    => 'p',
+            ],
+            'default' => 'h1',
+        ] );
 
         $this->end_controls_section();
 
-        $this->start_controls_section(
-            'section_style_title',
-            [
-                'label' => __( 'Title', 'bw-elementor-widgets' ),
-                'tab'   => Controls_Manager::TAB_STYLE,
-            ]
-        );
+        /* ── Style: Typography ───────────────────────────────────────────── */
 
-        $this->add_responsive_control(
-            'title_alignment',
-            [
-                'label'   => __( 'Alignment', 'bw-elementor-widgets' ),
-                'type'    => Controls_Manager::CHOOSE,
-                'options' => [
-                    'left' => [
-                        'title' => __( 'Left', 'bw-elementor-widgets' ),
-                        'icon'  => 'eicon-text-align-left',
-                    ],
-                    'center' => [
-                        'title' => __( 'Center', 'bw-elementor-widgets' ),
-                        'icon'  => 'eicon-text-align-center',
-                    ],
-                    'right' => [
-                        'title' => __( 'Right', 'bw-elementor-widgets' ),
-                        'icon'  => 'eicon-text-align-right',
-                    ],
-                    'justify' => [
-                        'title' => __( 'Justified', 'bw-elementor-widgets' ),
-                        'icon'  => 'eicon-text-align-justify',
-                    ],
-                ],
-                'default'   => 'left',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-title-product-widget' => 'text-align: {{VALUE}};',
-                ],
-            ]
-        );
+        $this->start_controls_section( 'section_style_typography', [
+            'label' => __( 'Typography', 'bw' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'           => 'title_typography',
-                'selector'       => '{{WRAPPER}} .bw-title-product',
-                'fields_options' => [
-                    'typography'  => [
-                        'default' => 'yes',
-                    ],
-                    'font_size'   => [
-                        'default' => [
-                            'size' => 100,
-                            'unit' => 'px',
-                        ],
-                    ],
-                    'line_height' => [
-                        'default' => [
-                            'size' => 110,
-                            'unit' => '%',
-                        ],
-                    ],
-                ],
-            ]
-        );
+        $this->add_control( 'color', [
+            'label'     => __( 'Color', 'bw' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-title-product' => 'color: {{VALUE}};',
+            ],
+        ] );
 
-        $this->add_control(
-            'title_color',
-            [
-                'label'     => __( 'Text Color', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-title-product' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'typography',
+            'selector' => '{{WRAPPER}} .bw-title-product',
+        ] );
+
+        $this->add_responsive_control( 'font_size', [
+            'label'      => __( 'Font Size', 'bw' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem', 'vw' ],
+            'range'      => [
+                'px'  => [ 'min' => 10, 'max' => 120, 'step' => 1 ],
+                'em'  => [ 'min' => 0.5, 'max' => 8,  'step' => 0.1 ],
+                'rem' => [ 'min' => 0.5, 'max' => 8,  'step' => 0.1 ],
+                'vw'  => [ 'min' => 1,   'max' => 15, 'step' => 0.1 ],
+            ],
+            'default'        => [ 'size' => 48, 'unit' => 'px' ],
+            'tablet_default' => [ 'size' => 36, 'unit' => 'px' ],
+            'mobile_default' => [ 'size' => 26, 'unit' => 'px' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-title-product' => 'font-size: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'line_height', [
+            'label'      => __( 'Line Height', 'bw' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'em', 'px' ],
+            'range'      => [
+                'em' => [ 'min' => 0.8, 'max' => 3, 'step' => 0.05 ],
+                'px' => [ 'min' => 10,  'max' => 200 ],
+            ],
+            'default'        => [ 'size' => 1.1, 'unit' => 'em' ],
+            'tablet_default' => [ 'size' => 1.1, 'unit' => 'em' ],
+            'mobile_default' => [ 'size' => 1.2, 'unit' => 'em' ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-title-product' => 'line-height: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'text_align', [
+            'label'   => __( 'Alignment', 'bw' ),
+            'type'    => Controls_Manager::CHOOSE,
+            'options' => [
+                'left'   => [ 'title' => __( 'Left', 'bw' ),   'icon' => 'eicon-text-align-left' ],
+                'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
+                'right'  => [ 'title' => __( 'Right', 'bw' ),  'icon' => 'eicon-text-align-right' ],
+            ],
+            'default'        => 'left',
+            'tablet_default' => 'left',
+            'mobile_default' => 'left',
+            'selectors' => [
+                '{{WRAPPER}} .bw-title-product' => 'text-align: {{VALUE}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        /* ── Style: Spacing ──────────────────────────────────────────────── */
+
+        $this->start_controls_section( 'section_style_spacing', [
+            'label' => __( 'Spacing', 'bw' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_responsive_control( 'margin', [
+            'label'      => __( 'Margin', 'bw' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', 'em', '%' ],
+            'default' => [
+                'top'      => '0',
+                'right'    => '0',
+                'bottom'   => '12',
+                'left'     => '0',
+                'unit'     => 'px',
+                'isLinked' => false,
+            ],
+            'tablet_default' => [
+                'top'      => '0',
+                'right'    => '0',
+                'bottom'   => '10',
+                'left'     => '0',
+                'unit'     => 'px',
+                'isLinked' => false,
+            ],
+            'mobile_default' => [
+                'top'      => '0',
+                'right'    => '0',
+                'bottom'   => '8',
+                'left'     => '0',
+                'unit'     => 'px',
+                'isLinked' => false,
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-title-product' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'padding', [
+            'label'      => __( 'Padding', 'bw' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', 'em', '%' ],
+            'default' => [
+                'top'      => '0',
+                'right'    => '0',
+                'bottom'   => '0',
+                'left'     => '0',
+                'unit'     => 'px',
+                'isLinked' => true,
+            ],
+            'tablet_default' => [
+                'top'      => '0',
+                'right'    => '0',
+                'bottom'   => '0',
+                'left'     => '0',
+                'unit'     => 'px',
+                'isLinked' => true,
+            ],
+            'mobile_default' => [
+                'top'      => '0',
+                'right'    => '0',
+                'bottom'   => '0',
+                'left'     => '0',
+                'unit'     => 'px',
+                'isLinked' => true,
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .bw-title-product' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
 
         $this->end_controls_section();
     }
 
     protected function render() {
-        $product = $this->resolve_product();
-
-        if ( ! $product ) {
-            return;
-        }
-
         $settings = $this->get_settings_for_display();
-        $tag      = isset( $settings['html_tag'] ) ? sanitize_key( $settings['html_tag'] ) : 'h1';
-        $allowed  = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
 
-        if ( ! in_array( $tag, $allowed, true ) ) {
-            $tag = 'h1';
+        // Sanitize tag.
+        $allowed_tags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
+        $tag = in_array( $settings['html_tag'], $allowed_tags, true ) ? $settings['html_tag'] : 'h1';
+
+        $is_editor = class_exists( '\Elementor\Plugin' )
+            && \Elementor\Plugin::$instance->editor
+            && \Elementor\Plugin::$instance->editor->is_edit_mode();
+
+        // Resolve product ID: context helper → current post only if it is a product.
+        $product_id = 0;
+        if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+            $resolution = bw_tbl_resolve_product_context_id( array_merge( $settings, [ '__widget_class' => __CLASS__ ] ) );
+            $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+        }
+        if ( ! $product_id ) {
+            $post_id = absint( get_the_ID() );
+            if ( 'product' === get_post_type( $post_id ) ) {
+                $product_id = $post_id;
+            }
         }
 
-        $title = trim( (string) $product->get_name() );
-
-        if ( '' === $title ) {
-            return;
+        // Get title from WooCommerce product.
+        $title = '';
+        if ( $product_id && function_exists( 'wc_get_product' ) ) {
+            $product = wc_get_product( $product_id );
+            if ( $product ) {
+                $title = $product->get_name();
+            }
         }
 
-        $this->add_render_attribute( 'wrapper', 'class', 'bw-title-product-widget' );
+        // Editor placeholder when no product context.
+        if ( ! $title ) {
+            if ( $is_editor ) {
+                $title = __( 'Product Title', 'bw' );
+            } else {
+                return;
+            }
+        }
+
         $this->add_render_attribute( 'title', 'class', 'bw-title-product' );
 
-        echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
         printf(
             '<%1$s %2$s>%3$s</%1$s>',
-            tag_escape( $tag ),
+            esc_attr( $tag ),
             $this->get_render_attribute_string( 'title' ),
             esc_html( $title )
         );
-        echo '</div>';
     }
 
     /**
-     * Resolve the current WooCommerce product using the safest shared contract.
-     *
-     * Resolution order:
-     * 1. Current queried product object.
-     * 2. Shared Theme Builder Lite product context resolver.
-     * 3. Global WooCommerce product object as final fallback.
-     *
-     * @return WC_Product|null
+     * JS template for live preview in the editor.
      */
-    private function resolve_product() {
-        if ( ! function_exists( 'wc_get_product' ) ) {
-            return null;
-        }
-
-        $queried_id = absint( get_queried_object_id() );
-        if ( $queried_id > 0 && 'product' === get_post_type( $queried_id ) ) {
-            $queried_product = wc_get_product( $queried_id );
-            if ( $queried_product instanceof WC_Product ) {
-                return $queried_product;
-            }
-        }
-
-        if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
-            $resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
-            $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
-
-            if ( $product_id > 0 ) {
-                $resolved_product = wc_get_product( $product_id );
-                if ( $resolved_product instanceof WC_Product ) {
-                    return $resolved_product;
-                }
-            }
-        }
-
-        global $product;
-        if ( $product instanceof WC_Product ) {
-            return $product;
-        }
-
-        return null;
+    protected function content_template() {
+        ?>
+        <#
+        var allowedTags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
+        var tag = ( allowedTags.indexOf( settings.html_tag ) !== -1 ) ? settings.html_tag : 'h1';
+        view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
+        print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>Product Title</' + tag + '>' );
+        #>
+        <?php
     }
 }
