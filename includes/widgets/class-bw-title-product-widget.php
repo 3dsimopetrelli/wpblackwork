@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * BW-SP Title Product Widget
  *
  * Displays either a WooCommerce product title or a product-category name.
- * The source is configurable via the Title Source control.
+ * Typography is handled exclusively through the Elementor Typography group control.
  */
 class Widget_Bw_Title_Product extends Widget_Base {
 
@@ -57,17 +57,15 @@ class Widget_Bw_Title_Product extends Widget_Base {
         ] );
 
         $this->add_control( 'title_source', [
-            'label'   => __( 'Title Source', 'bw' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => [
+            'label'       => __( 'Title Source', 'bw' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => [
                 'product'  => __( 'Single Product', 'bw' ),
                 'category' => __( 'Product Category', 'bw' ),
             ],
             'default'     => 'product',
             'description' => __( 'Choose what this widget reads the title from.', 'bw' ),
         ] );
-
-        // ── Product source fields ─────────────────────────────────────────
 
         $this->add_control( 'product_id', [
             'label'       => __( 'Product ID', 'bw' ),
@@ -78,8 +76,6 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'label_block' => true,
             'condition'   => [ 'title_source' => 'product' ],
         ] );
-
-        // ── Category source fields ────────────────────────────────────────
 
         $this->add_control( 'term_id', [
             'label'       => __( 'Category ID', 'bw' ),
@@ -93,58 +89,11 @@ class Widget_Bw_Title_Product extends Widget_Base {
 
         $this->end_controls_section();
 
-        /* ── Style: Typography ───────────────────────────────────────────── */
+        /* ── Style ───────────────────────────────────────────────────────── */
 
-        $this->start_controls_section( 'section_style_typography', [
-            'label' => __( 'Typography', 'bw' ),
+        $this->start_controls_section( 'section_style', [
+            'label' => __( 'Style', 'bw' ),
             'tab'   => Controls_Manager::TAB_STYLE,
-        ] );
-
-        $this->add_control( 'color', [
-            'label'     => __( 'Color', 'bw' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-title-product' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'typography',
-            'selector' => '{{WRAPPER}} .bw-title-product',
-        ] );
-
-        $this->add_responsive_control( 'font_size', [
-            'label'      => __( 'Font Size', 'bw' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', 'em', 'rem', 'vw' ],
-            'range'      => [
-                'px'  => [ 'min' => 10, 'max' => 120, 'step' => 1 ],
-                'em'  => [ 'min' => 0.5, 'max' => 8,  'step' => 0.1 ],
-                'rem' => [ 'min' => 0.5, 'max' => 8,  'step' => 0.1 ],
-                'vw'  => [ 'min' => 1,   'max' => 15, 'step' => 0.1 ],
-            ],
-            'default'        => [ 'size' => 48, 'unit' => 'px' ],
-            'tablet_default' => [ 'size' => 36, 'unit' => 'px' ],
-            'mobile_default' => [ 'size' => 26, 'unit' => 'px' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-title-product' => 'font-size: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'line_height', [
-            'label'      => __( 'Line Height', 'bw' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'em', 'px' ],
-            'range'      => [
-                'em' => [ 'min' => 0.8, 'max' => 3, 'step' => 0.05 ],
-                'px' => [ 'min' => 10,  'max' => 200 ],
-            ],
-            'default'        => [ 'size' => 1.1, 'unit' => 'em' ],
-            'tablet_default' => [ 'size' => 1.1, 'unit' => 'em' ],
-            'mobile_default' => [ 'size' => 1.2, 'unit' => 'em' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-title-product' => 'line-height: {{SIZE}}{{UNIT}};',
-            ],
         ] );
 
         $this->add_responsive_control( 'text_align', [
@@ -163,78 +112,35 @@ class Widget_Bw_Title_Product extends Widget_Base {
             ],
         ] );
 
-        $this->end_controls_section();
-
-        /* ── Style: Spacing ──────────────────────────────────────────────── */
-
-        $this->start_controls_section( 'section_style_spacing', [
-            'label' => __( 'Spacing', 'bw' ),
-            'tab'   => Controls_Manager::TAB_STYLE,
-        ] );
-
-        $this->add_responsive_control( 'margin', [
-            'label'      => __( 'Margin', 'bw' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', 'em', '%' ],
-            'default' => [
-                'top'      => '0',
-                'right'    => '0',
-                'bottom'   => '12',
-                'left'     => '0',
-                'unit'     => 'px',
-                'isLinked' => false,
-            ],
-            'tablet_default' => [
-                'top'      => '0',
-                'right'    => '0',
-                'bottom'   => '10',
-                'left'     => '0',
-                'unit'     => 'px',
-                'isLinked' => false,
-            ],
-            'mobile_default' => [
-                'top'      => '0',
-                'right'    => '0',
-                'bottom'   => '8',
-                'left'     => '0',
-                'unit'     => 'px',
-                'isLinked' => false,
-            ],
+        $this->add_control( 'color', [
+            'label'     => __( 'Text Color', 'bw' ),
+            'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .bw-title-product' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-title-product' => 'color: {{VALUE}};',
             ],
         ] );
 
-        $this->add_responsive_control( 'padding', [
-            'label'      => __( 'Padding', 'bw' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', 'em', '%' ],
-            'default' => [
-                'top'      => '0',
-                'right'    => '0',
-                'bottom'   => '0',
-                'left'     => '0',
-                'unit'     => 'px',
-                'isLinked' => true,
-            ],
-            'tablet_default' => [
-                'top'      => '0',
-                'right'    => '0',
-                'bottom'   => '0',
-                'left'     => '0',
-                'unit'     => 'px',
-                'isLinked' => true,
-            ],
-            'mobile_default' => [
-                'top'      => '0',
-                'right'    => '0',
-                'bottom'   => '0',
-                'left'     => '0',
-                'unit'     => 'px',
-                'isLinked' => true,
-            ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-title-product' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'typography',
+            'selector' => '{{WRAPPER}} .bw-title-product',
+            'fields_options' => [
+                'typography'     => [ 'default' => 'yes' ],
+                'font_weight'    => [ 'default' => '700' ],
+                'font_size'      => [
+                    'default'        => [ 'size' => 90,   'unit' => 'px' ],
+                    'tablet_default' => [ 'size' => 60,   'unit' => 'px' ],
+                    'mobile_default' => [ 'size' => 38,   'unit' => 'px' ],
+                ],
+                'letter_spacing' => [
+                    'default'        => [ 'size' => -3,   'unit' => 'px' ],
+                    'tablet_default' => [ 'size' => -2,   'unit' => 'px' ],
+                    'mobile_default' => [ 'size' => -1,   'unit' => 'px' ],
+                ],
+                'line_height'    => [
+                    'default'        => [ 'size' => 1.1,  'unit' => 'em' ],
+                    'tablet_default' => [ 'size' => 1.1,  'unit' => 'em' ],
+                    'mobile_default' => [ 'size' => 1.15, 'unit' => 'em' ],
+                ],
             ],
         ] );
 
@@ -244,7 +150,6 @@ class Widget_Bw_Title_Product extends Widget_Base {
     protected function render() {
         $settings = $this->get_settings_for_display();
 
-        // Sanitize tag.
         $allowed_tags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
         $tag = in_array( $settings['html_tag'], $allowed_tags, true ) ? $settings['html_tag'] : 'h1';
 
@@ -253,13 +158,10 @@ class Widget_Bw_Title_Product extends Widget_Base {
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
         $source = isset( $settings['title_source'] ) ? $settings['title_source'] : 'product';
-        $title  = '';
 
-        if ( 'category' === $source ) {
-            $title = $this->resolve_category_title( $settings, $is_editor );
-        } else {
-            $title = $this->resolve_product_title( $settings, $is_editor );
-        }
+        $title = ( 'category' === $source )
+            ? $this->resolve_category_title( $settings )
+            : $this->resolve_product_title( $settings );
 
         if ( ! $title ) {
             if ( $is_editor ) {
@@ -285,17 +187,14 @@ class Widget_Bw_Title_Product extends Widget_Base {
      * Resolve product title.
      * Priority: widget setting → context helper → current post (if product).
      */
-    private function resolve_product_title( array $settings, bool $is_editor ): string {
-        // 1. Explicit product_id in settings.
+    private function resolve_product_title( array $settings ): string {
         $product_id = ! empty( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
 
-        // 2. Context helper (Theme Builder single-product template preview).
         if ( ! $product_id && function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
             $resolution = bw_tbl_resolve_product_context_id( array_merge( $settings, [ '__widget_class' => __CLASS__ ] ) );
             $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
         }
 
-        // 3. Current post, only when it is a product.
         if ( ! $product_id ) {
             $post_id = absint( get_the_ID() );
             if ( 'product' === get_post_type( $post_id ) ) {
@@ -315,8 +214,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
      * Resolve category title.
      * Priority: widget setting (term_id) → queried object on category archive.
      */
-    private function resolve_category_title( array $settings, bool $is_editor ): string {
-        // 1. Explicit term_id in settings (for editor preview).
+    private function resolve_category_title( array $settings ): string {
         if ( ! empty( $settings['term_id'] ) ) {
             $term = get_term( absint( $settings['term_id'] ), 'product_cat' );
             if ( $term && ! is_wp_error( $term ) ) {
@@ -324,7 +222,6 @@ class Widget_Bw_Title_Product extends Widget_Base {
             }
         }
 
-        // 2. Current queried object on product category archive.
         $queried = get_queried_object();
         if ( $queried instanceof \WP_Term && 'product_cat' === $queried->taxonomy ) {
             return $queried->name;
@@ -335,7 +232,6 @@ class Widget_Bw_Title_Product extends Widget_Base {
 
     /**
      * JS template for live preview in the editor.
-     * Server re-render via AJAX provides the real title when settings change.
      */
     protected function content_template() {
         ?>
