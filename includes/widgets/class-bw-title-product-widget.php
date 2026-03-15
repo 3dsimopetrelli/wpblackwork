@@ -213,17 +213,24 @@ class Widget_Bw_Title_Product extends Widget_Base {
         $allowed_tags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
         $tag = in_array( $settings['html_tag'], $allowed_tags, true ) ? $settings['html_tag'] : 'h1';
 
-        // Resolve product ID: context helper → post ID.
+        $is_editor = class_exists( '\Elementor\Plugin' )
+            && \Elementor\Plugin::$instance->editor
+            && \Elementor\Plugin::$instance->editor->is_edit_mode();
+
+        // Resolve product ID: context helper → current post only if it is a product.
         $product_id = 0;
         if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
             $resolution = bw_tbl_resolve_product_context_id( array_merge( $settings, [ '__widget_class' => __CLASS__ ] ) );
             $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
         }
         if ( ! $product_id ) {
-            $product_id = absint( get_the_ID() );
+            $post_id = absint( get_the_ID() );
+            if ( 'product' === get_post_type( $post_id ) ) {
+                $product_id = $post_id;
+            }
         }
 
-        // Get title.
+        // Get title from WooCommerce product.
         $title = '';
         if ( $product_id && function_exists( 'wc_get_product' ) ) {
             $product = wc_get_product( $product_id );
@@ -231,16 +238,9 @@ class Widget_Bw_Title_Product extends Widget_Base {
                 $title = $product->get_name();
             }
         }
-        if ( ! $title && $product_id ) {
-            $title = get_the_title( $product_id );
-        }
 
-        // Editor placeholder.
+        // Editor placeholder when no product context.
         if ( ! $title ) {
-            $is_editor = class_exists( '\Elementor\Plugin' )
-                && \Elementor\Plugin::$instance->editor
-                && \Elementor\Plugin::$instance->editor->is_edit_mode();
-
             if ( $is_editor ) {
                 $title = __( 'Product Title', 'bw' );
             } else {
@@ -266,10 +266,9 @@ class Widget_Bw_Title_Product extends Widget_Base {
         <#
         var allowedTags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
         var tag = ( allowedTags.indexOf( settings.html_tag ) !== -1 ) ? settings.html_tag : 'h1';
+        view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
+        print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>Product Title</' + tag + '>' );
         #>
-        <{{{ tag }}} class="bw-title-product">
-            Product Title
-        </{{{ tag }}}>
         <?php
     }
 }
