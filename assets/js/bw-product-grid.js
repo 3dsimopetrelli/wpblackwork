@@ -409,6 +409,33 @@
     var ajaxCache = {};
     var ajaxRequestQueue = {};
     var loadingIndicatorTimers = {}; // delayed show timers keyed by widgetId
+
+    // Nonce refresh: single shared promise so concurrent requests don't fire
+    // multiple refreshes simultaneously.
+    var _nonceRefreshPromise = null;
+
+    function refreshNonce() {
+        if (_nonceRefreshPromise) {
+            return _nonceRefreshPromise;
+        }
+        _nonceRefreshPromise = $.ajax({
+            url: bwProductGridAjax.ajaxurl,
+            type: 'POST',
+            data: { action: 'bw_fpw_refresh_nonce' }
+        }).then(
+            function (response) {
+                _nonceRefreshPromise = null;
+                if (response && response.success && response.data && response.data.nonce) {
+                    bwProductGridAjax.nonce = response.data.nonce;
+                }
+            },
+            function () {
+                _nonceRefreshPromise = null;
+                return $.Deferred().reject().promise();
+            }
+        );
+        return _nonceRefreshPromise;
+    }
     // Spacer elements inserted after .bw-fpw-load-state while an infinite-scroll
     // batch is loading.  Height = 100 vh → prevents the user from scrolling past
     // the loading indicator to the footer before new posts arrive.
@@ -1584,6 +1611,14 @@
                     return;
                 }
 
+                // 403 = nonce expired. Refresh nonce and retry once.
+                if (xhr.status === 403 && !options._nonceRetry) {
+                    refreshNonce().then(function () {
+                        filterPosts(widgetId, $.extend({}, options, { _nonceRetry: true }));
+                    });
+                    return;
+                }
+
                 if (appendMode) {
                     // Stop infinite scroll — retrying a failed request (e.g. 403)
                     // would immediately re-trigger the sentinel and loop forever.
@@ -1657,6 +1692,7 @@
             if (appendMode) {
                 if ($responseItems.length) {
                     $grid.append($responseItems);
+                    $(document.body).trigger('bw:grid_rendered', [$grid]);
                 }
 
                 updateWidgetPagingState(widgetId, $.extend({}, paginationMeta, {
@@ -1682,6 +1718,7 @@
 
             clearStaggerTimers(widgetId);
             $grid.empty().append($responseNodes);
+            $(document.body).trigger('bw:grid_rendered', [$grid]);
 
             var $subcatRow = $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"]');
             var $subcatOptions = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
@@ -1826,9 +1863,7 @@
             initFilterState(widgetId);
 
             // Update active state
-            $('.bw-fpw-cat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-cat-button').removeClass('active');
             $button.addClass('active');
 
             // Update filter state
@@ -1837,14 +1872,10 @@
             filterState[widgetId].tags = [];
 
             // Reset tag visual state
-            $('.bw-fpw-tag-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-tag-button').removeClass('active');
 
             // Clear subcategory active states
-            $('.bw-fpw-subcat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-subcat-button').removeClass('active');
 
             var isMobileMode = isInMobileMode(widgetId);
 
@@ -2005,25 +2036,17 @@
             };
 
             // Reset all category buttons
-            $('.bw-fpw-cat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-cat-button').removeClass('active');
 
             // Activate the default category button
-            var $defaultCatButton = $('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            });
+            var $defaultCatButton = $filters.find('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]');
             $defaultCatButton.addClass('active');
 
             // Reset all subcategory buttons
-            $('.bw-fpw-subcat-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-subcat-button').removeClass('active');
 
             // Reset all tag buttons
-            $('.bw-fpw-tag-button').filter(function () {
-                return $(this).closest('[data-widget-id]').attr('data-widget-id') === widgetId;
-            }).removeClass('active');
+            $filters.find('.bw-fpw-tag-button').removeClass('active');
 
             // Close mobile panel if open
             var isMobile = isInMobileMode(widgetId);

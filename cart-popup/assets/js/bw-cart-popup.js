@@ -154,8 +154,15 @@
 
             // Gestione visibilità trigger flottante su scroll
             if (bwCartPopupConfig.settings.show_floating_trigger) {
+                var _rafPending = false;
                 $(window).on('scroll.bwCartPopup', function () {
-                    self.onFloatingScroll();
+                    if (!_rafPending) {
+                        _rafPending = true;
+                        requestAnimationFrame(function () {
+                            self.onFloatingScroll();
+                            _rafPending = false;
+                        });
+                    }
                 });
             }
 
@@ -168,7 +175,10 @@
             });
 
             // Floating label promo input (stile checkout/my-account)
-            $(document).on('input change keyup blur focus', '.bw-promo-input', function () {
+            $(document).on('input change', '.bw-promo-input', function () {
+                self.syncPromoFloatingLabel($(this));
+            });
+            $(document).on('blur focus', '.bw-promo-input', function () {
                 self.syncPromoFloatingLabel($(this));
             });
 
@@ -194,6 +204,7 @@
             });
 
             // Controlli quantità (+/-)
+            var _qtyDebounceTimers = {};
             this.$itemsContainer.on('click', '.bw-qty-btn', function (e) {
                 e.preventDefault();
                 const $btn = $(this);
@@ -209,7 +220,11 @@
                 }
 
                 $value.text(newQty);
-                self.updateQuantity(cartItemKey, newQty);
+                clearTimeout(_qtyDebounceTimers[cartItemKey]);
+                _qtyDebounceTimers[cartItemKey] = setTimeout(function () {
+                    self.updateQuantity(cartItemKey, newQty);
+                    delete _qtyDebounceTimers[cartItemKey];
+                }, 300);
             });
 
             // Chiudi con ESC
@@ -1370,6 +1385,12 @@
                 // e ripristina il testo dei pulsanti se necessario
                 self.updateAllButtonStates();
             });
+
+            // Quando la product grid aggiunge nuovi item (infinite scroll o filtri),
+            // marca subito i pulsanti dei prodotti già nel carrello usando la cache locale.
+            $(document.body).on('bw:grid_rendered', function (e, $container) {
+                self.markContainerButtonsFromCache($container);
+            });
         },
 
         /**
@@ -1424,6 +1445,31 @@
                         self.changeButtonTextToAdded($btn);
                     }
                 });
+            });
+        },
+
+        /**
+         * Marca come "Added to cart" i pulsanti di un container usando la cache locale
+         * (senza fare chiamate AJAX — usato dopo append di nuovi item da infinite scroll).
+         */
+        markContainerButtonsFromCache: function ($container) {
+            const self = this;
+            if (!self.cartItems || !self.cartItems.length) return;
+
+            const cartProductIds = {};
+            self.cartItems.forEach(function (item) {
+                if (item.product_id) {
+                    cartProductIds[String(item.product_id)] = true;
+                }
+            });
+
+            var $scope = ($container && $container.length) ? $container : $(document.body);
+            $scope.find('.bw-btn-addtocart[data-product_id]').each(function () {
+                const $btn = $(this);
+                const pid = String($btn.data('product_id') || $btn.attr('data-product_id') || '');
+                if (pid && cartProductIds[pid]) {
+                    self.changeButtonTextToAdded($btn);
+                }
             });
         },
 

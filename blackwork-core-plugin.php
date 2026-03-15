@@ -1548,8 +1548,8 @@ function bw_fpw_get_subcategories()
         ];
     }
 
-    // PERFORMANCE: Cache result for 5 minutes
-    set_transient($transient_key, $result, 5 * MINUTE_IN_SECONDS);
+    // PERFORMANCE: Cache result for 15 minutes
+    set_transient($transient_key, $result, 15 * MINUTE_IN_SECONDS);
 
     wp_send_json_success($result);
 }
@@ -1590,13 +1590,13 @@ function bw_fpw_get_tags()
 
     if (empty($tags)) {
         // Cache empty result too to avoid repeated queries
-        set_transient($transient_key, [], 5 * MINUTE_IN_SECONDS);
+        set_transient($transient_key, [], 15 * MINUTE_IN_SECONDS);
         wp_send_json_success([]);
         return;
     }
 
-    // PERFORMANCE: Cache result for 5 minutes
-    set_transient($transient_key, $tags, 5 * MINUTE_IN_SECONDS);
+    // PERFORMANCE: Cache result for 15 minutes
+    set_transient($transient_key, $tags, 15 * MINUTE_IN_SECONDS);
 
     wp_send_json_success($tags);
 }
@@ -1803,6 +1803,18 @@ function bw_fpw_generate_cache_key($params)
  */
 add_action('wp_ajax_bw_fpw_filter_posts', 'bw_fpw_filter_posts');
 add_action('wp_ajax_nopriv_bw_fpw_filter_posts', 'bw_fpw_filter_posts');
+
+/**
+ * Endpoint leggero per rinnovare il nonce scaduto (es. tab lasciato inattivo).
+ * Non richiede autenticazione — il nonce stesso è la protezione CSRF.
+ */
+add_action('wp_ajax_bw_fpw_refresh_nonce', 'bw_fpw_ajax_refresh_nonce');
+add_action('wp_ajax_nopriv_bw_fpw_refresh_nonce', 'bw_fpw_ajax_refresh_nonce');
+
+function bw_fpw_ajax_refresh_nonce()
+{
+    wp_send_json_success(['nonce' => wp_create_nonce('bw_fpw_nonce')]);
+}
 
 function bw_fpw_filter_posts()
 {
@@ -2183,9 +2195,9 @@ function bw_fpw_filter_posts()
         'next_offset' => $has_more ? $offset + $rendered_posts : 0,
     ];
 
-    // PERFORMANCE: Cache result for 3 minutes (skip random order)
+    // PERFORMANCE: Cache result for 10 minutes (skip random order)
     if (!$skip_cache && isset($transient_key)) {
-        set_transient($transient_key, $response_data, 3 * MINUTE_IN_SECONDS);
+        set_transient($transient_key, $response_data, 10 * MINUTE_IN_SECONDS);
     }
 
     wp_send_json_success($response_data);
