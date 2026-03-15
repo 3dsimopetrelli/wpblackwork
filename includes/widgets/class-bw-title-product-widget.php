@@ -10,8 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * BW-SP Title Product Widget
  *
- * Displays the WooCommerce product title with configurable HTML tag,
- * typography and alignment. Designed for single-product templates.
+ * Displays either a WooCommerce product title or a product-category name.
+ * The source is configurable via the Title Source control.
  */
 class Widget_Bw_Title_Product extends Widget_Base {
 
@@ -56,13 +56,39 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'default' => 'h1',
         ] );
 
+        $this->add_control( 'title_source', [
+            'label'   => __( 'Title Source', 'bw' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'product'  => __( 'Single Product', 'bw' ),
+                'category' => __( 'Product Category', 'bw' ),
+            ],
+            'default'     => 'product',
+            'description' => __( 'Choose what this widget reads the title from.', 'bw' ),
+        ] );
+
+        // ── Product source fields ─────────────────────────────────────────
+
         $this->add_control( 'product_id', [
             'label'       => __( 'Product ID', 'bw' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => '',
             'placeholder' => __( 'Leave empty to use current product', 'bw' ),
-            'description' => __( 'ID of the product to display. Leave empty on single-product templates.', 'bw' ),
+            'description' => __( 'ID of the product to preview in editor. Leave empty on single-product templates.', 'bw' ),
             'label_block' => true,
+            'condition'   => [ 'title_source' => 'product' ],
+        ] );
+
+        // ── Category source fields ────────────────────────────────────────
+
+        $this->add_control( 'term_id', [
+            'label'       => __( 'Category ID', 'bw' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => '',
+            'placeholder' => __( 'Leave empty to use current category', 'bw' ),
+            'description' => __( 'ID of the product category to preview in editor. Leave empty on category archive templates.', 'bw' ),
+            'label_block' => true,
+            'condition'   => [ 'title_source' => 'category' ],
         ] );
 
         $this->end_controls_section();
@@ -226,36 +252,20 @@ class Widget_Bw_Title_Product extends Widget_Base {
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
-        // 1. Product ID explicitly set in widget settings.
-        $product_id = ! empty( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
+        $source = isset( $settings['title_source'] ) ? $settings['title_source'] : 'product';
+        $title  = '';
 
-        // 2. Context helper (Theme Builder single-product template preview).
-        if ( ! $product_id && function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
-            $resolution = bw_tbl_resolve_product_context_id( array_merge( $settings, [ '__widget_class' => __CLASS__ ] ) );
-            $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+        if ( 'category' === $source ) {
+            $title = $this->resolve_category_title( $settings, $is_editor );
+        } else {
+            $title = $this->resolve_product_title( $settings, $is_editor );
         }
 
-        // 3. Current post, only when it is a product.
-        if ( ! $product_id ) {
-            $post_id = absint( get_the_ID() );
-            if ( 'product' === get_post_type( $post_id ) ) {
-                $product_id = $post_id;
-            }
-        }
-
-        // Get title from WooCommerce product.
-        $title = '';
-        if ( $product_id && function_exists( 'wc_get_product' ) ) {
-            $product = wc_get_product( $product_id );
-            if ( $product ) {
-                $title = $product->get_name();
-            }
-        }
-
-        // Editor placeholder when no product context.
         if ( ! $title ) {
             if ( $is_editor ) {
-                $title = __( 'Product Title', 'bw' );
+                $title = ( 'category' === $source )
+                    ? __( 'Category Name', 'bw' )
+                    : __( 'Product Title', 'bw' );
             } else {
                 return;
             }
@@ -272,15 +282,69 @@ class Widget_Bw_Title_Product extends Widget_Base {
     }
 
     /**
+     * Resolve product title.
+     * Priority: widget setting → context helper → current post (if product).
+     */
+    private function resolve_product_title( array $settings, bool $is_editor ): string {
+        // 1. Explicit product_id in settings.
+        $product_id = ! empty( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
+
+        // 2. Context helper (Theme Builder single-product template preview).
+        if ( ! $product_id && function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+            $resolution = bw_tbl_resolve_product_context_id( array_merge( $settings, [ '__widget_class' => __CLASS__ ] ) );
+            $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+        }
+
+        // 3. Current post, only when it is a product.
+        if ( ! $product_id ) {
+            $post_id = absint( get_the_ID() );
+            if ( 'product' === get_post_type( $post_id ) ) {
+                $product_id = $post_id;
+            }
+        }
+
+        if ( ! $product_id || ! function_exists( 'wc_get_product' ) ) {
+            return '';
+        }
+
+        $product = wc_get_product( $product_id );
+        return $product ? $product->get_name() : '';
+    }
+
+    /**
+     * Resolve category title.
+     * Priority: widget setting (term_id) → queried object on category archive.
+     */
+    private function resolve_category_title( array $settings, bool $is_editor ): string {
+        // 1. Explicit term_id in settings (for editor preview).
+        if ( ! empty( $settings['term_id'] ) ) {
+            $term = get_term( absint( $settings['term_id'] ), 'product_cat' );
+            if ( $term && ! is_wp_error( $term ) ) {
+                return $term->name;
+            }
+        }
+
+        // 2. Current queried object on product category archive.
+        $queried = get_queried_object();
+        if ( $queried instanceof \WP_Term && 'product_cat' === $queried->taxonomy ) {
+            return $queried->name;
+        }
+
+        return '';
+    }
+
+    /**
      * JS template for live preview in the editor.
+     * Server re-render via AJAX provides the real title when settings change.
      */
     protected function content_template() {
         ?>
         <#
         var allowedTags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
         var tag = ( allowedTags.indexOf( settings.html_tag ) !== -1 ) ? settings.html_tag : 'h1';
+        var placeholder = ( settings.title_source === 'category' ) ? 'Category Name' : 'Product Title';
         view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
-        print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>Product Title</' + tag + '>' );
+        print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>' + placeholder + '</' + tag + '>' );
         #>
         <?php
     }
