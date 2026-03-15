@@ -8,9 +8,20 @@
     '.elementor-panel .elementor-control',
     '.elementor-panel .elementor-element'
   ];
+  var HIDDEN_SECTION_PATTERNS = [
+    /link\s*in\s*bio/i
+  ];
 
   function hasUpgradeText($node) {
     return /upgrade/i.test(($node.text() || '').replace(/\s+/g, ' ').trim());
+  }
+
+  function matchesHiddenSectionText($node) {
+    var text = ($node.text() || '').replace(/\s+/g, ' ').trim();
+
+    return HIDDEN_SECTION_PATTERNS.some(function (pattern) {
+      return pattern.test(text);
+    });
   }
 
   function markUpgradeContainers($root) {
@@ -19,7 +30,7 @@
 
     $scope.find(selectors).each(function () {
       var $item = $(this);
-      if (!hasUpgradeText($item)) {
+      if (!hasUpgradeText($item) && !matchesHiddenSectionText($item)) {
         return;
       }
 
