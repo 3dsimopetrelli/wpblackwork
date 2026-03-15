@@ -9,21 +9,34 @@ add_filter('ajax_query_attachments_args', 'bw_mf_filter_media_grid_query', 20, 2
 if (!function_exists('bw_mf_get_current_list_screen_post_type')) {
     function bw_mf_get_current_list_screen_post_type()
     {
-        if (!is_admin() || !function_exists('get_current_screen')) {
+        if (!is_admin()) {
             return '';
         }
 
-        $screen = get_current_screen();
-        if (!$screen) {
-            return '';
+        if (function_exists('get_current_screen')) {
+            $screen = get_current_screen();
+            if ($screen) {
+                if ($screen->id === 'upload') {
+                    return 'attachment';
+                }
+
+                if ($screen->base === 'edit' && !empty($screen->post_type)) {
+                    return sanitize_key((string) $screen->post_type);
+                }
+            }
         }
 
-        if ($screen->id === 'upload') {
+        global $pagenow;
+        if ($pagenow === 'upload.php') {
             return 'attachment';
         }
 
-        if ($screen->base === 'edit' && !empty($screen->post_type)) {
-            return sanitize_key((string) $screen->post_type);
+        if ($pagenow === 'edit.php') {
+            if (isset($_GET['post_type'])) {
+                return sanitize_key((string) wp_unslash($_GET['post_type']));
+            }
+
+            return 'post';
         }
 
         return '';
@@ -177,12 +190,17 @@ if (!function_exists('bw_mf_should_apply_list_query_filter')) {
         }
 
         $screen_post_type = bw_mf_get_current_list_screen_post_type();
-        if ($screen_post_type !== 'attachment') {
+        if ($screen_post_type === '') {
             return false;
         }
 
         $query_post_type = $query->get('post_type');
-        if ($query_post_type && $query_post_type !== $screen_post_type) {
+        if (is_array($query_post_type)) {
+            $query_post_type = array_map('sanitize_key', $query_post_type);
+            if (!in_array($screen_post_type, $query_post_type, true)) {
+                return false;
+            }
+        } elseif ($query_post_type && sanitize_key((string) $query_post_type) !== $screen_post_type) {
             return false;
         }
 
@@ -343,7 +361,7 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
         }
 
         $screen_post_type = bw_mf_get_current_list_screen_post_type();
-        if ($screen_post_type !== 'attachment') {
+        if ($screen_post_type === '') {
             return;
         }
         $taxonomy = bw_mf_get_valid_media_folder_taxonomy($screen_post_type);
@@ -352,7 +370,12 @@ if (!function_exists('bw_mf_filter_media_list_query')) {
         }
 
         $post_type = $query->get('post_type');
-        if ($post_type && $post_type !== $screen_post_type) {
+        if (is_array($post_type)) {
+            $post_type = array_map('sanitize_key', $post_type);
+            if (!in_array($screen_post_type, $post_type, true)) {
+                return;
+            }
+        } elseif ($post_type && sanitize_key((string) $post_type) !== $screen_post_type) {
             return;
         }
 
@@ -427,7 +450,7 @@ if (!function_exists('bw_mf_get_valid_media_folder_taxonomy')) {
     function bw_mf_get_valid_media_folder_taxonomy($post_type)
     {
         $post_type = sanitize_key((string) $post_type);
-        if ($post_type !== 'attachment') {
+        if ($post_type === '') {
             return '';
         }
 
@@ -438,7 +461,7 @@ if (!function_exists('bw_mf_get_valid_media_folder_taxonomy')) {
         }
 
         $object = get_taxonomy($taxonomy);
-        if (!$object || empty($object->object_type) || !in_array('attachment', (array) $object->object_type, true)) {
+        if (!$object || empty($object->object_type) || !in_array($post_type, (array) $object->object_type, true)) {
             return '';
         }
 
