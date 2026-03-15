@@ -1,14 +1,10 @@
 /**
- * BW Cart Pop-Up Styles
- *
- * CSS completo per il pannello cart pop-up laterale
- * Completamente personalizzabile e commentato per sezioni
+ * BW Cart Pop-Up Styles — Dark Theme
  *
  * @package BW_Cart_Popup
- * @version 1.0.0
  *
  * INDICE:
- * 0. SHARED CART UI COMPONENT (reused by Checkout Order Summary)
+ * 0. SHARED CART UI COMPONENT
  * 1. OVERLAY
  * 2. PANNELLO PRINCIPALE
  * 3. HEADER DEL PANNELLO
@@ -22,32 +18,40 @@
  * 11. TRANSIZIONI E ANIMAZIONI
  * 12. UTILITIES
  * 13. RESPONSIVE
+ * 14. NOTIFICA ITEM ADDED
+ * 15. PLACEHOLDER PRODUCT REMOVED
  */
+
+/* Design tokens */
+:root {
+    --bw-cart-bg:          #111111;
+    --bw-cart-surface:     #1c1c1e;
+    --bw-cart-surface-2:   #242426;
+    --bw-cart-border:      rgba(255, 255, 255, 0.08);
+    --bw-cart-text:        #ffffff;
+    --bw-cart-text-muted:  #888888;
+    --bw-cart-accent:      #80FD03;
+    --bw-cart-radius:      16px;
+    --bw-cart-radius-sm:   10px;
+}
 
 
 /* ========================================================================
    0. SHARED CART UI COMPONENT
-   Base styles reused by both Cart Popup and Checkout Order Summary
-   These create a consistent Shopify-like cart interface
    ======================================================================== */
 
-/**
- * Base container class for cart-like interfaces
- * Applied to both .bw-cart-popup-panel and .bw-order-summary-panel__wrapper
- */
 .bw-cart-ui {
-    /* Base container - no specific styles needed, serves as namespace */
+    /* namespace only */
 }
 
-/* Product Items - Shared flexbox-based card layout */
 .bw-cart-ui .bw-ui-item {
     display: flex;
     align-items: stretch;
     gap: 12px;
-    padding: 15px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    padding: 14px;
+    background-color: var(--bw-cart-surface);
+    border-radius: var(--bw-cart-radius-sm);
+    margin-bottom: 10px;
     position: relative;
 }
 
@@ -58,14 +62,13 @@
     width: 100%;
 }
 
-/* Product image */
 .bw-cart-ui .bw-ui-item-image {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     flex-shrink: 0;
-    border-radius: 6px;
-    overflow: visible;
-    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--bw-cart-border);
     position: relative;
 }
 
@@ -73,33 +76,30 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
-/* Quantity badge on image */
 .bw-cart-ui .bw-ui-item-quantity-badge {
     position: absolute;
     top: -6px;
     right: -6px;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
     border-radius: 999px;
-    background: #000000;
-    color: #ffffff;
-    font-size: 12px;
+    background: var(--bw-cart-accent);
+    color: #000000;
+    font-size: 11px;
     font-weight: 700;
-    line-height: 22px;
+    line-height: 20px;
     text-align: center;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border: 2px solid var(--bw-cart-bg);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
 }
 
-/* Product details */
 .bw-cart-ui .bw-ui-item-body {
     display: flex;
     flex-direction: column;
@@ -127,20 +127,19 @@
     font-size: 14px;
     font-weight: 600;
     line-height: 1.3;
-    color: #000000;
+    color: var(--bw-cart-text);
 }
 
 .bw-cart-ui .bw-ui-item-name a {
-    color: #000000;
+    color: var(--bw-cart-text);
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .bw-cart-ui .bw-ui-item-name a:hover {
-    color: #1f1f1f;
+    opacity: 0.75;
 }
 
-/* Price block (positioned on the right) */
 .bw-cart-ui .bw-ui-item-price-block {
     display: flex;
     flex-direction: column;
@@ -150,197 +149,203 @@
 
 .bw-cart-ui .bw-ui-item-price-current {
     font-size: 14px;
-    font-weight: 600;
-    color: #000000;
+    font-weight: 700;
+    color: var(--bw-cart-accent);
     white-space: nowrap;
 }
 
 .bw-cart-ui .bw-ui-item-price-original {
     font-size: 12px;
-    color: #999999;
+    color: var(--bw-cart-text-muted);
     text-decoration: line-through;
     white-space: nowrap;
 }
 
-/* Item controls (quantity + remove) */
 .bw-cart-ui .bw-ui-item-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-top: 0;
+    margin-top: 4px;
 }
 
-/* Quantity stepper - pill-shaped controls */
 .bw-cart-ui .bw-ui-qty-stepper {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 4px 10px;
-    border: 1px solid #000000;
-    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
     background: transparent;
-    color: #000000;
-    min-width: 80px;
+    color: var(--bw-cart-text);
+    min-width: 76px;
     justify-content: center;
-    height: 25px;
+    height: 28px;
 }
 
 .bw-cart-ui .bw-ui-qty-btn {
     background: none;
     border: none;
-    color: #000000;
-    font-size: 12px;
+    color: var(--bw-cart-text);
+    font-size: 14px;
     line-height: 1;
     padding: 0;
     cursor: pointer;
     box-shadow: none !important;
     outline: none !important;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
 }
 
 .bw-cart-ui .bw-ui-qty-btn:hover {
-    color: #000000;
+    opacity: 1;
 }
 
 .bw-cart-ui .bw-ui-qty-value {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     min-width: 14px;
     text-align: center;
+    color: var(--bw-cart-text);
 }
 
-/* Remove link */
 .bw-cart-ui .bw-ui-item-remove {
-    font-size: 11px;
-    color: #999999;
+    font-size: 12px;
+    color: var(--bw-cart-text-muted);
     text-decoration: none;
     cursor: pointer;
     background: transparent;
     border: none;
     padding: 0;
     font-family: inherit;
+    transition: color 0.2s ease;
 }
 
 .bw-cart-ui .bw-ui-item-remove:hover {
-    color: #000000;
-    text-decoration: underline;
+    color: var(--bw-cart-text);
 }
 
-/* Sold individually label */
 .bw-cart-ui .bw-ui-sold-individually-label {
     font-size: 11px;
-    color: #999999;
-    font-style: italic;
+    font-weight: 600;
+    color: var(--bw-cart-text-muted);
+    background: var(--bw-cart-surface-2);
+    border-radius: 999px;
+    padding: 3px 10px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
 }
 
-/* Promo Code Section - Shared */
+/* Promo - shared */
 .bw-cart-ui .bw-ui-promo {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .bw-cart-ui .bw-ui-promo-trigger {
     text-align: center;
-    font-size: 14px;
-    color: #666666;
+    font-size: 13px;
+    color: var(--bw-cart-text-muted);
     margin: 0 0 10px 0;
 }
 
 .bw-cart-ui .bw-ui-promo-link {
-    color: #000000 !important;
+    color: var(--bw-cart-text) !important;
     text-decoration: underline;
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .bw-cart-ui .bw-ui-promo-link:hover {
-    color: #1f1f1f !important;
+    opacity: 0.75;
 }
 
 .bw-cart-ui .bw-ui-promo-box {
     display: flex;
     gap: 8px;
     align-items: center;
-    padding: 15px;
-    background-color: #ffffff;
-    border-radius: 8px;
+    padding: 12px;
+    background-color: var(--bw-cart-surface);
+    border-radius: var(--bw-cart-radius-sm);
 }
 
 .bw-cart-ui .bw-ui-promo-input {
     flex: 1;
-    border: 1px solid #d5d5d5;
-    border-radius: 4px;
-    padding: 10px 12px;
+    border: 1px solid var(--bw-cart-border);
+    border-radius: 999px;
+    padding: 10px 16px;
     font-size: 14px;
+    background: var(--bw-cart-surface-2);
+    color: var(--bw-cart-text);
     transition: border-color 0.2s ease;
 }
 
 .bw-cart-ui .bw-ui-promo-input:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .bw-cart-ui .bw-ui-promo-apply {
     padding: 10px 20px;
-    background-color: #007bff;
-    color: #ffffff;
+    background-color: var(--bw-cart-accent);
+    color: #000000;
     border: none;
-    border-radius: 4px;
+    border-radius: 999px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
-    transition: background-color 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .bw-cart-ui .bw-ui-promo-apply:hover {
-    background-color: #0056b3;
+    opacity: 0.85;
 }
 
-/* Totals Section - Shared */
+/* Totals - shared */
 .bw-cart-ui .bw-ui-totals {
-    background-color: #ffffff;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    margin-bottom: 16px;
 }
 
 .bw-cart-ui .bw-ui-totals > div {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 10px 0;
     font-size: 14px;
+    border-bottom: 1px solid var(--bw-cart-border);
 }
 
-.bw-cart-ui .bw-ui-totals > div:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
+.bw-cart-ui .bw-ui-totals > div:last-child {
+    border-bottom: none;
 }
 
 .bw-cart-ui .bw-ui-totals .label {
-    color: #666666;
-    font-weight: 500;
+    color: var(--bw-cart-text-muted);
+    font-weight: 400;
 }
 
 .bw-cart-ui .bw-ui-totals .value {
     font-weight: 600;
-    color: #000000;
+    color: var(--bw-cart-text);
 }
 
-/* Total (grand total - larger and bold) */
 .bw-cart-ui .bw-ui-total-grand {
-    padding-top: 12px !important;
+    padding-top: 10px !important;
 }
 
 .bw-cart-ui .bw-ui-total-grand .label,
 .bw-cart-ui .bw-ui-total-grand .value {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    color: #000000;
+    color: var(--bw-cart-text);
 }
 
-/* Discount row (green value) */
 .bw-cart-ui .bw-ui-total-discount .value {
-    color: #28a745;
+    color: var(--bw-cart-accent);
 }
 
 
@@ -348,22 +353,19 @@
    1. OVERLAY
    ======================================================================== */
 
-/**
- * Overlay scuro che copre la pagina quando il pannello è aperto
- * Personalizzabile: colore e opacità tramite admin panel
- * Z-index: 100000 - Posizionato sopra al widget BW Search (z-index: 99999)
- */
 .bw-cart-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Default: nero 50% opacità */
+    background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 100000; /* Sopra al widget BW Search */
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+    z-index: 100000;
 }
 
 .bw-cart-popup-overlay.active {
@@ -376,31 +378,27 @@
    2. PANNELLO PRINCIPALE
    ======================================================================== */
 
-/**
- * Pannello laterale che scorre da destra verso sinistra
- * Personalizzabile: larghezza, colore sfondo tramite admin panel
- * Z-index: 100001 - Sopra all'overlay del cart popup
- */
 .bw-cart-popup-panel {
     position: fixed;
-    top: 0;
-    right: 0;
-    width: 400px; /* Default: 400px, modificabile da admin */
-    max-width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    background-color: #FFFFFF; /* Bianco puro */
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
-    transform: translateX(100%); /* Nascosto fuori schermo a destra */
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 420px !important;
+    max-width: calc(100vw - 24px);
+    height: auto;
+    background-color: var(--bw-cart-bg) !important;
+    border-radius: var(--bw-cart-radius);
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    transform: translateX(calc(100% + 28px));
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    z-index: 100001; /* Sopra all'overlay del cart popup */
+    z-index: 100001;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
 .bw-cart-popup-panel.active {
-    transform: translateX(0); /* Scorre dentro lo schermo */
+    transform: translateX(0);
 }
 
 
@@ -408,24 +406,23 @@
    3. HEADER DEL PANNELLO
    ======================================================================== */
 
-/**
- * Header superiore con icona carrello, titolo e pulsante chiusura
- * Personalizzabile: colori, tipografia, padding
- */
 .bw-cart-popup-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px 0 20px;
-    border-bottom: 1px solid #e5e5e5;
-    background-color: #FFFFFF;
-    flex-shrink: 0; /* Non si riduce con lo scroll */
+    padding: 18px 20px 16px 20px;
+    border-bottom: 1px solid var(--bw-cart-border);
+    background-color: var(--bw-cart-bg);
+    flex-shrink: 0;
 }
 
 .bw-cart-popup-header-icon {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    margin-right: 12px;
+    gap: 10px;
+    background: var(--bw-cart-surface);
+    border-radius: 999px;
+    padding: 8px 14px 8px 10px;
     position: relative;
 }
 
@@ -436,30 +433,30 @@
 
 /* Badge con numero prodotti */
 .bw-cart-badge {
-    position: absolute;
-    top: -8px;
-    right: -12px;
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    font-size: 12px;
-    font-weight: 600;
+    background-color: var(--bw-cart-accent) !important;
+    color: #000000 !important;
+    font-size: 11px;
+    font-weight: 700;
     min-width: 20px;
     height: 20px;
     border-radius: 50%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 2px 6px;
+    padding: 0 5px;
     line-height: 1;
+    position: static;
+    top: auto;
+    right: auto;
 }
 
 .bw-cart-popup-title {
     flex: 1;
     margin: 0;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 600;
-    color: #000000;
-    letter-spacing: -0.01em;
+    color: var(--bw-cart-text);
+    letter-spacing: 0;
 }
 
 
@@ -467,36 +464,27 @@
    4. ICONE (Carrello e Chiusura)
    ======================================================================== */
 
-/**
- * Icone carrello e chiusura (X)
- * COMPLETAMENTE PERSONALIZZABILI tramite CSS custom dall'admin panel
- * Esempio: background-image: url('path/to/icon.svg');
- */
-
-/* Icona Carrello */
 .bw-cart-icon {
     display: inline-block;
-    width: 24px;
-    height: 24px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='21' r='1'/%3E%3Ccircle cx='20' cy='21' r='1'/%3E%3Cpath d='M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6'/%3E%3C/svg%3E");
+    width: 22px;
+    height: 22px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='21' r='1'/%3E%3Ccircle cx='20' cy='21' r='1'/%3E%3Cpath d='M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6'/%3E%3C/svg%3E");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    /* Personalizza qui tramite admin panel o CSS custom */
+    flex-shrink: 0;
 }
 
-/* Icona Chiusura (X) - Doppia dimensione e nera */
 .bw-close-icon {
     display: inline-block;
-    width: 40px;
-    height: 40px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
+    width: 28px;
+    height: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
 }
 
-/* Pulsante Chiusura */
 .bw-cart-popup-close {
     background: transparent !important;
     border: none !important;
@@ -508,10 +496,11 @@
     transition: opacity 0.2s ease;
     box-shadow: none !important;
     outline: none !important;
+    opacity: 0.7;
 }
 
 .bw-cart-popup-close:hover {
-    opacity: 0.7;
+    opacity: 1;
 }
 
 
@@ -519,10 +508,6 @@
    5. CONTENUTO CARRELLO
    ======================================================================== */
 
-/**
- * Contenitore scrollabile per prodotti, promo code e totali
- * Personalizzabile: padding, colori, altezze
- */
 .bw-cart-popup-content {
     flex: 1;
     overflow-y: auto;
@@ -530,26 +515,25 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     touch-action: pan-y;
-    padding: 20px;
-    background-color: #FFFFFF;
+    padding: 16px 16px 0 16px;
+    background-color: var(--bw-cart-bg);
 }
 
-/* Scrollbar personalizzata (Chrome, Safari, Edge) */
 .bw-cart-popup-content::-webkit-scrollbar {
-    width: 8px;
+    width: 4px;
 }
 
 .bw-cart-popup-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: transparent;
 }
 
 .bw-cart-popup-content::-webkit-scrollbar-thumb {
-    background: #888;
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
 }
 
 .bw-cart-popup-content::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: rgba(255, 255, 255, 0.25);
 }
 
 
@@ -557,23 +541,18 @@
    6. PRODOTTI NEL CARRELLO
    ======================================================================== */
 
-/**
- * Lista prodotti nel carrello con immagini, dettagli, quantità e rimozione
- * Personalizzabile: layout, dimensioni, colori, tipografia
- */
 .bw-cart-popup-items {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
-/* Singolo prodotto */
 .bw-cart-item {
     display: flex;
     align-items: stretch;
     gap: 12px;
-    padding: 15px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    padding: 14px;
+    background-color: var(--bw-cart-surface);
+    border-radius: var(--bw-cart-radius-sm);
+    margin-bottom: 10px;
     position: relative;
 }
 
@@ -584,14 +563,13 @@
     width: 100%;
 }
 
-/* Immagine prodotto */
 .bw-cart-item-image {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     flex-shrink: 0;
-    border-radius: 6px;
-    overflow: visible;
-    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--bw-cart-border);
     position: relative;
 }
 
@@ -599,25 +577,24 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .bw-cart-item-quantity-badge {
     position: absolute;
     top: -6px;
     right: -6px;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
     border-radius: 999px;
-    background: #000000;
-    color: #ffffff;
-    font-size: 12px;
+    background: var(--bw-cart-accent);
+    color: #000000;
+    font-size: 11px;
     font-weight: 700;
-    line-height: 22px;
+    line-height: 20px;
     text-align: center;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border: 2px solid var(--bw-cart-bg);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -627,9 +604,9 @@
 .bw-cart-item-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-top: 0;
+    margin-top: 4px;
 }
 
 .bw-qty-stepper {
@@ -637,41 +614,44 @@
     align-items: center;
     gap: 8px;
     padding: 4px 10px;
-    border: 1px solid #000000;
-    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
     background: transparent;
-    color: #000000;
-    min-width: 80px;
+    color: var(--bw-cart-text);
+    min-width: 76px;
     justify-content: center;
+    height: 28px;
 }
 
 .bw-qty-btn {
     background: none;
     border: none;
-    color: #000000;
-    font-size: 12px;
+    color: var(--bw-cart-text);
+    font-size: 14px;
     line-height: 1;
     padding: 0;
     cursor: pointer;
     box-shadow: none !important;
     outline: none !important;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
 }
 
 .bw-qty-btn:hover {
-    color: #000000;
+    opacity: 1;
 }
 
 .bw-qty-value {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     min-width: 14px;
     text-align: center;
+    color: var(--bw-cart-text);
 }
 
-/* Dettagli prodotto */
 .bw-cart-item-details {
     flex: 1;
-    min-width: 0; /* Previene overflow */
+    min-width: 0;
 }
 
 .bw-cart-item-body {
@@ -701,23 +681,23 @@
     font-size: 14px;
     font-weight: 600;
     line-height: 1.3;
+    color: var(--bw-cart-text);
 }
 
 .bw-cart-item-name a {
-    color: #000000;
+    color: var(--bw-cart-text);
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .bw-cart-item-name a:hover {
-    color: #1f1f1f;
+    opacity: 0.75;
 }
 
-/* Prezzo (posizionato sotto il titolo) */
 .bw-cart-item-price {
     font-size: 14px;
-    font-weight: 600;
-    color: #000000;
+    font-weight: 700;
+    color: var(--bw-cart-accent);
     margin-top: 4px;
 }
 
@@ -727,58 +707,55 @@
     flex-direction: column;
     gap: 2px;
     align-items: flex-end;
-    min-width: 80px;
+    min-width: 72px;
 }
 
 .bw-cart-item-price-original {
-    font-size: 13px;
-    color: #8a8a8a;
+    font-size: 12px;
+    color: var(--bw-cart-text-muted);
     text-decoration: line-through;
 }
 
 .bw-cart-item-price-current {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
+    color: var(--bw-cart-accent);
 }
 
-/* Pulsante rimozione */
 .bw-cart-item-remove {
     background: none;
     border: none;
     font-size: 12px;
-    color: #888888;
+    color: var(--bw-cart-text-muted);
     cursor: pointer;
-    padding: 0 4px;
-    margin-top: 10px;
+    padding: 0;
     box-shadow: none !important;
     outline: none !important;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    text-underline-offset: 2px;
-    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-family: inherit;
 }
 
 .bw-cart-item-remove:hover {
-    color: #000000;
-    text-decoration-color: #000000;
+    color: var(--bw-cart-text);
 }
 
 .bw-sold-individually-label {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #dadada;
-    color: #000000;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 12px;
+    background: var(--bw-cart-surface-2);
+    color: var(--bw-cart-text-muted);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
-    margin-top: 10px;
+    margin-top: 6px;
 }
 
-/* Reset eventuali stili Elementor sui controlli inline del mini-cart */
+/* Reset Elementor overrides */
 .bw-cart-popup-panel .bw-qty-btn,
 .bw-cart-popup-panel .bw-cart-item-remove {
     background: transparent !important;
@@ -790,20 +767,19 @@
 }
 
 .bw-qty-stepper-framed {
-    border: 1px solid #000000 !important;
-    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 999px !important;
     padding: 4px 10px !important;
     background: transparent !important;
 }
 
-/* Forza il bordo/contorno del selettore quantità con specificità maggiore */
 .bw-cart-popup-panel .bw-cart-item .bw-qty-stepper-framed {
-    border: 1px solid #000000 !important;
-    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 999px !important;
     padding: 0px 10px !important;
     background: transparent !important;
     box-shadow: none !important;
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
 /* Floating cart trigger */
@@ -811,13 +787,13 @@
     position: fixed;
     right: 24px;
     bottom: 24px;
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     border-radius: 14px;
-    background: #ffffff;
-    color: #000000;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border: 1px solid #e5e5e5;
+    background: var(--bw-cart-surface);
+    color: var(--bw-cart-text);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--bw-cart-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -827,16 +803,16 @@
     visibility: hidden;
     pointer-events: none;
     transform: translateY(8px);
-    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.25s ease, color 0.25s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .bw-cart-floating-trigger:hover,
 .bw-cart-floating-trigger:focus-visible {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-    border-color: #000000 !important;
-    background: #000000 !important;
-    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    background: var(--bw-cart-accent) !important;
+    color: #000000 !important;
+    border-color: var(--bw-cart-accent) !important;
 }
 
 .bw-cart-floating-trigger.hidden {
@@ -851,10 +827,9 @@
 }
 
 .bw-cart-floating-trigger svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     color: currentColor;
-    transition: color 0.25s ease;
 }
 
 .bw-cart-floating-trigger svg,
@@ -867,19 +842,18 @@
     position: absolute;
     top: -6px;
     right: -6px;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 11px;
-    background: #000000;
-    color: #ffffff;
-    font-size: 12px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: var(--bw-cart-accent);
+    color: #000000;
+    font-size: 11px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 /* Coupon label pill */
@@ -887,11 +861,11 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #000000;
-    color: #ffffff;
-    border-radius: 12px;
-    padding: 6px 10px;
-    font-size: 12px;
+    background: var(--bw-cart-surface-2);
+    color: var(--bw-cart-text-muted);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
     font-weight: 600;
     line-height: 1;
     order: 2;
@@ -900,44 +874,44 @@
 .bw-cart-coupon-label .bw-cart-coupon-icon::before {
     content: "🏷️";
     display: inline-block;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1;
 }
 
-/* Carrello vuoto (dentro lista prodotti) */
+/* Carrello vuoto */
 .bw-cart-empty {
     text-align: center;
     padding: 40px 20px;
-    color: #999999;
+    color: var(--bw-cart-text-muted);
     font-size: 15px;
 }
 
-/* Layout Carrello Vuoto Completo */
 .bw-cart-popup-empty-state {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 40px;
+    padding: 60px 32px;
     text-align: center;
+    background-color: var(--bw-cart-bg);
 }
 
 .bw-cart-empty-icon {
     margin-bottom: 20px;
-    color: #d5d5d5;
+    color: rgba(255, 255, 255, 0.2);
 }
 
 .bw-cart-empty-icon svg {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
 }
 
 .bw-cart-empty-text {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
-    color: #666666;
-    margin: 0 0 30px 0;
+    color: var(--bw-cart-text-muted);
+    margin: 0 0 28px 0;
     line-height: 1.5;
 }
 
@@ -945,7 +919,7 @@
     display: inline-block;
     text-decoration: none;
     text-align: center;
-    min-width: 200px;
+    min-width: 180px;
 }
 
 
@@ -953,14 +927,10 @@
    7. DIVIDER
    ======================================================================== */
 
-/**
- * Linea divisoria tra prodotti e sezione promo/totali
- * Personalizzabile: colore, altezza, margini
- */
 .bw-cart-popup-divider {
     height: 1px;
-    background-color: #d5d5d5;
-    margin: 20px 0;
+    background-color: var(--bw-cart-border);
+    margin: 16px 0;
 }
 
 
@@ -968,61 +938,53 @@
    8. SEZIONE PROMO CODE
    ======================================================================== */
 
-/**
- * Box per inserire il codice promozionale con effetto fade
- * Personalizzabile: colori, dimensioni, padding, animazioni
- */
 .bw-cart-popup-promo {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
-/* Trigger "Click here" */
 .bw-cart-popup-promo-trigger {
     text-align: center;
-    font-size: 14px;
-    color: #666666;
+    font-size: 13px;
+    color: var(--bw-cart-text-muted);
     margin: 0 0 10px 0;
 }
 
 .bw-promo-link {
-    color: #000000 !important;
+    color: var(--bw-cart-text) !important;
     text-decoration: underline;
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .bw-promo-link:hover {
-    color: #1f1f1f !important;
+    opacity: 0.75;
 }
 
-/* Remove coupon link - stesso stile di Click here */
 .bw-promo-remove-link {
-    color: #000000 !important;
+    color: var(--bw-cart-text) !important;
     text-decoration: underline;
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: opacity 0.2s ease;
 }
 
 .bw-promo-remove-link:hover {
-    color: #1f1f1f !important;
+    opacity: 0.75;
 }
 
-/* Box promo code */
 .bw-cart-popup-promo-box {
     margin-bottom: 10px;
 }
 
-/* Wrapper per input e pulsante */
 .bw-promo-input-wrapper {
     display: flex;
     gap: 8px;
-    align-items: stretch;
-    padding: 15px;
-    background-color: #ffffff;
-    border-radius: 8px;
+    align-items: center;
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
 }
 
-/* Floating label wrapper allineato al checkout */
+/* Coupon input wrapper */
 .bw-cart-popup-panel .bw-coupon-input-wrapper {
     position: relative;
     flex: 1;
@@ -1032,71 +994,73 @@
 /* Input promo code */
 .bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input {
     width: 100%;
-    border: 1px solid #dedede;
-    border-radius: 12px;
-    font-size: 15px;
-    min-height: 44px;
-    background: #ffffff;
-    color: #111111;
-    padding: 16px 18px !important;
+    border: 1px solid var(--bw-cart-border) !important;
+    border-radius: 999px !important;
+    font-size: 14px;
+    min-height: 46px;
+    background: var(--bw-cart-surface) !important;
+    color: var(--bw-cart-text) !important;
+    padding: 12px 20px !important;
     line-height: 1.4;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease;
     box-sizing: border-box;
 }
 
 .bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input:focus {
     outline: none;
-    border: 2px solid #000000 !important;
-    padding: 15px 17px !important;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 12px 20px !important;
+    box-shadow: none;
 }
 
-/* Floating label style coerente con checkout/my-account */
+.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input::placeholder {
+    color: var(--bw-cart-text-muted);
+    font-size: 14px;
+}
+
+/* Floating label */
 .bw-cart-popup-panel .bw-coupon-input-wrapper .bw-floating-label {
     position: absolute;
-    left: 18px;
+    left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.4;
-    color: #6b7280;
+    color: var(--bw-cart-text-muted);
     pointer-events: none;
     transition: transform 0.2s ease, top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
-    background: #ffffff;
-    padding: 0 4px;
+    background: transparent;
+    padding: 0;
     font-weight: 400;
 }
 
-.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input:focus~.bw-floating-label,
+.bw-cart-popup-panel .bw-coupon-input-wrapper .bw-promo-input:focus ~ .bw-floating-label,
 .bw-cart-popup-panel .bw-coupon-input-wrapper:focus-within .bw-floating-label,
 .bw-cart-popup-panel .bw-coupon-input-wrapper.has-value .bw-floating-label {
-    top: -8px !important;
-    transform: translateY(0) !important;
-    font-size: 11px !important;
-    color: #374151 !important;
-    font-weight: 500;
+    display: none;
 }
 
 /* Pulsante Apply */
 .bw-promo-apply {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 12px 22px !important;
+    background-color: var(--bw-cart-accent) !important;
+    color: #000000 !important;
+    border: none !important;
+    border-radius: 999px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: opacity 0.2s ease;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .bw-promo-apply:hover {
-    background-color: #0056b3;
+    opacity: 0.85;
 }
 
 .bw-promo-apply:disabled {
-    background-color: #cccccc;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
@@ -1104,22 +1068,23 @@
 .bw-promo-message {
     display: none;
     width: 100%;
-    padding: 10px 12px;
-    border-radius: 4px;
+    padding: 10px 14px;
+    border-radius: var(--bw-cart-radius-sm);
     font-size: 13px;
     text-align: center;
+    margin-top: 8px;
 }
 
 .bw-promo-message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: rgba(128, 253, 3, 0.1);
+    color: var(--bw-cart-accent);
+    border: 1px solid rgba(128, 253, 3, 0.25);
 }
 
 .bw-promo-message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: rgba(255, 70, 70, 0.1);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 70, 70, 0.2);
 }
 
 
@@ -1127,68 +1092,66 @@
    9. TOTALI
    ======================================================================== */
 
-/**
- * Sezione totali: subtotal, discount, VAT, total
- * Personalizzabile: colori, dimensioni font, spaziature
- */
 .bw-cart-popup-totals {
-    background-color: #ffffff;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    margin-bottom: 16px;
 }
 
-/* Singola riga totale */
 .bw-cart-popup-totals > div {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 10px 0;
     font-size: 14px;
+    border-bottom: 1px solid var(--bw-cart-border);
 }
 
-.bw-cart-popup-totals > div:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
+.bw-cart-popup-totals > div:last-child {
+    border-bottom: none;
 }
 
-/* Label */
 .bw-cart-popup-totals .label {
-    color: #666666;
-    font-weight: 500;
+    color: var(--bw-cart-text-muted);
+    font-weight: 400;
 }
 
-/* Value */
 .bw-cart-popup-totals .value {
     font-weight: 600;
-    color: #000000;
+    color: var(--bw-cart-text);
 }
 
-/* Discount */
 .bw-cart-popup-discount {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .bw-cart-popup-discount .label {
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .bw-cart-popup-discount .value {
-    color: #28a745; /* Verde per sconto */
+    color: var(--bw-cart-accent);
     margin-left: auto;
     order: 3;
 }
 
-/* Total (più grande e evidenziato) */
 .bw-cart-popup-total {
-    padding-top: 12px !important;
+    padding-top: 10px !important;
+    border-bottom: none !important;
 }
 
 .bw-cart-popup-total .label,
 .bw-cart-popup-total .value {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
+    color: var(--bw-cart-text);
+}
+
+.bw-cart-popup-total .value {
+    color: var(--bw-cart-accent);
 }
 
 
@@ -1196,29 +1159,32 @@
    10. FOOTER E PULSANTI
    ======================================================================== */
 
-/**
- * Footer con pulsanti "Proceed to checkout" e "Continue shopping"
- * Personalizzabile: colori, dimensioni, tipografia tramite admin panel
- */
 .bw-cart-popup-footer {
-    padding: 20px;
-    border-top: 1px solid #e5e5e5;
-    background-color: #FFFFFF;
-    flex-shrink: 0; /* Non si riduce con lo scroll */
+    padding: 16px;
+    border-top: 1px solid var(--bw-cart-border);
+    background-color: var(--bw-cart-bg);
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
-/* Pulsante Proceed to Checkout - Stile Elementor */
+/* Proceed to checkout */
 .bw-cart-popup-checkout {
     display: block;
     width: 100%;
     text-align: center;
     text-decoration: none;
+    background-color: var(--bw-cart-accent) !important;
+    color: #000000 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    border-radius: 999px !important;
+    padding: 16px 20px !important;
+    border: none !important;
+    transition: opacity 0.2s ease;
 }
 
-/* Force robust text layout for checkout CTA (also when admin dynamic styles are active) */
 .bw-cart-popup-panel .bw-cart-popup-footer .bw-cart-popup-checkout {
     display: flex !important;
     align-items: center;
@@ -1226,28 +1192,36 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.15 !important;
-    letter-spacing: 0;
+    line-height: 1.2 !important;
 }
 
-/* Pulsante Continue Shopping */
+.bw-cart-popup-checkout:hover {
+    opacity: 0.88;
+    background-color: var(--bw-cart-accent) !important;
+    color: #000000 !important;
+}
+
+/* Continue shopping */
 .bw-cart-popup-continue {
     display: block;
     width: 100%;
-    padding: 12px 20px;
-    background-color: #6c757d; /* Grigio, modificabile da admin */
-    color: #ffffff !important;
+    padding: 14px 20px !important;
+    background-color: transparent !important;
+    color: var(--bw-cart-text) !important;
     text-align: center;
-    font-size: 14px;
-    border-radius: 6px;
-    border: none;
+    font-size: 14px !important;
+    font-weight: 500;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
     text-decoration: none;
 }
 
 .bw-cart-popup-continue:hover {
-    opacity: 0.9;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--bw-cart-text) !important;
 }
 
 
@@ -1255,41 +1229,19 @@
    11. TRANSIZIONI E ANIMAZIONI
    ======================================================================== */
 
-/**
- * Animazioni smooth per apertura/chiusura e interazioni
- * Personalizzabile: durata, easing, effetti
- */
-
-/* Fade in per promo box */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Slide in da destra per il pannello */
 @keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-    }
-    to {
-        transform: translateX(0);
-    }
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
 }
 
-/* Slide out verso destra per il pannello */
 @keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(100%);
-    }
+    from { transform: translateX(0); }
+    to   { transform: translateX(100%); }
 }
 
 
@@ -1297,34 +1249,27 @@
    12. UTILITIES
    ======================================================================== */
 
-/**
- * Classi di utilità
- */
-
-/* SVG Personalizzato */
 .bw-cart-popup-custom-svg {
-    padding: 20px;
+    padding: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #FFFFFF;
+    background-color: var(--bw-cart-bg);
 }
 
 .bw-cart-popup-custom-svg svg {
     width: auto !important;
     height: auto !important;
     max-width: 100% !important;
-    max-height: 200px !important;
+    max-height: 160px !important;
     display: block;
 }
 
-/* Blocca scroll del body quando il pannello è aperto */
 body.bw-cart-popup-no-scroll {
     overflow: hidden;
     overscroll-behavior: none;
 }
 
-/* Loading state */
 .bw-cart-popup-loading {
     position: absolute;
     top: 0;
@@ -1335,29 +1280,30 @@ body.bw-cart-popup-no-scroll {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(17, 17, 17, 0.92);
     z-index: 10;
-    gap: 15px;
+    gap: 14px;
+    border-radius: var(--bw-cart-radius);
 }
 
 .bw-cart-popup-loading p {
     margin: 0;
-    font-size: 14px;
-    color: #666666;
+    font-size: 13px;
+    color: var(--bw-cart-text-muted);
     font-weight: 500;
 }
 
 .bw-cart-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #000000;
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--bw-cart-accent);
     border-radius: 50%;
     animation: bw-spin 0.8s linear infinite;
 }
 
 @keyframes bw-spin {
-    0% { transform: rotate(0deg); }
+    0%   { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
@@ -1366,15 +1312,14 @@ body.bw-cart-popup-no-scroll {
    13. RESPONSIVE
    ======================================================================== */
 
-/**
- * Adattamenti per mobile e tablet
- */
-
-/* Tablet */
 @media (max-width: 768px) {
     .bw-cart-popup-panel {
-        width: 90%;
-        max-width: 400px;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        border-radius: 0 !important;
     }
 
     .bw-cart-popup-header {
@@ -1382,23 +1327,17 @@ body.bw-cart-popup-no-scroll {
     }
 
     .bw-cart-popup-content {
-        padding: 16px;
+        padding: 14px 14px 0 14px;
     }
 
     .bw-cart-popup-footer {
-        padding: 16px;
+        padding: 14px;
     }
 }
 
-/* Mobile */
 @media (max-width: 480px) {
-    .bw-cart-popup-panel {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .bw-cart-popup-title {
-        font-size: 16px;
+    .bw-cart-popup-panel .bw-cart-popup-footer .bw-cart-popup-checkout {
+        font-size: clamp(14px, 5vw, 16px) !important;
     }
 
     .bw-cart-item {
@@ -1406,45 +1345,30 @@ body.bw-cart-popup-no-scroll {
     }
 
     .bw-cart-item-image {
-        width: 50px;
-        height: 50px;
-    }
-
-    .bw-cart-popup-checkout,
-    .bw-cart-popup-continue {
-        font-size: 14px;
-        padding: 12px 16px;
-    }
-
-    /* Mobile adaptive CTA font size (wins against dynamic admin rule by higher specificity) */
-    .bw-cart-popup-panel .bw-cart-popup-footer .bw-cart-popup-checkout {
-        font-size: clamp(16px, 6vw, 24px) !important;
-        padding: 12px 16px !important;
+        width: 54px;
+        height: 54px;
     }
 }
 
 
 /* ========================================================================
-   14. NOTIFICA VERDE "ITEM ADDED TO CART"
+   14. NOTIFICA "ITEM ADDED TO CART"
    ======================================================================== */
 
-/**
- * Notifica verde che appare quando un prodotto viene aggiunto al carrello
- * Posizionata sotto il pulsante di chiusura nel cart popup
- */
 .bw-cart-popup-notification {
-    display: none; /* Nascosta di default */
+    display: none;
     align-items: center;
     gap: 10px;
-    padding: 12px 20px;
-    margin: 12px 20px 0;
-    background-color: #28a745; /* Verde */
-    color: #ffffff;
-    border-radius: 6px;
-    font-size: 14px;
+    padding: 10px 16px;
+    margin: 10px 16px 0;
+    background-color: rgba(128, 253, 3, 0.12);
+    color: var(--bw-cart-accent);
+    border-radius: var(--bw-cart-radius-sm);
+    border: 1px solid rgba(128, 253, 3, 0.2);
+    font-size: 13px;
     font-weight: 500;
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
@@ -1456,9 +1380,9 @@ body.bw-cart-popup-no-scroll {
 
 .bw-cart-notification-icon {
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    color: #ffffff;
+    width: 18px;
+    height: 18px;
+    color: var(--bw-cart-accent);
 }
 
 .bw-cart-notification-text {
@@ -1471,35 +1395,20 @@ body.bw-cart-popup-no-scroll {
    15. PLACEHOLDER "PRODUCT REMOVED"
    ======================================================================== */
 
-/**
- * Box placeholder che appare quando un prodotto viene rimosso dal carrello
- * Mostra il messaggio "Product removed" con fade-in/out
- */
 .bw-cart-item-removed-placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
     margin-bottom: 10px;
-    background-color: #f8f9fa;
-    border: 1px dashed #dee2e6;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #6c757d;
+    background-color: var(--bw-cart-surface);
+    border: 1px dashed var(--bw-cart-border);
+    border-radius: var(--bw-cart-radius-sm);
+    font-size: 13px;
+    color: var(--bw-cart-text-muted);
     font-style: italic;
     opacity: 0;
     animation: fadeIn 0.3s ease forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
 
 .bw-cart-item-removed-placeholder.fade-out {
@@ -1507,12 +1416,46 @@ body.bw-cart-popup-no-scroll {
 }
 
 @keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.95);
-    }
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.95); }
+}
+
+
+/* ========================================================================
+   16. DARK THEME — OVERRIDE CSS DINAMICO ADMIN
+   Usa l'ID del panel per maggiore specificità: batte i !important
+   delle regole class-based del CSS generato dal pannello admin.
+   Questo blocco verrà rimosso nella fase 2 (pulizia settings).
+   ======================================================================== */
+
+/* Panel background — ID batte il class del dynamic CSS */
+#bw-cart-popup-panel {
+    background-color: var(--bw-cart-bg) !important;
+}
+
+/* Continue button: trasparente con bordo, non nero pieno */
+#bw-cart-popup-panel .bw-cart-popup-continue {
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 999px !important;
+}
+
+#bw-cart-popup-panel .bw-cart-popup-continue:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Apply button: verde con testo nero, forma pill */
+#bw-cart-popup-panel .bw-promo-apply {
+    background-color: var(--bw-cart-accent) !important;
+    color: #000000 !important;
+    border-radius: 999px !important;
+    border: none !important;
+}
+
+/* Overlay: glass blur prevale sul colore solido del dynamic CSS */
+#bw-cart-popup-overlay.active {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
 }
