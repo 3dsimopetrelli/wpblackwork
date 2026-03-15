@@ -62,6 +62,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'options'     => [
                 'product'  => __( 'Single Product', 'bw' ),
                 'category' => __( 'Product Category', 'bw' ),
+                'text'     => __( 'Text', 'bw' ),
             ],
             'default'     => 'product',
             'description' => __( 'Choose what this widget reads the title from.', 'bw' ),
@@ -75,6 +76,15 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'description' => __( 'ID of the product to preview in editor. Leave empty on single-product templates.', 'bw' ),
             'label_block' => true,
             'condition'   => [ 'title_source' => 'product' ],
+        ] );
+
+        $this->add_control( 'custom_text', [
+            'label'       => __( 'Text', 'bw' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => '',
+            'placeholder' => __( 'Enter custom title text', 'bw' ),
+            'label_block' => true,
+            'condition'   => [ 'title_source' => 'text' ],
         ] );
 
         $this->add_control( 'term_id', [
@@ -159,15 +169,22 @@ class Widget_Bw_Title_Product extends Widget_Base {
 
         $source = isset( $settings['title_source'] ) ? $settings['title_source'] : 'product';
 
-        $title = ( 'category' === $source )
-            ? $this->resolve_category_title( $settings )
-            : $this->resolve_product_title( $settings );
+        if ( 'text' === $source ) {
+            $title = sanitize_text_field( $settings['custom_text'] ?? '' );
+        } elseif ( 'category' === $source ) {
+            $title = $this->resolve_category_title( $settings );
+        } else {
+            $title = $this->resolve_product_title( $settings );
+        }
 
         if ( ! $title ) {
             if ( $is_editor ) {
-                $title = ( 'category' === $source )
-                    ? __( 'Category Name', 'bw' )
-                    : __( 'Product Title', 'bw' );
+                $placeholders = [
+                    'text'     => __( 'Custom Text', 'bw' ),
+                    'category' => __( 'Category Name', 'bw' ),
+                    'product'  => __( 'Product Title', 'bw' ),
+                ];
+                $title = $placeholders[ $source ] ?? __( 'Product Title', 'bw' );
             } else {
                 return;
             }
