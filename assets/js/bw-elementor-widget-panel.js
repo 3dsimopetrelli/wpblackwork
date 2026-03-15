@@ -28,6 +28,10 @@
     'DEPRECATED - BW Add To Cart Variation',
     'DEPRECATED - BW WallPost'
   ];
+  var WOO_WIDGET_SLUGS = [
+    'bw-product-slide',
+    'bw-title-product'
+  ];
   var panelObserver = null;
   var observerTick = null;
 
@@ -78,7 +82,13 @@
     return REMOVED_WIDGET_TITLES.indexOf(title) !== -1;
   }
 
-  function getFamilyClass(title) {
+  function getFamilyClass(title, widgetType) {
+    var slug = getWidgetSlug(widgetType);
+
+    if (slug && WOO_WIDGET_SLUGS.indexOf(slug) !== -1) {
+      return 'bw-family-sp';
+    }
+
     if (title.indexOf('DEPRECATED -') === 0) {
       return 'bw-family-deprecated';
     }
@@ -125,7 +135,7 @@
         return;
       }
 
-      var familyClass = getFamilyClass(title);
+      var familyClass = getFamilyClass(title, widgetType);
       if (!familyClass) {
         return;
       }

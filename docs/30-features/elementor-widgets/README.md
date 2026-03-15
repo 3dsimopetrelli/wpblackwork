@@ -36,6 +36,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slide` -> canonical product slider
+- `bw-title-product` -> canonical single-product title utility widget
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
@@ -44,7 +45,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`
 - Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
 - Internal slug `bw-product-slide` -> visible title `BW-SP Gallery Product`
+- Internal slug `bw-title-product` -> visible title `Title Product`
 - Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
+- WooCommerce editor identity note:
+  - `bw-title-product` uses a slug-scoped panel mapping so it still receives the BW-SP purple widget card without requiring a `BW-SP` title prefix.
 
 ## Current implementation status (completed waves)
 - Widget panel naming applied:

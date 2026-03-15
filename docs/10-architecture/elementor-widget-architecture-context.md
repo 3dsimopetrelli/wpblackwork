@@ -37,7 +37,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Slider:
   - `bw-product-slide`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
-  - `bw-price-variation`, `bw-product-details-table`
+  - `bw-price-variation`, `bw-product-details-table`, `bw-title-product`
 - Content/UI utilities:
   - about-menu, button, divider, animated-banner, tags, related-post, static-showcase
 
@@ -58,6 +58,7 @@ Decisions already fixed:
 - `bw-add-to-cart-variation` -> DELETE (completed)
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget with optional filters
+- `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slide` -> canonical product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
@@ -66,7 +67,10 @@ Decisions already fixed:
 Visible editor title alignment (current):
 - `bw-slick-slider` -> `BW-UI Product Slider`
 - `bw-product-slide` -> `BW-SP Gallery Product`
+- `bw-title-product` -> `Title Product`
 - Scope note: title alignment affects editor labeling only; slug/runtime authority is unchanged.
+- Editor identity exception:
+  - `bw-title-product` uses a slug-scoped panel-family mapping to receive the WooCommerce/BW-SP purple editor card without relying on a `BW-SP` title prefix.
 
 ## Migration doctrine
 - No big-bang rewrite.
