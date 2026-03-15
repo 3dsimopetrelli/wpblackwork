@@ -529,6 +529,42 @@ body.bw-mf-enabled .bw-mf-toolbar-inline {
     padding-top: 8px;
 }
 
+body.edit-php.bw-mf-enabled .column-bw_mf_drag_handle,
+body.edit-php.bw-mf-enabled th#bw_mf_drag_handle,
+body.edit-php.bw-mf-enabled td.column-bw_mf_drag_handle {
+    width: 26px !important;
+    min-width: 26px !important;
+    max-width: 26px !important;
+    text-align: center;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    white-space: nowrap;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: #2c3338;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle:active {
+    cursor: grabbing;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+}
+
 body.edit-php.post-type-product.bw-mf-enabled .column-bw_mf_drag_handle,
 body.edit-php.post-type-product.bw-mf-enabled th#bw_mf_drag_handle,
 body.edit-php.post-type-product.bw-mf-enabled td.column-bw_mf_drag_handle {
