@@ -44,6 +44,8 @@
         _cartDataFromResponse: null, // Dati carrello inclusi nella risposta add-to-cart (evita 2a AJAX)
         _qtyDebounceTimers: {},      // Timer debounce quantità per cart-item-key
         _pendingItemKeys: {},        // Chiavi item con richiesta AJAX in corso (anti-race)
+        _cartCacheTs: 0,             // Timestamp dell'ultimo fetch riuscito
+        _CACHE_TTL: 8000,            // Validità cache apertura pannello (ms)
 
         /**
          * Inizializzazione
@@ -273,30 +275,6 @@
         /**
          * Recupera l'URL di checkout seguendo le API WooCommerce e i fallback HTML
          */
-        getCheckoutUrl: function () {
-            const config = (typeof bwCartPopupConfig !== 'undefined') ? bwCartPopupConfig : {};
-            const $button = $('.bw-cart-popup-checkout');
-
-            const checkoutFromConfig = config.checkoutUrl;
-            const checkoutFromData = $button.data('checkout-url');
-            const checkoutFromHref = $button.attr('href');
-            const cartFallback = config.cartUrl || $button.data('cart-url');
-
-            if (checkoutFromConfig) {
-                return checkoutFromConfig;
-            }
-
-            if (checkoutFromData) {
-                return checkoutFromData;
-            }
-
-            if (checkoutFromHref) {
-                return checkoutFromHref;
-            }
-
-            return cartFallback || null;
-        },
-
         /**
          * Aggiorna l'anchor del checkout con l'URL corretto da WooCommerce
          * FORZA SEMPRE l'uso di wc_get_checkout_url() ignorando qualsiasi valore presente nell'HTML
@@ -556,8 +534,23 @@
             // Blocca scroll body
             $('body').addClass('bw-cart-popup-no-scroll');
 
-            // Carica contenuto carrello
-            this.loadCartContents();
+            // Carica contenuto carrello (con cache breve per toggle rapidi)
+            var cacheAge = Date.now() - this._cartCacheTs;
+            if (
+                !this._cartDataFromResponse &&
+                this.cartItems !== null &&
+                cacheAge < this._CACHE_TTL
+            ) {
+                // Cache valida: mostra il DOM esistente senza fare AJAX
+                this.isLoading = false;
+                if (this.cartItems && this.cartItems.length > 0) {
+                    this.showFullState();
+                } else {
+                    this.showEmptyState();
+                }
+            } else {
+                this.loadCartContents();
+            }
 
             console.log('Cart popup opened');
         },
@@ -649,6 +642,7 @@
                 .done(function (response) {
                     if (response && response.success) {
                         self.cartItems = (response.data && response.data.items) ? response.data.items : [];
+                        self._cartCacheTs = Date.now();
 
                         if (opts.render) {
                             self.renderCartItems(response.data);
@@ -762,6 +756,7 @@
             // Se il carrello ha prodotti, mostra il layout pieno
             this.showFullState();
 
+            const self = this;
             let html = '';
             let totalQuantity = 0;
 
@@ -799,7 +794,7 @@
                                 <div class="bw-cart-item-header">
                                     <div class="bw-cart-item-info">
                                         <h4 class="bw-cart-item-name">
-                                            <a href="${item.permalink}">${item.name}</a>
+                                            <a href="${self._escUrl(item.permalink)}">${self._escHtml(item.name)}</a>
                                         </h4>
                                         ${actionsMarkup}
                                     </div>
@@ -870,6 +865,46 @@
         /**
          * Aggiorna i totali
          */
+        /**
+         * Escape HTML characters per testo interpolato in template literal.
+         * @param {*} str
+         * @returns {string}
+         */
+        _escHtml: function (str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;');
+        },
+
+        /**
+         * Sanitizza un URL per uso in attributo href.
+         * Blocca javascript: e data: URI, poi escapa i caratteri HTML.
+         * @param {*} url
+         * @returns {string}
+         */
+        _escUrl: function (url) {
+            var s = String(url == null ? '' : url).trim();
+            if (/^javascript:/i.test(s) || /^data:/i.test(s)) {
+                return '#';
+            }
+            return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        },
+
+        /**
+         * Aggiorna solo i totali numerici (subtotal/tax/total) senza toccare
+         * le righe coupon o i prodotti. Usato dopo updateQuantity per evitare
+         * il re-render completo del carrello.
+         */
+        _patchTotals: function (data) {
+            $('.bw-cart-popup-subtotal .value').html(data.subtotal).attr('data-price', data.subtotal_raw);
+            $('.bw-cart-popup-vat .value').html(data.tax).attr('data-tax', data.tax_raw);
+            $('.bw-cart-popup-total .value').html(data.total).attr('data-total', data.total_raw);
+            this.updateCheckoutCta(data.total);
+        },
+
         updateTotals: function (data) {
             const self = this;
             // Subtotal
@@ -898,31 +933,30 @@
                     'gap': '8px'
                 });
 
+                var couponRowsHtml = '';
                 coupons.forEach(function (coupon) {
                     // Handle both object (new) and string (legacy/fallback) formats
                     var code = typeof coupon === 'object' ? coupon.code : coupon;
                     var amount = typeof coupon === 'object' ? coupon.amount : '';
+                    var safeCode = self._escHtml(code);
 
-                    // If amount is empty (legacy), we might not show it per row, but user asked for it. 
-                    // Backend now ensures amount is sent.
-
-                    var rowHtml = `
+                    couponRowsHtml += `
                      <div class="bw-cart-coupon-dynamic-row" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="label" style="display:inline; margin:0; font-weight:600;">Discount</span>
                             <span class="bw-cart-coupon-badge" style="background:#f0f0f1; color:#333; padding:2px 8px; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:4px;">
                                 <span class="bw-cart-coupon-icon" style="display:inline-block; width:12px; height:12px; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z%22></path><line x1=%227%22 y1=%227%22 x2=%227.01%22 y2=%227%22></line></svg>'); background-size:contain; background-repeat:no-repeat; opacity:0.7;"></span>
-                                <b>${code}</b>
+                                <b>${safeCode}</b>
                             </span>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${code}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
+                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${safeCode}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
                             <span class="value" style="color:#000; font-weight:bold; display:block;">${amount}</span>
                         </div>
                      </div>`;
-
-                    $discountContainer.append(rowHtml);
                 });
+                // Singolo append per evitare reflow multipli
+                $discountContainer.append(couponRowsHtml);
 
             } else {
                 $discountContainer.hide();
@@ -1170,17 +1204,30 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Ricarica contenuto carrello
-                        self.loadCartContents();
-
-                        // Aggiorna anche il mini-cart di WooCommerce se presente
+                        if (response.data && response.data.empty) {
+                            // Carrello svuotato (qty → 0): mostra stato vuoto
+                            self.showEmptyState();
+                            self.updateBadge(0);
+                        } else if (response.data) {
+                            // Aggiorna solo i totali numerici, senza ri-renderizzare
+                            // l'intero HTML del carrello (coupon e prodotti rimangono)
+                            self._patchTotals(response.data);
+                            self.updateBadge(response.data.item_count || 0);
+                        } else {
+                            // Fallback: dati mancanti → ricarica completa
+                            self.loadCartContents();
+                        }
+                        // Invalida cache così la prossima apertura forza un fetch
+                        self._cartCacheTs = 0;
                         $(document.body).trigger('wc_fragment_refresh');
                     } else {
                         console.error('Failed to update quantity');
+                        self.loadCartContents();
                     }
                 },
                 error: function () {
                     console.error('AJAX error updating quantity');
+                    self.loadCartContents();
                 }
             });
         },
