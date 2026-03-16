@@ -1007,6 +1007,9 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
             }
         }
 
+        $assigned_ids = [];
+        $duplicate_ids = [];
+
         bw_mf_suspend_cache_invalidation();
         wp_defer_term_counting(true);
         try {
@@ -1021,23 +1024,46 @@ if (!function_exists('bw_mf_ajax_assign_folder')) {
                 sort($next_terms);
 
                 if ($current_terms === $next_terms) {
+                    if ($term_id > 0) {
+                        $duplicate_ids[] = $object_id;
+                    }
                     continue;
                 }
 
                 wp_set_object_terms($object_id, $next_terms, $taxonomy, false);
+                $assigned_ids[] = $object_id;
             }
         } finally {
             wp_defer_term_counting(false);
             bw_mf_resume_cache_invalidation();
         }
 
-        bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+        if (!empty($assigned_ids)) {
+            bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+        }
+
+        $message = __('Items updated.', 'bw');
+        $notice_type = 'updated';
+        if (!empty($duplicate_ids) && empty($assigned_ids)) {
+            $message = count($duplicate_ids) === 1
+                ? __('This item already exists in that folder.', 'bw')
+                : __('These items already exist in that folder.', 'bw');
+            $notice_type = 'duplicate';
+        } elseif (!empty($duplicate_ids)) {
+            $message = count($duplicate_ids) === 1
+                ? __('Item updated. One selected item already existed in that folder.', 'bw')
+                : __('Items updated. Some selected items already existed in that folder.', 'bw');
+            $notice_type = 'partial-duplicate';
+        }
 
         wp_send_json_success([
             'folder_id' => $term_id,
             'term_id' => $term_id,
-            'assigned_ids' => $object_ids,
-            'message' => __('Items updated.', 'bw'),
+            'assigned_ids' => array_values($assigned_ids),
+            'duplicate_ids' => array_values($duplicate_ids),
+            'requested_ids' => array_values($object_ids),
+            'notice_type' => $notice_type,
+            'message' => $message,
         ]);
     }
 }

@@ -43,6 +43,8 @@
     var markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
     var badgeTooltipEl = null;
     var badgeTooltipEventsBound = false;
+    var duplicateNoticeEl = null;
+    var duplicateNoticeMessageEl = null;
     var quickTypeFilterActive = '';
     var quickTypeFilterObserver = null;
     var quickTypeFilterObserverTarget = null;
@@ -158,6 +160,55 @@
         } catch (err) {
             destroyDragBadge();
         }
+    }
+
+    function ensureDuplicateNotice() {
+        if (duplicateNoticeEl && duplicateNoticeMessageEl && document.body.contains(duplicateNoticeEl)) {
+            return duplicateNoticeEl;
+        }
+
+        duplicateNoticeEl = document.createElement('div');
+        duplicateNoticeEl.className = 'bw-mf-duplicate-notice';
+        duplicateNoticeEl.setAttribute('aria-hidden', 'true');
+        duplicateNoticeEl.innerHTML =
+            '<div class="bw-mf-duplicate-notice__dialog" role="dialog" aria-modal="true" aria-label="Folder notice">' +
+            '  <p class="bw-mf-duplicate-notice__message"></p>' +
+            '</div>';
+        duplicateNoticeMessageEl = duplicateNoticeEl.querySelector('.bw-mf-duplicate-notice__message');
+
+        duplicateNoticeEl.addEventListener('click', function (event) {
+            if (event.target === duplicateNoticeEl) {
+                hideDuplicateNotice();
+            }
+        });
+
+        document.body.appendChild(duplicateNoticeEl);
+        return duplicateNoticeEl;
+    }
+
+    function showDuplicateNotice(message) {
+        var text = String(message || '').trim();
+        if (!text) {
+            return;
+        }
+
+        ensureDuplicateNotice();
+        if (!duplicateNoticeEl || !duplicateNoticeMessageEl) {
+            return;
+        }
+
+        duplicateNoticeMessageEl.textContent = text;
+        duplicateNoticeEl.classList.add('is-visible');
+        duplicateNoticeEl.setAttribute('aria-hidden', 'false');
+    }
+
+    function hideDuplicateNotice() {
+        if (!duplicateNoticeEl) {
+            return;
+        }
+
+        duplicateNoticeEl.classList.remove('is-visible');
+        duplicateNoticeEl.setAttribute('aria-hidden', 'true');
     }
 
     function request(action, payload, onDone, options) {
@@ -1908,9 +1959,13 @@
         request('bw_media_assign_folder', {
             term_id: folderId,
             attachment_ids: ids
-        }, function () {
-            if (Array.isArray(ids)) {
-                ids.forEach(function (id) {
+        }, function (data) {
+            var assignedIds = Array.isArray(data && data.assigned_ids) ? data.assigned_ids : [];
+            var duplicateIds = Array.isArray(data && data.duplicate_ids) ? data.duplicate_ids : [];
+            var changedIds = assignedIds.length ? assignedIds : ids;
+
+            if (Array.isArray(changedIds)) {
+                changedIds.forEach(function (id) {
                     var parsed = parseInt(id, 10);
                     if (parsed > 0) {
                         markerCache.delete(parsed);
@@ -1918,11 +1973,18 @@
                     }
                 });
             }
-            refreshTree();
-            if (typeof onDone === 'function') {
-                onDone();
+
+            if (assignedIds.length) {
+                refreshTree();
+                if (typeof onDone === 'function') {
+                    onDone();
+                }
+                scheduleBwMfRefresh('assign-folder');
             }
-            scheduleBwMfRefresh('assign-folder');
+
+            if (duplicateIds.length && data && data.message) {
+                showDuplicateNotice(data.message);
+            }
         });
     }
 
@@ -2590,6 +2652,7 @@
         }
 
         mountLayout();
+        ensureDuplicateNotice();
         if (!isMediaPostType()) {
             root().find('.bw-media-folders__bulk').hide();
         }

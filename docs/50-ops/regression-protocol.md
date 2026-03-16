@@ -588,3 +588,15 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - cart/checkout routes remain unaffected by custom redirect rules
   - wallet failed return still redirects to checkout
   - admin save/import redirects unchanged
+
+## Media Folders Duplicate Assignment Warning
+- Date: 2026-03-16
+- Scope:
+  - Media Folders admin drag/drop assignment UX for Media, Posts, Pages, Products.
+  - Existing `bw_media_assign_folder` endpoint now reports duplicate target assignments without converting them to hard errors.
+- Regression checks required (manual):
+  - drag an item into a different folder -> assignment works, no duplicate popup
+  - drag the same media item into the same folder again -> popup appears, closes on background click
+  - drag the same post/page/product into the same folder again -> popup appears, closes on background click
+  - drag to Unassigned (`term_id = 0`) -> no duplicate popup
+  - media bulk assign with mixed new + duplicate items -> new items move, duplicate warning still appears

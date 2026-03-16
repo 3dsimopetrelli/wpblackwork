@@ -179,6 +179,7 @@ Current adoption:
       - drag-handle column uses compact fixed width across Posts, Pages, and Products
       - drag start only from handle (`dashicons-move`)
       - single-item drag assignment only (no list-table bulk drag)
+      - duplicate assignment warning is rendered as a Media Folders-scoped overlay popup and dismissed via background click
       - folder node pencil context menu actions: Rename, New Subfolder, Pin/Unpin, Icon Color, Delete
   - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`
 

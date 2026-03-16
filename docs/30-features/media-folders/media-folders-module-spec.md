@@ -193,6 +193,16 @@ Data sanitization:
 - `color`: strict `sanitize_hex_color` fallback to empty string.
 - assign batch hard limit: `BW_MF_ASSIGN_BATCH_LIMIT = 200`.
 
+Assignment duplicate-detection contract:
+- `bw_media_assign_folder` remains a success-path endpoint for valid requests, even when the target folder already contains one or more requested objects.
+- Response payload is additive and deterministic:
+  - `assigned_ids`: objects actually moved/updated
+  - `duplicate_ids`: objects already assigned to the target folder and therefore skipped
+  - `requested_ids`: normalized request ids
+  - `notice_type`: `updated` | `duplicate` | `partial-duplicate`
+  - `message`: human-readable admin notice text
+- Unassigned target (`term_id = 0`) does not produce duplicate warnings.
+
 Corner markers payload:
 - returns per attachment id:
   - `assigned` bool
@@ -234,6 +244,11 @@ Corner markers payload:
   - bulk assignment remains Media-only.
   - Posts/Pages/Products use single-item drag assignment only.
   - list-table drag starts only from dedicated drag handle column.
+- Duplicate target assignment UX:
+  - if the dragged/selected object is already in the destination folder, the module shows a small modal-style popup overlay
+  - popup closes by clicking the background
+  - duplicate warning does not trigger a list/grid reload when nothing changed
+  - mixed media bulk operations still apply new assignments and warn if some selected items were already present
 
 ### Marker
 - Badge class:
