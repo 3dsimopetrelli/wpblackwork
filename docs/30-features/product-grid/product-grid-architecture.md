@@ -308,3 +308,45 @@ called for its `data-widget-id`.
 | `destroyWidgetState()` completeness | If a new timer or observer is added without a matching cleanup entry, leaks accumulate in the editor | Medium |
 | Rate-limit transient key format | If `bw_fpw_get_request_fingerprint()` changes, existing buckets are orphaned (harmless but effective limit resets) | Low |
 | `is-loading` / `is-loading-visible` class split | CSS rules that depend on only one class will break if the split is collapsed | Medium |
+| Reveal animation constants | `STAGGER` e `baseDelay` in JS devono restare ≤ durata CSS `transition`; `cleanupDelay` deve essere ≥ durata CSS | Medium |
+
+---
+
+## 9) Hardening e ottimizzazioni 2026-03-16
+
+### 9.1 Elementor frontend hook fallback (commit `41afb3d1`)
+
+`registerElementorHooks()` registra il handler su `elementorFrontend.hooks.addAction(...)`.
+Se `elementorFrontend.hooks` non è ancora disponibile al momento dell'esecuzione (timing race
+su alcune configurazioni), il widget non veniva inizializzato.
+
+Fallback aggiunto:
+
+```javascript
+if (typeof elementorFrontend !== 'undefined' && elementorFrontend.on) {
+    elementorFrontend.on('init', function () {
+        registerElementorHooks();
+    });
+}
+```
+
+Se anche questo path fallisce, `initAllGrids()` viene invocato direttamente su `document.ready`
+come ultima rete di sicurezza.
+
+### 9.2 Velocizzazione animazione reveal (commit `86c1db13`)
+
+I parametri di animazione reveal sono stati ridotti per minimizzare il tempo percepito al caricamento
+della pagina mantenendo coerenza visiva dello stagger sequenziale.
+
+| Parametro | Prima | Dopo | File |
+|-----------|-------|------|------|
+| CSS `transition: opacity` | `1.8s ease` | `0.45s ease` | `assets/css/bw-product-grid.css` |
+| `baseDelay` (initial reveal) | `80ms` | `40ms` | `assets/js/bw-product-grid.js` — `animatePostsStaggered()` |
+| `STAGGER` (scroll/append batches) | `80ms` | `40ms` | `assets/js/bw-product-grid.js` — `revealItemsPerViewport()` |
+| `cleanupDelay` (initial) | `1200ms` | `600ms` | `assets/js/bw-product-grid.js` — `animatePostsStaggered()` |
+| `cleanupDelay` (scroll) | `2200ms` | `600ms` | `assets/js/bw-product-grid.js` — `revealItemsPerViewport()` |
+
+Invariante da rispettare: `cleanupDelay` ≥ durata CSS `transition` (ora 450ms). Il commento
+in `revealItemsPerViewport` documenta esplicitamente il vincolo.
+
+Impatto: per una griglia da 20 prodotti la finestra totale del reveal passa da ~3.4s a ~1.3s.

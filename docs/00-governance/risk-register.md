@@ -1404,6 +1404,40 @@ Progress Status:
   - [BW-TASK-20260308-14-closure](../tasks/BW-TASK-20260308-14-closure.md)
   - [R-PERF-29-cart-popup-runtime-hardening-closure](../tasks/R-PERF-29-cart-popup-runtime-hardening-closure.md)
 
+### Risk ID: R-SEC-30
+- Domain: Security / Frontend Rendering
+- Source: Manual code review — cart popup template literal interpolation
+- Surface Anchor: `cart-popup/assets/js/bw-cart-popup.js` (`renderCartItems`)
+- Description: `item.name` and `item.permalink` were interpolated directly into HTML template literals inside `renderCartItems()` without HTML-escaping. Although WordPress sanitizes post titles on save, the pattern was fragile — if data reached the template via an alternative filter chain, stored XSS would be possible. `item.permalink` additionally lacked protection against `javascript:` and `data:` URI schemes in the `href` attribute.
+- Invariant Threatened: All server-provided strings inserted into client-side HTML must be HTML-escaped before interpolation. URL values used in `href` attributes must additionally block protocol-injection schemes.
+- Impact: Medium
+- Likelihood: Low
+- Risk Level: Medium
+- Status: Resolved
+- Current Mitigation: Added `_escHtml()` (escapes `& < > " '`) and `_escUrl()` (strips `javascript:`/`data:` schemes then HTML-escapes) helpers to `BW_CartPopup`. Applied in `renderCartItems()`: `item.permalink` → `self._escUrl()`, `item.name` → `self._escHtml()`. Fields intentionally left unescaped: `item.image` (server-rendered WP thumbnail HTML), `item.subtotal`/`item.regular_subtotal` (server-rendered `wc_price()` HTML), `item.key` (MD5 hash), `item.product_id` (parseInt-validated integer).
+- Monitoring Status: Closed
+- Mitigation Path: Completed via commit `fd2f5be1`.
+- Date: `2026-03-16`
+- Linked Documents:
+  - [R-SEC-30-R-SEC-31-cart-popup-xss-hardening-closure](../tasks/R-SEC-30-R-SEC-31-cart-popup-xss-hardening-closure.md)
+
+### Risk ID: R-SEC-31
+- Domain: Security / Frontend Rendering
+- Source: Manual code review — coupon code not escaped in cart popup DOM
+- Surface Anchor: `cart-popup/assets/js/bw-cart-popup.js` (`updateTotals`)
+- Description: The applied coupon `code` string was interpolated as `<b>${code}</b>` and in the `data-code="${code}"` attribute without HTML-escaping. WooCommerce validates coupon codes at apply time but the pattern remained risky for any path that bypasses standard validation.
+- Invariant Threatened: All externally-sourced strings inserted into client-side HTML must be HTML-escaped, regardless of upstream validation.
+- Impact: Low
+- Likelihood: Low
+- Risk Level: Low
+- Status: Resolved
+- Current Mitigation: Applied `_escHtml()` helper (see R-SEC-30) to produce `safeCode` before injecting into `<b>` text node and `data-code` attribute.
+- Monitoring Status: Closed
+- Mitigation Path: Completed via commit `fd2f5be1`.
+- Date: `2026-03-16`
+- Linked Documents:
+  - [R-SEC-30-R-SEC-31-cart-popup-xss-hardening-closure](../tasks/R-SEC-30-R-SEC-31-cart-popup-xss-hardening-closure.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.

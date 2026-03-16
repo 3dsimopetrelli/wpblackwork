@@ -39,6 +39,13 @@ Canonical transition note:
   - canonical visible title: `BW Product Grid`
   - canonical slug: `bw-product-grid`
   - canonical class: `BW_Product_Grid_Widget`
+- `bw-title-product` controls (final state):
+  - `html_tag`: H1–H6, div, span, p (default: H1)
+  - `title_source`: `product` (single-product title, context-resolved), `category` (product-category name), `text` (arbitrary custom text)
+  - `product_id`: explicit product ID override for editor preview (source: `product` only)
+  - `term_id`: explicit category ID override for editor preview (source: `category` only)
+  - `custom_text`: static text input (source: `text` only)
+  - Alignment (responsive), Typography group control (Elementor native)
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
