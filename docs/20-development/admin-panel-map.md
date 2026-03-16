@@ -33,6 +33,11 @@ It consolidates the structural reality already audited in [`docs/50-ops/admin-pa
   - Governance decision: `docs/00-planning/decision-log.md` (Entry 032).
   - Closure artifact: `docs/tasks/BW-TASK-20260309-01-closure.md`.
 
+### 1.1.3 2026-03-16 Menu Icon Persistence
+- The `Blackwork Site` top-level menu icon styling is enforced by `admin/css/blackwork-site-menu.css`.
+- That stylesheet now loads across all wp-admin screens, not only Blackwork panel screens.
+- Scope remains safe because every selector is pinned to `#toplevel_page_blackwork-site-settings`, so no other admin menu item is affected.
+
 ### 1.2 Capability model
 - Primary capability baseline: `manage_options` (main menu + Header + Mail Marketing).
 - Import Product tab extends gate with `manage_woocommerce` OR `manage_options`.

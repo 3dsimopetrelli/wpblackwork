@@ -79,15 +79,14 @@ function bw_site_settings_force_default_submenu()
 add_action('admin_menu', 'bw_site_settings_force_default_submenu', 999);
 
 /**
- * Carica lo stile per l'icona del menu admin (globale).
+ * Carica lo stile per l'icona del menu admin su tutto wp-admin.
+ *
+ * The stylesheet is intentionally tiny and scoped to the Blackwork top-level
+ * menu selector, so it is safe to load globally to preserve icon styling even
+ * when another admin screen is active.
  */
-function bw_site_settings_admin_menu_icon_styles($hook)
+function bw_site_settings_admin_menu_icon_styles($_hook)
 {
-    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
-    if (!bw_is_blackwork_site_admin_screen($hook, $current_page)) {
-        return;
-    }
-
     $menu_style_path = BW_MEW_PATH . 'admin/css/blackwork-site-menu.css';
     $menu_style_version = file_exists($menu_style_path) ? filemtime($menu_style_path) : '1.0.0';
 
