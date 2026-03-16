@@ -20,6 +20,7 @@ if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) ) {
     class BW_Mail_Marketing_Settings {
         const GENERAL_OPTION = 'bw_mail_marketing_general_settings';
         const CHECKOUT_OPTION = 'bw_mail_marketing_checkout_settings';
+        const SUBSCRIPTION_OPTION = 'bw_mail_marketing_subscription_settings';
         const LEGACY_OPTION = 'bw_checkout_subscribe_settings';
         const API_BASE_URL = 'https://api.brevo.com/v3';
         const VERSION = 1;
@@ -102,6 +103,30 @@ if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) ) {
         }
 
         /**
+         * Defaults for Subscription widget/channel settings.
+         *
+         * @return array
+         */
+        public static function get_subscription_defaults() {
+            return [
+                'version'                  => self::VERSION,
+                'enabled'                  => 1,
+                'source_key'               => 'elementor_widget',
+                'list_mode'                => 'inherit',
+                'list_id'                  => 0,
+                'channel_optin_mode'       => 'inherit',
+                'name_label'               => __( 'Name', 'bw' ),
+                'email_label'              => __( 'Email address', 'bw' ),
+                'consent_prefix'           => __( 'I agree to the', 'bw' ),
+                'privacy_link_label'       => __( 'Privacy Policy', 'bw' ),
+                'button_text'              => __( 'Subscribe', 'bw' ),
+                'success_message'          => __( 'Thanks for subscribing! Please check your inbox.', 'bw' ),
+                'error_message'            => __( 'Unable to subscribe right now. Please try again later.', 'bw' ),
+                'consent_required_message' => __( 'Please confirm the privacy consent to subscribe.', 'bw' ),
+            ];
+        }
+
+        /**
          * Retrieve General settings with fallback.
          *
          * @return array
@@ -138,6 +163,22 @@ if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) ) {
             $legacy = get_option( self::LEGACY_OPTION, null );
             if ( is_array( $legacy ) && ! empty( $legacy ) ) {
                 return array_merge( $defaults, self::map_legacy_to_checkout( $legacy ) );
+            }
+
+            return $defaults;
+        }
+
+        /**
+         * Retrieve Subscription settings.
+         *
+         * @return array
+         */
+        public static function get_subscription_settings() {
+            $defaults = self::get_subscription_defaults();
+            $settings = get_option( self::SUBSCRIPTION_OPTION, null );
+
+            if ( is_array( $settings ) && ! empty( $settings ) ) {
+                return array_merge( $defaults, $settings );
             }
 
             return $defaults;
@@ -289,7 +330,7 @@ class BW_Checkout_Subscribe_Admin {
         check_admin_referer( 'bw_mail_marketing_save', 'bw_mail_marketing_nonce' );
 
         $active_tab = isset( $_POST['bw_mail_marketing_tab'] ) ? sanitize_key( wp_unslash( $_POST['bw_mail_marketing_tab'] ) ) : 'general';
-        if ( ! in_array( $active_tab, [ 'general', 'checkout' ], true ) ) {
+        if ( ! in_array( $active_tab, [ 'general', 'checkout', 'subscription' ], true ) ) {
             $active_tab = 'general';
         }
 
@@ -343,7 +384,7 @@ class BW_Checkout_Subscribe_Admin {
             $settings['api_base'] = BW_Mail_Marketing_Settings::API_BASE_URL;
 
             update_option( BW_Mail_Marketing_Settings::GENERAL_OPTION, $settings );
-        } else {
+        } elseif ( 'checkout' === $active_tab ) {
             $settings = BW_Mail_Marketing_Settings::get_checkout_defaults();
 
             $settings['enabled'] = ! empty( $_POST['bw_mail_marketing_checkout_enabled'] ) ? 1 : 0;
@@ -389,6 +430,92 @@ class BW_Checkout_Subscribe_Admin {
             $settings['priority_offset'] = max( -50, min( 50, $offset ) );
 
             update_option( BW_Mail_Marketing_Settings::CHECKOUT_OPTION, $settings );
+        } else {
+            $settings = BW_Mail_Marketing_Settings::get_subscription_defaults();
+
+            $settings['enabled'] = ! empty( $_POST['bw_mail_marketing_subscription_enabled'] ) ? 1 : 0;
+            $settings['source_key'] = isset( $_POST['bw_mail_marketing_subscription_source_key'] )
+                ? sanitize_key( wp_unslash( $_POST['bw_mail_marketing_subscription_source_key'] ) )
+                : 'elementor_widget';
+            if ( '' === $settings['source_key'] ) {
+                $settings['source_key'] = 'elementor_widget';
+            }
+
+            $settings['list_mode'] = isset( $_POST['bw_mail_marketing_subscription_list_mode'] )
+                ? sanitize_key( wp_unslash( $_POST['bw_mail_marketing_subscription_list_mode'] ) )
+                : 'inherit';
+            if ( ! in_array( $settings['list_mode'], [ 'inherit', 'custom' ], true ) ) {
+                $settings['list_mode'] = 'inherit';
+            }
+
+            $settings['list_id'] = isset( $_POST['bw_mail_marketing_subscription_list_id'] )
+                ? absint( $_POST['bw_mail_marketing_subscription_list_id'] )
+                : 0;
+
+            $settings['channel_optin_mode'] = isset( $_POST['bw_mail_marketing_subscription_channel_optin_mode'] )
+                ? sanitize_key( wp_unslash( $_POST['bw_mail_marketing_subscription_channel_optin_mode'] ) )
+                : 'inherit';
+            if ( ! in_array( $settings['channel_optin_mode'], [ 'inherit', 'single_opt_in', 'double_opt_in' ], true ) ) {
+                $settings['channel_optin_mode'] = 'inherit';
+            }
+
+            $settings['name_label'] = isset( $_POST['bw_mail_marketing_subscription_name_label'] )
+                ? sanitize_text_field( wp_unslash( $_POST['bw_mail_marketing_subscription_name_label'] ) )
+                : $settings['name_label'];
+            if ( '' === $settings['name_label'] ) {
+                $settings['name_label'] = __( 'Name', 'bw' );
+            }
+
+            $settings['email_label'] = isset( $_POST['bw_mail_marketing_subscription_email_label'] )
+                ? sanitize_text_field( wp_unslash( $_POST['bw_mail_marketing_subscription_email_label'] ) )
+                : $settings['email_label'];
+            if ( '' === $settings['email_label'] ) {
+                $settings['email_label'] = __( 'Email address', 'bw' );
+            }
+
+            $settings['consent_prefix'] = isset( $_POST['bw_mail_marketing_subscription_consent_prefix'] )
+                ? sanitize_text_field( wp_unslash( $_POST['bw_mail_marketing_subscription_consent_prefix'] ) )
+                : $settings['consent_prefix'];
+            if ( '' === $settings['consent_prefix'] ) {
+                $settings['consent_prefix'] = __( 'I agree to the', 'bw' );
+            }
+
+            $settings['privacy_link_label'] = isset( $_POST['bw_mail_marketing_subscription_privacy_link_label'] )
+                ? sanitize_text_field( wp_unslash( $_POST['bw_mail_marketing_subscription_privacy_link_label'] ) )
+                : $settings['privacy_link_label'];
+            if ( '' === $settings['privacy_link_label'] ) {
+                $settings['privacy_link_label'] = __( 'Privacy Policy', 'bw' );
+            }
+
+            $settings['button_text'] = isset( $_POST['bw_mail_marketing_subscription_button_text'] )
+                ? sanitize_text_field( wp_unslash( $_POST['bw_mail_marketing_subscription_button_text'] ) )
+                : $settings['button_text'];
+            if ( '' === $settings['button_text'] ) {
+                $settings['button_text'] = __( 'Subscribe', 'bw' );
+            }
+
+            $settings['success_message'] = isset( $_POST['bw_mail_marketing_subscription_success_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_success_message'] ) )
+                : $settings['success_message'];
+            if ( '' === $settings['success_message'] ) {
+                $settings['success_message'] = __( 'Thanks for subscribing! Please check your inbox.', 'bw' );
+            }
+
+            $settings['error_message'] = isset( $_POST['bw_mail_marketing_subscription_error_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_error_message'] ) )
+                : $settings['error_message'];
+            if ( '' === $settings['error_message'] ) {
+                $settings['error_message'] = __( 'Unable to subscribe right now. Please try again later.', 'bw' );
+            }
+
+            $settings['consent_required_message'] = isset( $_POST['bw_mail_marketing_subscription_consent_required_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_consent_required_message'] ) )
+                : $settings['consent_required_message'];
+            if ( '' === $settings['consent_required_message'] ) {
+                $settings['consent_required_message'] = __( 'Please confirm the privacy consent to subscribe.', 'bw' );
+            }
+
+            update_option( BW_Mail_Marketing_Settings::SUBSCRIPTION_OPTION, $settings );
         }
 
         $redirect_args = [
@@ -469,12 +596,13 @@ class BW_Checkout_Subscribe_Admin {
         }
 
         $active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
-        if ( ! in_array( $active_tab, [ 'general', 'checkout' ], true ) ) {
+        if ( ! in_array( $active_tab, [ 'general', 'checkout', 'subscription' ], true ) ) {
             $active_tab = 'general';
         }
 
         $general_settings = BW_Mail_Marketing_Settings::get_general_settings();
         $checkout_settings = BW_Mail_Marketing_Settings::get_checkout_settings();
+        $subscription_settings = BW_Mail_Marketing_Settings::get_subscription_settings();
         $lists_data = $this->get_brevo_lists( $general_settings['api_key'] );
 
         $base_url = add_query_arg(
@@ -486,6 +614,7 @@ class BW_Checkout_Subscribe_Admin {
 
         $general_url = add_query_arg( 'tab', 'general', $base_url );
         $checkout_url = add_query_arg( 'tab', 'checkout', $base_url );
+        $subscription_url = add_query_arg( 'tab', 'subscription', $base_url );
         ?>
         <div class="wrap bw-admin-root bw-admin-page bw-admin-page-mail-marketing">
             <div class="bw-admin-header">
@@ -513,10 +642,11 @@ class BW_Checkout_Subscribe_Admin {
 
                 <section class="bw-admin-card bw-admin-card-mail-marketing">
                     <h2 class="bw-admin-card-title"><?php esc_html_e( 'Sections', 'bw' ); ?></h2>
-                    <p class="bw-admin-card-helper"><?php esc_html_e( 'Switch between global Brevo settings and checkout channel controls.', 'bw' ); ?></p>
+                    <p class="bw-admin-card-helper"><?php esc_html_e( 'Switch between global Brevo settings and channel-specific controls.', 'bw' ); ?></p>
                     <nav class="nav-tab-wrapper bw-admin-tabs">
                         <a class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $general_url ); ?>"><?php esc_html_e( 'General', 'bw' ); ?></a>
                         <a class="nav-tab <?php echo 'checkout' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $checkout_url ); ?>"><?php esc_html_e( 'Checkout', 'bw' ); ?></a>
+                        <a class="nav-tab <?php echo 'subscription' === $active_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( $subscription_url ); ?>"><?php esc_html_e( 'Subscription', 'bw' ); ?></a>
                     </nav>
                 </section>
 
@@ -626,7 +756,7 @@ class BW_Checkout_Subscribe_Admin {
                             </tr>
                         </table>
                     </section>
-                <?php else : ?>
+                <?php elseif ( 'checkout' === $active_tab ) : ?>
                     <section class="bw-admin-card">
                         <h2 class="bw-admin-card-title"><?php esc_html_e( 'Checkout Opt-in', 'bw' ); ?></h2>
                         <p class="bw-admin-card-helper"><?php esc_html_e( 'Control visibility and default behavior of the newsletter checkbox.', 'bw' ); ?></p>
@@ -687,6 +817,106 @@ class BW_Checkout_Subscribe_Admin {
                             <tr>
                                 <th scope="row"><label for="bw_mail_marketing_checkout_priority_offset"><?php esc_html_e( 'Priority offset', 'bw' ); ?></label></th>
                                 <td><input type="number" id="bw_mail_marketing_checkout_priority_offset" name="bw_mail_marketing_checkout_priority_offset" value="<?php echo esc_attr( $checkout_settings['priority_offset'] ); ?>" min="-50" max="50" step="1" /></td>
+                            </tr>
+                        </table>
+                    </section>
+                <?php else : ?>
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Elementor Subscription Channel', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'Configure the reusable newsletter widget for Elementor and other site-wide subscription surfaces.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Enable subscription widget', 'bw' ); ?></th>
+                                <td>
+                                    <label><input type="checkbox" name="bw_mail_marketing_subscription_enabled" value="1" <?php checked( $subscription_settings['enabled'], 1 ); ?> /> <?php esc_html_e( 'Allow the Elementor newsletter widget to submit to Brevo.', 'bw' ); ?></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_source_key"><?php esc_html_e( 'Consent source key', 'bw' ); ?></label></th>
+                                <td>
+                                    <input type="text" id="bw_mail_marketing_subscription_source_key" name="bw_mail_marketing_subscription_source_key" value="<?php echo esc_attr( $subscription_settings['source_key'] ); ?>" class="regular-text" />
+                                    <p class="description"><?php esc_html_e( 'Default source stored in Brevo attributes for this widget channel.', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_list_mode"><?php esc_html_e( 'List selection', 'bw' ); ?></label></th>
+                                <td>
+                                    <select id="bw_mail_marketing_subscription_list_mode" name="bw_mail_marketing_subscription_list_mode">
+                                        <option value="inherit" <?php selected( $subscription_settings['list_mode'], 'inherit' ); ?>><?php esc_html_e( 'Inherit General main list', 'bw' ); ?></option>
+                                        <option value="custom" <?php selected( $subscription_settings['list_mode'], 'custom' ); ?>><?php esc_html_e( 'Use custom list', 'bw' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_list_id"><?php esc_html_e( 'Brevo list', 'bw' ); ?></label></th>
+                                <td>
+                                    <?php if ( ! empty( $lists_data['success'] ) ) : ?>
+                                        <select id="bw_mail_marketing_subscription_list_id" name="bw_mail_marketing_subscription_list_id">
+                                            <option value="0"><?php esc_html_e( 'Select list', 'bw' ); ?></option>
+                                            <?php foreach ( $lists_data['lists'] as $list ) : ?>
+                                                <option value="<?php echo esc_attr( $list['id'] ); ?>" <?php selected( (int) $subscription_settings['list_id'], (int) $list['id'] ); ?>>
+                                                    <?php echo esc_html( sprintf( '#%d - %s', (int) $list['id'], $list['name'] ) ); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    <?php else : ?>
+                                        <input type="number" id="bw_mail_marketing_subscription_list_id" name="bw_mail_marketing_subscription_list_id" value="<?php echo esc_attr( $subscription_settings['list_id'] ); ?>" class="small-text" min="0" />
+                                        <p class="description"><?php echo esc_html( $lists_data['message'] ); ?></p>
+                                    <?php endif; ?>
+                                    <p class="description"><?php esc_html_e( 'Used only when List selection is set to custom.', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_channel_optin_mode"><?php esc_html_e( 'Channel opt-in mode', 'bw' ); ?></label></th>
+                                <td>
+                                    <select id="bw_mail_marketing_subscription_channel_optin_mode" name="bw_mail_marketing_subscription_channel_optin_mode">
+                                        <option value="inherit" <?php selected( $subscription_settings['channel_optin_mode'], 'inherit' ); ?>><?php esc_html_e( 'Inherit General setting', 'bw' ); ?></option>
+                                        <option value="single_opt_in" <?php selected( $subscription_settings['channel_optin_mode'], 'single_opt_in' ); ?>><?php esc_html_e( 'Force single opt-in', 'bw' ); ?></option>
+                                        <option value="double_opt_in" <?php selected( $subscription_settings['channel_optin_mode'], 'double_opt_in' ); ?>><?php esc_html_e( 'Force double opt-in', 'bw' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
+
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e( 'Widget Copy', 'bw' ); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e( 'These labels are used by the fixed-design Elementor newsletter widget.', 'bw' ); ?></p>
+                        <table class="form-table bw-admin-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_name_label"><?php esc_html_e( 'Name label', 'bw' ); ?></label></th>
+                                <td><input type="text" id="bw_mail_marketing_subscription_name_label" name="bw_mail_marketing_subscription_name_label" value="<?php echo esc_attr( $subscription_settings['name_label'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_email_label"><?php esc_html_e( 'Email label', 'bw' ); ?></label></th>
+                                <td><input type="text" id="bw_mail_marketing_subscription_email_label" name="bw_mail_marketing_subscription_email_label" value="<?php echo esc_attr( $subscription_settings['email_label'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_consent_prefix"><?php esc_html_e( 'Consent prefix', 'bw' ); ?></label></th>
+                                <td>
+                                    <input type="text" id="bw_mail_marketing_subscription_consent_prefix" name="bw_mail_marketing_subscription_consent_prefix" value="<?php echo esc_attr( $subscription_settings['consent_prefix'] ); ?>" class="regular-text" />
+                                    <p class="description"><?php esc_html_e( 'The privacy policy link label is rendered separately next to this text.', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_privacy_link_label"><?php esc_html_e( 'Privacy link label', 'bw' ); ?></label></th>
+                                <td><input type="text" id="bw_mail_marketing_subscription_privacy_link_label" name="bw_mail_marketing_subscription_privacy_link_label" value="<?php echo esc_attr( $subscription_settings['privacy_link_label'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_button_text"><?php esc_html_e( 'Button text', 'bw' ); ?></label></th>
+                                <td><input type="text" id="bw_mail_marketing_subscription_button_text" name="bw_mail_marketing_subscription_button_text" value="<?php echo esc_attr( $subscription_settings['button_text'] ); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_success_message"><?php esc_html_e( 'Success message', 'bw' ); ?></label></th>
+                                <td><textarea id="bw_mail_marketing_subscription_success_message" name="bw_mail_marketing_subscription_success_message" rows="3" class="large-text"><?php echo esc_textarea( $subscription_settings['success_message'] ); ?></textarea></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_error_message"><?php esc_html_e( 'Error message', 'bw' ); ?></label></th>
+                                <td><textarea id="bw_mail_marketing_subscription_error_message" name="bw_mail_marketing_subscription_error_message" rows="3" class="large-text"><?php echo esc_textarea( $subscription_settings['error_message'] ); ?></textarea></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_consent_required_message"><?php esc_html_e( 'Consent required message', 'bw' ); ?></label></th>
+                                <td><textarea id="bw_mail_marketing_subscription_consent_required_message" name="bw_mail_marketing_subscription_consent_required_message" rows="2" class="large-text"><?php echo esc_textarea( $subscription_settings['consent_required_message'] ); ?></textarea></td>
                             </tr>
                         </table>
                     </section>

@@ -1,8 +1,8 @@
 # Documentation Governance & Update Workflow
 
-Document Version: 1.2  
-Last Updated: 2026-02-24  
-Last Update Summary: Added centralized Brevo Data Model service, attribute map standardization, and consent-safe admin UX refinements.
+Document Version: 1.3  
+Last Updated: 2026-03-16  
+Last Update Summary: Added Mail Marketing Subscription tab and fixed-design Elementor newsletter widget channel.
 
 ## 0.1 Purpose of this Document
 This file is the official technical specification and single source of truth for the Brevo Mail Marketing system in the Blackwork Site plugin.
@@ -39,9 +39,9 @@ Internal document versioning rules:
 
 Current baseline:
 
-- Document Version: `1.2`
-- Last Updated: `2026-02-24`
-- Last Update Summary: `Added centralized Brevo Data Model service, attribute map standardization, and consent-safe admin UX refinements.`
+- Document Version: `1.3`
+- Last Updated: `2026-03-16`
+- Last Update Summary: `Added Mail Marketing Subscription tab and fixed-design Elementor newsletter widget channel.`
 
 ## 0.4 Change Log Section
 A persistent change log must be maintained at the end of this document under `10. Change Log`.
@@ -63,6 +63,7 @@ Current admin IA:
 
 - `Blackwork Site -> Mail Marketing -> General`
 - `Blackwork Site -> Mail Marketing -> Checkout`
+- `Blackwork Site -> Mail Marketing -> Subscription`
 
 System goals:
 
@@ -76,6 +77,7 @@ Runtime scope currently documented here:
 
 - Admin settings and migration
 - Checkout subscription channel
+- Elementor fixed-design subscription widget channel
 - Brevo API integration
 - Metadata state tracking
 - Compliance and safety rules
@@ -94,7 +96,7 @@ Primary components:
 Responsibilities:
 
 - Register `Mail Marketing` submenu under `Blackwork Site`
-- Render tabbed admin UI (`General`, `Checkout`)
+- Render tabbed admin UI (`General`, `Checkout`, `Subscription`)
 - Render WooCommerce Order Admin Newsletter Status panel
 - Sanitize and persist settings
 - Execute legacy migration bootstrap
@@ -124,13 +126,15 @@ Primary methods:
 - `send_double_opt_in(...)`
 
 ## 2.4 Frontend Integration Layer
-Current channel:
+Current channels:
 
-- Checkout classic form only
+- Checkout classic form
+- Fixed-design Elementor newsletter widget
 
-Primary component:
+Primary components:
 
 - `BW_Checkout_Subscribe_Frontend`
+- `BW_MailMarketing_Subscription_Channel`
 
 Responsibilities:
 
@@ -138,6 +142,7 @@ Responsibilities:
 - Save consent metadata
 - Trigger subscription at configured timing
 - Persist subscription status and errors
+- Process widget AJAX submits with explicit consent and Brevo sync
 
 Admin order integration:
 
@@ -218,6 +223,31 @@ Fields:
 - `privacy_text`
 - `subscribe_timing` (`paid` default, `created` optional)
 - `channel_optin_mode` (`inherit` | `single_opt_in` | `double_opt_in`)
+
+## 3.3 Mail Marketing -> Subscription
+Purpose: central configuration for the reusable Elementor newsletter widget channel.
+
+Option name:
+
+```text
+bw_mail_marketing_subscription_settings
+```
+
+Fields:
+
+- `enabled`
+- `source_key`
+- `list_mode` (`inherit` | `custom`)
+- `list_id`
+- `channel_optin_mode` (`inherit` | `single_opt_in` | `double_opt_in`)
+- `name_label`
+- `email_label`
+- `consent_prefix`
+- `privacy_link_label`
+- `button_text`
+- `success_message`
+- `error_message`
+- `consent_required_message`
 - `placement_after_key` (default `billing_email`)
 - `priority_offset` (default `5`)
 
@@ -567,6 +597,10 @@ Observability improvements:
 ---
 
 # 10. Change Log
+## v1.3 - 2026-03-16
+- Added `Mail Marketing -> Subscription` as the dedicated admin tab for reusable site-wide newsletter widget settings.
+- Added fixed-design Elementor newsletter widget channel with explicit consent submit flow and Brevo list inherit/custom override support.
+
 ## v1.2 - 2026-02-24
 - Added shared service `BW_MailMarketing_Service` to centralize Brevo attribute mapping from order consent context.
 - Standardized Brevo attributes across checkout/retry/bulk paths (`SOURCE`, `CONSENT_SOURCE`, `CONSENT_AT`, `CONSENT_STATUS`, `BW_ORIGIN_SYSTEM`, `BW_ENV`, `LAST_ORDER_ID`, `LAST_ORDER_AT`, `CUSTOMER_STATUS`).

@@ -181,7 +181,7 @@ function bw_site_settings_admin_assets($hook)
         'import-product',
         'loading',
     ];
-    $mail_marketing_tabs = ['general', 'checkout'];
+    $mail_marketing_tabs = ['general', 'checkout', 'subscription'];
 
     $current_site_settings_tab = in_array($current_tab_raw, $site_settings_tabs, true) ? $current_tab_raw : 'cart-popup';
     $current_mail_marketing_tab = in_array($current_tab_raw, $mail_marketing_tabs, true) ? $current_tab_raw : 'general';

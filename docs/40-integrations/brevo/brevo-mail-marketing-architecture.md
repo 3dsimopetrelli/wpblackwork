@@ -3,6 +3,7 @@ This document defines the internal architecture of the Brevo Mail Marketing modu
 
 Scope:
 - Checkout newsletter consent capture (classic WooCommerce checkout only)
+- Elementor fixed-design newsletter widget channel
 - Brevo contact sync and retry logic
 - Order-level diagnostics and admin tooling
 - Orders list visibility (Newsletter + Source columns, filters, bulk actions)
@@ -44,6 +45,7 @@ Input sources:
 ## Source taxonomy
 Consent source is stored in `_bw_subscribe_consent_source` and currently supports:
 - `checkout`
+- `elementor_widget`
 - `coming_soon`
 - `footer`
 - `popup`
@@ -99,7 +101,33 @@ List behavior rules:
 - When consent is granted, subscribe/upsert into Marketing list.
 - If plugin setting `list_id` is configured, it has priority over fallback.
 - Fallback marketing list ID is `10` for backwards compatibility.
+- Subscription widget channel can inherit the General list or use its own custom list selection.
 - No subscription is allowed without explicit consent gating.
+
+## Subscription channel settings
+Option name:
+
+```text
+bw_mail_marketing_subscription_settings
+```
+
+Admin location:
+- `Blackwork Site -> Mail Marketing -> Subscription`
+
+Fields:
+- `enabled`
+- `source_key`
+- `list_mode`
+- `list_id`
+- `channel_optin_mode`
+- `name_label`
+- `email_label`
+- `consent_prefix`
+- `privacy_link_label`
+- `button_text`
+- `success_message`
+- `error_message`
+- `consent_required_message`
 
 ## Attribute model (centralized map)
 Attributes are built from one shared map (`BW_MailMarketing_Service::build_brevo_attributes_from_order()`), then reused across:
@@ -137,6 +165,8 @@ Operational prerequisite:
 - `woocommerce_order_status_processing`
 - `woocommerce_order_status_completed`
 - `woocommerce_checkout_order_processed` (when checkout timing is `created`)
+- `wp_ajax_bw_mail_marketing_subscribe`
+- `wp_ajax_nopriv_bw_mail_marketing_subscribe`
 
 ## Conditions before sync
 - Checkout channel enabled.
@@ -144,6 +174,14 @@ Operational prerequisite:
 - Valid billing email.
 - Brevo API key configured.
 - Main list ID configured.
+- Respect no-auto-resubscribe policy for blocklisted/unsubscribed contacts.
+
+For the Elementor widget channel:
+- Subscription channel enabled.
+- Explicit privacy checkbox consent submitted.
+- Valid email.
+- Brevo API key configured.
+- Resolved list ID available (General inherit or custom Subscription list).
 - Respect no-auto-resubscribe policy for blocklisted/unsubscribed contacts.
 
 ## Single opt-in behavior
@@ -204,6 +242,11 @@ The module sends these attributes only when consent is allowed (`opt_in=1` with 
 Operational guidance:
 - Create custom attributes in Brevo under `Contacts -> Settings -> Attributes` if they are not already available.
 - If custom attributes are missing in Brevo, synchronization continues with fallback payloads and logs a warning.
+
+Elementor widget notes:
+- `SOURCE` and `CONSENT_SOURCE` use `bw_mail_marketing_subscription_settings[source_key]`.
+- `CONSENT_AT` is generated at widget submit time.
+- `FIRSTNAME` / `LASTNAME` are derived from the single Name field when enabled in General settings.
 
 ## Retry logic
 - Order metabox action `Retry subscribe` re-runs sync logic manually.

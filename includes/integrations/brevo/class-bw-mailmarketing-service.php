@@ -111,6 +111,82 @@ if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
         }
 
         /**
+         * Build canonical Brevo attributes from site subscription context.
+         *
+         * @param string $source     Consent source key.
+         * @param string $consent_at Consent datetime.
+         * @param array  $context    Optional context payload.
+         *
+         * @return array
+         */
+        public static function build_brevo_attributes_from_subscription( $source, $consent_at, $context = [] ) {
+            $source = sanitize_key( (string) $source );
+            if ( '' === $source ) {
+                $source = 'elementor_widget';
+            }
+
+            $attributes = [
+                'SOURCE'           => $source,
+                'CONSENT_SOURCE'   => $source,
+                'CONSENT_STATUS'   => 'granted',
+                'BW_ORIGIN_SYSTEM' => 'wp',
+                'BW_ENV'           => self::detect_environment(),
+            ];
+
+            $normalized_consent_at = self::normalize_to_iso8601( $consent_at );
+            if ( '' !== $normalized_consent_at ) {
+                $attributes['CONSENT_AT'] = $normalized_consent_at;
+            }
+
+            if ( ! empty( $context['customer_status'] ) ) {
+                $attributes['CUSTOMER_STATUS'] = sanitize_key( (string) $context['customer_status'] );
+            }
+
+            if ( ! empty( $context['last_order_id'] ) ) {
+                $attributes['LAST_ORDER_ID'] = (string) absint( $context['last_order_id'] );
+            }
+
+            if ( ! empty( $context['last_order_at'] ) ) {
+                $normalized_last_order_at = self::normalize_to_iso8601( $context['last_order_at'] );
+                if ( '' !== $normalized_last_order_at ) {
+                    $attributes['LAST_ORDER_AT'] = $normalized_last_order_at;
+                }
+            }
+
+            return $attributes;
+        }
+
+        /**
+         * Build optional name attributes from a full-name field.
+         *
+         * @param string $full_name         Submitted full name.
+         * @param array  $general_settings  General settings.
+         *
+         * @return array
+         */
+        public static function build_name_attributes_from_full_name( $full_name, $general_settings ) {
+            $full_name = trim( preg_replace( '/\s+/', ' ', (string) $full_name ) );
+            if ( '' === $full_name ) {
+                return [];
+            }
+
+            $parts = explode( ' ', $full_name );
+            $first_name = array_shift( $parts );
+            $last_name = implode( ' ', $parts );
+            $attributes = [];
+
+            if ( ! empty( $general_settings['sync_first_name'] ) && '' !== $first_name ) {
+                $attributes['FIRSTNAME'] = sanitize_text_field( $first_name );
+            }
+
+            if ( ! empty( $general_settings['sync_last_name'] ) && '' !== $last_name ) {
+                $attributes['LASTNAME'] = sanitize_text_field( $last_name );
+            }
+
+            return $attributes;
+        }
+
+        /**
          * Summarize attribute keys for admin diagnostics.
          *
          * @param array $attributes Attributes payload.
@@ -156,6 +232,118 @@ if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
          */
         public static function resolve_unconfirmed_list_id() {
             return self::DEFAULT_UNCONFIRMED_LIST_ID;
+        }
+
+        /**
+         * Resolve list ID for a channel with inherit/custom behavior.
+         *
+         * @param array $general_settings General settings.
+         * @param array $channel_settings Channel settings.
+         *
+         * @return int
+         */
+        public static function resolve_channel_list_id( $general_settings = [], $channel_settings = [] ) {
+            $mode = isset( $channel_settings['list_mode'] ) ? sanitize_key( (string) $channel_settings['list_mode'] ) : 'inherit';
+            if ( 'custom' === $mode ) {
+                $custom_id = isset( $channel_settings['list_id'] ) ? absint( $channel_settings['list_id'] ) : 0;
+                if ( $custom_id > 0 ) {
+                    return $custom_id;
+                }
+            }
+
+            return self::resolve_marketing_list_id( $general_settings );
+        }
+
+        /**
+         * Resolve opt-in mode from channel override + general settings.
+         *
+         * @param array $general_settings General settings.
+         * @param array $channel_settings Channel settings.
+         *
+         * @return string
+         */
+        public static function resolve_channel_optin_mode( $general_settings = [], $channel_settings = [] ) {
+            $channel_mode = isset( $channel_settings['channel_optin_mode'] ) ? sanitize_key( (string) $channel_settings['channel_optin_mode'] ) : 'inherit';
+            if ( in_array( $channel_mode, [ 'single_opt_in', 'double_opt_in' ], true ) ) {
+                return $channel_mode;
+            }
+
+            return ( isset( $general_settings['default_optin_mode'] ) && 'double_opt_in' === $general_settings['default_optin_mode'] )
+                ? 'double_opt_in'
+                : 'single_opt_in';
+        }
+
+        /**
+         * Strip custom marketing attributes when Brevo schema is incomplete.
+         *
+         * @param array $attributes Full payload.
+         *
+         * @return array
+         */
+        public static function strip_marketing_attributes( $attributes ) {
+            if ( ! is_array( $attributes ) ) {
+                return [];
+            }
+
+            unset(
+                $attributes['SOURCE'],
+                $attributes['CONSENT_SOURCE'],
+                $attributes['CONSENT_AT'],
+                $attributes['CONSENT_STATUS'],
+                $attributes['BW_ORIGIN_SYSTEM'],
+                $attributes['BW_ENV'],
+                $attributes['LAST_ORDER_ID'],
+                $attributes['LAST_ORDER_AT'],
+                $attributes['CUSTOMER_STATUS']
+            );
+
+            return $attributes;
+        }
+
+        /**
+         * Detect Brevo unknown-attribute errors.
+         *
+         * @param array $result Brevo response payload.
+         *
+         * @return bool
+         */
+        public static function is_unknown_attribute_error( $result ) {
+            if ( empty( $result['error'] ) ) {
+                return false;
+            }
+
+            $error = strtolower( (string) $result['error'] );
+            if ( false !== strpos( $error, 'attribute' ) && false !== strpos( $error, 'exist' ) ) {
+                return true;
+            }
+
+            return false !== strpos( $error, 'unknown' ) && false !== strpos( $error, 'attribute' );
+        }
+
+        /**
+         * Determine if a contact is blocked/unsubscribed according to Brevo.
+         *
+         * @param BW_Brevo_Client $client           Brevo client.
+         * @param string          $email            Contact email.
+         * @param array           $general_settings General settings.
+         *
+         * @return bool
+         */
+        public static function is_contact_blocklisted( $client, $email, $general_settings = [] ) {
+            if ( ! $client instanceof BW_Brevo_Client ) {
+                return false;
+            }
+
+            if ( empty( $general_settings['resubscribe_policy'] ) || 'no_auto_resubscribe' !== $general_settings['resubscribe_policy'] ) {
+                return false;
+            }
+
+            $result = $client->get_contact( $email );
+            if ( ! empty( $result['success'] ) && ! empty( $result['data'] ) && is_array( $result['data'] ) ) {
+                return ! empty( $result['data']['emailBlacklisted'] );
+            }
+
+            return false;
         }
 
         /**
@@ -205,4 +393,3 @@ if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
         }
     }
 }
-
