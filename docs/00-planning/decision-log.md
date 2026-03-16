@@ -170,6 +170,16 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep Shop branch scoped to `product_archive_kind=shop` only.
   - Keep All Templates linkage badges synchronized with Shop selection.
 
+### Entry 013B
+- Date: 2026-03-16
+- Decision summary: Promoted `Shop` to a first-class template type in All Templates/admin selectors while preserving legacy Shop compatibility with existing `product_archive` templates.
+- Affected domain: Theme Builder Lite / Template Type Authority / Shop Surface
+- Rationale: Once Shop has its own admin authority tab, operators also need a matching explicit type in the All Templates dropdown to avoid semantic ambiguity and keep template inventory understandable.
+- Risk impact: Medium managed through bounded compatibility validation and unchanged resolver context branching.
+- Follow-up actions:
+  - Keep Shop validation accepting legacy `product_archive` templates during compatibility window.
+  - Keep Product Archive category/tag routing authority separate from Shop.
+
 ### Entry 014
 - Date: 2026-03-03
 - Decision summary: Standardized all BW product-dependent widgets on shared resolver `bw_tbl_resolve_product_context_id()` and banned direct `$_GET['elementor-preview']` checks in widget render paths.

@@ -12,6 +12,7 @@ if (!function_exists('bw_tbl_admin_template_type_label')) {
             'single_post' => __('Single Post', 'bw'),
             'single_page' => __('Single Page', 'bw'),
             'single_product' => __('Single Product', 'bw'),
+            'shop' => __('Shop', 'bw'),
             'product_archive' => __('Product Archive', 'bw'),
             'archive' => __('Archive', 'bw'),
             'search' => __('Search', 'bw'),
@@ -30,7 +31,7 @@ if (!function_exists('bw_tbl_admin_allowed_template_types')) {
             return is_array($types) ? array_values($types) : [];
         }
 
-        return ['footer', 'single_post', 'single_page', 'single_product', 'product_archive', 'archive', 'search', 'error_404'];
+        return ['footer', 'single_post', 'single_page', 'single_product', 'shop', 'product_archive', 'archive', 'search', 'error_404'];
     }
 }
 
@@ -458,7 +459,7 @@ if (!function_exists('bw_tbl_admin_template_link_badges')) {
 
         $badges = [];
         $is_footer_active = ('footer' === $template_type) && bw_tbl_admin_is_active_footer_template($post_id);
-        $is_shop_active = ('product_archive' === $template_type) && bw_tbl_admin_is_active_shop_template($post_id);
+        $is_shop_active = in_array($template_type, ['shop', 'product_archive'], true) && bw_tbl_admin_is_active_shop_template($post_id);
         $is_single_product_active = ('single_product' === $template_type) && bw_tbl_admin_is_active_single_product_template($post_id);
         $is_product_archive_active = ('product_archive' === $template_type) && bw_tbl_admin_is_active_product_archive_template($post_id);
 
@@ -590,7 +591,7 @@ if (!function_exists('bw_tbl_admin_render_list_column')) {
                 }
             }
 
-            if ('product_archive' === $type) {
+            if (in_array($type, ['shop', 'product_archive'], true)) {
                 $settings_summaries = [];
 
                 if (bw_tbl_admin_is_active_shop_template($post_id)) {

@@ -42,7 +42,8 @@
   - Product Archive settings authority finalized in Theme Builder Lite tab with deterministic repeater v2 sanitize/save
 - 2026-03 Shop authority update:
   - Added dedicated `Shop` settings tab as a footer-style authority surface for Woo shop archive root
-  - Shop page selection uses a single active published `bw_template` with type `product_archive`
+  - Shop page selection uses a single active published `bw_template` with type `shop`
+  - Legacy `product_archive` templates remain accepted in Shop settings for compatibility
   - Shop settings branch resolves before Product Archive category rules when `product_archive_kind=shop`
 - Out of scope (not implemented):
   - Woo template stack takeover
@@ -352,7 +353,7 @@ Resolver contract:
   - Single Product tab shows enabled state, rules count, and active template count.
   - Warning shown when enabled but no valid linked template exists.
 - List UX behavior:
-  - Badges: `Applies to: Footer`, `Applies to: Single Product`, `Applies to: Product Archive`, `Not linked`.
+  - Badges: `Applies to: Footer`, `Applies to: Single Product`, `Applies to: Shop`, `Applies to: Product Archive`, `Not linked`.
   - Inline Type dropdown on list table autosaves with nonce/capability checks.
   - Linked templates require confirmation before type mutation.
   - Invalid/unauthorized type mutations are rejected; linkage invalidation surfaces safely as `Not linked`.
@@ -385,7 +386,7 @@ Resolver contract:
 ### 2026-03 Update - Shop Settings Authority
 - New option snapshot: `bw_theme_builder_lite_shop_v1`
   - `enabled` (bool)
-  - `active_shop_template_id` (published `bw_template`, type `product_archive`)
+  - `active_shop_template_id` (published `bw_template`, type `shop`; legacy `product_archive` accepted for compatibility)
 - Admin UI contract:
   - dedicated `Shop` tab in Theme Builder Lite settings
   - same short-form control pattern as `Footer`
@@ -397,6 +398,7 @@ Resolver contract:
 - All Templates linkage contract:
   - selected template shows badge `Applies to: Shop`
   - template may simultaneously show `Applies to: Product Archive` if also linked by category rules
+  - `Shop` is available in template type selectors/dropdowns as a first-class type
 
 ### 2026-03 Update - Import Template Tab (Elementor JSON -> bw_template)
 - New admin tab: `Import Template` inside Theme Builder Lite settings.

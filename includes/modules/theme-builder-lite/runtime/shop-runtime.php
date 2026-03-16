@@ -32,7 +32,7 @@ if (!function_exists('bw_tbl_is_valid_shop_template')) {
             ? bw_tbl_sanitize_template_type($type)
             : sanitize_key((string) $type);
 
-        return 'product_archive' === $type;
+        return in_array($type, ['shop', 'product_archive'], true);
     }
 }
 
@@ -68,11 +68,41 @@ if (!function_exists('bw_tbl_get_shop_option')) {
 if (!function_exists('bw_tbl_get_shop_template_choices')) {
     function bw_tbl_get_shop_template_choices()
     {
-        if (function_exists('bw_tbl_get_product_archive_template_choices')) {
-            return bw_tbl_get_product_archive_template_choices();
+        $query = new WP_Query(
+            [
+                'post_type' => 'bw_template',
+                'post_status' => 'publish',
+                'posts_per_page' => 200,
+                'fields' => 'ids',
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'no_found_rows' => true,
+                'meta_query' => [
+                    [
+                        'key' => 'bw_template_type',
+                        'value' => ['shop', 'product_archive'],
+                        'compare' => 'IN',
+                    ],
+                ],
+            ]
+        );
+
+        $choices = [];
+        foreach ($query->posts as $template_id) {
+            $template_id = absint($template_id);
+            if ($template_id <= 0) {
+                continue;
+            }
+
+            $title = get_the_title($template_id);
+            if (!is_string($title) || '' === trim($title)) {
+                $title = sprintf(__('Template #%d', 'bw'), $template_id);
+            }
+
+            $choices[$template_id] = $title;
         }
 
-        return [];
+        return $choices;
     }
 }
 

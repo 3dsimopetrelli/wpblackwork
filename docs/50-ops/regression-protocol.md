@@ -73,6 +73,7 @@ Wave-specific checks:
 - Scope:
   - `Theme Builder Lite > Shop`
 - Required checks:
+  - `Shop` appears in All Templates type dropdown and type filter
   - saving `Enable Shop Override` + `Active Shop Template` persists after reload
   - enabled Shop template resolves on Woo shop page root
   - disabled Shop override fails open to theme/Woo template

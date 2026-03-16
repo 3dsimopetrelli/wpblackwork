@@ -881,7 +881,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                         <?php endforeach; ?>
                                     </select>
                                     <p class="description">
-                                        <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Shop uses templates with type "Product Archive".', 'bw'); ?>
+                                        <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Shop uses templates with type "Shop" (legacy "Product Archive" templates remain supported).', 'bw'); ?>
                                     </p>
                                 </td>
                             </tr>

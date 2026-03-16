@@ -19,6 +19,7 @@ if (!function_exists('bw_tbl_import_type_map')) {
         $normalized = trim($normalized);
 
         $map = [
+            'shop' => 'shop',
             'product_archive' => 'product_archive',
             'single_product' => 'single_product',
             'product' => 'single_product',
@@ -40,13 +41,14 @@ if (!function_exists('bw_tbl_import_template_choices')) {
     {
         $values = function_exists('bw_tbl_template_type_allowed_values')
             ? bw_tbl_template_type_allowed_values()
-            : ['footer', 'single_post', 'single_page', 'single_product', 'product_archive', 'archive', 'search', 'error_404'];
+            : ['footer', 'single_post', 'single_page', 'single_product', 'shop', 'product_archive', 'archive', 'search', 'error_404'];
 
         $labels = [
             'footer' => __('Footer', 'bw'),
             'single_post' => __('Single Post', 'bw'),
             'single_page' => __('Single Page', 'bw'),
             'single_product' => __('Single Product', 'bw'),
+            'shop' => __('Shop', 'bw'),
             'product_archive' => __('Product Archive', 'bw'),
             'archive' => __('Archive', 'bw'),
             'search' => __('Search Results', 'bw'),

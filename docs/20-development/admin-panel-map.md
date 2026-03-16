@@ -153,7 +153,7 @@ Current adoption:
 - Runtime contract:
   - applies only to Woo shop root (`is_shop()` / `is_post_type_archive('product')`)
   - runs before Product Archive category-rule resolution
-  - selected template must be published with `bw_template_type=product_archive`
+  - selected template must be published with `bw_template_type=shop` (legacy `product_archive` remains accepted during compatibility window)
 
 ### 1.7 Asset Strategy (Admin)
 - Shared visual primitives:

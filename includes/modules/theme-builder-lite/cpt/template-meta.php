@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 if (!function_exists('bw_tbl_template_type_allowed_values')) {
     function bw_tbl_template_type_allowed_values()
     {
-        return ['footer', 'single_post', 'single_page', 'single_product', 'product_archive', 'archive', 'search', 'error_404'];
+        return ['footer', 'single_post', 'single_page', 'single_product', 'shop', 'product_archive', 'archive', 'search', 'error_404'];
     }
 }
 
@@ -687,13 +687,14 @@ if (!function_exists('bw_tbl_render_template_type_metabox')) {
                 <option value="single_post" <?php selected($current, 'single_post'); ?>><?php esc_html_e('Single Post', 'bw'); ?></option>
                 <option value="single_page" <?php selected($current, 'single_page'); ?>><?php esc_html_e('Single Page', 'bw'); ?></option>
                 <option value="single_product" <?php selected($current, 'single_product'); ?>><?php esc_html_e('Single Product', 'bw'); ?></option>
+                <option value="shop" <?php selected($current, 'shop'); ?>><?php esc_html_e('Shop', 'bw'); ?></option>
                 <option value="product_archive" <?php selected($current, 'product_archive'); ?>><?php esc_html_e('Product Archive', 'bw'); ?></option>
                 <option value="archive" <?php selected($current, 'archive'); ?>><?php esc_html_e('Archive', 'bw'); ?></option>
                 <option value="search" <?php selected($current, 'search'); ?>><?php esc_html_e('Search Results', 'bw'); ?></option>
                 <option value="error_404" <?php selected($current, 'error_404'); ?>><?php esc_html_e('Error 404', 'bw'); ?></option>
             </select>
         </p>
-        <p class="description"><?php esc_html_e('Phase 2 supports Footer, Single Post, Single Page, Single Product, Product Archive, Archive, Search Results, and Error 404.', 'bw'); ?></p>
+        <p class="description"><?php esc_html_e('Phase 2 supports Footer, Single Post, Single Page, Single Product, Shop, Product Archive, Archive, Search Results, and Error 404.', 'bw'); ?></p>
         <?php
     }
 }
