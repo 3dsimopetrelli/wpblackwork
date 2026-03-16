@@ -1,10 +1,11 @@
-# Theme Builder Lite - Runtime Hook Map (Phase 1 + Phase 2 Step 6)
+# Theme Builder Lite - Runtime Hook Map (Phase 1 + Phase 2 Step 6 + Shop Authority)
 
 ## Purpose
 Actual runtime hooks used by implemented Theme Builder Lite surfaces.
 Current scope includes:
 - Phase 1: Custom Fonts + Footer Template
 - Phase 2 Step 6: resolver for `single_post`, `single_page`, `single_product` (Woo singular), `product_archive` (Woo shop/category/tag), `archive` (non-Woo), `search`, `error_404`
+- 2026-03 Shop authority: dedicated settings branch for Woo shop archive root
 
 ## Hook Inventory
 
@@ -53,6 +54,10 @@ Runtime behavior:
 - Elementor font integration is soft-dependent and executes only after `elementor/loaded`; otherwise callbacks no-op.
 - Phase 2 resolver bypasses: admin/ajax/feed/embed, `is_singular('bw_template')`, Elementor editor/preview, Woo safety endpoints (`is_cart`, `is_checkout`, `is_account_page`, `is_wc_endpoint_url`), and non-target Woo product taxonomies (`is_product_taxonomy()` fallback path).
 - Woo context coverage in current implementation: `single_product` + `product_archive` (shop + product category/tag).
+- Shop authority precedence:
+  - when `product_archive_kind=shop`, resolver checks `bw_theme_builder_lite_shop_v1` first
+  - when `product_archive_kind=product_cat`, resolver checks `bw_theme_builder_lite_product_archive_rules_v2`
+  - both branches remain fail-open to original theme template
 
 ## Fallback Contract
 

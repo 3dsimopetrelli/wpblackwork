@@ -69,6 +69,16 @@ Wave-specific checks:
   - With toggle disabled: upsell panels return to default Elementor behavior.
   - Frontend pages and frontend widget rendering remain unchanged.
 
+## Theme Builder Lite Shop Authority Regression
+- Scope:
+  - `Theme Builder Lite > Shop`
+- Required checks:
+  - saving `Enable Shop Override` + `Active Shop Template` persists after reload
+  - enabled Shop template resolves on Woo shop page root
+  - disabled Shop override fails open to theme/Woo template
+  - product category archive pages remain governed by Product Archive rules only
+  - selected Shop template shows `Applies to: Shop` in All Templates
+
 ## Risk Work Protocol (Start / Close)
 ### Task Start / Risk Work Protocol
 Whenever a new risk investigation starts, ensure the risk is registered both in:

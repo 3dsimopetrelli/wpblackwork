@@ -15,6 +15,10 @@ if (!defined('BW_TBL_FOOTER_OPTION')) {
     define('BW_TBL_FOOTER_OPTION', 'bw_theme_builder_lite_footer_v1');
 }
 
+if (!defined('BW_TBL_SHOP_OPTION')) {
+    define('BW_TBL_SHOP_OPTION', 'bw_theme_builder_lite_shop_v1');
+}
+
 if (!function_exists('bw_tbl_feature_flag_defaults')) {
     function bw_tbl_feature_flag_defaults()
     {

@@ -38,6 +38,16 @@ if (!function_exists('bw_tbl_register_admin_settings')) {
 
         register_setting(
             'bw_tbl_settings_group',
+            BW_TBL_SHOP_OPTION,
+            [
+                'type' => 'array',
+                'sanitize_callback' => 'bw_tbl_sanitize_shop_option',
+                'default' => bw_tbl_default_shop_option(),
+            ]
+        );
+
+        register_setting(
+            'bw_tbl_settings_group',
             BW_TBL_SINGLE_PRODUCT_OPTION,
             [
                 'type' => 'array',
@@ -505,6 +515,8 @@ if (!function_exists('bw_tbl_render_admin_page')) {
         $fonts_option = bw_tbl_get_custom_fonts_option();
         $footer_option = bw_tbl_get_footer_option();
         $footer_choices = bw_tbl_get_footer_template_choices();
+        $shop_option = bw_tbl_get_shop_option();
+        $shop_choices = bw_tbl_get_shop_template_choices();
         $single_product_rules_option = bw_tbl_get_single_product_rules_option();
         $single_product_choices = bw_tbl_get_single_product_template_choices();
         $preview_product_saved_id = bw_tbl_sanitize_single_product_preview_product_id(get_option(BW_TBL_SINGLE_PRODUCT_PREVIEW_PRODUCT_OPTION, 0));
@@ -594,6 +606,7 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                         <a href="#bw-tbl-tab-fonts" class="nav-tab" data-bw-tbl-tab="fonts"><?php esc_html_e('Fonts', 'bw'); ?></a>
                         <a href="#bw-tbl-tab-footer" class="nav-tab" data-bw-tbl-tab="footer"><?php esc_html_e('Footer', 'bw'); ?></a>
                         <a href="#bw-tbl-tab-single-product" class="nav-tab" data-bw-tbl-tab="single-product"><?php esc_html_e('Single Product', 'bw'); ?></a>
+                        <a href="#bw-tbl-tab-shop" class="nav-tab" data-bw-tbl-tab="shop"><?php esc_html_e('Shop', 'bw'); ?></a>
                         <a href="#bw-tbl-tab-product-archive" class="nav-tab" data-bw-tbl-tab="product-archive"><?php esc_html_e('Product Archive', 'bw'); ?></a>
                         <a href="#bw-tbl-tab-import-template" class="nav-tab" data-bw-tbl-tab="import-template"><?php esc_html_e('Import Template', 'bw'); ?></a>
                     </nav>
@@ -836,6 +849,43 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                         <p class="bw-tbl-rules-toolbar">
                             <button type="button" class="button" id="bw-tbl-add-single-product-rule"><?php esc_html_e('+ Add Rule', 'bw'); ?></button>
                         </p>
+                    </div>
+                    </section>
+                </div>
+
+                <div id="bw-tbl-tab-shop" class="bw-tbl-tab-panel" data-bw-tbl-panel="shop" style="display:none;">
+                    <section class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Shop', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Enable shop override and choose the active shop template.', 'bw'); ?></p>
+                    <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Enable Shop Override', 'bw'); ?></th>
+                            <td>
+                                <label>
+                                    <input id="bw-tbl-flag-shop-override" type="checkbox" name="<?php echo esc_attr(BW_TBL_SHOP_OPTION); ?>[enabled]" value="1" <?php checked(!empty($shop_option['enabled'])); ?> />
+                                    <?php esc_html_e('Render active BW shop template instead of the theme/Woo shop template.', 'bw'); ?>
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div id="bw-tbl-shop-controls" style="margin-top:8px;">
+                        <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                            <tr>
+                                <th scope="row"><label for="bw-tbl-active-shop-template"><?php esc_html_e('Active Shop Template', 'bw'); ?></label></th>
+                                <td>
+                                    <select id="bw-tbl-active-shop-template" name="<?php echo esc_attr(BW_TBL_SHOP_OPTION); ?>[active_shop_template_id]">
+                                        <option value="0"><?php esc_html_e('Use theme shop template (disabled)', 'bw'); ?></option>
+                                        <?php foreach ($shop_choices as $template_id => $template_title) : ?>
+                                            <option value="<?php echo esc_attr((string) $template_id); ?>" <?php selected((int) $shop_option['active_shop_template_id'], (int) $template_id); ?>><?php echo esc_html($template_title); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description">
+                                        <?php esc_html_e('Create/edit templates under Blackwork Site > BW Templates. Shop uses templates with type "Product Archive".', 'bw'); ?>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                     </section>
                 </div>

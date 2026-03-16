@@ -40,6 +40,10 @@
   - Resolver context mapping for Woo shop + product category/tag archives
   - Conditions engine support for `product_archive_shop`, `product_archive_category`, `product_archive_tag`
   - Product Archive settings authority finalized in Theme Builder Lite tab with deterministic repeater v2 sanitize/save
+- 2026-03 Shop authority update:
+  - Added dedicated `Shop` settings tab as a footer-style authority surface for Woo shop archive root
+  - Shop page selection uses a single active published `bw_template` with type `product_archive`
+  - Shop settings branch resolves before Product Archive category rules when `product_archive_kind=shop`
 - Out of scope (not implemented):
   - Woo template stack takeover
 
@@ -378,6 +382,22 @@ Resolver contract:
   - Template row shows `Applies to: Product Archive` when linked by any enabled Product Archive rule.
   - `Not linked` remains true only when template is not referenced by active Footer/Single Product/Product Archive settings surfaces.
 
+### 2026-03 Update - Shop Settings Authority
+- New option snapshot: `bw_theme_builder_lite_shop_v1`
+  - `enabled` (bool)
+  - `active_shop_template_id` (published `bw_template`, type `product_archive`)
+- Admin UI contract:
+  - dedicated `Shop` tab in Theme Builder Lite settings
+  - same short-form control pattern as `Footer`
+  - enable toggle + active template selector only
+- Runtime contract:
+  - applies only when request context is Woo shop archive root (`is_shop()` or `is_post_type_archive('product')`)
+  - Shop settings branch runs before Product Archive category-rule branch
+  - invalid/missing template or disabled option fails open to normal resolver/theme template flow
+- All Templates linkage contract:
+  - selected template shows badge `Applies to: Shop`
+  - template may simultaneously show `Applies to: Product Archive` if also linked by category rules
+
 ### 2026-03 Update - Import Template Tab (Elementor JSON -> bw_template)
 - New admin tab: `Import Template` inside Theme Builder Lite settings.
 - Upload contract:
@@ -452,6 +472,9 @@ Reusable extension pattern (2026-03):
     - `Exclude Footer On Pages`
       - `Checkout page`
       - `Order received / thank-you pages`
+  - `Shop` tab:
+    - `Enable Shop Override`
+    - `Active Shop Template`
 
 ### Core Settings - Editor UX Cleanup (2026-03)
 - Setting key:

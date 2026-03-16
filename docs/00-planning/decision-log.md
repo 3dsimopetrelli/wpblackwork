@@ -159,6 +159,17 @@ If a decision is normative and architecture-binding, the ADR process MUST be use
   - Keep mirror `elementor_library` creation transactional with rollback on failure.
   - Preserve `bw_tbl_imported` traceability marker for filters/audits.
 
+### Entry 013A
+- Date: 2026-03-16
+- Decision summary: Added a dedicated `Shop` settings tab in Theme Builder Lite as a footer-style authority surface for Woo shop archive root, while keeping `Product Archive` focused on category/tag archive rules.
+- Affected domain: Theme Builder Lite / Woo Shop / Admin Configuration / Runtime Resolver
+- Rationale: Operators need a simple, explicit control surface for the shop page that does not inherit the complexity of category-rule repeaters; separating Shop removes ambiguity and matches the current runtime split between shop root and category archives.
+- Risk impact: Medium managed through explicit branch precedence, published-template validation, and fail-open resolver behavior.
+- Follow-up actions:
+  - Keep Shop using `product_archive` templates in this phase.
+  - Keep Shop branch scoped to `product_archive_kind=shop` only.
+  - Keep All Templates linkage badges synchronized with Shop selection.
+
 ### Entry 014
 - Date: 2026-03-03
 - Decision summary: Standardized all BW product-dependent widgets on shared resolver `bw_tbl_resolve_product_context_id()` and banned direct `$_GET['elementor-preview']` checks in widget render paths.

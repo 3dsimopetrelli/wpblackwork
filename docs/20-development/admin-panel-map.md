@@ -142,6 +142,19 @@ Current adoption:
   - Governance decision: `docs/00-planning/decision-log.md` (Entry 033).
   - Closure artifact: `docs/tasks/BW-TASK-20260309-02-closure.md`.
 
+### 1.6.2 2026-03-16 Theme Builder Lite Shop Tab
+- Added dedicated `Shop` tab under `Blackwork Site > Theme Builder Lite`.
+- UI contract:
+  - footer-style authority surface
+  - `Enable Shop Override`
+  - `Active Shop Template`
+- Storage contract:
+  - option `bw_theme_builder_lite_shop_v1`
+- Runtime contract:
+  - applies only to Woo shop root (`is_shop()` / `is_post_type_archive('product')`)
+  - runs before Product Archive category-rule resolution
+  - selected template must be published with `bw_template_type=product_archive`
+
 ### 1.7 Asset Strategy (Admin)
 - Shared visual primitives:
   - `admin/css/bw-admin-ui-kit.css`
