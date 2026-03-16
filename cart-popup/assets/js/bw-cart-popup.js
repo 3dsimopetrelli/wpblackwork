@@ -275,30 +275,6 @@
         /**
          * Recupera l'URL di checkout seguendo le API WooCommerce e i fallback HTML
          */
-        getCheckoutUrl: function () {
-            const config = (typeof bwCartPopupConfig !== 'undefined') ? bwCartPopupConfig : {};
-            const $button = $('.bw-cart-popup-checkout');
-
-            const checkoutFromConfig = config.checkoutUrl;
-            const checkoutFromData = $button.data('checkout-url');
-            const checkoutFromHref = $button.attr('href');
-            const cartFallback = config.cartUrl || $button.data('cart-url');
-
-            if (checkoutFromConfig) {
-                return checkoutFromConfig;
-            }
-
-            if (checkoutFromData) {
-                return checkoutFromData;
-            }
-
-            if (checkoutFromHref) {
-                return checkoutFromHref;
-            }
-
-            return cartFallback || null;
-        },
-
         /**
          * Aggiorna l'anchor del checkout con l'URL corretto da WooCommerce
          * FORZA SEMPRE l'uso di wc_get_checkout_url() ignorando qualsiasi valore presente nell'HTML
