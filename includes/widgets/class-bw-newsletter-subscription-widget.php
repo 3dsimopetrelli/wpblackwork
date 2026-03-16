@@ -60,6 +60,14 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             return;
         }
 
+        if ( wp_style_is( 'bw-newsletter-subscription-style', 'registered' ) ) {
+            wp_enqueue_style( 'bw-newsletter-subscription-style' );
+        }
+
+        if ( wp_script_is( 'bw-newsletter-subscription-script', 'registered' ) ) {
+            wp_enqueue_script( 'bw-newsletter-subscription-script' );
+        }
+
         $widget_settings = $this->get_settings_for_display();
         $settings = BW_Mail_Marketing_Settings::get_subscription_settings();
         $is_editor = class_exists( '\Elementor\Plugin' )
