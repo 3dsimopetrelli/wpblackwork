@@ -1216,6 +1216,7 @@
 .bw-cart-popup-continue {
     display: block;
     width: 100%;
+    box-sizing: border-box;
     padding: 14px 20px !important;
     background-color: transparent !important;
     color: var(--bw-cart-text) !important;
