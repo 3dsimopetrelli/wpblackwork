@@ -34,6 +34,7 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
          */
         private function __construct() {
             add_action( 'init', [ $this, 'register_assets' ] );
+            add_action( 'wp_enqueue_scripts', [ $this, 'maybe_enqueue_runtime_assets' ], 30 );
             add_action( 'wp_ajax_bw_mail_marketing_subscribe', [ $this, 'handle_submit' ] );
             add_action( 'wp_ajax_nopriv_bw_mail_marketing_subscribe', [ $this, 'handle_submit' ] );
         }
@@ -71,6 +72,27 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                     'workingText'      => __( 'Submitting...', 'bw' ),
                 ]
             );
+        }
+
+        /**
+         * Ensure assets are available when the widget is rendered inside the custom footer runtime.
+         *
+         * Footer templates are injected in `wp_footer`, so waiting until widget render can be too
+         * late for styles that must be printed in `wp_head`.
+         *
+         * @return void
+         */
+        public function maybe_enqueue_runtime_assets() {
+            if ( is_admin() ) {
+                return;
+            }
+
+            if ( ! $this->active_footer_contains_subscription_widget() ) {
+                return;
+            }
+
+            wp_enqueue_style( 'bw-newsletter-subscription-style' );
+            wp_enqueue_script( 'bw-newsletter-subscription-script' );
         }
 
         /**
@@ -342,6 +364,37 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
             }
 
             $logger->info( $message, $context );
+        }
+
+        /**
+         * Detect whether the active custom footer contains the newsletter widget.
+         *
+         * @return bool
+         */
+        private function active_footer_contains_subscription_widget() {
+            if ( ! function_exists( 'bw_tbl_get_runtime_footer_template_id' ) ) {
+                return false;
+            }
+
+            $template_id = absint( bw_tbl_get_runtime_footer_template_id() );
+            if ( $template_id <= 0 ) {
+                return false;
+            }
+
+            $elementor_data = get_post_meta( $template_id, '_elementor_data', true );
+            if ( is_string( $elementor_data ) && false !== strpos( $elementor_data, 'bw-newsletter-subscription' ) ) {
+                return true;
+            }
+
+            if ( is_array( $elementor_data ) ) {
+                $encoded = wp_json_encode( $elementor_data );
+                if ( is_string( $encoded ) && false !== strpos( $encoded, 'bw-newsletter-subscription' ) ) {
+                    return true;
+                }
+            }
+
+            $post_content = get_post_field( 'post_content', $template_id );
+            return is_string( $post_content ) && false !== strpos( $post_content, 'bw-newsletter-subscription' );
         }
     }
 }
