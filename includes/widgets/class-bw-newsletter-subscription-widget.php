@@ -52,6 +52,18 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'consent_text_override',
+            [
+                'label'       => __( 'Consent text', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => '',
+                'placeholder' => __( 'I agree to the', 'bw' ),
+                'description' => __( 'Optional override for the text shown before the Privacy Policy link.', 'bw' ),
+                'label_block' => true,
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -74,6 +86,9 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
         $show_name_field = ! isset( $widget_settings['show_name_field'] ) || 'yes' === $widget_settings['show_name_field'];
+        $consent_text = ! empty( $widget_settings['consent_text_override'] )
+            ? sanitize_text_field( (string) $widget_settings['consent_text_override'] )
+            : ( ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' ) );
 
         if ( empty( $settings['enabled'] ) && ! $is_editor ) {
             return;
@@ -125,7 +140,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 <label class="bw-newsletter-subscription-consent">
                     <input class="bw-newsletter-subscription-consent__checkbox" type="checkbox" name="privacy" value="1" required />
                     <span class="bw-newsletter-subscription-consent__text">
-                        <?php echo esc_html( $settings['consent_prefix'] ); ?>
+                        <?php echo esc_html( $consent_text ); ?>
                         <?php if ( ! empty( $privacy_url ) ) : ?>
                             <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo esc_html( $settings['privacy_link_label'] ); ?>
