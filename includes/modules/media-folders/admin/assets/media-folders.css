@@ -278,6 +278,25 @@ body.bw-mf-enabled .attachments-browser .attachment.bw-mf-marked::after {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
+body.edit-php.bw-mf-enabled .column-bw_mf_drag_handle {
+    vertical-align: top;
+}
+
+body.edit-php.bw-mf-enabled .column-bw_mf_drag_handle .bw-mf-row-drag-handle {
+    display: flex;
+    margin: 0 auto;
+}
+
+body.edit-php.bw-mf-enabled .column-bw_mf_drag_handle .bw-mf-row-folder-marker {
+    display: block;
+    width: 10px;
+    height: 10px;
+    margin: 6px auto 0;
+    border-radius: 999px;
+    background: var(--bw-mf-marker-color, #000000);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
 body.bw-mf-enabled .bw-media-folder-node__main {
     border: 0;
     background: transparent;

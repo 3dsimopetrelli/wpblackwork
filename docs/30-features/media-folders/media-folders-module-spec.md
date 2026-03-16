@@ -259,6 +259,14 @@ Corner markers payload:
   - `#bw-mf-badge-tooltip`
   - enabled only when tooltip flag is on and folder name exists.
   - media-only (`attachment`) surface.
+- List-table marker extension:
+  - when `media_folders_corner_indicator=1`, Posts / Pages / Products list tables render a compact marker dot inside the drag-handle column
+  - placement: below the 4-arrows drag handle, inside the same compact column
+  - color rules:
+    - folder custom color -> use folder color
+    - assigned with no custom color -> black
+    - unassigned -> no marker
+  - marker data is fetched in batch for current-page rows only; no per-row term query path is allowed
 
 ### Quick Type Filters
 - Chips:
@@ -298,6 +306,10 @@ Corner markers payload:
 - Products-only UI polish contract (`edit.php?post_type=product`, when product support is enabled):
   - checkbox column (`check-column`) uses compact fixed width.
   - product thumbnail source size uses Woo/WP thumbnail target (`150x150` default, override via `BW_MF_PRODUCT_ADMIN_THUMB_SIZE` or `bw_mf_product_admin_thumbnail_size` filter), then rendered at compact square `130x130` via product-screen-scoped CSS.
+- Folder marker visibility contract on list tables:
+  - Posts / Pages / Products reuse the existing corner-indicator setting
+  - marker is rendered in the drag-handle column, not in Title/Author/Date columns
+  - no marker is rendered for rows without a folder assignment
 
 ## Settings Page UI Contract
 - Settings submenu page (`Blackwork Site -> Media Folders`) keeps the same option semantics and save flow.

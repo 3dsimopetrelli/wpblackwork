@@ -285,6 +285,10 @@
                     clearCornerMarkers();
                 }
                 recomputeQuickTypeFilters();
+            } else if (cornerIndicatorEnabled) {
+                bwMfApplyListRowMarkers();
+            } else {
+                clearListRowMarkers();
             }
         });
     }
@@ -402,6 +406,19 @@
         });
     }
 
+    function getVisibleListRows() {
+        return Array.prototype.slice.call(document.querySelectorAll('.wp-list-table tbody tr[id^="post-"]'));
+    }
+
+    function clearListRowMarkers() {
+        getVisibleListRows().forEach(function (row) {
+            var markerEl = row.querySelector('.column-bw_mf_drag_handle .bw-mf-row-folder-marker');
+            if (markerEl && markerEl.parentNode) {
+                markerEl.parentNode.removeChild(markerEl);
+            }
+        });
+    }
+
     function disableCornerMarkers() {
         if (markerObserver) {
             markerObserver.disconnect();
@@ -416,6 +433,7 @@
         markerObservedTiles = (typeof WeakSet !== 'undefined') ? new WeakSet() : null;
 
         clearCornerMarkers();
+        clearListRowMarkers();
         hideBadgeTooltip();
     }
 
@@ -1080,6 +1098,27 @@
         return Array.from(new Set(ids)).slice(0, 200);
     }
 
+    function collectVisibleListRowIds(rows) {
+        var ids = [];
+        (rows || []).forEach(function (row) {
+            if (!row || !row.id) {
+                return;
+            }
+
+            var match = String(row.id).match(/^post-(\d+)$/);
+            if (!match) {
+                return;
+            }
+
+            var id = parseInt(match[1], 10);
+            if (id > 0) {
+                ids.push(id);
+            }
+        });
+
+        return Array.from(new Set(ids)).slice(0, 200);
+    }
+
     function getMarkerPendingBatch(maxBatch) {
         var batch = [];
         markerPendingIds.forEach(function (id) {
@@ -1133,12 +1172,18 @@
             return null;
         }
 
-        markerFetchInFlight = $.post(cfg.ajaxUrl, {
+        var requestData = {
             action: 'bw_mf_get_corner_markers',
             nonce: cfg.nonce,
             bw_mf_context: currentScreenContext,
-            attachment_ids: batch
-        })
+        };
+        if (isMediaPostType()) {
+            requestData.attachment_ids = batch;
+        } else {
+            requestData.object_ids = batch;
+        }
+
+        markerFetchInFlight = $.post(cfg.ajaxUrl, requestData)
             .done(function (res) {
                 if (!res || !res.success || !res.data || typeof res.data.markers !== 'object') {
                     return;
@@ -1211,6 +1256,42 @@
         }
     }
 
+    function setListRowMarker(row, marker) {
+        if (!row) {
+            return;
+        }
+
+        var dragCell = row.querySelector('.column-bw_mf_drag_handle');
+        if (!dragCell) {
+            return;
+        }
+
+        var markerEl = dragCell.querySelector('.bw-mf-row-folder-marker');
+        if (!marker || !marker.assigned) {
+            if (markerEl && markerEl.parentNode) {
+                markerEl.parentNode.removeChild(markerEl);
+            }
+            return;
+        }
+
+        if (!markerEl) {
+            markerEl = document.createElement('span');
+            markerEl.className = 'bw-mf-row-folder-marker';
+            markerEl.setAttribute('aria-hidden', 'true');
+            dragCell.appendChild(markerEl);
+        }
+
+        var targetColor = marker.color || '#000';
+        if (markerEl.style.getPropertyValue('--bw-mf-marker-color') !== targetColor) {
+            markerEl.style.setProperty('--bw-mf-marker-color', targetColor);
+        }
+        if (marker.folder_name) {
+            markerEl.setAttribute('title', marker.folder_name);
+        } else {
+            markerEl.removeAttribute('title');
+        }
+    }
+
     function bwMfApplyCornerMarkers() {
         if (!cornerIndicatorEnabled) {
             disableCornerMarkers();
@@ -1260,6 +1341,45 @@
             getCornerWorkingTiles().forEach(function (tile) {
                 var id = parseInt(tile.getAttribute('data-id') || '0', 10);
                 setTileCornerMarker(tile, markerCache.get(id));
+            });
+        };
+
+        if (!missingIds.length) {
+            apply();
+            return;
+        }
+
+        fetchCornerMarkers(missingIds, function () {
+            missingIds.forEach(function (id) {
+                if (!markerCache.has(id)) {
+                    markerFailedIds.add(id);
+                }
+            });
+            apply();
+        });
+    }
+
+    function bwMfApplyListRowMarkers() {
+        if (!cornerIndicatorEnabled || isMediaPostType()) {
+            clearListRowMarkers();
+            return;
+        }
+
+        var rows = getVisibleListRows();
+        if (!rows.length) {
+            return;
+        }
+
+        var rowIds = collectVisibleListRowIds(rows);
+        var missingIds = rowIds.filter(function (id) {
+            return !markerCache.has(id) && !markerFailedIds.has(id);
+        });
+
+        var apply = function () {
+            rows.forEach(function (row) {
+                var match = String(row.id || '').match(/^post-(\d+)$/);
+                var id = match ? parseInt(match[1], 10) : 0;
+                setListRowMarker(row, markerCache.get(id));
             });
         };
 

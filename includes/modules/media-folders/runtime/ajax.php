@@ -1173,52 +1173,60 @@ if (!function_exists('bw_mf_ajax_get_corner_markers')) {
         bw_mf_ajax_require('bw_mf_get_corner_markers', 'upload_files');
         $post_type = bw_mf_get_request_post_type();
         $taxonomy = bw_mf_get_request_taxonomy();
-        if ($post_type !== 'attachment') {
+
+        $raw_ids = [];
+        if (isset($_POST['object_ids']) && is_array($_POST['object_ids'])) {
+            $raw_ids = $_POST['object_ids'];
+        } elseif (isset($_POST['attachment_ids']) && is_array($_POST['attachment_ids'])) {
+            $raw_ids = $_POST['attachment_ids'];
+        }
+
+        $object_ids = bw_mf_normalize_object_ids($raw_ids, $post_type);
+        if (empty($object_ids)) {
             wp_send_json_success([
                 'markers' => [],
             ]);
         }
 
-        $raw_ids = isset($_POST['attachment_ids']) && is_array($_POST['attachment_ids']) ? $_POST['attachment_ids'] : [];
-        $attachment_ids = array_values(array_unique(array_filter(array_map('absint', $raw_ids))));
-
-        if (empty($attachment_ids)) {
-            wp_send_json_success([
-                'markers' => [],
-            ]);
-        }
-
-        if (count($attachment_ids) > BW_MF_ASSIGN_BATCH_LIMIT) {
-            $attachment_ids = array_slice($attachment_ids, 0, BW_MF_ASSIGN_BATCH_LIMIT);
+        if (count($object_ids) > BW_MF_ASSIGN_BATCH_LIMIT) {
+            $object_ids = array_slice($object_ids, 0, BW_MF_ASSIGN_BATCH_LIMIT);
         }
 
         $markers = [];
-        foreach ($attachment_ids as $attachment_id) {
-            $markers[$attachment_id] = [
+        foreach ($object_ids as $object_id) {
+            $markers[$object_id] = [
                 'assigned' => false,
                 'color' => null,
                 'folder_name' => '',
             ];
+        }
 
-            $post = get_post($attachment_id);
-            if (!$post || $post->post_type !== 'attachment') {
-                continue;
+        $terms = wp_get_object_terms($object_ids, $taxonomy, [
+            'fields' => 'all_with_object_id',
+            'orderby' => 'none',
+            'update_term_meta_cache' => false,
+        ]);
+        if (!is_wp_error($terms) && is_array($terms)) {
+            $term_colors = [];
+            foreach ($terms as $term) {
+                if (!isset($term->object_id, $term->term_id, $term->name)) {
+                    continue;
+                }
+
+                $object_id = (int) $term->object_id;
+                if ($object_id <= 0 || !isset($markers[$object_id]) || !empty($markers[$object_id]['assigned'])) {
+                    continue;
+                }
+
+                $term_id = (int) $term->term_id;
+                if (!isset($term_colors[$term_id])) {
+                    $term_colors[$term_id] = bw_mf_sanitize_hex_color((string) get_term_meta($term_id, 'bw_mf_icon_color', true));
+                }
+
+                $markers[$object_id]['assigned'] = true;
+                $markers[$object_id]['color'] = ($term_colors[$term_id] !== '') ? $term_colors[$term_id] : null;
+                $markers[$object_id]['folder_name'] = wp_strip_all_tags((string) $term->name);
             }
-
-            $terms = wp_get_object_terms($attachment_id, $taxonomy);
-            if (is_wp_error($terms) || empty($terms)) {
-                continue;
-            }
-
-            $term = reset($terms);
-            if (!$term || empty($term->term_id)) {
-                continue;
-            }
-
-            $color = bw_mf_sanitize_hex_color((string) get_term_meta((int) $term->term_id, 'bw_mf_icon_color', true));
-            $markers[$attachment_id]['assigned'] = true;
-            $markers[$attachment_id]['color'] = ($color !== '') ? $color : null;
-            $markers[$attachment_id]['folder_name'] = wp_strip_all_tags((string) $term->name);
         }
 
         wp_send_json_success([

@@ -165,9 +165,9 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
             'postType' => $post_type,
             'taxonomy' => $taxonomy,
             'screenContext' => $screen_context,
-            'cornerIndicatorEnabled' => ($post_type === 'attachment' && $corner_enabled) ? 1 : 0,
+            'cornerIndicatorEnabled' => $corner_enabled ? 1 : 0,
             'flags' => [
-                'cornerIndicator' => ($post_type === 'attachment' && $corner_enabled) ? 1 : 0,
+                'cornerIndicator' => $corner_enabled ? 1 : 0,
             ],
             'badgeTooltipEnabled' => ($post_type === 'attachment' && $corner_enabled && $badge_tooltip_enabled) ? 1 : 0,
             'text' => [

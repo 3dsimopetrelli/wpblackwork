@@ -600,3 +600,14 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - drag the same post/page/product into the same folder again -> popup appears, closes on background click
   - drag to Unassigned (`term_id = 0`) -> no duplicate popup
   - media bulk assign with mixed new + duplicate items -> new items move, duplicate warning still appears
+
+## Media Folders List-Table Folder Marker Dot
+- Date: 2026-03-16
+- Scope:
+  - Extends the folder marker concept to Posts / Pages / Products list tables when the corner-indicator setting is enabled.
+  - Marker is rendered inside the drag-handle column, below the handle icon.
+- Regression checks required (manual):
+  - assigned Post/Page/Product with folder custom color -> colored marker dot visible
+  - assigned Post/Page/Product with no folder custom color -> black marker dot visible
+  - unassigned Post/Page/Product -> no marker dot
+  - drag-handle column width/layout remains compact and drag UX still works
