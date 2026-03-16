@@ -178,7 +178,8 @@ Current adoption:
       - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps
       - drag-handle column uses compact fixed width across Posts, Pages, and Products
       - drag start only from handle (`dashicons-move`)
-      - single-item drag assignment only (no list-table bulk drag)
+      - drag remains single-item only
+      - checkbox-selected rows can be reassigned through the shared sidebar `Bulk organize` control
       - when the corner-indicator setting is enabled, the drag-handle column also renders the folder marker dot below the handle for assigned Posts/Pages/Products rows
       - duplicate assignment warning is rendered as a Media Folders-scoped overlay popup and dismissed via background click
       - folder node pencil context menu actions: Rename, New Subfolder, Pin/Unpin, Icon Color, Delete

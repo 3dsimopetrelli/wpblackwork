@@ -611,3 +611,15 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - assigned Post/Page/Product with no folder custom color -> black marker dot visible
   - unassigned Post/Page/Product -> no marker dot
   - drag-handle column width/layout remains compact and drag UX still works
+
+## Media Folders List-Table Bulk Organize
+- Date: 2026-03-16
+- Scope:
+  - Enables the shared sidebar `Bulk organize` control on Posts / Pages / Products list tables using checkbox-selected rows.
+- Regression checks required (manual):
+  - select multiple Posts and move -> assignment succeeds
+  - select multiple Pages and move -> assignment succeeds
+  - select multiple Products and move -> assignment succeeds
+  - no selection -> generic item warning shown
+  - duplicate move still triggers duplicate popup instead of silent no-op
+  - Media bulk organize remains unchanged

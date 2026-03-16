@@ -2013,7 +2013,7 @@
         syncTreeNodeVisibility();
     }
 
-    function collectSelectedMediaIds() {
+    function collectSelectedObjectIds() {
         var ids = [];
 
         $('.wp-list-table .check-column input[type="checkbox"]:checked').each(function () {
@@ -2205,7 +2205,7 @@
             return [];
         }
 
-        var selected = collectSelectedMediaIds();
+        var selected = collectSelectedObjectIds();
         if (selected.indexOf(id) !== -1 && selected.length > 1) {
             return selected;
         }
@@ -2713,12 +2713,9 @@
         });
 
         root().on('click', '#bw-media-folders-bulk-btn', function () {
-            if (!isMediaPostType()) {
-                return;
-            }
-            var ids = collectSelectedMediaIds();
+            var ids = collectSelectedObjectIds();
             if (!ids.length) {
-                window.alert(cfg.text && cfg.text.selectMedia ? cfg.text.selectMedia : 'Select at least one media item.');
+                window.alert(cfg.text && cfg.text.selectItems ? cfg.text.selectItems : 'Select at least one item.');
                 return;
             }
 
@@ -2773,9 +2770,6 @@
 
         mountLayout();
         ensureDuplicateNotice();
-        if (!isMediaPostType()) {
-            root().find('.bw-media-folders__bulk').hide();
-        }
         loadCollapsedState();
         renderContextMenu();
         renderColorPopover();

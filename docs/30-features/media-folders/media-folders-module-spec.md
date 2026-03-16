@@ -239,10 +239,11 @@ Corner markers payload:
 - Grid/list draggable sources.
 - Drop targets:
   - folder rows + unassigned default row.
-- Bulk move uses selected media ids + selected folder id.
+- Bulk move uses checkbox-selected current-page ids + selected folder id.
 - Constraint:
-  - bulk assignment remains Media-only.
-  - Posts/Pages/Products use single-item drag assignment only.
+  - Media supports bulk move from grid/list selection.
+  - Posts/Pages/Products support checkbox-based bulk organize from the shared sidebar control.
+  - drag behavior on Posts/Pages/Products remains single-item only.
   - list-table drag starts only from dedicated drag handle column.
 - Duplicate target assignment UX:
   - if the dragged/selected object is already in the destination folder, the module shows a small modal-style popup overlay
@@ -300,6 +301,7 @@ Corner markers payload:
 - Handle icon: 4-arrows (`dashicons-move`), drag start source is handle only.
 - Drag ghost label shows current row title.
 - Row/checkbox drag start is disabled for non-media post types.
+- Checkbox selection can be used with the shared `Bulk organize` panel on Posts / Pages / Products.
 - Shared list-table sizing contract (when the corresponding post type is enabled):
   - drag-handle column uses compact fixed width on Posts, Pages, and Products
   - Pages and Posts keep the same compact drag-handle footprint as Products for alignment consistency

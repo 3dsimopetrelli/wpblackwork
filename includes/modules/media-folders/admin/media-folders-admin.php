@@ -176,6 +176,7 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
                 'createSubPrompt' => __('Subfolder name', 'bw'),
                 'confirmDelete' => __('Delete this folder?', 'bw'),
                 'selectMedia' => __('Select at least one media item.', 'bw'),
+                'selectItems' => __('Select at least one item.', 'bw'),
             ],
         ]);
     }
