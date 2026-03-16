@@ -756,6 +756,7 @@
             // Se il carrello ha prodotti, mostra il layout pieno
             this.showFullState();
 
+            const self = this;
             let html = '';
             let totalQuantity = 0;
 
@@ -793,7 +794,7 @@
                                 <div class="bw-cart-item-header">
                                     <div class="bw-cart-item-info">
                                         <h4 class="bw-cart-item-name">
-                                            <a href="${item.permalink}">${item.name}</a>
+                                            <a href="${self._escUrl(item.permalink)}">${self._escHtml(item.name)}</a>
                                         </h4>
                                         ${actionsMarkup}
                                     </div>
@@ -865,6 +866,34 @@
          * Aggiorna i totali
          */
         /**
+         * Escape HTML characters per testo interpolato in template literal.
+         * @param {*} str
+         * @returns {string}
+         */
+        _escHtml: function (str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;');
+        },
+
+        /**
+         * Sanitizza un URL per uso in attributo href.
+         * Blocca javascript: e data: URI, poi escapa i caratteri HTML.
+         * @param {*} url
+         * @returns {string}
+         */
+        _escUrl: function (url) {
+            var s = String(url == null ? '' : url).trim();
+            if (/^javascript:/i.test(s) || /^data:/i.test(s)) {
+                return '#';
+            }
+            return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        },
+
+        /**
          * Aggiorna solo i totali numerici (subtotal/tax/total) senza toccare
          * le righe coupon o i prodotti. Usato dopo updateQuantity per evitare
          * il re-render completo del carrello.
@@ -909,6 +938,7 @@
                     // Handle both object (new) and string (legacy/fallback) formats
                     var code = typeof coupon === 'object' ? coupon.code : coupon;
                     var amount = typeof coupon === 'object' ? coupon.amount : '';
+                    var safeCode = self._escHtml(code);
 
                     couponRowsHtml += `
                      <div class="bw-cart-coupon-dynamic-row" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
@@ -916,11 +946,11 @@
                             <span class="label" style="display:inline; margin:0; font-weight:600;">Discount</span>
                             <span class="bw-cart-coupon-badge" style="background:#f0f0f1; color:#333; padding:2px 8px; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:4px;">
                                 <span class="bw-cart-coupon-icon" style="display:inline-block; width:12px; height:12px; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z%22></path><line x1=%227%22 y1=%227%22 x2=%227.01%22 y2=%227%22></line></svg>'); background-size:contain; background-repeat:no-repeat; opacity:0.7;"></span>
-                                <b>${code}</b>
+                                <b>${safeCode}</b>
                             </span>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${code}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
+                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${safeCode}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
                             <span class="value" style="color:#000; font-weight:bold; display:block;">${amount}</span>
                         </div>
                      </div>`;
