@@ -1,4 +1,5 @@
 <?php
+use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -32,7 +33,26 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
     }
 
     protected function register_controls() {
-        // V1 intentionally ships without Elementor editor controls.
+        $this->start_controls_section(
+            'section_content',
+            [
+                'label' => __( 'Content', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'show_name_field',
+            [
+                'label'        => __( 'Show name field', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -40,10 +60,12 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             return;
         }
 
+        $widget_settings = $this->get_settings_for_display();
         $settings = BW_Mail_Marketing_Settings::get_subscription_settings();
         $is_editor = class_exists( '\Elementor\Plugin' )
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
+        $show_name_field = ! isset( $widget_settings['show_name_field'] ) || 'yes' === $widget_settings['show_name_field'];
 
         if ( empty( $settings['enabled'] ) && ! $is_editor ) {
             return;
@@ -61,18 +83,21 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             <?php endif; ?>
 
             <form class="bw-newsletter-subscription-form" method="post" novalidate data-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_mail_marketing_subscription_submit' ) ); ?>">
-                <div class="bw-newsletter-subscription-field">
-                    <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
-                        <?php echo esc_html( $settings['name_label'] ); ?>
-                    </label>
-                    <input
-                        id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
-                        class="bw-newsletter-subscription-input"
-                        type="text"
-                        name="name"
-                        autocomplete="name"
-                    />
-                </div>
+                <?php if ( $show_name_field ) : ?>
+                    <div class="bw-newsletter-subscription-field">
+                        <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
+                            <?php echo esc_html( $settings['name_label'] ); ?>
+                        </label>
+                        <input
+                            id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
+                            class="bw-newsletter-subscription-input"
+                            type="text"
+                            name="name"
+                            autocomplete="name"
+                            placeholder="<?php echo esc_attr( $settings['name_label'] ); ?>"
+                        />
+                    </div>
+                <?php endif; ?>
 
                 <div class="bw-newsletter-subscription-field">
                     <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
@@ -84,6 +109,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                         type="email"
                         name="email"
                         autocomplete="email"
+                        placeholder="<?php echo esc_attr( $settings['email_label'] ); ?>"
                         required
                     />
                 </div>

@@ -5,7 +5,7 @@
 .bw-newsletter-subscription-form {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
     width: 100%;
 }
 
@@ -14,49 +14,58 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding-top: 12px;
+    padding-top: 0;
 }
 
 .bw-newsletter-subscription-label {
     position: absolute;
-    top: 12px;
-    left: 26px;
+    left: 18px;
+    top: 50%;
     z-index: 2;
-    padding: 0 10px;
+    padding: 0 4px;
     background: #fff;
-    color: #3d4657;
+    color: #6b7280;
     font-size: 15px;
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1.4;
     transform: translateY(-50%);
     pointer-events: none;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .bw-newsletter-subscription-input {
     width: 100%;
-    min-height: 102px;
-    padding: 30px 34px 20px;
+    min-height: 58px;
+    padding: 16px 18px;
     border: 1px solid #d1d5db;
     border-radius: 18px;
     background: #fff;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     color: #1f2937;
-    font-size: 24px;
+    font-size: 15px;
     font-weight: 400;
-    line-height: 1.25;
+    line-height: 1.4;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     transition: border 0.2s ease, padding 0.15s ease, box-shadow 0.2s ease;
+}
+
+.bw-newsletter-subscription-input::placeholder {
+    opacity: 0;
+    visibility: hidden;
 }
 
 .bw-newsletter-subscription-input:focus {
     outline: none;
     border: 2px solid #000000;
-    padding: 29px 33px 19px;
+    padding: 15px 17px;
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label {
+.bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
+.bw-newsletter-subscription-field:has(.bw-newsletter-subscription-input:not(:placeholder-shown)) .bw-newsletter-subscription-label {
+    top: -8px;
+    transform: translateY(0);
+    font-size: 11px;
     color: #374151;
     font-weight: 500;
 }
@@ -188,9 +197,9 @@
     }
 
     .bw-newsletter-subscription-input {
-        min-height: 84px;
-        padding: 24px 22px 16px;
-        font-size: 18px;
+        min-height: 56px;
+        padding: 16px 18px;
+        font-size: 15px;
         border-radius: 16px;
     }
 
