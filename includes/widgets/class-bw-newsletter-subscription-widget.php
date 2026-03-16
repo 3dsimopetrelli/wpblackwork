@@ -64,6 +64,33 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'name_label_override',
+            [
+                'label'       => __( 'Name float label', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => '',
+                'placeholder' => __( 'Name', 'bw' ),
+                'description' => __( 'Optional override for the Name field floating label.', 'bw' ),
+                'label_block' => true,
+                'condition'   => [
+                    'show_name_field' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'email_label_override',
+            [
+                'label'       => __( 'Email float label', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => '',
+                'placeholder' => __( 'Email address', 'bw' ),
+                'description' => __( 'Optional override for the Email field floating label.', 'bw' ),
+                'label_block' => true,
+            ]
+        );
+
         $this->end_controls_section();
     }
 
@@ -86,6 +113,12 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
         $show_name_field = ! isset( $widget_settings['show_name_field'] ) || 'yes' === $widget_settings['show_name_field'];
+        $name_label = ! empty( $widget_settings['name_label_override'] )
+            ? sanitize_text_field( (string) $widget_settings['name_label_override'] )
+            : ( ! empty( $settings['name_label'] ) ? $settings['name_label'] : __( 'Name', 'bw' ) );
+        $email_label = ! empty( $widget_settings['email_label_override'] )
+            ? sanitize_text_field( (string) $widget_settings['email_label_override'] )
+            : ( ! empty( $settings['email_label'] ) ? $settings['email_label'] : __( 'Email address', 'bw' ) );
         $consent_text = ! empty( $widget_settings['consent_text_override'] )
             ? sanitize_text_field( (string) $widget_settings['consent_text_override'] )
             : ( ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' ) );
@@ -109,7 +142,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 <?php if ( $show_name_field ) : ?>
                     <div class="bw-newsletter-subscription-field">
                         <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
-                            <?php echo esc_html( $settings['name_label'] ); ?>
+                            <?php echo esc_html( $name_label ); ?>
                         </label>
                         <input
                             id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
@@ -117,14 +150,14 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                             type="text"
                             name="name"
                             autocomplete="name"
-                            placeholder="<?php echo esc_attr( $settings['name_label'] ); ?>"
+                            placeholder="<?php echo esc_attr( $name_label ); ?>"
                         />
                     </div>
                 <?php endif; ?>
 
                 <div class="bw-newsletter-subscription-field">
                     <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
-                        <?php echo esc_html( $settings['email_label'] ); ?>
+                        <?php echo esc_html( $email_label ); ?>
                     </label>
                     <input
                         id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
@@ -132,7 +165,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                         type="email"
                         name="email"
                         autocomplete="email"
-                        placeholder="<?php echo esc_attr( $settings['email_label'] ); ?>"
+                        placeholder="<?php echo esc_attr( $email_label ); ?>"
                         required
                     />
                 </div>

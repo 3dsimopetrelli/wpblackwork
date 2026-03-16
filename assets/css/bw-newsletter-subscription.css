@@ -29,13 +29,14 @@
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-label,
 .bw-newsletter-subscription-label {
     position: absolute !important;
-    top: 0 !important;
+    top: 50% !important;
     left: 16px !important;
     z-index: 3 !important;
     display: inline-block !important;
     margin: 0 !important;
     padding: 0 6px !important;
-    background: #ffffff !important;
+    background: #fafafa !important;
+    border-radius: 10px !important;
     color: #6b7280 !important;
     font-size: 13px !important;
     font-weight: 400 !important;
@@ -109,17 +110,17 @@ input.bw-newsletter-subscription-input:focus {
     width: auto !important;
     margin: 0 !important;
     color: #181a20 !important;
-    font-size: 16px !important;
+    font-size: 12px !important;
     line-height: 1.25 !important;
     cursor: pointer !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__checkbox,
 .bw-newsletter-subscription-consent__checkbox {
-    width: 20px !important;
-    height: 20px !important;
+    width: 14px !important;
+    height: 14px !important;
     margin: 0 !important;
-    flex: 0 0 20px !important;
+    flex: 0 0 14px !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__text,
@@ -262,15 +263,15 @@ input.bw-newsletter-subscription-input:focus {
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent,
     .bw-newsletter-subscription-consent {
-        font-size: 15px !important;
+        font-size: 12px !important;
         gap: 12px !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__checkbox,
     .bw-newsletter-subscription-consent__checkbox {
-        width: 18px !important;
-        height: 18px !important;
-        flex-basis: 18px !important;
+        width: 14px !important;
+        height: 14px !important;
+        flex-basis: 14px !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button__label,
