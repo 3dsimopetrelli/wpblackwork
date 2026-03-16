@@ -5,43 +5,60 @@
 .bw-newsletter-subscription-form {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 30px;
     width: 100%;
 }
 
 .bw-newsletter-subscription-field {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    width: 100%;
+    padding-top: 12px;
 }
 
 .bw-newsletter-subscription-label {
-    color: #8c8d96;
-    font-size: 20px;
+    position: absolute;
+    top: 12px;
+    left: 26px;
+    z-index: 2;
+    padding: 0 10px;
+    background: #fff;
+    color: #3d4657;
+    font-size: 15px;
     font-weight: 400;
-    line-height: 1.1;
+    line-height: 1.2;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: color 0.2s ease;
 }
 
 .bw-newsletter-subscription-input {
     width: 100%;
-    min-height: 126px;
-    padding: 28px 34px;
-    border: 1px solid #dadce2;
-    border-radius: 28px;
+    min-height: 102px;
+    padding: 30px 34px 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 18px;
     background: #fff;
-    box-shadow: 0 12px 32px rgba(14, 17, 24, 0.08);
-    color: #111318;
-    font-size: 36px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    color: #1f2937;
+    font-size: 24px;
     font-weight: 400;
-    line-height: 1.1;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    line-height: 1.25;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: border 0.2s ease, padding 0.15s ease, box-shadow 0.2s ease;
 }
 
 .bw-newsletter-subscription-input:focus {
     outline: none;
-    border-color: #c8ccd4;
-    box-shadow: 0 16px 36px rgba(14, 17, 24, 0.12);
-    transform: translateY(-1px);
+    border: 2px solid #000000;
+    padding: 29px 33px 19px;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label {
+    color: #374151;
+    font-weight: 500;
 }
 
 .bw-newsletter-subscription-consent {
@@ -75,27 +92,61 @@
 }
 
 .bw-newsletter-subscription-button {
-    min-height: 98px;
-    border: 0;
-    border-radius: 999px;
-    background: #80fd03;
-    color: #111318;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    --bw-search-button-bg: #80fd03;
+    --bw-search-button-bg-hover: var(--bw-search-button-bg);
+    --bw-search-button-border-color: #080808;
+    --bw-search-button-border-color-hover: var(--bw-search-button-border-color);
+    --bw-search-button-border-width: 1px;
+    --bw-search-button-border-radius: 999px;
+    --bw-search-button-padding-top: 12px;
+    --bw-search-button-padding-right: 26px;
+    --bw-search-button-padding-bottom: 12px;
+    --bw-search-button-padding-left: 26px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    color: #080808;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1;
     cursor: pointer;
-    box-shadow: 0 18px 38px rgba(128, 253, 3, 0.2);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease;
+}
+
+.bw-newsletter-subscription-button__label {
+    color: inherit;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 258px;
+    min-height: 92px;
+    background-color: var(--bw-search-button-bg);
+    border: var(--bw-search-button-border-width) solid var(--bw-search-button-border-color);
+    border-radius: var(--bw-search-button-border-radius);
+    padding: var(--bw-search-button-padding-top) var(--bw-search-button-padding-right) var(--bw-search-button-padding-bottom) var(--bw-search-button-padding-left);
+    transition: all 0.3s ease;
 }
 
 .bw-newsletter-subscription-button:hover,
 .bw-newsletter-subscription-button:focus {
-    transform: translateY(-1px);
-    box-shadow: 0 22px 42px rgba(128, 253, 3, 0.24);
     outline: none;
 }
 
-.bw-newsletter-subscription-button[disabled] {
+.bw-newsletter-subscription-button:hover .bw-newsletter-subscription-button__label,
+.bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label {
+    background-color: var(--bw-search-button-bg-hover);
+    border-color: var(--bw-search-button-border-color-hover);
+}
+
+.bw-newsletter-subscription-button[disabled],
+.bw-newsletter-subscription-button[disabled] .bw-newsletter-subscription-button__label {
     opacity: 0.72;
     cursor: wait;
 }
@@ -128,18 +179,19 @@
 
 @media (max-width: 767px) {
     .bw-newsletter-subscription-form {
-        gap: 18px;
+        gap: 22px;
     }
 
     .bw-newsletter-subscription-label {
-        font-size: 16px;
+        left: 18px;
+        font-size: 13px;
     }
 
     .bw-newsletter-subscription-input {
-        min-height: 96px;
-        padding: 22px 24px;
-        font-size: 24px;
-        border-radius: 22px;
+        min-height: 84px;
+        padding: 24px 22px 16px;
+        font-size: 18px;
+        border-radius: 16px;
     }
 
     .bw-newsletter-subscription-consent {
@@ -153,7 +205,11 @@
     }
 
     .bw-newsletter-subscription-button {
-        min-height: 78px;
         font-size: 22px;
+    }
+
+    .bw-newsletter-subscription-button__label {
+        min-width: 220px;
+        min-height: 78px;
     }
 }
