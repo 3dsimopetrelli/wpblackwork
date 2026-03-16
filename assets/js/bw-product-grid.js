@@ -2226,6 +2226,17 @@
         initFilters();
         handleGridResize();
 
+        // Fallback: if Elementor's frontend JS fails to fire the
+        // 'frontend/element_ready' hook (e.g. due to an Elementor JS
+        // error in initOnReadyComponents), manually initialise any
+        // grids that are still uninitialised after a short grace period.
+        setTimeout(function () {
+            var $uninitialized = $('.bw-fpw-grid').not('.bw-fpw-initialized');
+            if ($uninitialized.length) {
+                initWidget($(document));
+            }
+        }, 500);
+
         var resizeTimer;
         $(window)
             .off('resize.bwProductGrid orientationchange.bwProductGrid')
