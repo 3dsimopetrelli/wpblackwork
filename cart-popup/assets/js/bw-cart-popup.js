@@ -785,7 +785,7 @@
                        </div>`;
 
                 html += `
-                    <div class="bw-cart-item" data-cart-item-key="${item.key}">
+                    <div class="bw-cart-item" data-cart-item-key="${item.key}" data-product-id="${item.product_id}">
                         <div class="bw-cart-item-main">
                             <div class="bw-cart-item-image">
                                 ${item.image}
@@ -813,6 +813,7 @@
             this.$itemsContainer.html(html);
             const badgeCount = typeof data.item_count !== 'undefined' ? data.item_count : totalQuantity;
             this.updateBadge(badgeCount || data.items.length);
+            this.updateAllButtonStates();
         },
 
         /**
@@ -820,6 +821,7 @@
          */
         showEmptyState: function () {
             this.cartItems = [];
+            this.updateAllButtonStates();
 
             // Nascondi contenuto pieno e footer
             this.$fullContent.hide();
@@ -1399,15 +1401,20 @@
         updateAllButtonStates: function () {
             const self = this;
 
-            // Per ogni pulsante con il testo "Added to cart", controlla se il prodotto è ancora nel carrello
+            // Build a set of product_ids currently in the cart
+            const cartProductIds = {};
+            (self.cartItems || []).forEach(function (item) {
+                if (item.product_id) {
+                    cartProductIds[String(item.product_id)] = true;
+                }
+            });
+
+            // Reset "Added to cart" buttons whose product is no longer in the cart
             $('.bw-btn-addtocart.added, .add_to_cart_button.added').each(function () {
                 const $button = $(this);
-                const productId = $button.data('product_id') || $button.data('product-id');
-
-                if (productId) {
-                    // Se il prodotto non è più nel carrello, ripristina il testo del pulsante
-                    // Questa logica può essere espansa per verificare effettivamente il contenuto del carrello
-                    // Per ora, resettiamo il pulsante dopo la rimozione
+                const productId = String($button.data('product_id') || $button.data('product-id') || '');
+                if (productId && !cartProductIds[productId]) {
+                    self.resetButtonText($button);
                 }
             });
         },
