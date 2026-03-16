@@ -1081,70 +1081,37 @@
                 return;
             }
 
-            // 1. Fade-out del prodotto
-            $item.css({
-                'opacity': '1',
-                'transition': 'opacity 0.3s ease, transform 0.3s ease'
-            });
+            // Fix the current height so CSS can transition it to 0
+            $item.css('height', $item.outerHeight(true) + 'px');
+            // Force reflow before adding the collapsing class
+            $item[0].getBoundingClientRect();
+            $item.addClass('bw-cart-item--removing');
 
-            setTimeout(function () {
-                $item.css({
-                    'opacity': '0',
-                    'transform': 'scale(0.95)'
-                });
-            }, 10);
-
-            // 2. Dopo il fade-out, sostituisci con il placeholder
-            setTimeout(function () {
-                const itemHeight = $item.outerHeight();
-
-                // Crea il box placeholder "Product removed" (o "Prodotto rimosso" se in italiano)
-                const $placeholder = $('<div class="bw-cart-item-removed-placeholder" style="height: ' + itemHeight + 'px;">' +
-                    '<span>Product removed</span>' +
-                    '</div>');
-
-                // Sostituisci l'item con il placeholder
-                $item.replaceWith($placeholder);
-
-                // 3. Invia la richiesta AJAX per rimuovere il prodotto
-                $.ajax({
-                    url: bwCartPopupConfig.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'bw_cart_popup_remove_item',
-                        nonce: bwCartPopupConfig.nonce,
-                        cart_item_key: cartItemKey
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            // Aggiorna anche il mini-cart di WooCommerce
-                            $(document.body).trigger('wc_fragment_refresh');
-
-                            // 4. Dopo 0.5 secondi (500ms), fade-out del placeholder e ricarica il contenuto
-                            // Durante questi 0.5 secondi, l'aggiornamento avviene in background
-                            setTimeout(function () {
-                                $placeholder.addClass('fade-out');
-
-                                setTimeout(function () {
-                                    $placeholder.remove();
-                                    // Ricarica il contenuto del carrello senza mostrare il loading spinner
-                                    // (skipLoading = true) per evitare il flash del loading
-                                    self.loadCartContents(true);
-                                }, 300);
-                            }, 500); // Cambiato da 2000ms a 500ms (0.5 secondi)
-                        } else {
-                            console.error('Failed to remove item');
-                            // In caso di errore, ricarica comunque il carrello
-                            self.loadCartContents();
-                        }
-                    },
-                    error: function () {
-                        console.error('AJAX error removing item');
-                        // In caso di errore, ricarica comunque il carrello
+            // AJAX starts immediately in parallel with the animation
+            $.ajax({
+                url: bwCartPopupConfig.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'bw_cart_popup_remove_item',
+                    nonce: bwCartPopupConfig.nonce,
+                    cart_item_key: cartItemKey
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $(document.body).trigger('wc_fragment_refresh');
+                        self.loadCartContents(true);
+                    } else {
+                        console.error('Failed to remove item');
+                        $item.removeClass('bw-cart-item--removing').css('height', '');
                         self.loadCartContents();
                     }
-                });
-            }, 300);
+                },
+                error: function () {
+                    console.error('AJAX error removing item');
+                    $item.removeClass('bw-cart-item--removing').css('height', '');
+                    self.loadCartContents();
+                }
+            });
         },
 
         /**
