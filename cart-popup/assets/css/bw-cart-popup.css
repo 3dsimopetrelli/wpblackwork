@@ -555,6 +555,17 @@
     border-radius: var(--bw-cart-radius-sm);
     margin-bottom: 10px;
     position: relative;
+    overflow: hidden;
+    transition: height 0.2s ease, opacity 0.15s ease, margin-bottom 0.2s ease, padding 0.2s ease;
+}
+
+.bw-cart-item--removing {
+    height: 0 !important;
+    opacity: 0;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    pointer-events: none;
 }
 
 .bw-cart-item-main {
@@ -1407,30 +1418,6 @@ body.bw-cart-popup-no-scroll {
    15. PLACEHOLDER "PRODUCT REMOVED"
    ======================================================================== */
 
-.bw-cart-item-removed-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    margin-bottom: 10px;
-    background-color: var(--bw-cart-surface);
-    border: 1px dashed var(--bw-cart-border);
-    border-radius: var(--bw-cart-radius-sm);
-    font-size: 13px;
-    color: var(--bw-cart-text-muted);
-    font-style: italic;
-    opacity: 0;
-    animation: fadeIn 0.3s ease forwards;
-}
-
-.bw-cart-item-removed-placeholder.fade-out {
-    animation: fadeOut 0.3s ease forwards;
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; transform: scale(1); }
-    to   { opacity: 0; transform: scale(0.95); }
-}
 
 
 /* Section 16 removed: no dynamic CSS to override. */
