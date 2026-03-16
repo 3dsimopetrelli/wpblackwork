@@ -42,6 +42,8 @@
         cartItems: [],
         appliedCoupons: [],
         _cartDataFromResponse: null, // Dati carrello inclusi nella risposta add-to-cart (evita 2a AJAX)
+        _qtyDebounceTimers: {},      // Timer debounce quantità per cart-item-key
+        _pendingItemKeys: {},        // Chiavi item con richiesta AJAX in corso (anti-race)
 
         /**
          * Inizializzazione
@@ -204,7 +206,6 @@
             });
 
             // Controlli quantità (+/-)
-            var _qtyDebounceTimers = {};
             this.$itemsContainer.on('click', '.bw-qty-btn', function (e) {
                 e.preventDefault();
                 const $btn = $(this);
@@ -220,10 +221,10 @@
                 }
 
                 $value.text(newQty);
-                clearTimeout(_qtyDebounceTimers[cartItemKey]);
-                _qtyDebounceTimers[cartItemKey] = setTimeout(function () {
+                clearTimeout(self._qtyDebounceTimers[cartItemKey]);
+                self._qtyDebounceTimers[cartItemKey] = setTimeout(function () {
                     self.updateQuantity(cartItemKey, newQty);
-                    delete _qtyDebounceTimers[cartItemKey];
+                    delete self._qtyDebounceTimers[cartItemKey];
                 }, 300);
             });
 
@@ -656,24 +657,22 @@
                         }
                     } else {
                         console.error('Failed to load cart contents');
-                        // Fallback: if we have items in memory, show them, else show empty
                         if (opts.render) {
                             if (self.cartItems && self.cartItems.length > 0) {
                                 self.showFullState();
                             } else {
-                                self.showEmptyState();
+                                self.showCartError();
                             }
                         }
                     }
                 })
                 .fail(function () {
                     console.error('AJAX error loading cart contents');
-                    // Fallback on error
                     if (opts.render) {
                         if (self.cartItems && self.cartItems.length > 0) {
                             self.showFullState();
                         } else {
-                            self.showEmptyState();
+                            self.showCartError();
                         }
                     }
                 })
@@ -746,10 +745,15 @@
          * Renderizza i prodotti nel carrello
          */
         renderCartItems: function (data) {
-            this.cartItems = (data && Array.isArray(data.items)) ? data.items : [];
+            if (!data || typeof data !== 'object') {
+                this.showCartError();
+                return;
+            }
+
+            this.cartItems = Array.isArray(data.items) ? data.items : [];
 
             // Se il carrello è vuoto, mostra il layout vuoto
-            if (data.empty || !data.items || data.items.length === 0) {
+            if (data.empty || !this.cartItems.length) {
                 this.showEmptyState();
                 this.updateBadge(0);
                 return;
@@ -761,7 +765,7 @@
             let html = '';
             let totalQuantity = 0;
 
-            data.items.forEach(function (item) {
+            this.cartItems.forEach(function (item) {
                 const parsedQuantity = parseInt(item.quantity, 10);
                 const quantity = Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
                 totalQuantity += quantity;
@@ -812,8 +816,22 @@
 
             this.$itemsContainer.html(html);
             const badgeCount = typeof data.item_count !== 'undefined' ? data.item_count : totalQuantity;
-            this.updateBadge(badgeCount || data.items.length);
+            this.updateBadge(badgeCount || this.cartItems.length);
             this.updateAllButtonStates();
+        },
+
+        /**
+         * Mostra un messaggio di errore quando il carrello non può essere caricato
+         */
+        showCartError: function () {
+            this.$fullContent.hide();
+            this.$footer.hide();
+            this.$emptyState.hide();
+            this.$cartIconContainer.addClass('hidden');
+            this.$itemsContainer.html(
+                '<p class="bw-cart-fetch-error">Could not load cart contents.<br>Please refresh the page.</p>'
+            );
+            this.$fullContent.show();
         },
 
         /**
@@ -1075,11 +1093,25 @@
          */
         removeItem: function (cartItemKey) {
             const self = this;
+
+            // Guard: ignora se già in corso una richiesta per questo item
+            if (self._pendingItemKeys[cartItemKey]) {
+                return;
+            }
+
             const $item = $('.bw-cart-item[data-cart-item-key="' + cartItemKey + '"]');
 
             if (!$item.length) {
                 return;
             }
+
+            // Cancella eventuale debounce qty pendente per questo item
+            if (self._qtyDebounceTimers[cartItemKey]) {
+                clearTimeout(self._qtyDebounceTimers[cartItemKey]);
+                delete self._qtyDebounceTimers[cartItemKey];
+            }
+
+            self._pendingItemKeys[cartItemKey] = true;
 
             // Fix the current height so CSS can transition it to 0
             $item.css('height', $item.outerHeight(true) + 'px');
@@ -1097,6 +1129,7 @@
                     cart_item_key: cartItemKey
                 },
                 success: function (response) {
+                    delete self._pendingItemKeys[cartItemKey];
                     if (response.success) {
                         $(document.body).trigger('wc_fragment_refresh');
                         self.loadCartContents(true);
@@ -1107,6 +1140,7 @@
                     }
                 },
                 error: function () {
+                    delete self._pendingItemKeys[cartItemKey];
                     console.error('AJAX error removing item');
                     $item.removeClass('bw-cart-item--removing').css('height', '');
                     self.loadCartContents();
@@ -1119,6 +1153,11 @@
          */
         updateQuantity: function (cartItemKey, quantity) {
             const self = this;
+
+            // Guard: non aggiornare se l'item è in corso di rimozione
+            if (self._pendingItemKeys[cartItemKey]) {
+                return;
+            }
 
             $.ajax({
                 url: bwCartPopupConfig.ajaxUrl,
