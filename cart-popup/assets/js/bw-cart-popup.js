@@ -44,6 +44,8 @@
         _cartDataFromResponse: null, // Dati carrello inclusi nella risposta add-to-cart (evita 2a AJAX)
         _qtyDebounceTimers: {},      // Timer debounce quantità per cart-item-key
         _pendingItemKeys: {},        // Chiavi item con richiesta AJAX in corso (anti-race)
+        _cartCacheTs: 0,             // Timestamp dell'ultimo fetch riuscito
+        _CACHE_TTL: 8000,            // Validità cache apertura pannello (ms)
 
         /**
          * Inizializzazione
@@ -556,8 +558,23 @@
             // Blocca scroll body
             $('body').addClass('bw-cart-popup-no-scroll');
 
-            // Carica contenuto carrello
-            this.loadCartContents();
+            // Carica contenuto carrello (con cache breve per toggle rapidi)
+            var cacheAge = Date.now() - this._cartCacheTs;
+            if (
+                !this._cartDataFromResponse &&
+                this.cartItems !== null &&
+                cacheAge < this._CACHE_TTL
+            ) {
+                // Cache valida: mostra il DOM esistente senza fare AJAX
+                this.isLoading = false;
+                if (this.cartItems && this.cartItems.length > 0) {
+                    this.showFullState();
+                } else {
+                    this.showEmptyState();
+                }
+            } else {
+                this.loadCartContents();
+            }
 
             console.log('Cart popup opened');
         },
@@ -649,6 +666,7 @@
                 .done(function (response) {
                     if (response && response.success) {
                         self.cartItems = (response.data && response.data.items) ? response.data.items : [];
+                        self._cartCacheTs = Date.now();
 
                         if (opts.render) {
                             self.renderCartItems(response.data);
@@ -870,6 +888,18 @@
         /**
          * Aggiorna i totali
          */
+        /**
+         * Aggiorna solo i totali numerici (subtotal/tax/total) senza toccare
+         * le righe coupon o i prodotti. Usato dopo updateQuantity per evitare
+         * il re-render completo del carrello.
+         */
+        _patchTotals: function (data) {
+            $('.bw-cart-popup-subtotal .value').html(data.subtotal).attr('data-price', data.subtotal_raw);
+            $('.bw-cart-popup-vat .value').html(data.tax).attr('data-tax', data.tax_raw);
+            $('.bw-cart-popup-total .value').html(data.total).attr('data-total', data.total_raw);
+            this.updateCheckoutCta(data.total);
+        },
+
         updateTotals: function (data) {
             const self = this;
             // Subtotal
@@ -898,15 +928,13 @@
                     'gap': '8px'
                 });
 
+                var couponRowsHtml = '';
                 coupons.forEach(function (coupon) {
                     // Handle both object (new) and string (legacy/fallback) formats
                     var code = typeof coupon === 'object' ? coupon.code : coupon;
                     var amount = typeof coupon === 'object' ? coupon.amount : '';
 
-                    // If amount is empty (legacy), we might not show it per row, but user asked for it. 
-                    // Backend now ensures amount is sent.
-
-                    var rowHtml = `
+                    couponRowsHtml += `
                      <div class="bw-cart-coupon-dynamic-row" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="label" style="display:inline; margin:0; font-weight:600;">Discount</span>
@@ -920,9 +948,9 @@
                             <span class="value" style="color:#000; font-weight:bold; display:block;">${amount}</span>
                         </div>
                      </div>`;
-
-                    $discountContainer.append(rowHtml);
                 });
+                // Singolo append per evitare reflow multipli
+                $discountContainer.append(couponRowsHtml);
 
             } else {
                 $discountContainer.hide();
@@ -1170,17 +1198,30 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Ricarica contenuto carrello
-                        self.loadCartContents();
-
-                        // Aggiorna anche il mini-cart di WooCommerce se presente
+                        if (response.data && response.data.empty) {
+                            // Carrello svuotato (qty → 0): mostra stato vuoto
+                            self.showEmptyState();
+                            self.updateBadge(0);
+                        } else if (response.data) {
+                            // Aggiorna solo i totali numerici, senza ri-renderizzare
+                            // l'intero HTML del carrello (coupon e prodotti rimangono)
+                            self._patchTotals(response.data);
+                            self.updateBadge(response.data.item_count || 0);
+                        } else {
+                            // Fallback: dati mancanti → ricarica completa
+                            self.loadCartContents();
+                        }
+                        // Invalida cache così la prossima apertura forza un fetch
+                        self._cartCacheTs = 0;
                         $(document.body).trigger('wc_fragment_refresh');
                     } else {
                         console.error('Failed to update quantity');
+                        self.loadCartContents();
                     }
                 },
                 error: function () {
                     console.error('AJAX error updating quantity');
+                    self.loadCartContents();
                 }
             });
         },
