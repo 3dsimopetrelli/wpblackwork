@@ -763,8 +763,15 @@
     border: none !important;
     box-shadow: none !important;
     font-size: 12px !important;
-    color: inherit;
     padding: 0;
+}
+
+.bw-cart-popup-panel .bw-qty-btn {
+    color: inherit;
+}
+
+.bw-cart-popup-panel .bw-cart-item-remove {
+    color: rgba(255, 255, 255, 0.45) !important;
 }
 
 .bw-qty-stepper-framed {
@@ -1069,6 +1076,7 @@
 .bw-promo-message {
     display: none;
     width: 100%;
+    box-sizing: border-box;
     padding: 10px 14px;
     border-radius: var(--bw-cart-radius-sm);
     font-size: 13px;
@@ -1134,7 +1142,7 @@
 }
 
 .bw-cart-popup-discount .value {
-    color: var(--bw-cart-accent);
+    color: var(--bw-cart-accent) !important;
     margin-left: auto;
     order: 3;
 }
