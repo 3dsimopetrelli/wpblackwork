@@ -1421,3 +1421,13 @@ body.bw-cart-popup-no-scroll {
 
 
 /* Section 16 removed: no dynamic CSS to override. */
+
+/* Cart fetch error */
+.bw-cart-fetch-error {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--bw-cart-text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0;
+}
