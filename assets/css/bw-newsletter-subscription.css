@@ -113,7 +113,7 @@ input.bw-newsletter-subscription-input:focus {
     color: #181a20 !important;
     font-size: 12px !important;
     line-height: 1.25 !important;
-    cursor: pointer !important;
+    cursor: default !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__checkbox,
@@ -122,6 +122,31 @@ input.bw-newsletter-subscription-input:focus {
     height: 14px !important;
     margin: 0 !important;
     flex: 0 0 14px !important;
+    border: 1px solid #7c7c7c !important;
+    border-radius: 2px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__checkbox:checked,
+.bw-newsletter-subscription-consent__checkbox:checked {
+    border-color: #080808 !important;
+    background-color: #080808 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5 5.5 10 11 4.5' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 10px 10px !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__checkbox:focus,
+.bw-newsletter-subscription-consent__checkbox:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(8, 8, 8, 0.12) !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__text,
@@ -132,11 +157,17 @@ input.bw-newsletter-subscription-input:focus {
     gap: 6px !important;
 }
 
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__label,
+.bw-newsletter-subscription-consent__label {
+    cursor: pointer !important;
+}
+
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent__link,
 .bw-newsletter-subscription-consent__link {
     color: #181a20 !important;
     text-decoration: underline !important;
     text-underline-offset: 3px !important;
+    cursor: pointer !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button,

@@ -951,6 +951,13 @@ class BW_Checkout_Subscribe_Admin {
                                 <td><input type="text" id="bw_mail_marketing_subscription_privacy_link_label" name="bw_mail_marketing_subscription_privacy_link_label" value="<?php echo esc_attr( $subscription_settings['privacy_link_label'] ); ?>" class="regular-text" /></td>
                             </tr>
                             <tr>
+                                <th scope="row"><label for="bw_mail_marketing_subscription_privacy_url"><?php esc_html_e( 'Privacy policy URL', 'bw' ); ?></label></th>
+                                <td>
+                                    <input type="url" id="bw_mail_marketing_subscription_privacy_url" name="bw_mail_marketing_subscription_privacy_url" value="<?php echo esc_attr( $subscription_settings['privacy_url'] ); ?>" class="regular-text code" placeholder="<?php echo esc_attr( function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '' ); ?>" />
+                                    <p class="description"><?php esc_html_e( 'Optional override for the Privacy Policy link used by the subscription widget.', 'bw' ); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row"><label for="bw_mail_marketing_subscription_button_text"><?php esc_html_e( 'Button text', 'bw' ); ?></label></th>
                                 <td><input type="text" id="bw_mail_marketing_subscription_button_text" name="bw_mail_marketing_subscription_button_text" value="<?php echo esc_attr( $subscription_settings['button_text'] ); ?>" class="regular-text" /></td>
                             </tr>

@@ -189,7 +189,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                         />
                     </div>
 
-                    <label class="bw-newsletter-subscription-consent">
+                <div class="bw-newsletter-subscription-consent">
                     <input
                         id="<?php echo esc_attr( $consent_id ); ?>"
                         class="bw-newsletter-subscription-consent__checkbox"
@@ -201,7 +201,9 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                         <?php echo $consent_required ? 'required' : ''; ?>
                     />
                     <span class="bw-newsletter-subscription-consent__text">
-                        <?php echo esc_html( $consent_text ); ?>
+                        <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
+                            <?php echo esc_html( $consent_text ); ?>
+                        </label>
                         <?php if ( ! empty( $privacy_url ) ) : ?>
                             <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo esc_html( $settings['privacy_link_label'] ); ?>
@@ -212,7 +214,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                             </span>
                         <?php endif; ?>
                     </span>
-                </label>
+                </div>
 
                 <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
                     <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
