@@ -925,6 +925,11 @@ function bw_register_button_widget_assets()
     bw_register_widget_assets('button');
 }
 
+function bw_register_go_to_app_widget_assets()
+{
+    bw_register_widget_assets('go-to-app', [], false);
+}
+
 function bw_register_about_menu_widget_assets()
 {
     bw_register_widget_assets('about-menu', []);
