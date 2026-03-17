@@ -73,6 +73,9 @@ Out of scope:
     - `set_object_terms` (scoped to supported taxonomies),
     - `created_{taxonomy}` / `edited_{taxonomy}` / `delete_{taxonomy}`,
     - `added_term_meta` / `updated_term_meta` / `deleted_term_meta` for tree-affecting keys (`bw_color`, `bw_mf_icon_color`, `bw_pinned`, `bw_mf_pinned`, `bw_sort`).
+    - `transition_post_status` for supported post types when content enters or leaves a counted state:
+      - `attachment`: counted only in `inherit`
+      - `post` / `page` / `product`: counted in all states except `trash` and `auto-draft`
   - batch assignment path suspends per-item invalidation and performs one post-batch invalidation.
 
 ### Governance Watchlist (R-MF-01)

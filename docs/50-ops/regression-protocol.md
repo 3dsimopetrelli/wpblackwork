@@ -634,3 +634,14 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - no selection -> generic item warning shown
   - duplicate move still triggers duplicate popup instead of silent no-op
   - Media bulk organize remains unchanged
+
+## Media Folders Summary Cache Lifecycle Invalidation
+- Date: 2026-03-17
+- Scope:
+  - Hardens summary/tree/count cache invalidation for supported post lifecycle changes that affect `All Items` and `Unassigned Items`.
+- Regression checks required (manual):
+  - create new unassigned Page -> `Unassigned Items` increments immediately
+  - create new unassigned Post -> `Unassigned Items` increments immediately
+  - upload new unassigned Media -> `Unassigned Files` increments immediately
+  - create new unassigned Product -> `Unassigned Items` increments immediately
+  - move counted item to trash / restore -> summary counts converge without waiting for TTL
