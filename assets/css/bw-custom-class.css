@@ -66,7 +66,7 @@
    Applica questa classe in Elementor > Advanced > CSS Classes
    ========================================================== */
 
-.bw-hover-underline-ltr .elementor-heading-title,
+.bw-hover-underline-ltr .elementor-heading-title:not(:has(a)),
 .bw-hover-underline-ltr .elementor-heading-title a,
 .bw-hover-underline-ltr .elementor-item,
 .bw-hover-underline-ltr .elementor-icon-list-text,
@@ -84,7 +84,7 @@
   background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-size: 0% var(--bw-hover-underline-thickness);
-  background-position: 0 calc(100% - var(--bw-hover-underline-offset));
+  background-position: 0 100%;
   transition: background-size 0.28s ease;
   text-decoration: none !important;
 }
@@ -101,8 +101,8 @@
   margin: 0 !important;
 }
 
-.bw-hover-underline-ltr .elementor-heading-title:hover,
-.bw-hover-underline-ltr .elementor-heading-title:focus-within,
+.bw-hover-underline-ltr .elementor-heading-title:not(:has(a)):hover,
+.bw-hover-underline-ltr .elementor-heading-title:not(:has(a)):focus-visible,
 .bw-hover-underline-ltr .elementor-heading-title a:hover,
 .bw-hover-underline-ltr .elementor-heading-title a:focus-visible,
 .bw-hover-underline-ltr .elementor-item:hover,
