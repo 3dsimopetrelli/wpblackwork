@@ -91,7 +91,7 @@ class BW_Go_To_App_Widget extends Widget_Base {
             [
                 'label'     => __( 'Background Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
-                'default'   => '#f7f7f7',
+                'default'   => '#ececec',
                 'selectors' => [
                     '{{WRAPPER}} .bw-go-to-app' => 'background-color: {{VALUE}};',
                 ],
@@ -108,7 +108,7 @@ class BW_Go_To_App_Widget extends Widget_Base {
                 'range'      => [
                     'px' => [ 'min' => 0, 'max' => 80, 'step' => 1 ],
                 ],
-                'default'    => [ 'size' => 30, 'unit' => 'px' ],
+                'default'    => [ 'size' => 25, 'unit' => 'px' ],
                 'selectors'  => [
                     '{{WRAPPER}} .bw-go-to-app' => 'border-radius: {{SIZE}}{{UNIT}};',
                 ],

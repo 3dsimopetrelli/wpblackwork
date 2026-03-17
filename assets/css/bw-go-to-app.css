@@ -1,6 +1,6 @@
 .bw-go-to-app {
-    --bw-go-to-app-bg: #f7f7f7;
-    --bw-go-to-app-radius: 30px;
+    --bw-go-to-app-bg: #ececec;
+    --bw-go-to-app-radius: 25px;
     --bw-go-to-app-text-color: #080808;
     --bw-go-to-app-button-bg: #80fd03;
     --bw-go-to-app-button-border: #080808;
@@ -12,10 +12,10 @@
 
 .bw-go-to-app__text {
     color: var(--bw-go-to-app-text-color);
-    font-size: 30px;
+    font-size: 14px;
     font-weight: 400;
-    line-height: 1.34;
-    letter-spacing: -0.02em;
+    line-height: 1.5rem;
+    letter-spacing: normal;
     margin: 0 0 26px;
     max-width: 16ch;
 }
@@ -25,9 +25,9 @@
     width: 100%;
     align-items: center;
     justify-content: center;
-    gap: 14px;
-    min-height: 108px;
-    padding: 18px 32px;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 20px;
     border: 2px solid var(--bw-go-to-app-button-border);
     border-radius: 999px;
     background: var(--bw-go-to-app-button-bg);
@@ -48,8 +48,8 @@
 
 .bw-go-to-app__button-icon {
     display: inline-flex;
-    width: 30px;
-    height: 30px;
+    width: 1rem;
+    height: 1rem;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
@@ -75,10 +75,11 @@
     align-items: center;
     justify-content: center;
     color: inherit;
-    font-size: 28px;
+    font-size: 14px;
     font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.02em;
+    font-style: normal;
+    line-height: 20px;
+    letter-spacing: normal;
 }
 
 @media (max-width: 1024px) {
@@ -87,19 +88,20 @@
     }
 
     .bw-go-to-app__text {
-        font-size: 24px;
+        font-size: 14px;
         margin-bottom: 22px;
         max-width: none;
     }
 
     .bw-go-to-app__button {
-        min-height: 86px;
-        padding: 16px 24px;
-        gap: 12px;
+        min-height: 36px;
+        padding: 8px 20px;
+        gap: 8px;
     }
 
     .bw-go-to-app__button-label {
-        font-size: 24px;
+        font-size: 14px;
+        line-height: 20px;
     }
 }
 
@@ -110,24 +112,25 @@
     }
 
     .bw-go-to-app__text {
-        font-size: 20px;
-        line-height: 1.38;
+        font-size: 14px;
+        line-height: 1.5rem;
         margin-bottom: 18px;
     }
 
     .bw-go-to-app__button {
-        min-height: 72px;
-        padding: 14px 20px;
-        gap: 10px;
-        border-width: 1.5px;
+        min-height: 36px;
+        padding: 8px 20px;
+        gap: 8px;
+        border-width: 2px;
     }
 
     .bw-go-to-app__button-icon {
-        width: 24px;
-        height: 24px;
+        width: 1rem;
+        height: 1rem;
     }
 
     .bw-go-to-app__button-label {
-        font-size: 20px;
+        font-size: 14px;
+        line-height: 20px;
     }
 }
