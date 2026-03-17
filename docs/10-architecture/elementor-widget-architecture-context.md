@@ -30,6 +30,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
   - widget-level dependencies (`get_script_depends()` / `get_style_depends()`)
   - hook-based register/enqueue helpers for selected widget families
 - Slider handles are registered centrally and consumed per widget.
+- Mail Marketing subscription widget assets are registered centrally and can be pre-enqueued by channel runtime when the widget is rendered inside Theme Builder Lite custom footer injection.
 
 ## Current widget families (operational map)
 - Product Grid / Query Grid:
@@ -40,6 +41,8 @@ Document the current real architecture of Blackwork Elementor widgets and define
   - `bw-price-variation`, `bw-product-details-table`, `bw-title-product`
 - Content/UI utilities:
   - about-menu, button, divider, animated-banner, tags, related-post, static-showcase
+- Marketing / Lead Capture:
+  - `bw-newsletter-subscription`
 
 ## Current architectural problems
 1. Product-card-like rendering is duplicated across multiple widget/template surfaces.
@@ -63,6 +66,7 @@ Decisions already fixed:
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
+- `bw-newsletter-subscription` -> canonical fixed-design Brevo/Mail Marketing opt-in widget for Elementor surfaces
 
 Visible editor title alignment (current):
 - `bw-slick-slider` -> `BW-UI Product Slider`
@@ -71,6 +75,16 @@ Visible editor title alignment (current):
 - Scope note: title alignment affects editor labeling only; slug/runtime authority is unchanged.
 - Editor identity exception:
   - `bw-title-product` uses a slug-scoped panel-family mapping to receive the WooCommerce/BW-SP purple editor card without relying on a `BW-SP` title prefix.
+- Mail Marketing widget note:
+  - `bw-newsletter-subscription` intentionally stays as a neutral utility title because its authority surface is Mail Marketing, not a product/widget family namespace.
+
+## Channel-governed widget pattern
+`bw-newsletter-subscription` is the current reference for a channel-governed widget pattern:
+
+- per-instance Elementor controls remain intentionally minimal
+- business behavior lives in admin settings (`Blackwork Site -> Mail Marketing -> Subscription`)
+- frontend writes go through a dedicated service/channel runtime instead of direct client-side API calls
+- public endpoint hardening, consent, and Brevo coupling are owned outside the widget render class
 
 ## Migration doctrine
 - No big-bang rewrite.

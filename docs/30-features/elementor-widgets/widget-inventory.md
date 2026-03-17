@@ -15,6 +15,7 @@ Canonical transition note:
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
+| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
@@ -47,6 +48,11 @@ Canonical transition note:
   - `custom_text`: static text input (source: `text` only)
   - Alignment (responsive), Typography group control (Elementor native)
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
+- `bw-newsletter-subscription`:
+  - fixed-design widget
+  - minimal editor controls only
+  - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
+  - public submit handled through nonce-protected server-side AJAX endpoint
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
   - AJAX response path (`bw_fpw_filter_posts`).
@@ -72,6 +78,9 @@ Canonical transition note:
 - Runtime remains mixed:
   - per-widget `get_script_depends()` and `get_style_depends()`
   - additional hook-based register/enqueue flows for some widgets
+- `bw-newsletter-subscription` is a hybrid case:
+  - declares normal Elementor style/script depends
+  - also has channel-level runtime pre-enqueue logic for Theme Builder Lite footer injection
 - Slider handles are registered centrally and consumed per widget:
   - `slick-js`, `slick-css`
   - `bw-slick-slider-js`, `bw-product-slide-js`, `bw-presentation-slide-script`

@@ -29,6 +29,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `architecture-direction.md`: target architecture (shared product-card, slider-core, controls, asset authority)
 - `rationalization-policy.md`: keep/merge/rebuild/delete decisions and deprecation policy
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
+- `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 
 ## Confirmed decisions (current)
 - `bw-add-to-cart` -> DELETE (completed)
@@ -65,6 +66,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Removal/replacement path finalized:
   - `bw-wallpost` -> use `bw-product-grid` with `Enable Filter = No`
   - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces
+- Mail Marketing wave completed:
+  - `bw-newsletter-subscription` added as the governed subscription widget for site-wide Brevo capture
+  - runtime logic delegated to `BW_MailMarketing_Subscription_Channel`
+  - admin behavior delegated to `Mail Marketing -> Subscription`
 
 ## BW Product Grid Stabilization (2026)
 - A dedicated stabilization wave was completed on `BW Product Grid` to harden runtime behavior and remove residual drift before further feature work.

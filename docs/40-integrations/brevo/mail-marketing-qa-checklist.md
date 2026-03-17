@@ -1,7 +1,7 @@
 # Mail Marketing -- QA Checklist (Verification Report)
 
 Blackwork Site Plugin  
-Brevo Integration -- Checkout & Admin Refactor
+Brevo Integration -- Checkout, Elementor Widget & Admin Refactor
 
 Data verifica: 2026-02-24
 
@@ -258,6 +258,132 @@ Dettaglio:
 - [x] `_bw_brevo_subscribed` state machine implemented (`subscribed|pending|skipped|error`)
 - [x] Logs written with source `bw-brevo`
 - [ ] Unsubscribed/blocklisted never auto-resubscribed in all Brevo semantics (partial coverage: `emailBlacklisted`)
+
+---
+
+## Addendum -- Elementor Subscription Widget (Verification Report)
+
+Data verifica addendum: 2026-03-17
+
+## 12. Mail Marketing -> Subscription Admin Surface
+
+- [x] Tab exists: **Blackwork Site -> Mail Marketing -> Subscription**
+- [x] Channel enable toggle exists
+- [x] Source key field exists
+- [x] List mode exists (`inherit` / `custom`)
+- [x] Custom list selector or numeric fallback exists
+- [x] Channel opt-in mode exists
+- [x] Widget copy fields exist for fixed-design widget baseline
+- [x] Privacy policy URL override exists
+
+Esito: ✅ Fully implemented
+
+Dettaglio:
+- Subscription tab is a first-class Mail Marketing authority surface.
+- The list selector follows the same Brevo list-loading pattern as General, with numeric fallback if API lookup fails.
+- Fixed-design widget copy is centrally governed here rather than per-instance style controls.
+
+## 13. Elementor Widget -- Render Contract
+
+- [x] Widget registered in Elementor widget loader
+- [x] Widget slug is stable: `bw-newsletter-subscription`
+- [x] Fixed frontend structure exists:
+  - optional Name field
+  - Email field
+  - privacy checkbox
+  - submit button
+  - message live region
+- [x] Minimal editor controls exist:
+  - show name field
+  - consent text override
+  - name float label override
+  - email float label override
+- [x] Widget remains visible in editor when channel is disabled (preview notice)
+
+Esito: ✅ Fully implemented
+
+## 14. Frontend Validation & UX States
+
+- [x] Empty email blocked client-side
+- [x] Invalid email blocked client-side
+- [x] Missing consent blocked client-side when required
+- [x] Submit button enters loading/busy state
+- [x] Double-submit is prevented
+- [x] Safe generic failure shown on network/API issues
+- [x] Success message shown on successful submit
+- [x] Already-subscribed case handled explicitly
+- [x] Form reset behavior is deterministic
+
+Esito: ✅ Fully implemented
+
+Dettaglio:
+- JS runtime validates before request and mirrors server-side codes.
+- Button is disabled while request is running.
+- Already-subscribed success does not unnecessarily reset the form.
+
+## 15. Backend Validation & Security
+
+- [x] Nonce enforced on public submit endpoint
+- [x] Server-side email normalization implemented
+- [x] Empty email rejected server-side
+- [x] Invalid email rejected server-side
+- [x] Missing consent rejected server-side
+- [x] Structured JSON response shape implemented
+- [x] Raw Brevo/provider errors not exposed to users
+- [x] Brevo API key remains server-side only
+- [x] Rate limiting/cooldown implemented
+
+Esito: ✅ Fully implemented
+
+Dettaglio:
+- Cooldown uses transient-based throttling keyed by normalized email + request IP hash.
+- Stable public response codes:
+  - `empty_email`
+  - `invalid_email`
+  - `missing_consent`
+  - `rate_limited`
+  - `already_subscribed`
+  - `success`
+  - `generic_failure`
+
+## 16. Asset Loading -- Custom Footer Runtime
+
+- [x] Widget CSS/JS register centrally
+- [x] Widget CSS/JS enqueue from widget render
+- [x] Custom footer pre-enqueue exists to avoid late-style misses
+- [ ] Browser-level verification executed for every footer permutation
+
+Esito: ⚠️ Partially implemented
+
+Dettaglio:
+- Runtime fix exists: when the active custom footer contains `bw-newsletter-subscription`, assets are enqueued during `wp_enqueue_scripts`.
+- This closes the previously observed unstyled-footer problem.
+- Strict browser coverage across all Theme Builder Lite footer combinations was not executed in this verification pass.
+
+## 17. Accessibility Essentials
+
+- [x] Label/input associations are present
+- [x] `aria-describedby` applied to email and consent controls
+- [x] `aria-invalid` toggled on validation errors
+- [x] `aria-disabled` applied during busy state
+- [x] Live region exists for status messages
+- [x] No-JS path shows explicit notice
+
+Esito: ✅ Fully implemented
+
+## 18. Overall Widget Hardening Status
+
+- [x] Public write path is GDPR-gated
+- [x] Public write path is rate-limited
+- [x] Public write path is deterministic
+- [x] Public write path keeps provider detail server-side
+- [ ] Full live E2E verification with Brevo on staging/local documented here
+
+Esito: ⚠️ Partially implemented
+
+Dettaglio:
+- Static/code-level hardening is complete.
+- Missing evidence is live browser/API execution documentation, not missing implementation.
 
 ---
 

@@ -108,7 +108,7 @@ Current adoption:
 - `Blackwork Site > Status` page
 - `Blackwork Site > Media Folders` settings page
 - `Blackwork Site > Site Settings` router page (header, action bar, card-wrapped tabs/content, save-proxy CTA bound to existing tab submit buttons)
-- `Blackwork Site > Mail Marketing` page (header, action bar with save CTA, UI-kit tabs, card-grouped General/Checkout settings)
+- `Blackwork Site > Mail Marketing` page (header, action bar with save CTA, UI-kit tabs, card-grouped General/Checkout/Subscription settings)
 - `Blackwork Site > Header` page (header shell, action bar save CTA, UI-kit primary tabs, and section-card settings groups)
 - `Blackwork Site > Theme Builder Lite` page (header shell, action bar save CTA, Sections card with UI-kit tabs, card-grouped tab content)
 - `Blackwork Site > All Templates` list screen (WP-native list table wrapped in UI-kit shell/action bar and skinned styles; behavior unchanged)
@@ -171,6 +171,9 @@ Current adoption:
     - `blackwork-site-settings&tab=cart-popup`: `bw-border-toggle-admin.js`
     - `blackwork-mail-marketing&tab=general`: `bw-checkout-subscribe.js`
   - Out-of-scope pages (Header, Theme Builder Lite, Status, Media Folders, All Templates) do not receive the Site Settings tab-specific assets.
+  - Site Settings `Info` tab is intentionally content-only:
+    - no dedicated save model
+    - no dedicated JS beyond the inline copy helper bundled in the tab renderer
 - Module-local assets:
   - Status:
     - behavior: `includes/modules/system-status/admin/assets/system-status-admin.js`
@@ -204,6 +207,19 @@ Current adoption:
   - Mail Marketing auxiliary panels: `admin/js/bw-order-newsletter-status.js`, `admin/js/bw-user-mail-marketing.js`
 
 ## 2) Tab-by-Tab Structural Map
+
+## Info
+- Renderer: `bw_site_render_info_tab()`
+- Save model: none
+- Purpose:
+  - document reusable frontend utility classes for Elementor and other Blackwork surfaces
+  - provide copy-ready values in wp-admin
+  - explain where the class must be inserted (`Elementor -> Advanced -> CSS Classes`)
+- Current informational contract:
+  - `bw-hover-underline-ltr`
+- Notes:
+  - this tab is the first Site Settings tab
+  - it is intentionally informational and does not own frontend runtime behavior
 
 ## Cart Pop-up
 - Renderer: `bw_site_render_cart_popup_tab()`

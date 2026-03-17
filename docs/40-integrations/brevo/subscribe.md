@@ -1,8 +1,8 @@
 # Documentation Governance & Update Workflow
 
-Document Version: 1.3  
-Last Updated: 2026-03-16  
-Last Update Summary: Added Mail Marketing Subscription tab and fixed-design Elementor newsletter widget channel.
+Document Version: 1.4
+Last Updated: 2026-03-17
+Last Update Summary: Closed the Elementor subscription widget documentation wave and aligned Brevo docs with the hardened public widget channel.
 
 ## 0.1 Purpose of this Document
 This file is the official technical specification and single source of truth for the Brevo Mail Marketing system in the Blackwork Site plugin.
@@ -39,9 +39,9 @@ Internal document versioning rules:
 
 Current baseline:
 
-- Document Version: `1.3`
-- Last Updated: `2026-03-16`
-- Last Update Summary: `Added Mail Marketing Subscription tab and fixed-design Elementor newsletter widget channel.`
+- Document Version: `1.4`
+- Last Updated: `2026-03-17`
+- Last Update Summary: `Closed the Elementor subscription widget documentation wave and aligned Brevo docs with the hardened public widget channel.`
 
 ## 0.4 Change Log Section
 A persistent change log must be maintained at the end of this document under `10. Change Log`.
@@ -69,11 +69,11 @@ System goals:
 
 - Centralize Brevo credentials and global behavior
 - Separate global settings from checkout-channel behavior
-- Preserve backward compatibility during migration
+- Reuse one Brevo data model across checkout and site-wide widget channels
 - Guarantee explicit consent-driven subscription logic
 - Provide auditable status transitions and logs
 
-Runtime scope currently documented here:
+Runtime scope documented here:
 
 - Admin settings and migration
 - Checkout subscription channel
@@ -101,16 +101,22 @@ Responsibilities:
 - Sanitize and persist settings
 - Execute legacy migration bootstrap
 - Handle secure AJAX connection testing
-- Handle secure AJAX order actions (`Refresh`, `Retry subscribe`)
+- Handle secure AJAX order/user actions
 
-## 2.2 Service Orchestration Layer
-Current implementation:
+## 2.2 Service Layer
+Current shared service surfaces:
 
-- Runtime orchestration is handled inside `BW_Checkout_Subscribe_Frontend::process_subscription()`.
+- `BW_MailMarketing_Service`
+- `BW_MailMarketing_Subscription_Channel`
 
-Planned direction:
+Responsibilities:
 
-- Introduce centralized `BW_Subscribe_Service` to decouple channel logic from checkout-specific class.
+- Resolve list selection (`inherit` vs `custom`)
+- Resolve effective opt-in mode (`inherit` vs channel override)
+- Build Brevo attribute payloads
+- Parse full name into Brevo name attributes
+- Detect unsupported attribute-schema errors and strip marketing attributes safely
+- Own the public widget subscription endpoint runtime
 
 ## 2.3 Brevo Client Layer
 Shared API adapter:
@@ -134,21 +140,16 @@ Current channels:
 Primary components:
 
 - `BW_Checkout_Subscribe_Frontend`
+- `BW_Newsletter_Subscription_Widget`
 - `BW_MailMarketing_Subscription_Channel`
 
 Responsibilities:
 
 - Inject checkout checkbox
 - Save consent metadata
-- Trigger subscription at configured timing
-- Persist subscription status and errors
+- Trigger checkout subscription at configured timing
+- Render the Elementor widget
 - Process widget AJAX submits with explicit consent and Brevo sync
-
-Admin order integration:
-
-- `woocommerce_admin_order_data_after_order_details` renders status panel and debug table
-- No Brevo call is executed automatically on page load
-- Brevo sync/write calls are user-triggered via AJAX buttons
 
 ## 2.5 Logging and Audit Layer
 Backend:
@@ -159,13 +160,14 @@ Source:
 
 - `bw-brevo`
 
-Context payload includes:
+Context payload can include:
 
 - `order_id`
 - `email`
-- `context` (`checkout_guest` or `checkout_user`)
-- `result` (`pending`, `subscribed`, `skipped`, `error`)
-- `action` (`refresh`, `retry`, and runtime checkout flow)
+- `context`
+- `result`
+- `action`
+- `source`
 
 ---
 
@@ -182,29 +184,29 @@ bw_mail_marketing_general_settings
 
 Fields:
 
-- `api_key` (required for API operations)
-- `api_base` (fixed: `https://api.brevo.com/v3`, not editable)
-- `list_id` (main list)
-- `default_optin_mode` (`single_opt_in` | `double_opt_in`)
+- `api_key`
+- `api_base` (`https://api.brevo.com/v3`, fixed)
+- `list_id`
+- `default_optin_mode`
 - `double_optin_template_id`
 - `double_optin_redirect_url`
 - `sender_name`
 - `sender_email`
-- `debug_logging` (toggle)
-- `resubscribe_policy` (`no_auto_resubscribe`)
-- `sync_first_name` (toggle)
-- `sync_last_name` (toggle)
+- `debug_logging`
+- `resubscribe_policy`
+- `sync_first_name`
+- `sync_last_name`
 
 Brevo list loading behavior:
 
-- Preferred mode: dropdown from Brevo API (`get_lists()`)
+- Preferred mode: dropdown via Brevo API (`get_lists()`)
 - Fallback mode: numeric `list_id` input if list retrieval fails
-- This fallback is mandatory to avoid UI hard-failure when API lookup is unavailable
 
 Connection test:
 
 - AJAX action: `bw_brevo_test_connection`
 - Protected by capability check and nonce validation
+- Validates API key only
 
 ## 3.2 Mail Marketing -> Checkout
 Purpose: checkout-channel-specific behavior.
@@ -223,6 +225,13 @@ Fields:
 - `privacy_text`
 - `subscribe_timing` (`paid` default, `created` optional)
 - `channel_optin_mode` (`inherit` | `single_opt_in` | `double_opt_in`)
+- `placement_after_key`
+- `priority_offset`
+
+Checkout support limitation:
+
+- Only classic WooCommerce checkout is supported.
+- Checkout Blocks are explicitly excluded from this integration.
 
 ## 3.3 Mail Marketing -> Subscription
 Purpose: central configuration for the reusable Elementor newsletter widget channel.
@@ -233,13 +242,18 @@ Option name:
 bw_mail_marketing_subscription_settings
 ```
 
-Fields:
+Operational fields:
 
 - `enabled`
 - `source_key`
 - `list_mode` (`inherit` | `custom`)
 - `list_id`
 - `channel_optin_mode` (`inherit` | `single_opt_in` | `double_opt_in`)
+- `consent_required`
+- `privacy_url`
+
+Widget copy fields:
+
 - `name_label`
 - `email_label`
 - `consent_prefix`
@@ -248,53 +262,63 @@ Fields:
 - `success_message`
 - `error_message`
 - `consent_required_message`
-- `placement_after_key` (default `billing_email`)
-- `priority_offset` (default `5`)
 
-Channel override behavior:
+Runtime-ready message fields already centralized in the schema/localized config:
 
-- `inherit`: uses `General.default_optin_mode`
-- `single_opt_in`: forces single opt-in for checkout
-- `double_opt_in`: forces DOI for checkout
+- `empty_email_message`
+- `invalid_email_message`
+- `already_subscribed_message`
+- `loading_message`
+- `rate_limited_message`
 
-Checkout support limitation:
+Implementation note:
 
-- Only classic WooCommerce checkout is supported.
-- Checkout Block is explicitly excluded from this integration.
+- The runtime already supports the full message map above.
+- The admin UI currently exposes the core copy fields and privacy URL override.
+- Additional message controls can be surfaced later without changing the endpoint contract.
 
-## 3.3 WooCommerce Order Admin -> Newsletter Status Panel
+### Elementor widget controls
+Current widget controls:
+
+- `Show name field`
+- `Consent text`
+- `Name float label`
+- `Email float label`
+
+Design contract:
+
+- The widget is intentionally fixed-design.
+- Elementor controls are limited to content overrides.
+- Brevo behavior is owned by `Mail Marketing -> Subscription`, not by per-instance style controls.
+
+## 3.4 WooCommerce Order Admin -> Newsletter Status Panel
 Purpose: operational visibility and manual controls per order.
 
 Location:
 
-- WooCommerce order edit screen, rendered in order data area.
+- WooCommerce order edit screen
 
 UI components:
 
-- Prominent status badge:
-  - `Subscribed` (green)
-  - `Pending` (blue/gray)
-  - `Not subscribed` (neutral)
-  - `Error` (red)
-- `Refresh` button (read-only sync with Brevo)
-- `Retry subscribe` button (write action)
-- Inline response message area
-- Meta Debug Table with:
-  - Email
-  - List ID used
-  - Opt-in value
-  - Consent timestamp
-  - Consent source
-  - Current Brevo status
-  - Last error
-  - Last checked timestamp
-  - Brevo contact ID
+- Status badge
+- `Check Brevo`
+- `Retry subscribe`
+- Inline response area
+- `Consent`, `Brevo Sync`, and `Advanced` sections
+- Advanced diagnostics table and payload summary
 
-Order admin panel behavior:
+## 3.5 User Profile -> Mail Marketing - Brevo
+Purpose: user-level diagnostics without automatic subscription authority.
 
-- No network call on page load
-- Buttons are disabled while AJAX action is running
-- UI updates status badge and debug values inline after response
+Location:
+
+- WP Admin user edit/profile screen
+
+Capabilities:
+
+- check current Brevo presence/status
+- sync diagnostics status
+- display consent metadata when present
 
 ---
 
@@ -304,27 +328,30 @@ Order admin panel behavior:
 Admin hooks:
 
 - `admin_menu`
-- `admin_init` (migration + save handlers)
+- `admin_init`
 - `wp_ajax_bw_brevo_test_connection`
 - `woocommerce_admin_order_data_after_order_details`
 - `wp_ajax_bw_brevo_order_refresh_status`
 - `wp_ajax_bw_brevo_order_retry_subscribe`
+- `wp_ajax_bw_brevo_user_check_status`
+- `wp_ajax_bw_brevo_user_sync_status`
 
 Checkout hooks:
 
-- `woocommerce_before_checkout_billing_form`
 - `woocommerce_checkout_fields`
-- `woocommerce_form_field`
+- `woocommerce_checkout_create_order`
 - `woocommerce_checkout_update_order_meta`
-- `woocommerce_checkout_order_processed` (timing `created`)
-- `woocommerce_order_status_processing` (timing `paid`)
-- `woocommerce_order_status_completed` (timing `paid`)
+- `woocommerce_checkout_order_processed`
+- `woocommerce_order_status_processing`
+- `woocommerce_order_status_completed`
 - `wp_enqueue_scripts`
 
-Order admin AJAX hooks:
+Widget/public hooks:
 
-- `wp_ajax_bw_brevo_order_refresh_status` (read-only sync)
-- `wp_ajax_bw_brevo_order_retry_subscribe` (write action)
+- `init`
+- `wp_enqueue_scripts`
+- `wp_ajax_bw_mail_marketing_subscribe`
+- `wp_ajax_nopriv_bw_mail_marketing_subscribe`
 
 ## 4.2 Guest Checkout with Opt-in OFF
 Sequence:
@@ -362,14 +389,38 @@ Executed on:
 
 In both modes, execution path performs:
 
-- Consent validation
-- Settings validation
-- Email validation
-- Mode resolution (single vs DOI)
+- consent validation
+- settings validation
+- email validation
+- mode resolution (single vs DOI)
 - Brevo API request
-- State write + log event
+- state write + log event
 
-## 4.5 Double Opt-in Enabled
+## 4.5 Elementor Widget Submit Flow
+Sequence:
+
+1. Widget renders server-side with fixed markup and localized runtime config.
+2. JS validates:
+   - empty email
+   - invalid email
+   - missing consent
+3. Button enters busy state and prevents double submit.
+4. AJAX posts to `admin-ajax.php` with:
+   - `action=bw_mail_marketing_subscribe`
+   - `nonce`
+   - `email`
+   - optional `name`
+   - `privacy=1`
+5. Server validates again and normalizes email deterministically.
+6. Cooldown gate runs before Brevo write.
+7. Existing contact lookup prevents duplicate list-write when already subscribed.
+8. Effective mode is resolved:
+   - `single_opt_in`
+   - `double_opt_in`
+9. Brevo request executes server-side only.
+10. Frontend receives structured safe JSON and updates the live region.
+
+## 4.6 Double Opt-in Enabled
 When resolved mode is DOI:
 
 - Preconditions:
@@ -377,81 +428,60 @@ When resolved mode is DOI:
   - `double_optin_redirect_url`
 - Call:
   - `send_double_opt_in(...)`
-- On success:
-  - `_bw_brevo_subscribed = pending`
+- Result:
+  - frontend receives logical success
+  - order-based flows persist `pending`
 
-## 4.6 Email Already Exists
+## 4.7 Email Already Exists
 Single opt-in path uses:
 
 - `upsert_contact(..., updateEnabled=true)`
 
-Result:
+Widget-specific precheck:
 
-- Existing contact is updated, not duplicated.
+- if existing contact is already in the resolved list:
+  - no new write is sent
+  - response code is `already_subscribed`
 
-## 4.7 Email Unsubscribed / Blocklisted
+## 4.8 Email Unsubscribed / Blocklisted
 Current enforced behavior:
 
-- Pre-check `get_contact($email)`
-- If `emailBlacklisted` is true:
+- pre-check `get_contact($email)`
+- if `emailBlacklisted` is true and resubscribe policy is `no_auto_resubscribe`:
   - skip subscription
-  - set `_bw_brevo_subscribed = skipped`
-  - log reason with `bw-brevo`
+  - log with `bw-brevo`
+  - return safe failure to frontend or `skipped` on order paths
 
-Note:
+## 4.9 Public Endpoint Validation States
+Stable widget endpoint codes:
 
-- Current guard is explicit for blocklisted contacts.
-- Additional Brevo opt-out semantics should be expanded in future hardening.
+- `empty_email`
+- `invalid_email`
+- `missing_consent`
+- `rate_limited`
+- `already_subscribed`
+- `success`
+- `generic_failure`
 
-## 4.8 Order Admin Refresh (Read-Only Sync)
-Triggered manually by `Refresh` button in order admin panel.
+These codes are the canonical frontend contract for widget submit handling.
 
-Sequence:
+## 4.10 Custom Footer Runtime
+Theme Builder Lite custom footers are injected late in the page lifecycle.
 
-1. Validate capability (`manage_woocommerce` or `manage_options`) and nonce.
-2. Resolve order and billing email.
-3. Call `BW_Brevo_Client->get_contact($email)`.
-4. Compute status from Brevo response:
-   - contact not found -> `skipped`
-   - contact blocklisted -> `skipped`
-   - contact in configured list -> `subscribed`
-   - contact exists but not in configured list -> `skipped`
-5. Update status metas only:
-   - `_bw_brevo_subscribed`
-   - `_bw_brevo_error_last` (clear on success path)
-   - `_bw_brevo_last_checked_at`
-   - `_bw_brevo_contact_id` (if available)
-6. Log action with source `bw-brevo` and `action=refresh`.
+Current behavior:
 
-## 4.9 Order Admin Retry Subscribe (Write Action)
-Triggered manually by `Retry subscribe` button in order admin panel.
+- the widget channel scans the active footer template for `bw-newsletter-subscription`
+- when present, assets are enqueued early during `wp_enqueue_scripts`
 
-Preconditions:
+Purpose:
 
-- `_bw_subscribe_newsletter = 1`
-- Valid billing email
-- Valid `api_key` and `list_id`
-- Contact must not be blocklisted/unsubscribed
-
-Execution:
-
-1. Validate capability + nonce.
-2. Re-check contact blocklist status.
-3. Resolve channel mode (single/DOI via checkout override + general fallback).
-4. Execute:
-   - single opt-in -> `upsert_contact(...)`
-   - DOI -> `send_double_opt_in(...)`
-5. Update state and meta:
-   - success single -> `subscribed`
-   - success DOI -> `pending`
-   - failure -> `error` + `_bw_brevo_error_last`
-6. Update `_bw_brevo_last_checked_at`.
-7. Log action with source `bw-brevo` and `action=retry`.
+- keep frontend/footer/custom-footer styling consistent
+- avoid late CSS misses caused by `wp_footer` injection timing
 
 ---
 
 # 5. State Machine
-Primary meta key:
+Primary order meta key:
 
 ```text
 _bw_brevo_subscribed
@@ -471,10 +501,13 @@ Set when subscription is intentionally not performed.
 Typical reasons:
 
 - no explicit consent
+- no consent recorded
 - blocklisted contact
+- invalid email
+- missing list
 
 ## 5.4 `error`
-Set when validation or API execution fails.
+Set when validation or API execution fails on order-based flows.
 
 Companion error key:
 
@@ -482,19 +515,12 @@ Companion error key:
 _bw_brevo_error_last
 ```
 
-Stores latest failure reason for troubleshooting.
+Stores the latest failure or warning reason for diagnostics.
 
-Additional order admin keys:
+Widget note:
 
-```text
-_bw_brevo_last_checked_at
-_bw_brevo_contact_id
-```
-
-Usage:
-
-- `_bw_brevo_last_checked_at`: timestamp of last manual sync/retry check.
-- `_bw_brevo_contact_id`: cached Brevo contact identifier when available.
+- the public widget endpoint does not persist order state
+- its canonical state machine is the structured response code map
 
 ---
 
@@ -513,16 +539,18 @@ Minimum log context fields:
 
 - `order_id` when available
 - `email` when available
-- `context` (`checkout_guest` / `checkout_user`)
-- `result` (`pending`, `subscribed`, `skipped`, `error`)
-- `action` (`refresh`, `retry`, or checkout runtime action)
+- `context`
+- `result`
+- `action`
+- `source`
 
 Logging expectations:
 
-- Every terminal outcome must be logged.
-- Error logs must include actionable reason.
-- Skip logs must include explicit reason (consent missing, blocklisted, etc.).
-- Order admin actions must always log outcome (`refresh`/`retry`) with order and email context.
+- every terminal order/admin outcome must be logged
+- widget endpoint failures must log provider detail server-side only
+- customer-facing errors must remain generic and non-technical
+- attribute-schema retries must log warning-level traces
+- cooldown hits must log rate-limit events without exposing secrets
 
 ---
 
@@ -530,16 +558,32 @@ Logging expectations:
 Mandatory safety rules:
 
 - No subscription without explicit consent.
-- No automatic resubscribe of blocklisted/unsubscribed contacts under `no_auto_resubscribe` policy.
+- No automatic resubscribe of blocklisted/unsubscribed contacts under `no_auto_resubscribe`.
 - All runtime outcomes must be auditable through metadata and logs.
-- Manual Retry must never bypass blocklist/unsubscribe constraints.
+- Manual retry must never bypass consent guardrails.
+- The public widget endpoint must keep API keys and provider detail server-side only.
 
 GDPR-oriented requirements:
 
-- Consent language must be explicit (`label_text`, `privacy_text`).
-- Default checked behavior must be used only where legally valid.
-- Consent source and timestamp must be retained for audit.
+- Consent text must be explicit and configurable at channel level.
+- Consent default is opt-in required for the widget.
+- Privacy Policy link can be overridden at channel level.
+- Consent source and timestamp must be retained whenever local state exists.
 - Preference and unsubscribe semantics from Brevo must be respected.
+
+Accessibility essentials currently implemented for the widget:
+
+- explicit label/input association
+- `aria-describedby`
+- `aria-invalid`
+- `aria-disabled`
+- live-region message updates
+- no placeholder-only labeling
+
+No-JS policy:
+
+- widget submit requires JavaScript
+- a deterministic `<noscript>` message is rendered instead of failing silently
 
 ---
 
@@ -553,7 +597,7 @@ bw_checkout_subscribe_settings
 
 Migration behavior:
 
-- If new options are empty and legacy option exists:
+- if new options are empty and legacy option exists:
   - map global fields to `bw_mail_marketing_general_settings`
   - map checkout fields to `bw_mail_marketing_checkout_settings`
 
@@ -564,39 +608,49 @@ Deprecated admin path:
 
 Current behavior:
 
-- Deprecated route shows notice and points to Mail Marketing page.
-- Editable configuration is centralized in `Mail Marketing -> General/Checkout`.
+- deprecated route shows notice and points to Mail Marketing page
+- editable configuration is centralized in `Mail Marketing -> General/Checkout`
 
 Backward-compatibility note:
 
-- Legacy option can still be read as fallback to avoid breaking old installations.
+- legacy option can still be read as fallback to avoid breaking older installations
+
+## 8.3 Deprecated Future-Wave Notes
+- `#11 Blackwork - Unconfirmed` remains reserved for future DOI/non-checkout capture flows
+- `SOURCE_FIRST` remains documented but not implemented
+- widget message schema is broader than the currently exposed admin controls
 
 ---
 
 # 9. Future Roadmap
 Channel expansion:
 
-- Footer newsletter integration
+- Footer newsletter integration on the same subscription-channel authority
 - Popup newsletter integration
 - My Account newsletter toggle
 - OAuth login soft opt-in integration
 
 Architecture hardening:
 
-- Introduce centralized `BW_Subscribe_Service`
-- Extend unsubscribe/blocklist guard coverage beyond current explicit blacklisted check
-- Normalize state transition contract across channels
-- Add automated integration tests for `created`, `paid`, and DOI paths
+- expose the full widget message schema in admin
+- add first-touch source support (`SOURCE_FIRST`)
+- expand unsubscribe detection beyond the current explicit blocklist flag
+- add automated integration tests for widget/public endpoint flows
 
 Observability improvements:
 
-- Structured log conventions
-- Diagnostics view for subscription events
-- Cross-entity traceability (order/user/contact)
+- structured log conventions
+- dedicated diagnostics view for subscription events
+- cross-entity traceability across order/user/widget touchpoints
 
 ---
 
 # 10. Change Log
+## v1.4 - 2026-03-17
+- Closed the Elementor subscription widget documentation wave across Brevo, Elementor, and admin architecture docs.
+- Documented the hardened public widget endpoint: nonce protection, deterministic response codes, server-side normalization, cooldown rate limiting, safe error exposure, and custom footer asset loading.
+- Documented the current fixed-design widget editor controls and the Subscription tab settings schema, including runtime-ready message fields.
+
 ## v1.3 - 2026-03-16
 - Added `Mail Marketing -> Subscription` as the dedicated admin tab for reusable site-wide newsletter widget settings.
 - Added fixed-design Elementor newsletter widget channel with explicit consent submit flow and Brevo list inherit/custom override support.

@@ -21,17 +21,30 @@ Out of scope / non-guarantees:
 ## 2) Integration Layers
 
 ### Admin Config Layer
-- Settings source: `bw_mail_marketing_general_settings` and `bw_mail_marketing_checkout_settings`.
-- Core controls: API key, list selection, opt-in mode/timing, channel flags, sender/DOI options, debug flag.
+- Settings sources:
+  - `bw_mail_marketing_general_settings`
+  - `bw_mail_marketing_checkout_settings`
+  - `bw_mail_marketing_subscription_settings`
+- Core controls:
+  - API key
+  - list selection
+  - opt-in mode/timing
+  - channel flags
+  - sender/DOI options
+  - debug flag
+  - widget channel copy/privacy controls
 
 ### Consent Capture Layer
 - Checkout field injection (`bw_subscribe_newsletter`) and consent metadata persistence.
 - Consent evidence saved on order before/after checkout save pipeline.
+- Public Elementor widget consent capture through explicit privacy checkbox submit.
 
 ### Runtime Trigger Layer
 - Automatic triggers:
   - order created hook (optional mode)
   - order paid hooks (`processing` / `completed`) as default model
+- Public/frontend triggers:
+  - widget submit via `bw_mail_marketing_subscribe`
 - Manual/admin triggers:
   - order metabox retry
   - orders bulk resync action
@@ -48,6 +61,7 @@ Out of scope / non-guarantees:
 ### Local State Layer
 - Order meta + user meta are local authority for consent/sync status.
 - Brevo is treated as delivery destination, not local truth owner.
+- Public widget flow does not create an order/user authority record by itself; its deterministic state surface is the structured response code contract plus server logs.
 
 ### Admin Observability Layer
 - Order-level panel/metabox actions (refresh, retry, load lists).
@@ -57,6 +71,7 @@ Out of scope / non-guarantees:
 ### Logging Layer
 - Logging via `wc_get_logger()` with source `bw-brevo`.
 - Structured reason/status traces are persisted in meta and log messages.
+- Public widget endpoint logs provider detail server-side only; customer-facing responses remain generic and safe.
 
 ## 3) Data Model (Local)
 Canonical order-level meta keys:
@@ -117,6 +132,15 @@ Implementation note:
 3. Admin panel/view state is reconciled.
 4. No implicit background mutation model is assumed beyond defined action behavior.
 
+### E) Elementor widget -> explicit consent submit -> public endpoint validation -> Brevo sync
+1. The fixed-design widget renders in Elementor/front-end contexts.
+2. JS validates empty email, invalid email, and missing consent before request.
+3. Server normalizes email deterministically and revalidates consent.
+4. Cooldown/rate-limit gate runs before any Brevo API call.
+5. Existing contact lookup prevents duplicate list-write when already subscribed.
+6. Brevo write executes server-side only.
+7. Frontend receives structured response codes (`success`, `already_subscribed`, `rate_limited`, `generic_failure`, etc.).
+
 ## 5) Consent Security Model (GDPR Gate)
 - `can_subscribe_order()` is the hard gate for write-side subscribe operations.
 
@@ -153,6 +177,7 @@ Invariants:
 ### Rate limit / transient provider failure
 - Local status: error or retry-later operational state via manual action.
 - Logging: provider error persisted.
+- Public widget impact: safe generic response or cooldown response.
 - Checkout impact: none.
 
 ### Attribute validation/schema rejection
@@ -160,9 +185,18 @@ Invariants:
 - Local outcome can remain warning-like/error-like while preserving order flow.
 - Checkout impact: none.
 
+### Public endpoint abuse / replay
+- Nonce is required but not treated as sufficient abuse protection.
+- Widget endpoint uses transient cooldown keyed by normalized email + request IP hash.
+- Result surface: `rate_limited` response code and server-side warning log.
+
 ## 8) High-Risk Zones (Blast Radius)
 - Checkout injection + consent persistence:
   - `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php`
+- Public widget runtime:
+  - `includes/integrations/brevo/class-bw-mailmarketing-subscription-channel.php`
+  - `includes/widgets/class-bw-newsletter-subscription-widget.php`
+  - `assets/js/bw-newsletter-subscription.js`
 - Paid-hook/runtime trigger path:
   - same frontend class (`maybe_subscribe_on_paid`, `process_subscription`)
 - Consent hard gate:
@@ -211,6 +245,18 @@ Invariants:
 - Customer-facing errors must remain safe and minimal.
 - Diagnostic detail belongs to logs/admin diagnostics.
 - API keys and raw sensitive payloads must never be logged; only necessary identifiers should appear.
+
+### 6.1) Public Widget Endpoint Safety Extension
+- No Brevo credentials or sensitive provider detail may appear in HTML, data attributes, or localized script payload.
+- Public widget responses must stay deterministic and code-based:
+  - `empty_email`
+  - `invalid_email`
+  - `missing_consent`
+  - `rate_limited`
+  - `already_subscribed`
+  - `success`
+  - `generic_failure`
+- Custom footer runtime must preload widget assets early enough to avoid style/runtime divergence caused by late footer injection.
 
 ### 7) High-Risk Change Policy (Blast Radius Rule)
 - Changes to consent capture, consent gate, paid-hook triggers, or Brevo API client behavior require regression validation.
