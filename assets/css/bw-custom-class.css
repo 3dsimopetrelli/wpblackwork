@@ -77,7 +77,21 @@
   display: inline-block;
   width: fit-content;
   max-width: 100%;
+  margin: 0 !important;
+  line-height: 1.1 !important;
   text-decoration: none !important;
+}
+
+.bw-hover-underline-ltr,
+.bw-hover-underline-ltr .elementor-widget-container,
+.bw-hover-underline-ltr p,
+.bw-hover-underline-ltr h1,
+.bw-hover-underline-ltr h2,
+.bw-hover-underline-ltr h3,
+.bw-hover-underline-ltr h4,
+.bw-hover-underline-ltr h5,
+.bw-hover-underline-ltr h6 {
+  margin: 0 !important;
 }
 
 .bw-hover-underline-ltr .elementor-heading-title::after,
