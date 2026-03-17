@@ -12,16 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
     class BW_MailMarketing_Service {
         /**
-         * Default marketing list ID fallback.
-         */
-        const DEFAULT_MARKETING_LIST_ID = 10;
-
-        /**
-         * Default unconfirmed list ID placeholder.
-         */
-        const DEFAULT_UNCONFIRMED_LIST_ID = 11;
-
-        /**
          * Build canonical Brevo attributes from order context.
          *
          * @param WC_Order $order          Woo order.
@@ -210,28 +200,15 @@ if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
         }
 
         /**
-         * Resolve marketing list ID with fallback.
+         * Resolve marketing list ID from General settings.
+         * Returns 0 if not configured — callers must treat 0 as a configuration error.
          *
          * @param array $general_settings General settings.
          *
          * @return int
          */
         public static function resolve_marketing_list_id( $general_settings = [] ) {
-            $configured = isset( $general_settings['list_id'] ) ? absint( $general_settings['list_id'] ) : 0;
-            if ( $configured > 0 ) {
-                return $configured;
-            }
-
-            return self::DEFAULT_MARKETING_LIST_ID;
-        }
-
-        /**
-         * Resolve unconfirmed list ID placeholder (future DOI sources).
-         *
-         * @return int
-         */
-        public static function resolve_unconfirmed_list_id() {
-            return self::DEFAULT_UNCONFIRMED_LIST_ID;
+            return isset( $general_settings['list_id'] ) ? absint( $general_settings['list_id'] ) : 0;
         }
 
         /**
