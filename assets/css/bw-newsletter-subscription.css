@@ -200,6 +200,14 @@ input.bw-newsletter-subscription-input:focus {
     border-color: var(--bw-search-button-border-color-hover) !important;
 }
 
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button[disabled],
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button[aria-disabled="true"],
+.bw-newsletter-subscription-button[disabled],
+.bw-newsletter-subscription-button[aria-disabled="true"] {
+    cursor: wait !important;
+    opacity: 0.75 !important;
+}
+
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-message,
 .bw-newsletter-subscription-message {
     min-height: 24px !important;
@@ -217,6 +225,19 @@ input.bw-newsletter-subscription-input:focus {
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-message.is-error,
 .bw-newsletter-subscription-message.is-error {
     color: #8a1f1f !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-message.is-loading,
+.bw-newsletter-subscription-message.is-loading {
+    color: #4b5563 !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-noscript,
+.bw-newsletter-subscription-noscript {
+    margin: 0 !important;
+    color: #8a1f1f !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-preview-notice,

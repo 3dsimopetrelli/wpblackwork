@@ -115,14 +115,21 @@ if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) ) {
                 'list_mode'                => 'inherit',
                 'list_id'                  => 0,
                 'channel_optin_mode'       => 'inherit',
+                'consent_required'         => 1,
+                'privacy_url'              => '',
                 'name_label'               => __( 'Name', 'bw' ),
                 'email_label'              => __( 'Email address', 'bw' ),
                 'consent_prefix'           => __( 'I agree to the', 'bw' ),
                 'privacy_link_label'       => __( 'Privacy Policy', 'bw' ),
                 'button_text'              => __( 'Subscribe', 'bw' ),
+                'empty_email_message'      => __( 'Please enter your email address.', 'bw' ),
+                'invalid_email_message'    => __( 'Please enter a valid email address.', 'bw' ),
                 'success_message'          => __( 'Thanks for subscribing! Please check your inbox.', 'bw' ),
+                'already_subscribed_message' => __( 'You are already subscribed.', 'bw' ),
+                'loading_message'          => __( 'Submitting...', 'bw' ),
                 'error_message'            => __( 'Unable to subscribe right now. Please try again later.', 'bw' ),
                 'consent_required_message' => __( 'Please confirm the privacy consent to subscribe.', 'bw' ),
+                'rate_limited_message'     => __( 'Please wait a moment before trying again.', 'bw' ),
             ];
         }
 
@@ -459,6 +466,12 @@ class BW_Checkout_Subscribe_Admin {
                 $settings['channel_optin_mode'] = 'inherit';
             }
 
+            $settings['consent_required'] = ! empty( $_POST['bw_mail_marketing_subscription_consent_required'] ) ? 1 : 0;
+
+            $settings['privacy_url'] = isset( $_POST['bw_mail_marketing_subscription_privacy_url'] )
+                ? esc_url_raw( wp_unslash( $_POST['bw_mail_marketing_subscription_privacy_url'] ) )
+                : $settings['privacy_url'];
+
             $settings['name_label'] = isset( $_POST['bw_mail_marketing_subscription_name_label'] )
                 ? sanitize_text_field( wp_unslash( $_POST['bw_mail_marketing_subscription_name_label'] ) )
                 : $settings['name_label'];
@@ -494,11 +507,39 @@ class BW_Checkout_Subscribe_Admin {
                 $settings['button_text'] = __( 'Subscribe', 'bw' );
             }
 
+            $settings['empty_email_message'] = isset( $_POST['bw_mail_marketing_subscription_empty_email_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_empty_email_message'] ) )
+                : $settings['empty_email_message'];
+            if ( '' === $settings['empty_email_message'] ) {
+                $settings['empty_email_message'] = __( 'Please enter your email address.', 'bw' );
+            }
+
+            $settings['invalid_email_message'] = isset( $_POST['bw_mail_marketing_subscription_invalid_email_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_invalid_email_message'] ) )
+                : $settings['invalid_email_message'];
+            if ( '' === $settings['invalid_email_message'] ) {
+                $settings['invalid_email_message'] = __( 'Please enter a valid email address.', 'bw' );
+            }
+
             $settings['success_message'] = isset( $_POST['bw_mail_marketing_subscription_success_message'] )
                 ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_success_message'] ) )
                 : $settings['success_message'];
             if ( '' === $settings['success_message'] ) {
                 $settings['success_message'] = __( 'Thanks for subscribing! Please check your inbox.', 'bw' );
+            }
+
+            $settings['already_subscribed_message'] = isset( $_POST['bw_mail_marketing_subscription_already_subscribed_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_already_subscribed_message'] ) )
+                : $settings['already_subscribed_message'];
+            if ( '' === $settings['already_subscribed_message'] ) {
+                $settings['already_subscribed_message'] = __( 'You are already subscribed.', 'bw' );
+            }
+
+            $settings['loading_message'] = isset( $_POST['bw_mail_marketing_subscription_loading_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_loading_message'] ) )
+                : $settings['loading_message'];
+            if ( '' === $settings['loading_message'] ) {
+                $settings['loading_message'] = __( 'Submitting...', 'bw' );
             }
 
             $settings['error_message'] = isset( $_POST['bw_mail_marketing_subscription_error_message'] )
@@ -513,6 +554,13 @@ class BW_Checkout_Subscribe_Admin {
                 : $settings['consent_required_message'];
             if ( '' === $settings['consent_required_message'] ) {
                 $settings['consent_required_message'] = __( 'Please confirm the privacy consent to subscribe.', 'bw' );
+            }
+
+            $settings['rate_limited_message'] = isset( $_POST['bw_mail_marketing_subscription_rate_limited_message'] )
+                ? sanitize_textarea_field( wp_unslash( $_POST['bw_mail_marketing_subscription_rate_limited_message'] ) )
+                : $settings['rate_limited_message'];
+            if ( '' === $settings['rate_limited_message'] ) {
+                $settings['rate_limited_message'] = __( 'Please wait a moment before trying again.', 'bw' );
             }
 
             update_option( BW_Mail_Marketing_Settings::SUBSCRIPTION_OPTION, $settings );
