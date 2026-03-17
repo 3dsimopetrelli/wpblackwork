@@ -34,6 +34,22 @@
     margin-bottom: -1px;
 }
 
+.bw-site-info-copy-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bw-site-info-steps {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.bw-site-info-steps li + li {
+    margin-top: 8px;
+}
+
 /* Tab Content */
 .tab-content {
     background: #fff;

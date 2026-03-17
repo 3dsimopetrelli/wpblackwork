@@ -172,6 +172,7 @@ function bw_site_settings_admin_assets($hook)
     }
 
     $site_settings_tabs = [
+        'info',
         'cart-popup',
         'bw-coming-soon',
         'account-page',
@@ -183,7 +184,7 @@ function bw_site_settings_admin_assets($hook)
     ];
     $mail_marketing_tabs = ['general', 'checkout', 'subscription'];
 
-    $current_site_settings_tab = in_array($current_tab_raw, $site_settings_tabs, true) ? $current_tab_raw : 'cart-popup';
+    $current_site_settings_tab = in_array($current_tab_raw, $site_settings_tabs, true) ? $current_tab_raw : 'info';
     $current_mail_marketing_tab = in_array($current_tab_raw, $mail_marketing_tabs, true) ? $current_tab_raw : 'general';
 
     // Base Site Settings admin CSS (used by Site Settings and Mail Marketing controls).
@@ -853,10 +854,10 @@ function bw_site_settings_page()
     }
 
     // Determina quale tab è attivo
-    $allowed_tabs = ['cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
-    $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'cart-popup';
+    $allowed_tabs = ['info', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
+    $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'info';
     if (!in_array($active_tab, $allowed_tabs, true)) {
-        $active_tab = 'cart-popup';
+        $active_tab = 'info';
     }
 
     $save_button_map = [
@@ -895,6 +896,10 @@ function bw_site_settings_page()
 
             <!-- Tab Navigation -->
             <nav class="nav-tab-wrapper bw-admin-tabs">
+                <a href="?page=blackwork-site-settings&tab=info"
+                    class="nav-tab <?php echo $active_tab === 'info' ? 'nav-tab-active' : ''; ?>">
+                    Info
+                </a>
                 <a href="?page=blackwork-site-settings&tab=cart-popup"
                     class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
                     Cart Pop-up
@@ -930,10 +935,12 @@ function bw_site_settings_page()
             </nav>
 
             <!-- Tab Content -->
-            <div class="tab-content bw-admin-site-settings-content">
-                <?php
-                // Renderizza il contenuto del tab attivo
-                if ($active_tab === 'cart-popup') {
+                <div class="tab-content bw-admin-site-settings-content">
+                    <?php
+                    // Renderizza il contenuto del tab attivo
+                if ($active_tab === 'info') {
+                    bw_site_render_info_tab();
+                } elseif ($active_tab === 'cart-popup') {
                     bw_site_render_cart_popup_tab();
                 } elseif ($active_tab === 'bw-coming-soon') {
                     bw_site_render_coming_soon_tab();
@@ -985,6 +992,83 @@ function bw_site_settings_page()
     })();
     </script>
     <?php endif; ?>
+    <?php
+}
+
+/**
+ * Render info tab with reusable frontend utility classes.
+ */
+function bw_site_render_info_tab()
+{
+    $hover_class = 'bw-hover-underline-ltr';
+    ?>
+    <section class="bw-admin-card">
+        <h2 class="bw-admin-card-title"><?php esc_html_e('Utility CSS Classes', 'bw'); ?></h2>
+        <p class="bw-admin-card-helper"><?php esc_html_e('Reusable frontend utility classes for Elementor and other Blackwork surfaces.', 'bw'); ?></p>
+
+        <table class="form-table bw-admin-table" role="presentation">
+            <tr>
+                <th scope="row"><label for="bw-site-info-hover-class"><?php esc_html_e('Hover underline class', 'bw'); ?></label></th>
+                <td>
+                    <div class="bw-site-info-copy-row">
+                        <input type="text" id="bw-site-info-hover-class" class="regular-text code" readonly value="<?php echo esc_attr($hover_class); ?>" />
+                        <button type="button" class="button bw-site-info-copy-button" data-copy-target="bw-site-info-hover-class"><?php esc_html_e('Copy class', 'bw'); ?></button>
+                    </div>
+                    <p class="description"><?php esc_html_e('Use this class to animate an underline from left to right on hover.', 'bw'); ?></p>
+                </td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="bw-admin-card">
+        <h2 class="bw-admin-card-title"><?php esc_html_e('How to Use It', 'bw'); ?></h2>
+        <p class="bw-admin-card-helper"><?php esc_html_e('Apply the class directly to the Elementor element that should receive the hover underline effect.', 'bw'); ?></p>
+
+        <ol class="bw-site-info-steps">
+            <li><?php esc_html_e('Open the Elementor element you want to animate, such as a Heading, Text, or menu item wrapper.', 'bw'); ?></li>
+            <li><?php esc_html_e('Go to Advanced -> CSS Classes.', 'bw'); ?></li>
+            <li><?php echo esc_html(sprintf(__('Paste %s into the CSS Classes field.', 'bw'), $hover_class)); ?></li>
+            <li><?php esc_html_e('On hover, the underline will grow from left to right under the text.', 'bw'); ?></li>
+        </ol>
+    </section>
+
+    <script>
+    (function () {
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('.bw-site-info-copy-button');
+            var target;
+            var originalText;
+
+            if (!button) {
+                return;
+            }
+
+            target = document.getElementById(button.getAttribute('data-copy-target'));
+            if (!target) {
+                return;
+            }
+
+            originalText = button.textContent;
+            target.focus();
+            target.select();
+            target.setSelectionRange(0, target.value.length);
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(target.value).then(function () {
+                    button.textContent = <?php echo wp_json_encode(__('Copied', 'bw')); ?>;
+                    window.setTimeout(function () {
+                        button.textContent = originalText;
+                    }, 1400);
+                }).catch(function () {
+                    document.execCommand('copy');
+                });
+                return;
+            }
+
+            document.execCommand('copy');
+        });
+    })();
+    </script>
     <?php
 }
 
