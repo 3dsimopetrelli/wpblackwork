@@ -331,3 +331,67 @@ Sono ancora persistite e localizzate in JS config, ma lo stile effettivo corrent
 - Tab admin unificato: `admin/class-blackwork-site-settings.php`
 - Coupon checkout custom: `woocommerce/woocommerce-init.php`
 - Coupon checkout frontend: `assets/js/bw-checkout.js`
+
+## 15) Hardening batch 2026-03-16
+
+### 15.1 Security — XSS hardening in template literals (R-SEC-30, R-SEC-31)
+
+Due helper aggiunti all'oggetto `BW_CartPopup` in `cart-popup/assets/js/bw-cart-popup.js`:
+
+| Helper | Escapes | Uso |
+|--------|---------|-----|
+| `_escHtml(str)` | `& < > " '` | testo interpolato come contenuto di nodi HTML |
+| `_escUrl(url)` | blocca `javascript:` e `data:` URI, poi escapa HTML | valori in attributo `href` |
+
+Applicazioni:
+
+- `renderCartItems()`: `item.permalink` → `self._escUrl(item.permalink)`, `item.name` → `self._escHtml(item.name)`.
+- `updateTotals()` loop coupon: `code` → `var safeCode = self._escHtml(code)` applicato sia al nodo `<b>` che all'attributo `data-code`.
+
+Campi lasciati non-escaped (HTML trusted server-side):
+- `item.image` — output di `get_the_post_thumbnail()` (WP)
+- `item.subtotal`, `item.regular_subtotal` — output di `wc_price()` (WC)
+- `item.key` — hash MD5 (solo caratteri `[a-f0-9]`)
+- `item.product_id` — già validato con `parseInt`
+
+Rischi chiusi: R-SEC-30 (Medium), R-SEC-31 (Low).
+
+### 15.2 Phase 2 — Rimozione campi stile dinamici dall'admin
+
+Commit: `c8c0c7ef`, `c57254a6`.
+
+- Rimossi dal tab `Cart Pop-up` in `admin/class-blackwork-site-settings.php` tutti i campi di stile per bottoni (checkout/continue: colori, font-size, border-radius, border, padding) e per la promo section.
+- Rimossa la generazione di CSS dinamico inline (`bw_cart_popup_dynamic_css()`) in `cart-popup/frontend/cart-popup-frontend.php`.
+- Lo stile del popup è ora interamente governato da `cart-popup/assets/css/bw-cart-popup.css`.
+- Le option key corrispondenti rimangono nel DB ma non vengono più lette a runtime.
+
+### 15.3 Bug fixes — Visual e funzionali
+
+Commit: `25704c57`, `910fed76`, `b1f8c556`, `9c83329a`, `52cd7b48`.
+
+| Issue | Soluzione |
+|-------|-----------|
+| Bottone Continue Shopping overflow nel footer | Fix CSS `overflow`/`flex` nel footer del popup |
+| Badge quantità non circolare | Fix `border-radius` e `aspect-ratio` sul badge |
+| Prezzi item non visibili (colore testo) | Fix variabili CSS colore nel layout dark |
+| Stato "Added to Cart" non ripristinato su rimozione item | JS: `revertAddToCartButton()` invocato dopo `removeItem()` |
+| Rimozione item: placeholder invece di animazione | Sostituzione con collasso animato (`max-height` + `opacity` → `0`) prima del `remove()` |
+| Race condition su aggiornamento quantità rapido | Debounce + abort precedente request prima di inviarne una nuova |
+| Validazione dati AJAX assente | Guard su `item.product_id`, `item.quantity`, `item.key` prima del render |
+| Error handling mancante su network failure | `showCartError()` invocato su tutti i failure path |
+
+### 15.4 Performance — Ottimizzazioni runtime
+
+Commit: `de190d73`.
+
+- **Open cache**: al secondo `openPanel()` nella stessa sessione il contenuto viene riscritto solo se i dati sono cambiati (confronto hash).
+- **Partial qty update**: `updateQuantity()` ora invia solo la quantità e aggiorna solo i totali (`_patchTotals()`), senza ri-renderizzare l'intera lista item.
+- **Batch coupon append**: le righe coupon vengono accumulate in una stringa e inserite nel DOM con un singolo `append()`, evitando reflow multipli.
+
+### 15.5 Rimozione dead code
+
+Commit: `cc90dcee`.
+
+- `getCheckoutUrl()` — helper non più usato (URL checkout è hardcoded nel JS localizzato); rimosso.
+- `bw_cart_popup_hex_to_rgb()` — helper per conversione hex → RGB usato solo dalla generazione CSS dinamica rimossa nella fase 2; rimosso.
+- `bw_cart_popup_dynamic_css` filter in `cart-popup/frontend/cart-popup-frontend.php` rimosso.

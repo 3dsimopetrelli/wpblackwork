@@ -20,6 +20,8 @@ This dashboard complements the full risk register but is optimized for fast orie
 ## Quick risk snapshot
 | Risk | Area | Status | Priority | Last Update |
 |---|---|---|---|---|
+| R-SEC-30 | Cart popup XSS — item.name/permalink | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Medium | 2026-03-16 |
+| R-SEC-31 | Cart popup XSS — coupon code | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Low | 2026-03-16 |
 | R-WOO-24 | WooCommerce templates | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | High | 2026-03-09 |
 | R-SEC-22 | SVG pipeline | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | High | 2026-03-10 |
 | R-ADM-21 | Admin settings integrity | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | High | 2026-03-10 |
@@ -33,8 +35,8 @@ The Risk Status Dashboard provides a single-glance overview of all governance ri
 It complements the full risk register but is optimized for quick orientation when starting new work sessions or opening new engineering chats.
 
 ## 1. Executive snapshot
-- Total risks: 54
-- Resolved: 7
+- Total risks: 56
+- Resolved: 9
 - Mitigated: 26
 - Partial Mitigation Complete: 2
 - Open: 18
@@ -44,6 +46,10 @@ Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-03-16: `R-SEC-30` resolved — XSS hardening in `renderCartItems()`: `item.name` and `item.permalink` now HTML-escaped via `_escHtml()`/`_escUrl()` helpers on `BW_CartPopup`; `javascript:` and `data:` URI schemes blocked in href.
+- 2026-03-16: `R-SEC-31` resolved — coupon code XSS hardening in `updateTotals()`: `code` → `safeCode` via `_escHtml()` before `<b>` text node and `data-code` attribute injection.
+- 2026-03-16: Cart popup batch hardening completed — Phase 2 dynamic CSS/admin field removal, visual bug fixes, functional race-condition hardening, performance optimizations (open-cache, partial qty update, batch coupon append), dead code removal (`getCheckoutUrl()`, `bw_cart_popup_hex_to_rgb()`), item-collapse animation, Add-to-Cart button state revert on item removal.
+- 2026-03-16: Product grid — Elementor frontend hook fallback added (`elementorFrontend.on('init')` guard); reveal animation speed increased (CSS `1.8s → 0.45s`, stagger `80ms → 40ms`).
 - 2026-03-10: `R-FE-23` asset-scope hardening closed (`blackwork-core-plugin.php` moved Slick/bootstrap to register-only `init`; dependency-driven loading prevents global Slick CDN payload on pages without Slick widgets).
 - 2026-03-10: `R-PERF-29` task closed (Cart Popup runtime scope hardening + checkout suppression option; popup assets/panel/CSS/JS suppressed on checkout when enabled by default).
 - 2026-03-10: `R-FPW-02` closed (FPW transient key canonicalization in `bw_fpw_get_tags`; stable cache reuse for identical subcategory sets).
