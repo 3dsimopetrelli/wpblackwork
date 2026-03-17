@@ -602,6 +602,9 @@ add_action('init', 'bw_register_about_menu_widget_assets');
 add_action('init', 'bw_register_wallpost_widget_assets');
 add_action('elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets');
+add_action('wp_enqueue_scripts', 'bw_enqueue_custom_class_assets');
+add_action('elementor/frontend/after_enqueue_styles', 'bw_enqueue_custom_class_assets');
+add_action('elementor/editor/after_enqueue_styles', 'bw_enqueue_custom_class_assets');
 add_action('init', 'bw_register_product_grid_widget_assets');
 add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
@@ -904,6 +907,17 @@ function bw_register_divider_style()
         [],
         $version
     );
+}
+
+function bw_enqueue_custom_class_assets()
+{
+    if (!wp_style_is('bw-fullbleed-style', 'registered')) {
+        bw_enqueue_slick_slider_assets();
+    }
+
+    if (wp_style_is('bw-fullbleed-style', 'registered')) {
+        wp_enqueue_style('bw-fullbleed-style');
+    }
 }
 
 function bw_register_button_widget_assets()
