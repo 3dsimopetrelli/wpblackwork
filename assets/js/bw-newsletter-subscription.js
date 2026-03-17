@@ -1,11 +1,6 @@
 (function () {
     var config = window.bwMailMarketingSubscription || {};
     var messages = config.messages || {};
-    var forms = document.querySelectorAll('.bw-newsletter-subscription-form');
-
-    if (!forms.length) {
-        return;
-    }
 
     function getMessage(key, fallback) {
         if (messages[key]) {
@@ -142,84 +137,103 @@
         return fallback;
     }
 
-    forms.forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            var ajaxUrl = config.ajaxUrl || '';
-            var nonce = form.getAttribute('data-nonce') || '';
-            var formData;
+    function handleSubmit(form, event) {
+        var ajaxUrl = config.ajaxUrl || '';
+        var nonce = form.getAttribute('data-nonce') || '';
+        var formData;
 
-            event.preventDefault();
+        event.preventDefault();
 
-            if (form.dataset.busy === '1') {
-                return;
-            }
+        if (form.dataset.busy === '1') {
+            return;
+        }
 
-            if (!validateForm(form)) {
-                return;
-            }
+        if (!validateForm(form)) {
+            return;
+        }
 
-            if (!ajaxUrl || !nonce) {
-                setMessage(form, 'error', getMessage('genericFailure', 'Something went wrong. Please try again.'));
-                return;
-            }
+        if (!ajaxUrl || !nonce) {
+            setMessage(form, 'error', getMessage('genericFailure', 'Something went wrong. Please try again.'));
+            return;
+        }
 
-            formData = new FormData(form);
-            formData.set('email', normalizeEmail(formData.get('email')));
-            formData.set('action', 'bw_mail_marketing_subscribe');
-            formData.set('nonce', nonce);
+        formData = new FormData(form);
+        formData.set('email', normalizeEmail(formData.get('email')));
+        formData.set('action', 'bw_mail_marketing_subscribe');
+        formData.set('nonce', nonce);
 
-            setBusy(form, true);
-            setMessage(form, 'loading', getMessage('loading', 'Submitting...'));
+        setBusy(form, true);
+        setMessage(form, 'loading', getMessage('loading', 'Submitting...'));
 
-            fetch(ajaxUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                body: formData
-            })
-                .then(function (response) {
-                    return parseResponse(response).then(function (payload) {
-                        if (!payload || typeof payload.success !== 'boolean' || !payload.data || typeof payload.data.code !== 'string') {
-                            return {
-                                success: false,
-                                data: {
-                                    code: 'generic_failure',
-                                    message: getMessage('genericFailure', 'Something went wrong. Please try again.')
-                                }
-                            };
-                        }
-
-                        return payload;
-                    });
-                })
-                .then(function (payload) {
-                    if (payload.success) {
-                        setMessage(form, 'success', getResponseMessage(payload, getMessage('success', 'You have been subscribed successfully.')));
-                        clearValidationState(form);
-
-                        if (!payload.data || payload.data.code !== 'already_subscribed') {
-                            form.reset();
-                        }
-
-                        return;
+        fetch(ajaxUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData
+        })
+            .then(function (response) {
+                return parseResponse(response).then(function (payload) {
+                    if (!payload || typeof payload.success !== 'boolean' || !payload.data || typeof payload.data.code !== 'string') {
+                        return {
+                            success: false,
+                            data: {
+                                code: 'generic_failure',
+                                message: getMessage('genericFailure', 'Something went wrong. Please try again.')
+                            }
+                        };
                     }
 
-                    setMessage(form, 'error', getResponseMessage(payload, getMessage('genericFailure', 'Something went wrong. Please try again.')));
-
-                    if (payload.data && payload.data.code === 'missing_consent') {
-                        setFieldInvalid(form.querySelector('input[name="privacy"]'), true);
-                        return;
-                    }
-
-                    if (payload.data && (payload.data.code === 'empty_email' || payload.data.code === 'invalid_email')) {
-                        setFieldInvalid(form.querySelector('input[name="email"]'), true);
-                    }
-                })
-                .catch(function () {
-                    setMessage(form, 'error', getMessage('networkFailure', 'Something went wrong. Please try again.'));
-                })
-                .finally(function () {
-                    setBusy(form, false);
+                    return payload;
                 });
-        });
+            })
+            .then(function (payload) {
+                if (payload.success) {
+                    setMessage(form, 'success', getResponseMessage(payload, getMessage('success', 'You have been subscribed successfully.')));
+                    clearValidationState(form);
+
+                    if (!payload.data || payload.data.code !== 'already_subscribed') {
+                        form.reset();
+                    }
+
+                    return;
+                }
+
+                setMessage(form, 'error', getResponseMessage(payload, getMessage('genericFailure', 'Something went wrong. Please try again.')));
+
+                if (payload.data && payload.data.code === 'missing_consent') {
+                    setFieldInvalid(form.querySelector('input[name="privacy"]'), true);
+                    return;
+                }
+
+                if (payload.data && (payload.data.code === 'empty_email' || payload.data.code === 'invalid_email')) {
+                    setFieldInvalid(form.querySelector('input[name="email"]'), true);
+                }
+            })
+            .catch(function () {
+                setMessage(form, 'error', getMessage('networkFailure', 'Something went wrong. Please try again.'));
+            })
+            .finally(function () {
+                setBusy(form, false);
+            });
+    }
+
+    /*
+     * Event delegation: attach a single listener on document instead of binding
+     * directly to each form at script load time.
+     *
+     * This is necessary because Theme Builder Lite custom footer templates are
+     * injected via wp_footer at priority 20, which runs AFTER wp_print_footer_scripts
+     * (also priority 20, registered earlier by WordPress core). The IIFE therefore
+     * executes before the form HTML exists in the DOM, so a direct querySelectorAll
+     * would find nothing. Delegating from document captures submit events from any
+     * form that matches, regardless of when it enters the DOM.
+     */
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+
+        if (!form || !form.classList.contains('bw-newsletter-subscription-form')) {
+            return;
+        }
+
+        handleSubmit(form, event);
     });
 }());

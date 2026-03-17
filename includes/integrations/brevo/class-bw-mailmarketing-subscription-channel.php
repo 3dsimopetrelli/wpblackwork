@@ -103,10 +103,12 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
             $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
             if ( ! wp_verify_nonce( $nonce, 'bw_mail_marketing_subscription_submit' ) ) {
                 $this->send_response( false, 'generic_failure', __( 'Security check failed. Please refresh and try again.', 'bw' ), 403 );
+                return;
             }
 
             if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) || ! class_exists( 'BW_Brevo_Client' ) ) {
                 $this->send_response( false, 'generic_failure', __( 'Mail Marketing configuration is unavailable.', 'bw' ), 500 );
+                return;
             }
 
             $general_settings = BW_Mail_Marketing_Settings::get_general_settings();
@@ -116,6 +118,7 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
 
             if ( empty( $channel_settings['enabled'] ) ) {
                 $this->send_response( false, 'generic_failure', __( 'Newsletter widget is currently disabled.', 'bw' ), 400 );
+                return;
             }
 
             $email_state = $this->normalize_email_input( isset( $_POST['email'] ) ? wp_unslash( $_POST['email'] ) : '' );
@@ -125,20 +128,24 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
 
             if ( $email_state['empty'] ) {
                 $this->send_response( false, 'empty_email', $this->get_message( $channel_settings, 'empty_email_message', __( 'Please enter your email address.', 'bw' ) ), 400 );
+                return;
             }
 
             if ( ! $email_state['valid'] ) {
                 $this->send_response( false, 'invalid_email', $this->get_message( $channel_settings, 'invalid_email_message', __( 'Please enter a valid email address.', 'bw' ) ), 400 );
+                return;
             }
 
             if ( $consent_required && 1 !== $consent ) {
                 $this->send_response( false, 'missing_consent', $this->get_message( $channel_settings, 'consent_required_message', __( 'Please confirm the privacy consent to subscribe.', 'bw' ) ), 400 );
+                return;
             }
 
             $api_key = isset( $general_settings['api_key'] ) ? sanitize_text_field( (string) $general_settings['api_key'] ) : '';
             if ( '' === $api_key ) {
                 $this->log_event( 'error', 'Missing Brevo API key for subscription widget.', $email, $source_key, 'missing_settings' );
                 $this->send_response( false, 'generic_failure', $this->get_error_message( $channel_settings ), 500 );
+                return;
             }
 
             $list_id = class_exists( 'BW_MailMarketing_Service' )
@@ -147,6 +154,7 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
             if ( $list_id <= 0 ) {
                 $this->log_event( 'error', 'Missing Brevo list ID for subscription widget.', $email, $source_key, 'missing_list_id' );
                 $this->send_response( false, 'generic_failure', $this->get_error_message( $channel_settings ), 500 );
+                return;
             }
 
             $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
@@ -161,16 +169,22 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                 $contact_data = $existing_contact['data'];
                 $contact_list_ids = isset( $contact_data['listIds'] ) && is_array( $contact_data['listIds'] ) ? array_map( 'absint', $contact_data['listIds'] ) : [];
                 $is_blacklisted = ! empty( $contact_data['emailBlacklisted'] );
+                $list_unsubscribed = isset( $contact_data['listUnsubscribed'] ) && is_array( $contact_data['listUnsubscribed'] )
+                    ? array_map( 'absint', $contact_data['listUnsubscribed'] )
+                    : [];
+                $is_list_unsubscribed = in_array( $list_id, $list_unsubscribed, true );
                 $no_auto_resubscribe = ! empty( $general_settings['resubscribe_policy'] ) && 'no_auto_resubscribe' === $general_settings['resubscribe_policy'];
 
-                if ( $no_auto_resubscribe && $is_blacklisted ) {
+                if ( $no_auto_resubscribe && ( $is_blacklisted || $is_list_unsubscribed ) ) {
                     $this->log_event( 'info', 'Skipping widget subscribe: contact is unsubscribed/blocklisted.', $email, $source_key, 'skipped' );
                     $this->send_response( false, 'generic_failure', __( 'This contact cannot be resubscribed automatically.', 'bw' ), 400 );
+                    return;
                 }
 
                 if ( in_array( $list_id, $contact_list_ids, true ) ) {
                     $this->log_event( 'info', 'Widget contact already exists in configured list.', $email, $source_key, 'already_subscribed' );
                     $this->send_response( true, 'already_subscribed', $this->get_message( $channel_settings, 'already_subscribed_message', __( 'You are already subscribed.', 'bw' ) ) );
+                    return;
                 }
             } elseif ( isset( $existing_contact['code'] ) && 404 !== (int) $existing_contact['code'] ) {
                 $lookup_error = ! empty( $existing_contact['error'] ) ? sanitize_text_field( (string) $existing_contact['error'] ) : 'Unknown contact lookup error.';
@@ -203,6 +217,7 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                 if ( $template_id <= 0 || '' === $redirect_url ) {
                     $this->log_event( 'error', 'Missing DOI template or redirect URL for subscription widget.', $email, $source_key, 'error' );
                     $this->send_response( false, 'generic_failure', $this->get_error_message( $channel_settings ), 500 );
+                    return;
                 }
 
                 $sender = [];
@@ -248,6 +263,7 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                 }
                 $this->log_event( 'error', 'Widget subscribe failed.' . ( '' !== $provider_error ? ' ' . $provider_error : '' ), $email, $source_key, 'error' );
                 $this->send_response( false, 'generic_failure', $this->get_error_message( $channel_settings ), 500 );
+                return;
             }
 
             if ( '' !== $attribute_warning ) {

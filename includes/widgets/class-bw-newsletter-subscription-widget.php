@@ -128,6 +128,15 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             return;
         }
 
+        if ( $is_editor && class_exists( 'BW_Mail_Marketing_Settings' ) ) {
+            $general_settings = BW_Mail_Marketing_Settings::get_general_settings();
+            if ( empty( $general_settings['api_key'] ) ) {
+                echo '<div class="bw-newsletter-subscription-preview-notice" style="margin-bottom:12px;">';
+                esc_html_e( 'Brevo API key is not configured. Set it in Mail Marketing > General before this widget can submit.', 'bw' );
+                echo '</div>';
+            }
+        }
+
         $privacy_url = ! empty( $settings['privacy_url'] )
             ? esc_url_raw( (string) $settings['privacy_url'] )
             : ( function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '' );
@@ -204,13 +213,18 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                         <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
                             <?php echo esc_html( $consent_text ); ?>
                         </label>
+                        <?php
+                        $privacy_link_label = ! empty( $settings['privacy_link_label'] )
+                            ? $settings['privacy_link_label']
+                            : __( 'Privacy Policy', 'bw' );
+                        ?>
                         <?php if ( ! empty( $privacy_url ) ) : ?>
                             <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
-                                <?php echo esc_html( $settings['privacy_link_label'] ); ?>
+                                <?php echo esc_html( $privacy_link_label ); ?>
                             </a>
-                        <?php else : ?>
+                        <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
                             <span class="bw-newsletter-subscription-consent__link">
-                                <?php echo esc_html( $settings['privacy_link_label'] ); ?>
+                                <?php echo esc_html( $privacy_link_label ); ?>
                             </span>
                         <?php endif; ?>
                     </span>
