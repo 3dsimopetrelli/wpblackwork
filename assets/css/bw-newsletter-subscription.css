@@ -35,7 +35,7 @@
     display: inline-block !important;
     margin: 0 !important;
     padding: 0 6px !important;
-    background: #fafafa !important;
+    background: #ffffff !important;
     border-radius: 10px !important;
     color: #6b7280 !important;
     font-size: 13px !important;
@@ -58,7 +58,7 @@ input.bw-newsletter-subscription-input {
     height: 70px !important;
     min-height: 70px !important;
     margin: 0 !important;
-    padding: 28px 18px 12px !important;
+    padding: 0 18px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 14px !important;
     background: #ffffff !important;
@@ -66,7 +66,7 @@ input.bw-newsletter-subscription-input {
     color: #1f2937 !important;
     font-size: 16px !important;
     font-weight: 400 !important;
-    line-height: 1.2 !important;
+    line-height: 68px !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     appearance: none !important;
     -webkit-appearance: none !important;
@@ -87,7 +87,7 @@ input.bw-newsletter-subscription-input {
 .bw-newsletter-subscription-input:focus,
 input.bw-newsletter-subscription-input:focus {
     border: 2px solid #000000 !important;
-    padding: 27px 17px 11px !important;
+    padding: 0 17px !important;
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -97,6 +97,7 @@ input.bw-newsletter-subscription-input:focus {
 .bw-newsletter-subscription-field:has(.bw-newsletter-subscription-input:not(:placeholder-shown)) .bw-newsletter-subscription-label {
     top: 0 !important;
     transform: translateY(-50%) !important;
+    background: #fafafa !important;
     font-size: 10px !important;
     color: #374151 !important;
     font-weight: 500 !important;
@@ -270,8 +271,9 @@ input.bw-newsletter-subscription-input:focus {
     input.bw-newsletter-subscription-input {
         height: 64px !important;
         min-height: 64px !important;
-        padding: 26px 16px 10px !important;
+        padding: 0 16px !important;
         font-size: 15px !important;
+        line-height: 62px !important;
         border-radius: 12px !important;
     }
 
@@ -279,7 +281,7 @@ input.bw-newsletter-subscription-input:focus {
     .elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription-input:focus,
     .bw-newsletter-subscription-input:focus,
     input.bw-newsletter-subscription-input:focus {
-        padding: 25px 15px 9px !important;
+        padding: 0 15px !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent,
