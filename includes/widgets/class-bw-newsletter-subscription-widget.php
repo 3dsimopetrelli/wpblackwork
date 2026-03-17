@@ -52,45 +52,6 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_control(
-            'consent_text_override',
-            [
-                'label'       => __( 'Consent text', 'bw' ),
-                'type'        => Controls_Manager::TEXT,
-                'default'     => '',
-                'placeholder' => __( 'I agree to the', 'bw' ),
-                'description' => __( 'Optional override for the text shown before the Privacy Policy link.', 'bw' ),
-                'label_block' => true,
-            ]
-        );
-
-        $this->add_control(
-            'name_label_override',
-            [
-                'label'       => __( 'Name float label', 'bw' ),
-                'type'        => Controls_Manager::TEXT,
-                'default'     => '',
-                'placeholder' => __( 'Name', 'bw' ),
-                'description' => __( 'Optional override for the Name field floating label.', 'bw' ),
-                'label_block' => true,
-                'condition'   => [
-                    'show_name_field' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'email_label_override',
-            [
-                'label'       => __( 'Email float label', 'bw' ),
-                'type'        => Controls_Manager::TEXT,
-                'default'     => '',
-                'placeholder' => __( 'Email address', 'bw' ),
-                'description' => __( 'Optional override for the Email field floating label.', 'bw' ),
-                'label_block' => true,
-            ]
-        );
-
         $this->end_controls_section();
     }
 
@@ -113,15 +74,9 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
         $show_name_field = ! isset( $widget_settings['show_name_field'] ) || 'yes' === $widget_settings['show_name_field'];
-        $name_label = ! empty( $widget_settings['name_label_override'] )
-            ? sanitize_text_field( (string) $widget_settings['name_label_override'] )
-            : ( ! empty( $settings['name_label'] ) ? $settings['name_label'] : __( 'Name', 'bw' ) );
-        $email_label = ! empty( $widget_settings['email_label_override'] )
-            ? sanitize_text_field( (string) $widget_settings['email_label_override'] )
-            : ( ! empty( $settings['email_label'] ) ? $settings['email_label'] : __( 'Email address', 'bw' ) );
-        $consent_text = ! empty( $widget_settings['consent_text_override'] )
-            ? sanitize_text_field( (string) $widget_settings['consent_text_override'] )
-            : ( ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' ) );
+        $name_label   = ! empty( $settings['name_label'] ) ? $settings['name_label'] : __( 'Name', 'bw' );
+        $email_label  = ! empty( $settings['email_label'] ) ? $settings['email_label'] : __( 'Email address', 'bw' );
+        $consent_text = ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' );
         $consent_required = ! isset( $settings['consent_required'] ) || ! empty( $settings['consent_required'] );
 
         if ( empty( $settings['enabled'] ) && ! $is_editor ) {
