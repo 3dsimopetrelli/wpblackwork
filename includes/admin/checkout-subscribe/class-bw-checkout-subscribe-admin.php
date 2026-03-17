@@ -36,6 +36,20 @@ if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) ) {
          * Migrate legacy subscribe option to split mail marketing options.
          */
         public static function maybe_migrate_legacy_settings() {
+            // One-time fix: consent_required was forced to 0 by a missing admin UI field.
+            // The checkbox was parsed from POST but never rendered in the form, so every
+            // save overwrote consent_required = 0 regardless of admin intent.
+            // This migration runs once (keyed by consent_required_ui_patched) and resets
+            // the value to 1 so GDPR consent is enforced by default.
+            $subscription = get_option( self::SUBSCRIPTION_OPTION, null );
+            if ( is_array( $subscription ) && empty( $subscription['consent_required_ui_patched'] ) ) {
+                if ( array_key_exists( 'consent_required', $subscription ) && 0 === (int) $subscription['consent_required'] ) {
+                    $subscription['consent_required'] = 1;
+                }
+                $subscription['consent_required_ui_patched'] = 1;
+                update_option( self::SUBSCRIPTION_OPTION, $subscription );
+            }
+
             $legacy = get_option( self::LEGACY_OPTION, null );
             if ( ! is_array( $legacy ) || empty( $legacy ) ) {
                 return;
@@ -922,6 +936,12 @@ class BW_Checkout_Subscribe_Admin {
                                         <option value="single_opt_in" <?php selected( $subscription_settings['channel_optin_mode'], 'single_opt_in' ); ?>><?php esc_html_e( 'Force single opt-in', 'bw' ); ?></option>
                                         <option value="double_opt_in" <?php selected( $subscription_settings['channel_optin_mode'], 'double_opt_in' ); ?>><?php esc_html_e( 'Force double opt-in', 'bw' ); ?></option>
                                     </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e( 'Privacy consent required', 'bw' ); ?></th>
+                                <td>
+                                    <label><input type="checkbox" name="bw_mail_marketing_subscription_consent_required" value="1" <?php checked( $subscription_settings['consent_required'], 1 ); ?> /> <?php esc_html_e( 'Require privacy checkbox before submit (recommended for GDPR).', 'bw' ); ?></label>
                                 </td>
                             </tr>
                         </table>
