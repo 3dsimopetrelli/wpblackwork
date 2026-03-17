@@ -1,5 +1,13 @@
+/*
+ * CSS custom properties on the widget root.
+ * Override --bw-ns-label-bg to match the container background when the
+ * widget is placed on dark or colored surfaces (e.g. a dark footer).
+ * Example override via Elementor Advanced > Custom CSS or a site stylesheet:
+ *   .bw-newsletter-subscription-widget { --bw-ns-label-bg: #1a1a1a; }
+ */
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget,
 .bw-newsletter-subscription-widget {
+    --bw-ns-label-bg: #ffffff;
     width: 100% !important;
     max-width: 100% !important;
 }
@@ -35,7 +43,7 @@
     display: inline-block !important;
     margin: 0 !important;
     padding: 0 6px !important;
-    background: #ffffff !important;
+    background: var(--bw-ns-label-bg) !important;
     border-radius: 10px !important;
     color: #6b7280 !important;
     font-size: 13px !important;
@@ -61,7 +69,7 @@ input.bw-newsletter-subscription-input {
     padding: 0 18px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 14px !important;
-    background: #ffffff !important;
+    background: var(--bw-ns-label-bg) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     color: #1f2937 !important;
     font-size: 16px !important;
@@ -97,7 +105,7 @@ input.bw-newsletter-subscription-input:focus {
 .bw-newsletter-subscription-field:has(.bw-newsletter-subscription-input:not(:placeholder-shown)) .bw-newsletter-subscription-label {
     top: 0 !important;
     transform: translateY(-50%) !important;
-    background: #fafafa !important;
+    background: var(--bw-ns-label-bg) !important;
     font-size: 10px !important;
     color: #374151 !important;
     font-weight: 500 !important;
@@ -124,7 +132,7 @@ input.bw-newsletter-subscription-input:focus {
     flex: 0 0 14px !important;
     border: 1px solid #7c7c7c !important;
     border-radius: 2px !important;
-    background: #ffffff !important;
+    background: var(--bw-ns-label-bg) !important;
     box-shadow: none !important;
     appearance: none !important;
     -webkit-appearance: none !important;
@@ -206,6 +214,7 @@ input.bw-newsletter-subscription-input:focus {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    gap: 8px !important;
     min-width: 180px !important;
     min-height: 60px !important;
     padding: var(--bw-search-button-padding-top) var(--bw-search-button-padding-right) var(--bw-search-button-padding-bottom) var(--bw-search-button-padding-left) !important;
@@ -238,6 +247,25 @@ input.bw-newsletter-subscription-input:focus {
 .bw-newsletter-subscription-button[aria-disabled="true"] {
     cursor: wait !important;
     opacity: 0.75 !important;
+}
+
+/* Loading spinner shown inside the button label during AJAX request. */
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button[aria-busy="true"] .bw-newsletter-subscription-button__label::after,
+.bw-newsletter-subscription-button[aria-busy="true"] .bw-newsletter-subscription-button__label::after {
+    content: '' !important;
+    display: inline-block !important;
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+    border: 2px solid currentColor !important;
+    border-top-color: transparent !important;
+    border-radius: 50% !important;
+    animation: bw-ns-spin 0.7s linear infinite !important;
+    vertical-align: middle !important;
+}
+
+@keyframes bw-ns-spin {
+    to { transform: rotate(360deg); }
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-message,
