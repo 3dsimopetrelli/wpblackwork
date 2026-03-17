@@ -73,11 +73,19 @@
 .bw-hover-underline-ltr .elementor-button-text,
 .bw-hover-underline-ltr .bw-navshop__item,
 .bw-hover-underline-ltr > a {
+  --bw-hover-underline-thickness: 1px;
+  --bw-hover-underline-offset: 0.08em;
   position: relative;
   display: inline-block;
   width: fit-content;
   max-width: 100%;
   margin: 0 !important;
+  padding-bottom: calc(var(--bw-hover-underline-offset) + var(--bw-hover-underline-thickness));
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0% var(--bw-hover-underline-thickness);
+  background-position: 0 calc(100% - var(--bw-hover-underline-offset));
+  transition: background-size 0.28s ease;
   text-decoration: none !important;
 }
 
@@ -93,38 +101,19 @@
   margin: 0 !important;
 }
 
-.bw-hover-underline-ltr .elementor-heading-title::after,
-.bw-hover-underline-ltr .elementor-heading-title a::after,
-.bw-hover-underline-ltr .elementor-item::after,
-.bw-hover-underline-ltr .elementor-icon-list-text::after,
-.bw-hover-underline-ltr .elementor-button-text::after,
-.bw-hover-underline-ltr .bw-navshop__item::after,
-.bw-hover-underline-ltr > a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -0.18em;
-  width: 100%;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.28s ease;
-}
-
-.bw-hover-underline-ltr .elementor-heading-title:hover::after,
-.bw-hover-underline-ltr .elementor-heading-title:focus-within::after,
-.bw-hover-underline-ltr .elementor-heading-title a:hover::after,
-.bw-hover-underline-ltr .elementor-heading-title a:focus-visible::after,
-.bw-hover-underline-ltr .elementor-item:hover::after,
-.bw-hover-underline-ltr .elementor-item:focus-visible::after,
-.bw-hover-underline-ltr .elementor-icon-list-text:hover::after,
-.bw-hover-underline-ltr .elementor-icon-list-text:focus-visible::after,
-.bw-hover-underline-ltr .elementor-button-text:hover::after,
-.bw-hover-underline-ltr .elementor-button-text:focus-visible::after,
-.bw-hover-underline-ltr .bw-navshop__item:hover::after,
-.bw-hover-underline-ltr .bw-navshop__item:focus-visible::after,
-.bw-hover-underline-ltr > a:hover::after,
-.bw-hover-underline-ltr > a:focus-visible::after {
-  transform: scaleX(1);
+.bw-hover-underline-ltr .elementor-heading-title:hover,
+.bw-hover-underline-ltr .elementor-heading-title:focus-within,
+.bw-hover-underline-ltr .elementor-heading-title a:hover,
+.bw-hover-underline-ltr .elementor-heading-title a:focus-visible,
+.bw-hover-underline-ltr .elementor-item:hover,
+.bw-hover-underline-ltr .elementor-item:focus-visible,
+.bw-hover-underline-ltr .elementor-icon-list-text:hover,
+.bw-hover-underline-ltr .elementor-icon-list-text:focus-visible,
+.bw-hover-underline-ltr .elementor-button-text:hover,
+.bw-hover-underline-ltr .elementor-button-text:focus-visible,
+.bw-hover-underline-ltr .bw-navshop__item:hover,
+.bw-hover-underline-ltr .bw-navshop__item:focus-visible,
+.bw-hover-underline-ltr > a:hover,
+.bw-hover-underline-ltr > a:focus-visible {
+  background-size: 100% var(--bw-hover-underline-thickness);
 }
