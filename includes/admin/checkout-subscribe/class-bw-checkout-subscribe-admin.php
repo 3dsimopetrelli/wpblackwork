@@ -85,6 +85,7 @@ if ( ! class_exists( 'BW_Mail_Marketing_Settings' ) ) {
                 'api_key'                     => '',
                 'api_base'                    => self::API_BASE_URL,
                 'list_id'                     => 0,
+                'unconfirmed_list_id'         => 0,
                 'default_optin_mode'          => 'single_opt_in',
                 'double_optin_template_id'    => 0,
                 'double_optin_redirect_url'   => '',
@@ -364,6 +365,10 @@ class BW_Checkout_Subscribe_Admin {
 
             $settings['list_id'] = isset( $_POST['bw_mail_marketing_general_list_id'] )
                 ? absint( $_POST['bw_mail_marketing_general_list_id'] )
+                : 0;
+
+            $settings['unconfirmed_list_id'] = isset( $_POST['bw_mail_marketing_general_unconfirmed_list_id'] )
+                ? absint( $_POST['bw_mail_marketing_general_unconfirmed_list_id'] )
                 : 0;
 
             $settings['default_optin_mode'] = isset( $_POST['bw_mail_marketing_general_default_optin_mode'] )
@@ -754,6 +759,24 @@ class BW_Checkout_Subscribe_Admin {
                                         <input type="number" id="bw_mail_marketing_general_list_id" name="bw_mail_marketing_general_list_id" value="<?php echo esc_attr( $general_settings['list_id'] ); ?>" class="small-text" min="0" />
                                         <p class="description"><?php echo esc_html( $lists_data['message'] ); ?></p>
                                     <?php endif; ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="bw_mail_marketing_general_unconfirmed_list_id"><?php esc_html_e( 'Unconfirmed list', 'bw' ); ?></label></th>
+                                <td>
+                                    <?php if ( ! empty( $lists_data['success'] ) ) : ?>
+                                        <select id="bw_mail_marketing_general_unconfirmed_list_id" name="bw_mail_marketing_general_unconfirmed_list_id">
+                                            <option value="0"><?php esc_html_e( '— None —', 'bw' ); ?></option>
+                                            <?php foreach ( $lists_data['lists'] as $list ) : ?>
+                                                <option value="<?php echo esc_attr( $list['id'] ); ?>" <?php selected( (int) $general_settings['unconfirmed_list_id'], (int) $list['id'] ); ?>>
+                                                    <?php echo esc_html( sprintf( '#%d - %s', (int) $list['id'], $list['name'] ) ); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    <?php else : ?>
+                                        <input type="number" id="bw_mail_marketing_general_unconfirmed_list_id" name="bw_mail_marketing_general_unconfirmed_list_id" value="<?php echo esc_attr( $general_settings['unconfirmed_list_id'] ); ?>" class="small-text" min="0" />
+                                    <?php endif; ?>
+                                    <p class="description"><?php esc_html_e( 'Optional. When set, contacts are assigned to this list immediately on Double opt-in submit, making them visible in Brevo before they confirm.', 'bw' ); ?></p>
                                 </td>
                             </tr>
                         </table>
