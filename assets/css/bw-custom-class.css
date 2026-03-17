@@ -73,7 +73,7 @@
 .bw-hover-underline-ltr .bw-navshop__item,
 .bw-hover-underline-ltr > a {
   --bw-hover-underline-thickness: 1px;
-  --bw-hover-underline-offset: 0.12em;
+  --bw-hover-underline-offset: -2px;
   background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-size: 0% var(--bw-hover-underline-thickness);
