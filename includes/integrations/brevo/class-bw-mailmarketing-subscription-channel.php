@@ -161,6 +161,7 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
             if ( $this->is_rate_limited( $email ) ) {
                 $this->log_event( 'warning', 'Widget subscribe blocked by cooldown.', $email, $source_key, 'rate_limited' );
                 $this->send_response( false, 'rate_limited', $this->get_message( $channel_settings, 'rate_limited_message', __( 'Please wait a moment before trying again.', 'bw' ) ), 429 );
+                return;
             }
             $this->touch_rate_limit( $email );
 
