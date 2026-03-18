@@ -1,285 +1,184 @@
-# 🎯 Smart Header System - Guida all'uso
+# Smart Header — Guida operativa
 
-## ✅ Sistema Integrato e Funzionante
+## Panoramica
 
-Il sistema Smart Header è ora **completamente integrato** nel plugin BW Elementor Widgets e carica automaticamente tutti i file necessari.
-
----
-
-## 📋 Come Usare il Smart Header
-
-### 1. Aggiungi la classe CSS in Elementor
-
-Per attivare il sistema Smart Header sul tuo header, devi aggiungere la classe CSS `smart-header` al container principale dell'header:
-
-**PASSAGGI IN ELEMENTOR:**
-
-1. Apri il tuo **Header** in Elementor (Template → Theme Builder → Header)
-2. Clicca sul **CONTAINER/SECTION principale** dell'header (quello più esterno che contiene tutto)
-3. Nel pannello di sinistra, vai alla tab **"AVANZATE"** (icona ingranaggio ⚙️)
-4. Trova la sezione **"CSS ID & Classi"**
-5. Nel campo **"Classi CSS"** scrivi esattamente: `smart-header`
-6. Clicca su **"Aggiorna"** per salvare
+Il sistema Smart Header è integrato in `includes/modules/header/` e si attiva automaticamente su qualsiasi pagina che contiene un elemento con la classe `bw-custom-header`. Non richiede configurazione manuale nel template Elementor — l'attivazione avviene tramite il pannello **Blackwork › Site Settings**.
 
 ---
 
-## 🎬 Comportamento del Smart Header
+## Attivazione
 
-Una volta attivato, il sistema funziona automaticamente:
+### Smart Scroll (hide/show)
 
-### ✅ Scroll DOWN (verso il basso)
-- Quando scorri **giù oltre 100px**, l'header si **nasconde** scivolando verso l'alto
-- Transizione smooth e fluida
+Nel pannello admin **Blackwork › Site Settings → Header**, abilita l'opzione **Smart Scroll**. Questo aggiunge `data-smart-scroll="yes"` all'elemento header nel markup server-rendered. Il JS lo rileva automaticamente.
 
-### ✅ Scroll UP (verso l'alto)
-- Appena scorri **su** (anche di poco), l'header **riappare** immediatamente
-- Sempre visibile quando scorri verso l'alto
+### Dark Zone Detection
 
-### ✅ Effetto Blur
-- Dopo **50px di scroll**, l'header diventa **semi-trasparente** con effetto blur
-- Background con backdrop-filter per un effetto moderno
-- Box shadow leggera per dare profondità
-
-### ✅ Posizione Fissa
-- L'header rimane sempre **fisso in cima** alla pagina
-- Il sistema calcola automaticamente l'altezza e aggiunge il padding necessario al body
+Sempre attiva — non richiede configurazione. Funziona su header sia sticky che non-sticky.
 
 ---
 
-## 🌗 Dark Zone Detection (Integrato)
+## Comportamento a runtime
 
-Il sistema include anche il rilevamento automatico degli sfondi scuri:
+Il JS (`includes/modules/header/assets/js/header-init.js`) applica classi CSS sull'elemento `.bw-custom-header` in base allo stato:
 
-- Scansiona sezioni Elementor/HTML e valuta il colore di background.
-- Usa una soglia di luminosita (default `128`) per classificare una sezione come scura.
-- Applica automaticamente lo stato dark agli elementi reattivi.
+| Classe CSS | Condizione |
+|---|---|
+| `is-desktop` / `is-mobile` | Viewport sopra/sotto il breakpoint configurato |
+| `bw-header-scrolled` | `scrollTop > 2px` |
+| `bw-header-hidden` | Smart scroll attivo, scroll verso il basso oltre la soglia |
+| `bw-header-visible` | Smart scroll attivo, scroll verso l'alto |
+| `bw-header-on-dark` | Header sovrapposto a una sezione con sfondo scuro |
 
-Formula di riferimento:
+### Soglie smart scroll (configurabili da admin)
 
-```javascript
-Brightness = (R * 299 + G * 587 + B * 114) / 1000;
-isDark = Brightness < 128;
-```
-
-### Modalita supportate
-
-1. Automatica (consigliata): nessuna classe manuale richiesta.
-2. Manuale (retrocompatibile): usa `.smart-header-dark-zone` per forzare una sezione come dark.
-
-### Elementi reattivi
-
-Per sincronizzare testi/logo/widget con il cambio colore:
-- applica `.smart-header-reactive-text` agli elementi da rendere reattivi.
-
-### Debug rapido
-
-```javascript
-window.bwSmartHeader.getState();
-window.bwSmartHeader.getDarkZones();
-```
+| Parametro | Default | Descrizione |
+|---|---|---|
+| `scrollDownThreshold` | 100px | Pixel di scroll down prima di nascondere |
+| `scrollUpThreshold` | 0px | Pixel di scroll up minimi per mostrare |
+| `scrollDelta` | 1px | Sensibilità minima di movimento |
 
 ---
 
-## 🔧 File Integrati
+## Dark Zone Detection — Come funziona
 
-Il sistema è composto da questi file:
+Ogni frame di scroll, `checkDarkZoneOverlap()` sonda tre punti orizzontali al centro verticale dell'header usando `document.elementFromPoint()` con `pointer-events: none` (così il sondaggio "vede attraverso" l'header fisso). Per ogni elemento trovato, `isSectionDark()` percorre tutta la catena degli antenati con questi check in ordine:
+
+1. **`background-color` scuro** — check diretto via `getComputedStyle`
+2. **Slick carousel** — campiona la slide attiva (`.slick-active`) via canvas 8×8
+3. **Overlay Elementor/Gutenberg** — controlla child div `.elementor-background-overlay`, `.wp-block-cover__background`
+4. **`background-image` + testo chiaro** — se i primi 3 heading figli hanno colore > 180 di luminanza, lo sfondo è considerato scuro
+
+### Override manuale
+
+Aggiungi la classe CSS `smart-header-dark-zone` a qualsiasi sezione Elementor (tab Avanzate → Classi CSS) per forzare la zona come scura indipendentemente dal rilevamento automatico. Ha priorità assoluta.
 
 ```
-/assets/css/bw-smart-header.css     ← Stili CSS
-/assets/js/bw-smart-header.js       ← JavaScript per la logica
+Elementor → Sezione → Tab Avanzate → Classi CSS → smart-header-dark-zone
 ```
 
-### Caricamento Automatico
+### Campionamento immagini (slider)
 
-I file vengono caricati automaticamente dal plugin **blackwork-core-plugin.php** tramite:
-- `bw_enqueue_smart_header_assets()` - Funzione che registra e carica CSS e JS
-- Hook `wp_enqueue_scripts` - Carica i file solo sul frontend (NON nell'editor Elementor)
+Per le sezioni con slider Slick che usano tag `<img>` (nessun `background-image` CSS), il sistema campiona i pixel dell'immagine tramite canvas HTML5 e ne calcola la luminanza media:
 
----
+```
+Luminanza = (R × 299 + G × 587 + B × 114) / 1000
+isDark = Luminanza / 64 < 100
+```
 
-## 🧪 Come Testare se Funziona
+Il risultato è cached per immagine in una `WeakMap` — il canvas viene creato **una volta sola** per ogni elemento `<img>` durante la sessione.
 
-### Test 1: Verifica classe CSS
-1. Apri il tuo sito WordPress (frontend, non editor)
-2. Premi **F12** per aprire Developer Tools
-3. Ispeziona l'header con il selettore elemento
-4. Verifica che il container abbia la classe `smart-header`
+### Debounce alla rimozione
 
-### Test 2: Verifica caricamento file
-1. Apri Developer Tools (F12)
-2. Vai alla tab **"Network"**
-3. Ricarica la pagina (Ctrl+R)
-4. Cerca i file:
-   - `bw-smart-header.css`
-   - `bw-smart-header.js`
-5. Devono essere entrambi caricati con status 200
-
-### Test 3: Verifica funzionamento
-1. Apri la **Console** in Developer Tools (F12 → Console)
-2. Cerca il messaggio: `[Smart Header] ✅ Smart Header System inizializzato con successo`
-3. Se vedi un warning `⚠️ Elemento non trovato`, verifica di aver aggiunto la classe
-
-### Test 4: Test scroll
-1. Scrolla la pagina **verso il basso** per almeno 100px
-   - ✅ L'header deve scomparire
-2. Scrolla **verso l'alto**
-   - ✅ L'header deve riapparire immediatamente
-3. Scrolla oltre 50px
-   - ✅ Deve apparire l'effetto blur e la box shadow
+L'aggiunta di `bw-header-on-dark` è immediata. La rimozione è ritardata di 150ms per assorbire il momento di transizione dei carousel (le slide si muovono per ~300ms e possono restituire un elemento neutro durante il movimento).
 
 ---
 
-## ⚙️ Personalizzazioni
+## Variabili CSS esposte
 
-### Modificare i parametri di scroll
+Il JS scrive queste custom properties su `:root` (`<html>`):
 
-Apri il file `/assets/js/bw-smart-header.js` e modifica la sezione `CONFIG`:
+| Variabile | Valore |
+|---|---|
+| `--bw-header-top-offset` | Altezza admin bar (0px se assente) |
+| `--bw-header-body-padding` | Altezza header corrente |
+| `--animated-banner-height` | Altezza banner animato (0px se assente/nascosto) |
 
-```javascript
-const CONFIG = {
-    scrollThreshold: 100,    // Pixel prima di nascondere l'header (aumenta per nascondere più tardi)
-    scrollDelta: 5,          // Sensibilità scroll (diminuisci per reagire a scroll più piccoli)
-    blurThreshold: 50,       // Quando attivare blur (diminuisci per blur immediato)
-    hideDelay: 0,            // Delay prima di nascondere (in millisecondi)
-    showDelay: 0,            // Delay prima di mostrare (in millisecondi)
-    throttleDelay: 100,      // Performance throttling (aumenta se hai lag)
-    debug: false             // Cambia a true per vedere log dettagliati in console
+Usale nel CSS del tema per calcolare offset corretti:
+
+```css
+.bw-header-spacer {
+    height: var(--bw-header-body-padding);
+}
+
+.hero-section {
+    padding-top: calc(var(--bw-header-top-offset) + var(--bw-header-body-padding));
+}
+```
+
+---
+
+## File del modulo
+
+```
+includes/modules/header/
+├── class-bw-header-module.php          # Entry point PHP
+├── frontend/
+│   ├── assets.php                      # Registrazione e localizzazione asset
+│   └── renderer.php                    # Render server-side dell'HTML header
+└── assets/
+    ├── css/
+    │   └── bw-header.css               # Stili base + stati scroll/dark
+    └── js/
+        └── header-init.js              # Tutta la logica JS (scroll, dark zone)
+```
+
+### Configurazione JS via `bwHeaderConfig`
+
+Il PHP inietta la configurazione tramite `wp_localize_script`:
+
+```js
+window.bwHeaderConfig = {
+    breakpoint: 1024,          // px — soglia mobile/desktop
+    smartScroll: true,         // bool — smart scroll attivo
+    smartHeader: {
+        scrollDownThreshold: 100,
+        scrollUpThreshold: 0,
+        scrollDelta: 1,
+    }
 };
 ```
 
-### Modificare colori e trasparenza
+---
 
-Apri il file `/assets/css/bw-smart-header.css` e modifica:
+## Aggiungere elementi reattivi al dark zone
+
+Qualsiasi elemento dentro `.bw-custom-header` reagisce automaticamente a `bw-header-on-dark` tramite CSS. Esempio nel foglio di stile dell'header:
 
 ```css
-/* Background normale */
-.smart-header {
-    background-color: rgba(255, 255, 255, 0.95) !important;
+/* Stato default (sfondo chiaro) */
+.bw-custom-header .bw-nav-link {
+    color: #000000;
 }
 
-/* Background con scroll */
-.smart-header.scrolled {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px);  /* Intensità blur */
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+/* Quando l'header è sopra uno sfondo scuro */
+.bw-custom-header.bw-header-on-dark .bw-nav-link {
+    color: #ffffff;
 }
 ```
 
-### Tema Scuro
+---
 
-Per usare un tema scuro, aggiungi **due classi** in Elementor:
-- `smart-header` (obbligatoria)
-- `dark-theme` (opzionale)
+## Debugging
 
-Il CSS include già gli stili per il tema scuro!
+Apri la console del browser e ispeziona le classi sull'elemento `.bw-custom-header`:
+
+```js
+// Verifica classi applicate in tempo reale
+document.querySelector('.bw-custom-header').className;
+
+// Forza uno stato per test visivo
+document.querySelector('.bw-custom-header').classList.add('bw-header-on-dark');
+
+// Controlla cosa vede il sistema al punto corrente
+(function() {
+    var h = document.querySelector('.bw-custom-header');
+    var r = h.getBoundingClientRect();
+    h.style.pointerEvents = 'none';
+    var el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    h.style.pointerEvents = '';
+    console.log('Elemento dietro l\'header:', el);
+    console.log('Antenati:', el && el.closest('[class]'));
+})();
+```
 
 ---
 
-## 🔧 Risoluzione Problemi
+## Casi limite noti
 
-### ❌ L'header non si nasconde/mostra
-
-**SOLUZIONI:**
-1. Verifica che la classe `smart-header` sia applicata correttamente
-2. Apri la Console (F12) e cerca errori JavaScript
-3. Verifica che i file CSS e JS siano caricati (tab Network)
-4. Svuota la cache di WordPress
-5. Controlla che non ci siano conflitti con altri plugin di sticky header
-
-### ❌ Il blur non funziona
-
-**SOLUZIONI:**
-1. Il blur potrebbe non essere supportato dal browser (verifica con Chrome o Firefox aggiornati)
-2. Il fallback automatico mostra comunque un background opaco
-3. Alcuni browser vecchi non supportano `backdrop-filter`
-
-### ❌ L'header copre il contenuto
-
-**SOLUZIONI:**
-1. Il padding viene calcolato automaticamente tramite CSS variable `--smart-header-height`
-2. Se non funziona, puoi impostare manualmente nel CSS:
-   ```css
-   body:not(.elementor-editor-active) {
-       padding-top: 120px; /* Sostituisci con l'altezza del tuo header */
-   }
-   ```
-
-### ❌ Nell'editor Elementor l'header è fisso
-
-**SOLUZIONI:**
-1. Questo NON dovrebbe accadere, il JavaScript disabilita il sistema nell'editor
-2. Verifica che il file JS sia caricato correttamente
-3. Prova a ricaricare l'editor (svuota cache browser con Ctrl+Shift+R)
-
-### ❌ Voglio vedere i log di debug
-
-**SOLUZIONI:**
-1. Apri `/assets/js/bw-smart-header.js`
-2. Cambia `debug: false` in `debug: true`
-3. Apri la Console (F12 → Console)
-4. Ricarica la pagina e scorri
-5. Vedrai log dettagliati di ogni azione
-
----
-
-## 📱 Mobile e Responsive
-
-Il sistema è completamente responsive:
-- Transizioni leggermente più veloci su mobile
-- Blur meno intenso su dispositivi mobile per migliori performance
-- Compatibile con bounce scroll iOS
-
----
-
-## ♿ Accessibilità
-
-Il sistema rispetta le preferenze utente:
-- `prefers-reduced-motion: reduce` → Disabilita le animazioni per utenti con disturbi vestibolari
-- Cross-browser compatibility con fallback automatici
-
----
-
-## 📊 Performance
-
-Ottimizzazioni implementate:
-- ✅ **requestAnimationFrame** per animazioni smooth sincronizzate
-- ✅ **Throttling** degli eventi scroll per ridurre il carico
-- ✅ **GPU acceleration** con transform e will-change
-- ✅ **Passive event listeners** per migliori performance scroll
-- ✅ **Calcolo dinamico** dell'altezza header con CSS variables
-
----
-
-## 🚀 Checklist Finale
-
-Prima di considerare il lavoro completato, verifica:
-
-- [ ] Ho aggiunto la classe `smart-header` al container header in Elementor
-- [ ] Ho salvato e pubblicato le modifiche in Elementor
-- [ ] I file CSS e JS vengono caricati (verificato in Network tab)
-- [ ] La Console mostra il messaggio di inizializzazione
-- [ ] L'header si nasconde quando scrolo giù
-- [ ] L'header riappare quando scrolo su
-- [ ] L'effetto blur funziona dopo 50px di scroll
-- [ ] Su mobile funziona correttamente
-- [ ] Nell'editor Elementor l'header NON è fisso
-
----
-
-## 📞 Supporto
-
-Se hai ancora problemi:
-
-1. Attiva `debug: true` nel JavaScript
-2. Apri Console DevTools e copia tutti i messaggi
-3. Verifica la tab Network per vedere se i file vengono caricati
-4. Ispeziona l'elemento header e verifica quali classi CSS sono applicate
-
----
-
-## 🎉 Fine!
-
-Il tuo sistema Smart Header è ora completamente funzionante e integrato nel plugin BW Elementor Widgets!
-
-**Versione:** 1.0.0
-**Ultimo aggiornamento:** 2025
+| Scenario | Comportamento | Soluzione |
+|---|---|---|
+| Immagine di sfondo su CDN con CORS bloccato | Canvas sampling fallisce silenziosamente, euristica testo usata come fallback | Aggiungere `smart-header-dark-zone` manualmente alla sezione |
+| Sezione con foto chiara (non scura) rilevata come scura | Euristica testo falso positivo se il testo è bianco per altri motivi | Non aggiungere `smart-header-dark-zone`; verificare il colore testo della sezione |
+| Slider con slide miste (scure e chiare) | La slide attiva determina lo stato; transizione debounced 150ms | Comportamento corretto by design |
+| Header non-sticky con dark zone | Rilevamento attivo tramite scroll listener dedicato nel `boot()` | Nessuna azione richiesta |

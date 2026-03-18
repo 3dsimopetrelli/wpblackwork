@@ -124,30 +124,17 @@
         return getColorBrightness(color) < threshold;
     }
 
-    function getEffectiveBackgroundColor(element) {
-        var current = element;
-        var maxDepth = 10;
-        var depth = 0;
-        while (current && depth < maxDepth) {
-            var computedStyle = window.getComputedStyle(current);
-            var bgColor = computedStyle.backgroundColor;
-            var parsed = parseColor(bgColor);
-            if (parsed && parsed.a > 0.5) return parsed;
-            current = current.parentElement;
-            depth++;
-        }
-        return { r: 255, g: 255, b: 255, a: 1 };
-    }
+    // Cache for isImgDark results — avoids repeated canvas operations per image.
+    var imgDarkCache = new WeakMap();
 
     /**
      * Sample an <img> element's average brightness via canvas (8×8 downscale).
-     * Result is cached on the element via a data attribute to avoid repeated
-     * canvas operations on every scroll tick.
-     * Returns false on CORS errors or incomplete images.
+     * Result is cached in a WeakMap so the canvas operation runs only once per
+     * image element. Returns false on CORS errors or incomplete images.
      */
     function isImgDark(img) {
         if (!img || !img.complete || !img.naturalWidth) return false;
-        if (img.dataset.bwdz !== undefined) return img.dataset.bwdz === '1';
+        if (imgDarkCache.has(img)) return imgDarkCache.get(img);
         try {
             var c = document.createElement('canvas');
             c.width = c.height = 8;
@@ -159,10 +146,10 @@
                 b += (d[p] * 299 + d[p + 1] * 587 + d[p + 2] * 114) / 1000;
             }
             var dark = (b / 64) < 100;
-            img.dataset.bwdz = dark ? '1' : '0';
+            imgDarkCache.set(img, dark);
             return dark;
         } catch (e) {
-            img.dataset.bwdz = '0';
+            imgDarkCache.set(img, false);
             return false;
         }
     }
@@ -224,10 +211,10 @@
                 child = child.nextElementSibling;
             }
 
-            // 4. Has background-image: check heading text colour as heuristic
+            // 4. Has background-image: if first few headings are light, bg is dark
             if (st.backgroundImage && st.backgroundImage !== 'none') {
                 var headings = current.querySelectorAll('h1, h2, h3, h4');
-                for (var i = 0; i < Math.min(headings.length, 6); i++) {
+                for (var i = 0; i < Math.min(headings.length, 3); i++) {
                     if (!headings[i].offsetParent) continue;
                     var tc = parseColor(window.getComputedStyle(headings[i]).color);
                     if (tc && getColorBrightness(tc) > 180) return true;
@@ -270,16 +257,19 @@
             // Probe BEHIND the header at its vertical centre.
             // pointer-events:none makes elementFromPoint see through the header.
             var oldPE = header.style.pointerEvents;
-            header.style.pointerEvents = 'none';
-            var probeY = headerRect.top + headerRect.height * 0.5;
-            for (var i = 0; i < probeXs.length; i++) {
-                var el = document.elementFromPoint(probeXs[i], probeY);
-                if (el && !el.closest('.bw-custom-header') && isSectionDark(el)) {
-                    shouldBeOnDark = true;
-                    break;
+            try {
+                header.style.pointerEvents = 'none';
+                var probeY = headerRect.top + headerRect.height * 0.5;
+                for (var i = 0; i < probeXs.length; i++) {
+                    var el = document.elementFromPoint(probeXs[i], probeY);
+                    if (el && !el.closest('.bw-custom-header') && isSectionDark(el)) {
+                        shouldBeOnDark = true;
+                        break;
+                    }
                 }
+            } finally {
+                header.style.pointerEvents = oldPE;
             }
-            header.style.pointerEvents = oldPE;
         }
 
         if (shouldBeOnDark) {
@@ -430,8 +420,8 @@
 
         var header = document.querySelector('.bw-custom-header');
         if (header) {
-            // Se smart scroll non è attivo, dark zone detection non è stata
-            // inizializzata — la attiviamo qui con il proprio scroll listener.
+            // Smart scroll is inactive so dark zone detection was not initialised
+            // inside initStickyHeader — activate it here with its own scroll listener.
             if (header.getAttribute('data-smart-scroll') !== 'yes') {
                 initDarkZoneDetection(header);
                 var nonStickyTicking = false;
