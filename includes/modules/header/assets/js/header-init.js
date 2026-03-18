@@ -142,14 +142,55 @@
 
     function autoDetectDarkSections() {
         var sections = [];
-        var selectors = ['.elementor-section', 'section', '[data-elementor-type]', '.wp-block-cover', 'main > section', 'main > div'];
+        // Include Elementor containers (.e-con, .e-flex) used in newer Elementor versions
+        var selectors = [
+            '.elementor-section', '.e-con', '.e-flex',
+            'section', '[data-elementor-type]',
+            '.wp-block-cover', 'main > section', 'main > div'
+        ];
         var allSections = document.querySelectorAll(selectors.join(', '));
         allSections.forEach(function (section) {
             if (section.classList.contains('bw-custom-header') || section.closest('.bw-custom-header')) return;
             var rect = section.getBoundingClientRect();
             if (rect.height < 100) return;
+
+            // 1. Direct background-color (existing logic)
             var bgColor = getEffectiveBackgroundColor(section);
-            if (isColorDark(bgColor, 128)) sections.push(section);
+            if (isColorDark(bgColor, 128)) {
+                sections.push(section);
+                return;
+            }
+
+            var st = window.getComputedStyle(section);
+
+            // 2. Elementor/Gutenberg dark overlay child
+            //    (background-image section + semi-transparent dark overlay div)
+            var overlay = section.querySelector(
+                '.elementor-background-overlay, .wp-block-cover__background, .wp-block-cover__gradient-background'
+            );
+            if (overlay) {
+                var oBg = parseColor(window.getComputedStyle(overlay).backgroundColor);
+                if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) {
+                    sections.push(section);
+                    return;
+                }
+            }
+
+            // 3. Section has background-image: use child text color as heuristic.
+            //    If the text inside is white/light, the background is almost certainly dark.
+            if (st.backgroundImage && st.backgroundImage !== 'none') {
+                var textNodes = section.querySelectorAll('h1, h2, h3, h4, p, span, a, li');
+                for (var i = 0; i < Math.min(textNodes.length, 8); i++) {
+                    var node = textNodes[i];
+                    if (!node.offsetParent) continue; // hidden
+                    var textColor = parseColor(window.getComputedStyle(node).color);
+                    // Light text (brightness > 180) inside a background-image section → dark bg
+                    if (textColor && getColorBrightness(textColor) > 180) {
+                        sections.push(section);
+                        return;
+                    }
+                }
+            }
         });
         return sections;
     }
