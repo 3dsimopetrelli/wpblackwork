@@ -6,8 +6,6 @@
     }
 
     // Dark Zone state
-    var darkZoneObserver = null;
-    var darkZones = [];
     var isOnDarkZone = false;
 
     /**
@@ -85,7 +83,7 @@
     }
 
     /* ========================================================================
-       DARK ZONE DETECTION HELPERS
+       DARK ZONE DETECTION
        ======================================================================== */
 
     function parseColor(color) {
@@ -140,106 +138,87 @@
         return { r: 255, g: 255, b: 255, a: 1 };
     }
 
-    function autoDetectDarkSections() {
-        var sections = [];
-        // Include Elementor containers (.e-con, .e-flex) used in newer Elementor versions
-        var selectors = [
-            '.elementor-section', '.e-con', '.e-flex',
-            'section', '[data-elementor-type]',
-            '.wp-block-cover', 'main > section', 'main > div'
-        ];
-        var allSections = document.querySelectorAll(selectors.join(', '));
-        allSections.forEach(function (section) {
-            if (section.classList.contains('bw-custom-header') || section.closest('.bw-custom-header')) return;
-            var rect = section.getBoundingClientRect();
-            if (rect.height < 100) return;
+    /**
+     * Return true if the element (or its nearest section ancestor) has an
+     * effectively dark background, using four progressive checks:
+     *   1. background-color chain (existing reliable path)
+     *   2. Section ancestor background-color chain
+     *   3. Elementor / Gutenberg dark overlay child div
+     *   4. background-image section → child text colour heuristic
+     */
+    function isSectionDark(el) {
+        if (isColorDark(getEffectiveBackgroundColor(el), 128)) return true;
 
-            // 1. Direct background-color (existing logic)
-            var bgColor = getEffectiveBackgroundColor(section);
-            if (isColorDark(bgColor, 128)) {
-                sections.push(section);
-                return;
+        var section = el.closest(
+            '.elementor-section, .e-con, .e-flex, section, [data-elementor-type], .wp-block-cover'
+        ) || el;
+
+        if (isColorDark(getEffectiveBackgroundColor(section), 128)) return true;
+
+        var overlay = section.querySelector(
+            '.elementor-background-overlay, .wp-block-cover__background, .wp-block-cover__gradient-background'
+        );
+        if (overlay) {
+            var oBg = parseColor(window.getComputedStyle(overlay).backgroundColor);
+            if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) return true;
+        }
+
+        var st = window.getComputedStyle(section);
+        if (st.backgroundImage && st.backgroundImage !== 'none') {
+            var nodes = section.querySelectorAll('h1, h2, h3, h4, p, span, a, li');
+            for (var i = 0; i < Math.min(nodes.length, 8); i++) {
+                if (!nodes[i].offsetParent) continue;
+                var tc = parseColor(window.getComputedStyle(nodes[i]).color);
+                if (tc && getColorBrightness(tc) > 180) return true;
             }
+        }
 
-            var st = window.getComputedStyle(section);
-
-            // 2. Elementor/Gutenberg dark overlay child
-            //    (background-image section + semi-transparent dark overlay div)
-            var overlay = section.querySelector(
-                '.elementor-background-overlay, .wp-block-cover__background, .wp-block-cover__gradient-background'
-            );
-            if (overlay) {
-                var oBg = parseColor(window.getComputedStyle(overlay).backgroundColor);
-                if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) {
-                    sections.push(section);
-                    return;
-                }
-            }
-
-            // 3. Section has background-image: use child text color as heuristic.
-            //    If the text inside is white/light, the background is almost certainly dark.
-            if (st.backgroundImage && st.backgroundImage !== 'none') {
-                var textNodes = section.querySelectorAll('h1, h2, h3, h4, p, span, a, li');
-                for (var i = 0; i < Math.min(textNodes.length, 8); i++) {
-                    var node = textNodes[i];
-                    if (!node.offsetParent) continue; // hidden
-                    var textColor = parseColor(window.getComputedStyle(node).color);
-                    // Light text (brightness > 180) inside a background-image section → dark bg
-                    if (textColor && getColorBrightness(textColor) > 180) {
-                        sections.push(section);
-                        return;
-                    }
-                }
-            }
-        });
-        return sections;
+        return false;
     }
 
+    /**
+     * Probe three points just below the header with elementFromPoint so we
+     * read the actual live element under the header on every scroll tick.
+     * Manual .smart-header-dark-zone elements always take priority.
+     */
     function checkDarkZoneOverlap(header) {
         if (!header) return;
         var headerRect = header.getBoundingClientRect();
-        var headerHeight = headerRect.height;
-        var headerTop = headerRect.top > 0 ? headerRect.top : 0;
-        var headerBottom = headerTop + headerHeight;
+        var shouldBeOnDark = false;
 
-        var overlappingZone = null;
-        var maxOverlap = 0;
+        var manualZones = document.querySelectorAll('.smart-header-dark-zone');
+        for (var m = 0; m < manualZones.length; m++) {
+            var mRect = manualZones[m].getBoundingClientRect();
+            if (mRect.top < headerRect.bottom && mRect.bottom > headerRect.top) {
+                shouldBeOnDark = true;
+                break;
+            }
+        }
 
-        darkZones.forEach(function (zone) {
-            var zoneRect = zone.getBoundingClientRect();
-            if (zoneRect.top < headerBottom && zoneRect.bottom > headerTop) {
-                var overlapHeight = Math.min(headerBottom, zoneRect.bottom) - Math.max(headerTop, zoneRect.top);
-                var pct = (overlapHeight / headerHeight) * 100;
-                if (pct > maxOverlap) {
-                    maxOverlap = pct;
-                    overlappingZone = zone;
+        if (!shouldBeOnDark) {
+            var probeY  = headerRect.bottom + 2;
+            var probeXs = [
+                headerRect.left + headerRect.width * 0.15,
+                headerRect.left + headerRect.width * 0.50,
+                headerRect.left + headerRect.width * 0.85,
+            ];
+            for (var i = 0; i < probeXs.length; i++) {
+                var el = document.elementFromPoint(probeXs[i], probeY);
+                if (!el || el.closest('.bw-custom-header')) continue;
+                if (isSectionDark(el)) {
+                    shouldBeOnDark = true;
+                    break;
                 }
             }
-        });
+        }
 
-        var shouldBeOnDark = overlappingZone !== null && maxOverlap >= 30;
         if (shouldBeOnDark !== isOnDarkZone) {
             isOnDarkZone = shouldBeOnDark;
-            if (isOnDarkZone) {
-                header.classList.add('bw-header-on-dark');
-            } else {
-                header.classList.remove('bw-header-on-dark');
-            }
+            header.classList.toggle('bw-header-on-dark', shouldBeOnDark);
         }
     }
 
     function initDarkZoneDetection(header) {
-        var manualDarkZones = Array.from(document.querySelectorAll('.smart-header-dark-zone'));
-        var autoDarkZones = autoDetectDarkSections();
-        var allDarkZones = manualDarkZones.concat(autoDarkZones.filter(function (z) { return !manualDarkZones.includes(z); }));
-        darkZones = allDarkZones;
-
-        if ('IntersectionObserver' in window && darkZones.length > 0) {
-            darkZoneObserver = new IntersectionObserver(function () {
-                checkDarkZoneOverlap(header);
-            }, { root: null, rootMargin: '0px' });
-            darkZones.forEach(function (zone) { darkZoneObserver.observe(zone); });
-        }
         checkDarkZoneOverlap(header);
     }
 
