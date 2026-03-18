@@ -581,3 +581,14 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Configure `Unconfirmed list` to `#11 – Blackwork – Unconfirmed` in General settings after deployment.
   - Removal from the Unconfirmed list after confirmation is not handled by the plugin; implement via Brevo Automation (trigger: added to list #10 → remove from list #11).
   - Keep closure trace in `docs/tasks/BW-TASK-20260318-01-closure.md`.
+
+### Entry 036
+- Date: 2026-03-18
+- Decision summary: Added `bw-product-description` as the canonical single-product description utility widget for Elementor, using existing BW-SP editor identity and shared product-context resolution patterns.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Designers need a dedicated widget to place the product long description anywhere inside single-product layouts while preserving the original HTML markup and avoiding duplicated manual text blocks.
+- Risk impact: Low-Medium — runtime scope is limited to single-product rendering, failure mode outside product context is safe-empty, and editor identity reuses an existing BW-SP convention.
+- Follow-up actions:
+  - Keep product-context resolution aligned with `bw_tbl_resolve_product_context_id()`.
+  - Reuse the existing BW-SP editor-family convention for future Woo single-product utility widgets where appropriate.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260318-02-closure.md`.

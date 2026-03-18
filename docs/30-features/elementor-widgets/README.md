@@ -37,6 +37,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slide` -> canonical product slider
+- `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-presentation-slide` -> specialized presentation/gallery slider
@@ -47,6 +48,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`
 - Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
 - Internal slug `bw-product-slide` -> visible title `BW-SP Gallery Product`
+- Internal slug `bw-product-breadcrumbs` -> visible title `BW-SP Product Breadcrumbs`
 - Internal slug `bw-product-description` -> visible title `BW-SP Product Description`
 - Internal slug `bw-title-product` -> visible title `BW Title Product`
 - Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
