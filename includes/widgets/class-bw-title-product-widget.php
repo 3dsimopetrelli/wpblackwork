@@ -255,9 +255,16 @@ class Widget_Bw_Title_Product extends Widget_Base {
         <#
         var allowedTags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
         var tag = ( allowedTags.indexOf( settings.html_tag ) !== -1 ) ? settings.html_tag : 'h1';
-        var placeholder = ( settings.title_source === 'category' ) ? 'Category Name' : 'Product Title';
+        var label;
+        if ( settings.title_source === 'text' ) {
+            label = settings.custom_text || 'Custom Text';
+        } else if ( settings.title_source === 'category' ) {
+            label = 'Category Name';
+        } else {
+            label = 'Product Title';
+        }
         view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
-        print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>' + placeholder + '</' + tag + '>' );
+        print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>' + label + '</' + tag + '>' );
         #>
         <?php
     }
