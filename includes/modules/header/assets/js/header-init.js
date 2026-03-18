@@ -139,53 +139,72 @@
     }
 
     /**
-     * Return true if the element (or its nearest section ancestor) has an
-     * effectively dark background, using four progressive checks:
-     *   1. background-color chain (existing reliable path)
-     *   2. Section ancestor background-color chain
-     *   3. Elementor / Gutenberg dark overlay child div
-     *   4. background-image section → child text colour heuristic
+     * Walk every ancestor of el (up to body) and return true as soon as one
+     * of them is effectively dark.  We walk the full chain so that nested
+     * Elementor containers (.e-con inside .e-con-boxed) don't cause us to
+     * stop at the wrong (inner, transparent) container.
+     *
+     * Per-ancestor checks:
+     *   1. background-color is dark
+     *   2. Direct overlay child div is dark (Elementor / Gutenberg pattern)
+     *   3. Has background-image AND child headings are light-coloured
      */
     function isSectionDark(el) {
-        if (isColorDark(getEffectiveBackgroundColor(el), 128)) return true;
+        var current = el;
+        var depth = 0;
 
-        var section = el.closest(
-            '.elementor-section, .e-con, .e-flex, section, [data-elementor-type], .wp-block-cover'
-        ) || el;
+        while (current && current !== document.documentElement && depth < 15) {
+            if (current.classList && current.classList.contains('bw-custom-header')) break;
 
-        if (isColorDark(getEffectiveBackgroundColor(section), 128)) return true;
+            var st = window.getComputedStyle(current);
 
-        var overlay = section.querySelector(
-            '.elementor-background-overlay, .wp-block-cover__background, .wp-block-cover__gradient-background'
-        );
-        if (overlay) {
-            var oBg = parseColor(window.getComputedStyle(overlay).backgroundColor);
-            if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) return true;
-        }
+            // 1. Solid dark background-color
+            var bg = parseColor(st.backgroundColor);
+            if (bg && bg.a >= 0.5 && isColorDark(bg, 128)) return true;
 
-        var st = window.getComputedStyle(section);
-        if (st.backgroundImage && st.backgroundImage !== 'none') {
-            var nodes = section.querySelectorAll('h1, h2, h3, h4, p, span, a, li');
-            for (var i = 0; i < Math.min(nodes.length, 8); i++) {
-                if (!nodes[i].offsetParent) continue;
-                var tc = parseColor(window.getComputedStyle(nodes[i]).color);
-                if (tc && getColorBrightness(tc) > 180) return true;
+            // 2. Elementor / Gutenberg overlay child
+            var child = current.firstElementChild;
+            while (child) {
+                if (
+                    child.classList.contains('elementor-background-overlay') ||
+                    child.classList.contains('wp-block-cover__background') ||
+                    child.classList.contains('wp-block-cover__gradient-background')
+                ) {
+                    var oBg = parseColor(window.getComputedStyle(child).backgroundColor);
+                    if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) return true;
+                    break;
+                }
+                child = child.nextElementSibling;
             }
+
+            // 3. Has background-image: check heading text colour as heuristic
+            if (st.backgroundImage && st.backgroundImage !== 'none') {
+                var headings = current.querySelectorAll('h1, h2, h3, h4');
+                for (var i = 0; i < Math.min(headings.length, 6); i++) {
+                    if (!headings[i].offsetParent) continue;
+                    var tc = parseColor(window.getComputedStyle(headings[i]).color);
+                    if (tc && getColorBrightness(tc) > 180) return true;
+                }
+            }
+
+            current = current.parentElement;
+            depth++;
         }
 
         return false;
     }
 
     /**
-     * Probe three points just below the header with elementFromPoint so we
-     * read the actual live element under the header on every scroll tick.
-     * Manual .smart-header-dark-zone elements always take priority.
+     * Probe elements behind the header (pointer-events:none trick, at the
+     * header vertical centre) and just below it.  Manual .smart-header-dark-zone
+     * elements always take priority.
      */
     function checkDarkZoneOverlap(header) {
         if (!header) return;
         var headerRect = header.getBoundingClientRect();
         var shouldBeOnDark = false;
 
+        // — Manual zones (always take priority) —
         var manualZones = document.querySelectorAll('.smart-header-dark-zone');
         for (var m = 0; m < manualZones.length; m++) {
             var mRect = manualZones[m].getBoundingClientRect();
@@ -196,18 +215,36 @@
         }
 
         if (!shouldBeOnDark) {
-            var probeY  = headerRect.bottom + 2;
             var probeXs = [
                 headerRect.left + headerRect.width * 0.15,
                 headerRect.left + headerRect.width * 0.50,
                 headerRect.left + headerRect.width * 0.85,
             ];
+
+            // Primary: probe BEHIND the header at its vertical centre.
+            // pointer-events:none makes elementFromPoint see through the header.
+            var oldPE = header.style.pointerEvents;
+            header.style.pointerEvents = 'none';
+            var probeY = headerRect.top + headerRect.height * 0.5;
             for (var i = 0; i < probeXs.length; i++) {
                 var el = document.elementFromPoint(probeXs[i], probeY);
-                if (!el || el.closest('.bw-custom-header')) continue;
-                if (isSectionDark(el)) {
+                if (el && !el.closest('.bw-custom-header') && isSectionDark(el)) {
                     shouldBeOnDark = true;
                     break;
+                }
+            }
+            header.style.pointerEvents = oldPE;
+
+            // Fallback: probe just below the header (catches sections that
+            // start right below, e.g. after scroll).
+            if (!shouldBeOnDark) {
+                var belowY = headerRect.bottom + 2;
+                for (var j = 0; j < probeXs.length; j++) {
+                    var elB = document.elementFromPoint(probeXs[j], belowY);
+                    if (elB && !elB.closest('.bw-custom-header') && isSectionDark(elB)) {
+                        shouldBeOnDark = true;
+                        break;
+                    }
                 }
             }
         }
