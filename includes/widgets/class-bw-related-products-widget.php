@@ -2,8 +2,8 @@
 /**
  * BW Related Products Widget
  *
- * Display related products using centralized product card renderer.
- * Features complete style controls like BW Wallpost and BW Slick Slider.
+ * Display related products using the centralized product card component
+ * with proportional image layout. Tablet and mobile always use 2 columns.
  *
  * @package BW_Main_Elementor_Widgets
  */
@@ -41,7 +41,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 	protected function register_controls() {
 		$this->register_content_controls();
 		$this->register_layout_controls();
-		$this->register_image_controls();
 		$this->register_style_controls();
 	}
 
@@ -117,24 +116,11 @@ class BW_Related_Products_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'open_cart_popup',
-			[
-				'label'        => __( 'Apri cart pop-up su Add to Cart', 'bw-elementor-widgets' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'Sì', 'bw-elementor-widgets' ),
-				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-				'return_value' => 'yes',
-				'default'      => '',
-				'description'  => __( 'Se attivo, il pulsante Add to Cart apre il cart pop-up.', 'bw-elementor-widgets' ),
-			]
-		);
-
 		$this->end_controls_section();
 	}
 
 	/**
-	 * Layout Controls
+	 * Layout Controls — columns (desktop only) + gap
 	 */
 	private function register_layout_controls() {
 		$this->start_controls_section(
@@ -144,15 +130,13 @@ class BW_Related_Products_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_responsive_control(
+		$this->add_control(
 			'columns',
 			[
-				'label'   => __( 'Columns', 'bw-elementor-widgets' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => '4',
-				'tablet_default' => '2',
-				'mobile_default' => '1',
-				'options' => [
+				'label'       => __( 'Colonne (Desktop)', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '4',
+				'options'     => [
 					'1' => '1',
 					'2' => '2',
 					'3' => '3',
@@ -160,6 +144,10 @@ class BW_Related_Products_Widget extends Widget_Base {
 					'5' => '5',
 					'6' => '6',
 				],
+				'selectors'   => [
+					'{{WRAPPER}} .bw-related-products-grid' => '--bw-rp-columns: {{VALUE}};',
+				],
+				'description' => __( 'Tablet e mobile: sempre 2 colonne.', 'bw-elementor-widgets' ),
 			]
 		);
 
@@ -172,192 +160,23 @@ class BW_Related_Products_Widget extends Widget_Base {
 				'range'      => [
 					'px' => [ 'min' => 0, 'max' => 100 ],
 				],
-				'default' => [
+				'default'    => [
 					'size' => 24,
 					'unit' => 'px',
 				],
-				'selectors' => [
+				'selectors'  => [
 					'{{WRAPPER}} .bw-related-products-grid' => '--bw-rp-gap: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
 
-		$this->add_responsive_control(
-			'margin_top',
-			[
-				'label'      => __( 'Margin Top', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px', 'em', 'rem' ],
-				'range'      => [
-					'px'  => [ 'min' => 0, 'max' => 300 ],
-					'em'  => [ 'min' => 0, 'max' => 20 ],
-					'rem' => [ 'min' => 0, 'max' => 20 ],
-				],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-related-products-widget' => 'margin-top: {{SIZE}}{{UNIT}};',
-				],
-			]
-		);
-
-		$this->add_responsive_control(
-			'margin_bottom',
-			[
-				'label'      => __( 'Margin Bottom', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px', 'em', 'rem' ],
-				'range'      => [
-					'px'  => [ 'min' => 0, 'max' => 300 ],
-					'em'  => [ 'min' => 0, 'max' => 20 ],
-					'rem' => [ 'min' => 0, 'max' => 20 ],
-				],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-related-products-widget' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-				],
-			]
-		);
-
 		$this->end_controls_section();
 	}
 
 	/**
-	 * Image Controls
-	 */
-	private function register_image_controls() {
-		$this->start_controls_section(
-			'section_image',
-			[
-				'label' => __( 'Image Settings', 'bw-elementor-widgets' ),
-			]
-		);
-
-		$this->add_control(
-			'image_toggle',
-			[
-				'label'        => __( 'Show Featured Image', 'bw-elementor-widgets' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-			]
-		);
-
-		$this->add_control(
-			'image_size',
-			[
-				'label'   => __( 'Image Size', 'bw-elementor-widgets' ),
-				'type'    => Controls_Manager::SELECT,
-				'options' => [
-					'thumbnail'    => __( 'Thumbnail', 'bw-elementor-widgets' ),
-					'medium'       => __( 'Medium', 'bw-elementor-widgets' ),
-					'medium_large' => __( 'Medium Large', 'bw-elementor-widgets' ),
-					'large'        => __( 'Large', 'bw-elementor-widgets' ),
-					'full'         => __( 'Full', 'bw-elementor-widgets' ),
-				],
-				'default'   => 'large',
-				'condition' => [ 'image_toggle' => 'yes' ],
-			]
-		);
-
-		$this->add_responsive_control(
-			'image_height',
-			[
-				'label'      => __( 'Image Height', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => 100, 'max' => 1000 ],
-				],
-				'default' => [
-					'size' => 400,
-					'unit' => 'px',
-				],
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-media img' => 'height: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .bw-product-card .bw-ss__media img' => 'height: {{SIZE}}{{UNIT}};',
-				],
-				'condition' => [ 'image_toggle' => 'yes' ],
-			]
-		);
-
-		$this->add_responsive_control(
-			'image_border_radius',
-			[
-				'label'      => __( 'Image Border Radius', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%', 'em' ],
-				'default'    => [
-					'top'      => '8',
-					'right'    => '8',
-					'bottom'   => '8',
-					'left'     => '8',
-					'unit'     => 'px',
-					'isLinked' => true,
-				],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-media'   => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-media img' => 'border-radius: inherit;',
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-overlay' => 'border-radius: inherit;',
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-image'   => 'border-radius: inherit;',
-				],
-				'condition' => [ 'image_toggle' => 'yes' ],
-			]
-		);
-
-		$this->add_control(
-			'image_object_fit',
-			[
-				'label'   => __( 'Image Object Fit', 'bw-elementor-widgets' ),
-				'type'    => Controls_Manager::SELECT,
-				'options' => [
-					'cover'   => __( 'Cover', 'bw-elementor-widgets' ),
-					'contain' => __( 'Contain', 'bw-elementor-widgets' ),
-					'fill'    => __( 'Fill', 'bw-elementor-widgets' ),
-					'none'    => __( 'None', 'bw-elementor-widgets' ),
-				],
-				'default'   => 'cover',
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-media img' => 'object-fit: {{VALUE}};',
-				],
-				'condition' => [ 'image_toggle' => 'yes' ],
-			]
-		);
-
-		$this->add_control(
-			'image_background_color',
-			[
-				'label'     => __( 'Background Immagine', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'transparent',
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-media' => 'background-color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card .bw-wallpost-image' => 'background-color: {{VALUE}};',
-				],
-				'condition' => [ 'image_toggle' => 'yes' ],
-			]
-		);
-
-		$this->add_control(
-			'hover_effect',
-			[
-				'label'        => __( 'Enable Hover Effect', 'bw-elementor-widgets' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-				'return_value' => 'yes',
-				'default'      => 'yes',
-				'separator'    => 'before',
-			]
-		);
-
-		$this->end_controls_section();
-	}
-
-	/**
-	 * Style Controls
+	 * Style Controls — typography only (title, description, price)
 	 */
 	private function register_style_controls() {
-		// Typography Section
 		$this->start_controls_section(
 			'section_typography',
 			[
@@ -382,7 +201,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-title' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-title-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-product-card'                    => '--bw-card-title-color: {{VALUE}};',
 				],
 			]
 		);
@@ -442,7 +261,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-description' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-description-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-product-card'                           => '--bw-card-description-color: {{VALUE}};',
 				],
 			]
 		);
@@ -502,7 +321,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-price' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-price-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-product-card'                    => '--bw-card-price-color: {{VALUE}};',
 				],
 			]
 		);
@@ -546,170 +365,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
-
-		// Overlay Buttons Section
-		$this->start_controls_section(
-			'section_overlay_buttons',
-			[
-				'label' => __( 'Overlay Buttons', 'bw-elementor-widgets' ),
-				'tab'   => Controls_Manager::TAB_STYLE,
-			]
-		);
-
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'overlay_buttons_typography',
-				'selector' => '{{WRAPPER}} .bw-product-card .bw-wallpost-overlay-button',
-			]
-		);
-
-		$this->start_controls_tabs( 'overlay_buttons_color_tabs' );
-
-		$this->start_controls_tab(
-			'overlay_buttons_color_normal',
-			[
-				'label' => __( 'Normal', 'bw-elementor-widgets' ),
-			]
-		);
-
-		$this->add_control(
-			'overlay_buttons_text_color',
-			[
-				'label'     => __( 'Colore testo', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#000000',
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-overlay-buttons-color: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->add_control(
-			'overlay_buttons_background_color',
-			[
-				'label'     => __( 'Colore sfondo', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#FFFFFF',
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-overlay-buttons-background: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->end_controls_tab();
-
-		$this->start_controls_tab(
-			'overlay_buttons_color_hover',
-			[
-				'label' => __( 'Hover', 'bw-elementor-widgets' ),
-			]
-		);
-
-		$this->add_control(
-			'overlay_buttons_text_color_hover',
-			[
-				'label'     => __( 'Colore testo (hover)', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#000000',
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-overlay-buttons-color-hover: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->add_control(
-			'overlay_buttons_background_color_hover',
-			[
-				'label'     => __( 'Colore sfondo (hover)', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#80FD03',
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-overlay-buttons-background-hover: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->end_controls_tab();
-
-		$this->end_controls_tabs();
-
-		$this->add_responsive_control(
-			'overlay_buttons_border_radius',
-			[
-				'label'      => __( 'Raggio bordi', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px', '%' ],
-				'range'      => [
-					'px' => [ 'min' => 0, 'max' => 200 ],
-					'%'  => [ 'min' => 0, 'max' => 50 ],
-				],
-				'default'    => [
-					'size' => 8,
-					'unit' => 'px',
-				],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-overlay-buttons-radius: {{SIZE}}{{UNIT}};',
-				],
-				'separator' => 'before',
-			]
-		);
-
-		$this->add_responsive_control(
-			'overlay_buttons_padding',
-			[
-				'label'      => __( 'Padding pulsanti', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%', 'em', 'rem' ],
-				'default'    => [
-					'top'      => '13',
-					'right'    => '10',
-					'bottom'   => '13',
-					'left'     => '10',
-					'unit'     => 'px',
-					'isLinked' => false,
-				],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-product-card' => '--bw-card-overlay-buttons-padding-top: {{TOP}}{{UNIT}}; --bw-card-overlay-buttons-padding-right: {{RIGHT}}{{UNIT}}; --bw-card-overlay-buttons-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-card-overlay-buttons-padding-left: {{LEFT}}{{UNIT}};',
-				],
-			]
-		);
-
-		$this->end_controls_section();
-
-		// Card Container Section
-		$this->start_controls_section(
-			'section_card_container',
-			[
-				'label' => __( 'Card Container', 'bw-elementor-widgets' ),
-				'tab'   => Controls_Manager::TAB_STYLE,
-			]
-		);
-
-		$this->add_responsive_control(
-			'card_padding',
-			[
-				'label'      => __( 'Padding Card', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%', 'em', 'rem' ],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-product-card .bw-slick-slider-text-box' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				],
-			]
-		);
-
-		$this->add_control(
-			'card_background_color',
-			[
-				'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => [
-					'{{WRAPPER}} .bw-product-card .bw-slick-slider-text-box' => 'background-color: {{VALUE}};',
-				],
-			]
-		);
-
-		$this->end_controls_section();
 	}
 
 	/**
@@ -738,7 +393,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 				break;
 		}
 
-		// Limit results
 		if ( count( $related_ids ) > $posts_per_page ) {
 			$related_ids = array_slice( $related_ids, 0, $posts_per_page );
 		}
@@ -756,7 +410,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return [];
 		}
 
-		// Find subcategories (categories with parent)
 		$subcategories = [];
 		foreach ( $product_categories as $cat_id ) {
 			$term = get_term( $cat_id, 'product_cat' );
@@ -769,7 +422,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return [];
 		}
 
-		// Query products with the same subcategory
 		$query_args = [
 			'post_type'      => 'product',
 			'posts_per_page' => 50,
@@ -799,7 +451,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return [];
 		}
 
-		// Query products with the same tags
 		$query_args = [
 			'post_type'      => 'product',
 			'posts_per_page' => 50,
@@ -835,11 +486,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 		}
 
 		if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
-			$resolved = bw_tbl_resolve_product_context_id(
-				[
-					'__widget_class' => __CLASS__,
-				]
-			);
+			$resolved    = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
 			$resolved_id = isset( $resolved['id'] ) ? absint( $resolved['id'] ) : 0;
 			if ( $resolved_id > 0 ) {
 				$maybe_product = wc_get_product( $resolved_id );
@@ -853,7 +500,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 	}
 
 	/**
-	 * Get fallback products for preview
+	 * Get fallback products for editor preview
 	 */
 	protected function get_fallback_products( $limit = 4 ) {
 		$query_args = [
@@ -876,22 +523,17 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return;
 		}
 
-		$settings        = $this->get_settings_for_display();
-		$query_by        = isset( $settings['query_by'] ) ? $settings['query_by'] : 'category';
-		$posts_per_page  = isset( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 4;
-		$columns         = isset( $settings['columns'] ) ? absint( $settings['columns'] ) : 4;
-		$image_size      = isset( $settings['image_size'] ) ? $settings['image_size'] : 'large';
-		$show_image      = isset( $settings['image_toggle'] ) && 'yes' === $settings['image_toggle'];
-		$show_hover      = isset( $settings['hover_effect'] ) && 'yes' === $settings['hover_effect'];
-		$show_title      = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
+		$settings         = $this->get_settings_for_display();
+		$query_by         = isset( $settings['query_by'] ) ? $settings['query_by'] : 'category';
+		$posts_per_page   = isset( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 4;
+		$columns          = isset( $settings['columns'] ) ? absint( $settings['columns'] ) : 4;
+		$show_title       = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
 		$show_description = isset( $settings['show_description'] ) && 'yes' === $settings['show_description'];
-		$show_price      = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
-		$open_cart_popup = isset( $settings['open_cart_popup'] ) && 'yes' === $settings['open_cart_popup'];
+		$show_price       = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
 
-		$product = $this->get_current_product();
+		$product   = $this->get_current_product();
 		$is_editor = class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
-		// In editor mode without a product, show fallback
 		if ( ! $product instanceof \WC_Product ) {
 			if ( $is_editor ) {
 				$related_product_ids = $this->get_fallback_products( $posts_per_page );
@@ -902,13 +544,12 @@ class BW_Related_Products_Widget extends Widget_Base {
 					return;
 				}
 			} else {
-				return; // No product in frontend
+				return;
 			}
 		} else {
 			$related_product_ids = $this->get_related_products_by_type( $product, $query_by, $posts_per_page );
 		}
 
-		// Show fallback message if no products
 		if ( empty( $related_product_ids ) ) {
 			echo '<div class="bw-related-products-widget bw-related-products-empty">';
 			echo '<p>' . esc_html__( 'Non ci sono prodotti correlati.', 'bw-elementor-widgets' ) . '</p>';
@@ -916,17 +557,16 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return;
 		}
 
-		// Prepare card settings
 		$card_settings = [
-			'image_size'          => $image_size,
-			'show_image'          => $show_image,
-			'show_hover_image'    => $show_hover,
-			'show_title'          => $show_title,
-			'show_description'    => $show_description,
-			'show_price'          => $show_price,
-			'show_buttons'        => true,
-			'show_add_to_cart'    => true,
-			'open_cart_popup'     => $open_cart_popup,
+			'image_mode'       => 'proportional',
+			'show_image'       => true,
+			'show_hover_image' => true,
+			'show_title'       => $show_title,
+			'show_description' => $show_description,
+			'show_price'       => $show_price,
+			'show_buttons'     => true,
+			'show_add_to_cart' => true,
+			'open_cart_popup'  => false,
 		];
 
 		?>
