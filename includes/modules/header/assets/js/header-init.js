@@ -195,9 +195,8 @@
     }
 
     /**
-     * Probe elements behind the header (pointer-events:none trick, at the
-     * header vertical centre) and just below it.  Manual .smart-header-dark-zone
-     * elements always take priority.
+     * Probe elements BEHIND the header (pointer-events:none at vertical centre).
+     * Manual .smart-header-dark-zone elements always take priority.
      */
     function checkDarkZoneOverlap(header) {
         if (!header) return;
@@ -221,7 +220,7 @@
                 headerRect.left + headerRect.width * 0.85,
             ];
 
-            // Primary: probe BEHIND the header at its vertical centre.
+            // Probe BEHIND the header at its vertical centre.
             // pointer-events:none makes elementFromPoint see through the header.
             var oldPE = header.style.pointerEvents;
             header.style.pointerEvents = 'none';
@@ -234,19 +233,6 @@
                 }
             }
             header.style.pointerEvents = oldPE;
-
-            // Fallback: probe just below the header (catches sections that
-            // start right below, e.g. after scroll).
-            if (!shouldBeOnDark) {
-                var belowY = headerRect.bottom + 2;
-                for (var j = 0; j < probeXs.length; j++) {
-                    var elB = document.elementFromPoint(probeXs[j], belowY);
-                    if (elB && !elB.closest('.bw-custom-header') && isSectionDark(elB)) {
-                        shouldBeOnDark = true;
-                        break;
-                    }
-                }
-            }
         }
 
         if (shouldBeOnDark !== isOnDarkZone) {
