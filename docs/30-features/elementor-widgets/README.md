@@ -46,10 +46,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`
 - Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
 - Internal slug `bw-product-slide` -> visible title `BW-SP Gallery Product`
-- Internal slug `bw-title-product` -> visible title `Title Product`
+- Internal slug `bw-title-product` -> visible title `BW Title Product`
 - Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
 - WooCommerce editor identity note:
-  - `bw-title-product` uses a slug-scoped panel mapping so it still receives the BW-SP purple widget card without requiring a `BW-SP` title prefix.
+  - `bw-title-product` uses a slug-scoped panel mapping so it still receives the BW-SP purple widget card without requiring a `BW-SP` title prefix or a `BW-SP` visible title.
 
 ## Current implementation status (completed waves)
 - Widget panel naming applied:

@@ -32,7 +32,7 @@ Canonical transition note:
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-product-slide` -> `BW-SP Gallery Product` (visible title)
-- `bw-title-product` -> `Title Product` (visible title)
+- `bw-title-product` -> `BW Title Product` (visible title)
 - Internal slugs above remain the runtime authority.
 
 ## Current implementation deltas (status)
@@ -42,8 +42,9 @@ Canonical transition note:
   - canonical class: `BW_Product_Grid_Widget`
 - `bw-title-product` controls (final state):
   - `html_tag`: H1–H6, div, span, p (default: H1)
-  - `title_source`: `product` (single-product title, context-resolved), `category` (product-category name), `text` (arbitrary custom text)
+  - `title_source`: `product` (single-product title, context-resolved), `category` (product-category name), `page` (page title), `text` (arbitrary custom text)
   - `product_id`: explicit product ID override for editor preview (source: `product` only)
+  - `page_id`: explicit page ID override for editor preview (source: `page` only)
   - `term_id`: explicit category ID override for editor preview (source: `category` only)
   - `custom_text`: static text input (source: `text` only)
   - Alignment (responsive), Typography group control (Elementor native)

@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * BW-SP Title Product Widget
+ * BW Title Product Widget
  *
  * Displays either a WooCommerce product title or a product-category name.
  * Typography is handled exclusively through the Elementor Typography group control.
@@ -20,7 +20,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
     }
 
     public function get_title() {
-        return __( 'Title Product', 'bw' );
+        return __( 'BW Title Product', 'bw' );
     }
 
     public function get_icon() {
@@ -62,6 +62,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'options'     => [
                 'product'  => __( 'Single Product', 'bw' ),
                 'category' => __( 'Product Category', 'bw' ),
+                'page'     => __( 'Page', 'bw' ),
                 'text'     => __( 'Text', 'bw' ),
             ],
             'default'     => 'product',
@@ -85,6 +86,16 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'placeholder' => __( 'Enter custom title text', 'bw' ),
             'label_block' => true,
             'condition'   => [ 'title_source' => 'text' ],
+        ] );
+
+        $this->add_control( 'page_id', [
+            'label'       => __( 'Page ID', 'bw' ),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => '',
+            'placeholder' => __( 'Leave empty to use current page', 'bw' ),
+            'description' => __( 'ID of the page to preview in editor. Leave empty on page templates.', 'bw' ),
+            'label_block' => true,
+            'condition'   => [ 'title_source' => 'page' ],
         ] );
 
         $this->add_control( 'term_id', [
@@ -137,9 +148,9 @@ class Widget_Bw_Title_Product extends Widget_Base {
                 'typography'     => [ 'default' => 'yes' ],
                 'font_weight'    => [ 'default' => '700' ],
                 'font_size'      => [
-                    'default'        => [ 'size' => 90,   'unit' => 'px' ],
-                    'tablet_default' => [ 'size' => 60,   'unit' => 'px' ],
-                    'mobile_default' => [ 'size' => 38,   'unit' => 'px' ],
+                    'default'        => [ 'size' => 100, 'unit' => 'px' ],
+                    'tablet_default' => [ 'size' => 100, 'unit' => 'px' ],
+                    'mobile_default' => [ 'size' => 100, 'unit' => 'px' ],
                 ],
                 'letter_spacing' => [
                     'default'        => [ 'size' => -3,   'unit' => 'px' ],
@@ -147,9 +158,9 @@ class Widget_Bw_Title_Product extends Widget_Base {
                     'mobile_default' => [ 'size' => -1,   'unit' => 'px' ],
                 ],
                 'line_height'    => [
-                    'default'        => [ 'size' => 1.1,  'unit' => 'em' ],
-                    'tablet_default' => [ 'size' => 1.1,  'unit' => 'em' ],
-                    'mobile_default' => [ 'size' => 1.15, 'unit' => 'em' ],
+                    'default'        => [ 'size' => 110, 'unit' => '%' ],
+                    'tablet_default' => [ 'size' => 110, 'unit' => '%' ],
+                    'mobile_default' => [ 'size' => 110, 'unit' => '%' ],
                 ],
             ],
         ] );
@@ -171,6 +182,8 @@ class Widget_Bw_Title_Product extends Widget_Base {
 
         if ( 'text' === $source ) {
             $title = sanitize_text_field( $settings['custom_text'] ?? '' );
+        } elseif ( 'page' === $source ) {
+            $title = $this->resolve_page_title( $settings );
         } elseif ( 'category' === $source ) {
             $title = $this->resolve_category_title( $settings );
         } else {
@@ -182,6 +195,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
                 $placeholders = [
                     'text'     => __( 'Custom Text', 'bw' ),
                     'category' => __( 'Category Name', 'bw' ),
+                    'page'     => __( 'Page Title', 'bw' ),
                     'product'  => __( 'Product Title', 'bw' ),
                 ];
                 $title = $placeholders[ $source ] ?? __( 'Product Title', 'bw' );
@@ -248,6 +262,31 @@ class Widget_Bw_Title_Product extends Widget_Base {
     }
 
     /**
+     * Resolve page title.
+     * Priority: widget setting (page_id) -> queried object -> current post if page.
+     */
+    private function resolve_page_title( array $settings ): string {
+        if ( ! empty( $settings['page_id'] ) ) {
+            $page_id = absint( $settings['page_id'] );
+            if ( $page_id > 0 && 'page' === get_post_type( $page_id ) ) {
+                return get_the_title( $page_id );
+            }
+        }
+
+        $queried_id = absint( get_queried_object_id() );
+        if ( $queried_id > 0 && 'page' === get_post_type( $queried_id ) ) {
+            return get_the_title( $queried_id );
+        }
+
+        $post_id = absint( get_the_ID() );
+        if ( $post_id > 0 && 'page' === get_post_type( $post_id ) ) {
+            return get_the_title( $post_id );
+        }
+
+        return '';
+    }
+
+    /**
      * JS template for live preview in the editor.
      */
     protected function content_template() {
@@ -255,7 +294,13 @@ class Widget_Bw_Title_Product extends Widget_Base {
         <#
         var allowedTags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ];
         var tag = ( allowedTags.indexOf( settings.html_tag ) !== -1 ) ? settings.html_tag : 'h1';
-        var placeholder = ( settings.title_source === 'category' ) ? 'Category Name' : 'Product Title';
+        var placeholderMap = {
+            product: 'Product Title',
+            category: 'Category Name',
+            page: 'Page Title',
+            text: 'Custom Text'
+        };
+        var placeholder = placeholderMap[ settings.title_source ] || 'Product Title';
         view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
         print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>' + placeholder + '</' + tag + '>' );
         #>

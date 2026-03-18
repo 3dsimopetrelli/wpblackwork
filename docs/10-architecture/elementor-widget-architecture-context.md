@@ -71,7 +71,7 @@ Decisions already fixed:
 Visible editor title alignment (current):
 - `bw-slick-slider` -> `BW-UI Product Slider`
 - `bw-product-slide` -> `BW-SP Gallery Product`
-- `bw-title-product` -> `Title Product`
+- `bw-title-product` -> `BW Title Product`
 - Scope note: title alignment affects editor labeling only; slug/runtime authority is unchanged.
 - Editor identity exception:
   - `bw-title-product` uses a slug-scoped panel-family mapping to receive the WooCommerce/BW-SP purple editor card without relying on a `BW-SP` title prefix.
