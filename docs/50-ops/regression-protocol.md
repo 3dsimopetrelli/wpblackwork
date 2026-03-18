@@ -635,6 +635,17 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - duplicate move still triggers duplicate popup instead of silent no-op
   - Media bulk organize remains unchanged
 
+## Media Folders List-Table Copy Link Column
+- Date: 2026-03-18
+- Scope:
+  - Adds a compact `Link` column on Posts / Pages / Products list tables for one-click permalink copy.
+- Regression checks required (manual):
+  - Posts list -> `Link` column appears before `Author`
+  - Pages list -> `Link` column appears before `Author`
+  - Products list -> `Link` column appears before `Author`
+  - clicking the copy button copies the row permalink
+  - drag-handle, marker dot, and author/date columns remain aligned
+
 ## Media Folders Summary Cache Lifecycle Invalidation
 - Date: 2026-03-17
 - Scope:

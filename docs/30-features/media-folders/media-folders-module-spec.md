@@ -301,6 +301,9 @@ Corner markers payload:
   - products: before `name` (fallback `title`, then `cb`)
   - posts/pages: before `title` (fallback `cb`)
   - no append-to-end fallback is allowed.
+- Dedicated copy-link column (`bw_mf_copy_link`) is rendered before `author`:
+  - fallback anchors: `comments`, then `date`
+  - no append-to-end fallback is allowed.
 - Handle icon: 4-arrows (`dashicons-move`), drag start source is handle only.
 - Drag ghost label shows current row title.
 - Row/checkbox drag start is disabled for non-media post types.
@@ -315,6 +318,11 @@ Corner markers payload:
   - Posts / Pages / Products reuse the existing corner-indicator setting
   - marker is rendered in the drag-handle column, not in Title/Author/Date columns
   - no marker is rendered for rows without a folder assignment
+- Copy-link visibility contract on list tables:
+  - Posts / Pages / Products render a compact `Link` column with a single copy button
+  - clicking the button copies the current row permalink directly from the list table
+  - the button is client-side only and does not add or change Media Folders AJAX contracts
+  - clipboard fallback uses a temporary textarea copy path when `navigator.clipboard` is unavailable
 
 ## Settings Page UI Contract
 - Settings submenu page (`Blackwork Site -> Media Folders`) keeps the same option semantics and save flow.
