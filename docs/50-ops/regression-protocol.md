@@ -634,3 +634,25 @@ When tasks touch Supabase protected surfaces, these smoke tests are mandatory:
   - no selection -> generic item warning shown
   - duplicate move still triggers duplicate popup instead of silent no-op
   - Media bulk organize remains unchanged
+
+## Media Folders List-Table Copy Link Column
+- Date: 2026-03-18
+- Scope:
+  - Adds a compact `Link` column on Posts / Pages / Products list tables for one-click permalink copy.
+- Regression checks required (manual):
+  - Posts list -> `Link` column appears before `Author`
+  - Pages list -> `Link` column appears before `Author`
+  - Products list -> `Link` column appears before `Author`
+  - clicking the copy button copies the row permalink
+  - drag-handle, marker dot, and author/date columns remain aligned
+
+## Media Folders Summary Cache Lifecycle Invalidation
+- Date: 2026-03-17
+- Scope:
+  - Hardens summary/tree/count cache invalidation for supported post lifecycle changes that affect `All Items` and `Unassigned Items`.
+- Regression checks required (manual):
+  - create new unassigned Page -> `Unassigned Items` increments immediately
+  - create new unassigned Post -> `Unassigned Items` increments immediately
+  - upload new unassigned Media -> `Unassigned Files` increments immediately
+  - create new unassigned Product -> `Unassigned Items` increments immediately
+  - move counted item to trash / restore -> summary counts converge without waiting for TTL

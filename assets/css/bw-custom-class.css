@@ -72,12 +72,14 @@
 .bw-hover-underline-ltr .elementor-button-text,
 .bw-hover-underline-ltr .bw-navshop__item,
 .bw-hover-underline-ltr > a {
-  --bw-hover-underline-thickness: 1px;
-  --bw-hover-underline-offset: 0.12em;
+  --bw-hover-underline-thickness: 2px;
+  --bw-hover-underline-gap: 2px;
+  display: inline-block;
+  padding-bottom: var(--bw-hover-underline-gap);
   background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-size: 0% var(--bw-hover-underline-thickness);
-  background-position: 0 calc(100% - var(--bw-hover-underline-offset));
+  background-position: 0 100%;
   transition: background-size 0.28s ease;
   text-decoration: none !important;
 }

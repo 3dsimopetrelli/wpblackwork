@@ -211,6 +211,44 @@
         duplicateNoticeEl.setAttribute('aria-hidden', 'true');
     }
 
+    function copyTextToClipboard(text) {
+        var value = String(text || '').trim();
+        if (!value) {
+            return Promise.reject(new Error('empty-copy-value'));
+        }
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function' && window.isSecureContext) {
+            return navigator.clipboard.writeText(value);
+        }
+
+        return new Promise(function (resolve, reject) {
+            var textarea = document.createElement('textarea');
+            textarea.value = value;
+            textarea.setAttribute('readonly', 'readonly');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.pointerEvents = 'none';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+
+            try {
+                if (document.execCommand('copy')) {
+                    resolve();
+                } else {
+                    reject(new Error('execCommand-copy-failed'));
+                }
+            } catch (err) {
+                reject(err);
+            } finally {
+                if (textarea.parentNode) {
+                    textarea.parentNode.removeChild(textarea);
+                }
+            }
+        });
+    }
+
     function request(action, payload, onDone, options) {
         var opts = options || {};
         if (!action || !cfg.ajaxUrl || !cfg.nonce) {
@@ -2511,6 +2549,43 @@
             }
             hideContextMenu();
             hideColorPopover();
+        });
+
+        $(document).on('click', '.bw-mf-copy-link-btn', function (e) {
+            var button = e.currentTarget;
+            var url = button ? String(button.getAttribute('data-copy-url') || '').trim() : '';
+            var copiedLabel = cfg.text && cfg.text.copiedLink ? cfg.text.copiedLink : 'Copied';
+            var copyLabel = cfg.text && cfg.text.copyLink ? cfg.text.copyLink : 'Copy link';
+            var copyFailedLabel = cfg.text && cfg.text.copyFailed ? cfg.text.copyFailed : 'Copy failed';
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!url) {
+                window.alert(copyFailedLabel);
+                return;
+            }
+
+            copyTextToClipboard(url)
+                .then(function () {
+                    var $button = $(button);
+                    window.clearTimeout($button.data('bwMfCopyResetTimer') || 0);
+                    $button.addClass('is-copied')
+                        .attr('aria-label', copiedLabel)
+                        .attr('title', copiedLabel);
+
+                    var resetTimer = window.setTimeout(function () {
+                        $button.removeClass('is-copied')
+                            .attr('aria-label', copyLabel)
+                            .attr('title', copyLabel);
+                        $button.removeData('bwMfCopyResetTimer');
+                    }, 1400);
+
+                    $button.data('bwMfCopyResetTimer', resetTimer);
+                })
+                .catch(function () {
+                    window.alert(copyFailedLabel);
+                });
         });
 
         $(window).on('scroll resize', function () {

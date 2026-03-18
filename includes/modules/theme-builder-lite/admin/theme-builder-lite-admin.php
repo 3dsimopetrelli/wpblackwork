@@ -740,9 +740,17 @@ if (!function_exists('bw_tbl_render_admin_page')) {
                                             <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_checkout]" value="1" <?php checked(!empty($footer_option['exclude_checkout'])); ?> />
                                             <?php esc_html_e('Checkout page', 'bw'); ?>
                                         </label>
-                                        <label style="display:block;">
+                                        <label style="display:block;margin-bottom:6px;">
                                             <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_order_received]" value="1" <?php checked(!empty($footer_option['exclude_order_received'])); ?> />
                                             <?php esc_html_e('Order received / thank-you pages', 'bw'); ?>
+                                        </label>
+                                        <label style="display:block;margin-bottom:6px;">
+                                            <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_my_account_logged_in]" value="1" <?php checked(!empty($footer_option['exclude_my_account_logged_in'])); ?> />
+                                            <?php esc_html_e('My Account page (logged-in users)', 'bw'); ?>
+                                        </label>
+                                        <label style="display:block;">
+                                            <input type="checkbox" name="<?php echo esc_attr(BW_TBL_FOOTER_OPTION); ?>[exclude_my_account_logged_out]" value="1" <?php checked(!empty($footer_option['exclude_my_account_logged_out'])); ?> />
+                                            <?php esc_html_e('My Account page (logged-out users)', 'bw'); ?>
                                         </label>
                                     </div>
                                 </td>

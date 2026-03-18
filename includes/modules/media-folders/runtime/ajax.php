@@ -819,6 +819,52 @@ add_action('added_term_meta', 'bw_mf_invalidate_folder_counts_cache_on_term_meta
 add_action('updated_term_meta', 'bw_mf_invalidate_folder_counts_cache_on_term_meta', 10, 4);
 add_action('deleted_term_meta', 'bw_mf_invalidate_folder_counts_cache_on_term_meta', 10, 4);
 
+if (!function_exists('bw_mf_is_counted_post_status')) {
+    function bw_mf_is_counted_post_status($post_type, $post_status)
+    {
+        $post_type = sanitize_key((string) $post_type);
+        $post_status = sanitize_key((string) $post_status);
+
+        if ($post_type === '' || $post_status === '') {
+            return false;
+        }
+
+        if ($post_type === 'attachment') {
+            return $post_status === 'inherit';
+        }
+
+        return !in_array($post_status, ['trash', 'auto-draft'], true);
+    }
+}
+
+if (!function_exists('bw_mf_invalidate_folder_counts_cache_on_post_status_transition')) {
+    function bw_mf_invalidate_folder_counts_cache_on_post_status_transition($new_status, $old_status, $post)
+    {
+        if (bw_mf_is_cache_invalidation_suspended()) {
+            return;
+        }
+
+        if (!$post instanceof WP_Post || empty($post->post_type)) {
+            return;
+        }
+
+        $post_type = sanitize_key((string) $post->post_type);
+        $taxonomy = bw_mf_get_taxonomy_for_post_type($post_type);
+        if ($taxonomy === '') {
+            return;
+        }
+
+        $was_counted = bw_mf_is_counted_post_status($post_type, $old_status);
+        $is_counted = bw_mf_is_counted_post_status($post_type, $new_status);
+        if ($was_counted === $is_counted) {
+            return;
+        }
+
+        bw_mf_invalidate_folder_counts_cache($post_type, $taxonomy);
+    }
+}
+add_action('transition_post_status', 'bw_mf_invalidate_folder_counts_cache_on_post_status_transition', 10, 3);
+
 if (!function_exists('bw_mf_get_folder_term_or_error')) {
     function bw_mf_get_folder_term_or_error($term_id, $taxonomy)
     {

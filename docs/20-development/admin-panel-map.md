@@ -198,6 +198,7 @@ Current adoption:
       - dedicated drag-handle column before `Title`
       - products anchor before `name` (fallback `title`, then `cb`) to stay deterministic with WooCommerce column maps
       - drag-handle column uses compact fixed width across Posts, Pages, and Products
+      - compact `Link` column is injected before `author` (fallback `comments`, then `date`) and copies the row permalink client-side
       - drag start only from handle (`dashicons-move`)
       - drag remains single-item only
       - checkbox-selected rows can be reassigned through the shared sidebar `Bulk organize` control

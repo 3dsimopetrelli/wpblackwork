@@ -12,6 +12,8 @@ if (!function_exists('bw_tbl_default_footer_option')) {
             'exclude_enabled' => 0,
             'exclude_checkout' => 0,
             'exclude_order_received' => 0,
+            'exclude_my_account_logged_in' => 0,
+            'exclude_my_account_logged_out' => 0,
             'elementor_disable_child_breakpoints' => 0,
             'elementor_disable_child_css' => 0,
         ];
@@ -36,6 +38,8 @@ if (!function_exists('bw_tbl_sanitize_footer_option')) {
         $exclude_enabled = !empty($input['exclude_enabled']) ? 1 : 0;
         $exclude_checkout = ($exclude_enabled && !empty($input['exclude_checkout'])) ? 1 : 0;
         $exclude_order_received = ($exclude_enabled && !empty($input['exclude_order_received'])) ? 1 : 0;
+        $exclude_my_account_logged_in = ($exclude_enabled && !empty($input['exclude_my_account_logged_in'])) ? 1 : 0;
+        $exclude_my_account_logged_out = ($exclude_enabled && !empty($input['exclude_my_account_logged_out'])) ? 1 : 0;
         $elementor_disable_child_css = !empty($input['elementor_disable_child_css']) ? 1 : 0;
         $elementor_disable_child_breakpoints = ($elementor_disable_child_css || !empty($input['elementor_disable_child_breakpoints'])) ? 1 : 0;
 
@@ -54,6 +58,8 @@ if (!function_exists('bw_tbl_sanitize_footer_option')) {
             'exclude_enabled' => $exclude_enabled,
             'exclude_checkout' => $exclude_checkout,
             'exclude_order_received' => $exclude_order_received,
+            'exclude_my_account_logged_in' => $exclude_my_account_logged_in,
+            'exclude_my_account_logged_out' => $exclude_my_account_logged_out,
             'elementor_disable_child_breakpoints' => $elementor_disable_child_breakpoints,
             'elementor_disable_child_css' => $elementor_disable_child_css,
         ];
@@ -78,6 +84,16 @@ if (!function_exists('bw_tbl_is_footer_excluded_current_request')) {
             }
 
             if (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('order-received')) {
+                return true;
+            }
+        }
+
+        if (function_exists('is_account_page') && is_account_page()) {
+            if (!empty($footer_option['exclude_my_account_logged_in']) && is_user_logged_in()) {
+                return true;
+            }
+
+            if (!empty($footer_option['exclude_my_account_logged_out']) && !is_user_logged_in()) {
                 return true;
             }
         }
@@ -200,8 +216,7 @@ if (!function_exists('bw_tbl_get_runtime_footer_template_id')) {
 if (!function_exists('bw_tbl_prepare_footer_runtime')) {
     function bw_tbl_prepare_footer_runtime()
     {
-        $template_id = bw_tbl_get_runtime_footer_template_id();
-        if ($template_id <= 0) {
+        if (!bw_tbl_should_remove_theme_footer_globally()) {
             return;
         }
 
@@ -213,15 +228,30 @@ if (!function_exists('bw_tbl_prepare_footer_runtime')) {
 }
 add_action('wp', 'bw_tbl_prepare_footer_runtime', 20);
 
+if (!function_exists('bw_tbl_should_remove_theme_footer_globally')) {
+    function bw_tbl_should_remove_theme_footer_globally()
+    {
+        if (is_feed() || is_embed()) {
+            return false;
+        }
+
+        if (!bw_tbl_is_feature_enabled('footer_override_enabled')) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
 if (!function_exists('bw_tbl_footer_theme_fallback_css')) {
     function bw_tbl_footer_theme_fallback_css()
     {
-        $template_id = bw_tbl_get_runtime_footer_template_id();
-        if ($template_id <= 0) {
+        if (!bw_tbl_should_remove_theme_footer_globally()) {
             return;
         }
         ?>
         <style id="bw-tbl-footer-theme-fallback-css">
+            footer#site-footer,
             footer#colophon,
             #colophon.site-footer,
             footer.site-footer,

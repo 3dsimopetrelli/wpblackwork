@@ -1,0 +1,136 @@
+.bw-go-to-app {
+    --bw-go-to-app-bg: #ececec;
+    --bw-go-to-app-radius: 22px;
+    --bw-go-to-app-text-color: #080808;
+    --bw-go-to-app-button-bg: #80fd03;
+    --bw-go-to-app-button-border: #080808;
+    --bw-go-to-app-button-shadow: 0 10px 18px rgba(8, 8, 8, 0.08);
+    background: var(--bw-go-to-app-bg);
+    border-radius: var(--bw-go-to-app-radius);
+    padding: 1rem;
+}
+
+.bw-go-to-app__text {
+    color: var(--bw-go-to-app-text-color);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5rem;
+    letter-spacing: normal;
+    margin: 0 0 26px;
+    max-width: none;
+}
+
+.bw-go-to-app__button {
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 20px;
+    border: 1px solid var(--bw-go-to-app-button-border);
+    border-radius: 999px;
+    background: var(--bw-go-to-app-button-bg);
+    color: #080808;
+    text-decoration: none !important;
+    box-shadow: none;
+    transition: box-shadow 0.28s ease, transform 0.28s ease;
+    box-sizing: border-box;
+}
+
+.bw-go-to-app__button:hover,
+.bw-go-to-app__button:focus,
+.bw-go-to-app__button:focus-visible {
+    color: #080808;
+    text-decoration: none !important;
+    box-shadow: var(--bw-go-to-app-button-shadow);
+}
+
+.bw-go-to-app__button-icon {
+    display: inline-flex;
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.28s ease;
+}
+
+.bw-go-to-app__button:hover .bw-go-to-app__button-icon,
+.bw-go-to-app__button:focus .bw-go-to-app__button-icon,
+.bw-go-to-app__button:focus-visible .bw-go-to-app__button-icon {
+    transform: translate3d(2px, -2px, 0);
+}
+
+.bw-go-to-app__button-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+}
+
+.bw-go-to-app__button-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    font-style: normal;
+    line-height: 20px;
+    letter-spacing: normal;
+}
+
+@media (max-width: 1024px) {
+    .bw-go-to-app {
+        padding: 1rem;
+    }
+
+    .bw-go-to-app__text {
+        font-size: 14px;
+        margin-bottom: 22px;
+        max-width: none;
+    }
+
+    .bw-go-to-app__button {
+        min-height: 36px;
+        padding: 8px 20px;
+        gap: 8px;
+    }
+
+    .bw-go-to-app__button-label {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .bw-go-to-app {
+        padding: 1rem;
+        border-radius: 22px;
+    }
+
+    .bw-go-to-app__text {
+        font-size: 14px;
+        line-height: 1.5rem;
+        margin-bottom: 18px;
+    }
+
+    .bw-go-to-app__button {
+        min-height: 36px;
+        padding: 8px 20px;
+        gap: 8px;
+        border-width: 1px;
+    }
+
+    .bw-go-to-app__button-icon {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .bw-go-to-app__button-label {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}

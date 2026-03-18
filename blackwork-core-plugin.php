@@ -925,6 +925,62 @@ function bw_register_button_widget_assets()
     bw_register_widget_assets('button');
 }
 
+function bw_register_go_to_app_widget_assets()
+{
+    bw_register_widget_assets('go-to-app', [], false);
+}
+
+function bw_footer_template_contains_widget_slug($widget_slug)
+{
+    if (!function_exists('bw_tbl_get_runtime_footer_template_id')) {
+        return false;
+    }
+
+    $template_id = absint(bw_tbl_get_runtime_footer_template_id());
+    if ($template_id <= 0) {
+        return false;
+    }
+
+    $widget_slug = sanitize_key((string) $widget_slug);
+    if ('' === $widget_slug) {
+        return false;
+    }
+
+    $elementor_data = get_post_meta($template_id, '_elementor_data', true);
+    if (is_string($elementor_data) && false !== strpos($elementor_data, $widget_slug)) {
+        return true;
+    }
+
+    if (is_array($elementor_data)) {
+        $encoded = wp_json_encode($elementor_data);
+        if (is_string($encoded) && false !== strpos($encoded, $widget_slug)) {
+            return true;
+        }
+    }
+
+    $post_content = get_post_field('post_content', $template_id);
+
+    return is_string($post_content) && false !== strpos($post_content, $widget_slug);
+}
+
+function bw_maybe_enqueue_go_to_app_widget_runtime_assets()
+{
+    if (is_admin()) {
+        return;
+    }
+
+    if (!bw_footer_template_contains_widget_slug('bw-go-to-app')) {
+        return;
+    }
+
+    if (!wp_style_is('bw-go-to-app-style', 'registered')) {
+        bw_register_go_to_app_widget_assets();
+    }
+
+    wp_enqueue_style('bw-go-to-app-style');
+}
+add_action('wp_enqueue_scripts', 'bw_maybe_enqueue_go_to_app_widget_runtime_assets', 30);
+
 function bw_register_about_menu_widget_assets()
 {
     bw_register_widget_assets('about-menu', []);

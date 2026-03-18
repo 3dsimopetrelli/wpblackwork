@@ -593,6 +593,18 @@ body.edit-php.bw-mf-enabled td.column-bw_mf_drag_handle {
     white-space: nowrap;
 }
 
+body.edit-php.bw-mf-enabled .column-bw_mf_copy_link,
+body.edit-php.bw-mf-enabled th#bw_mf_copy_link,
+body.edit-php.bw-mf-enabled td.column-bw_mf_copy_link {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    text-align: center;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    white-space: nowrap;
+}
+
 body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle {
     border: 0;
     background: transparent;
@@ -615,6 +627,46 @@ body.edit-php.bw-mf-enabled .bw-mf-row-drag-handle .dashicons {
     width: 16px;
     height: 16px;
     line-height: 16px;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-copy-link-btn {
+    border: 1px solid #d0d5dd;
+    background: #ffffff;
+    color: #2271b1;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 120ms ease-out, background-color 120ms ease-out, color 120ms ease-out;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-copy-link-btn:hover,
+body.edit-php.bw-mf-enabled .bw-mf-copy-link-btn:focus {
+    border-color: #2271b1;
+    color: #135e96;
+    outline: none;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-copy-link-btn.is-copied {
+    border-color: #80fd03;
+    background: #80fd03;
+    color: #111111;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-copy-link-btn .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 16px;
+}
+
+body.edit-php.bw-mf-enabled .bw-mf-copy-link-placeholder {
+    display: inline-block;
+    color: #8c8f94;
 }
 
 body.edit-php.post-type-product.bw-mf-enabled .column-bw_mf_drag_handle,

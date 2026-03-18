@@ -1,23 +1,23 @@
 # Blackwork Governance — Task Start Template
 
 ## Context
-- Task title: Media Folders counts invalidation hardening for new/unassigned content lifecycle
-- Request source: User report on 2026-03-17
-- Expected outcome: `Unassigned Items` and summary/tree counts must update immediately when new supported content is created or when supported content changes counted state, without waiting for cache TTL expiry.
+- Task title: Media Folders list-table copy-link column for Posts / Pages / Products
+- Request source: User request on 2026-03-18
+- Expected outcome: Add a compact `Link` column near `Author` on Posts / Pages / Products list tables, with a copy-to-clipboard button that copies the row permalink directly from the list view.
 - Constraints:
-  - Preserve existing folder isolation per content type.
-  - Preserve existing assignment/query filter behavior.
-  - Keep caching model, but fix invalidation coverage.
-  - Scope to Media Folders runtime/admin only.
+  - Scope to admin list tables only (`edit.php`, `edit.php?post_type=page`, `edit.php?post_type=product`).
+  - Integrate cleanly with the existing Media Folders list-table layer.
+  - No new endpoints.
+  - No storefront/runtime changes outside admin.
 
 ## Task Classification
-- Domain: Media Folders runtime cache invalidation
-- Incident/Task type: Bug fix / cache lifecycle hardening
+- Domain: Media Folders admin list-table UX
+- Incident/Task type: Admin productivity feature
 - Risk level (L1/L2/L3): L2
 - Tier classification (0/1/2/3): 2
-- Affected systems: sidebar summary counts, folder tree counts, count cache invalidation hooks
-- Integration impact: internal module only
-- Regression scope required: Pages, Posts, Products, Media summary counts; assignment flows; cached counts refresh
+- Affected systems: list-table column registration/rendering, admin JS clipboard interaction, Media Folders scoped admin CSS
+- Integration impact: internal admin only
+- Regression scope required: Posts/Pages/Products list tables, drag-handle column placement, row actions/title/author layout
 
 ## Pre-Task Reading Checklist
 - Feature docs to read:
@@ -31,34 +31,40 @@
   - `docs/governance/task-close.md`
   - `docs/templates/task-closure-template.md`
 - Runbook to follow:
-  - Media Folders summary/count regression checks
+  - Media Folders list-table regression checks
 - Architecture references to read:
-  - `includes/modules/media-folders/runtime/ajax.php`
+  - `includes/modules/media-folders/admin/media-folders-admin.php`
+  - `includes/modules/media-folders/admin/assets/media-folders.js`
+  - `includes/modules/media-folders/admin/assets/media-folders.css`
 
 ## Scope Declaration
 - Proposed strategy:
-  - Extend count-cache invalidation to post lifecycle transitions for supported post types.
-  - Invalidate caches only when a post enters or leaves a counted state to avoid unnecessary churn.
+  - Add a new compact list-table column key for supported non-media post types.
+  - Insert it deterministically before `author` when available, with safe fallback ordering.
+  - Render a copy-link button using the row permalink as data attribute and handle clipboard copy in existing Media Folders admin JS.
 - Files likely impacted:
-  - `includes/modules/media-folders/runtime/ajax.php`
+  - `includes/modules/media-folders/admin/media-folders-admin.php`
+  - `includes/modules/media-folders/admin/assets/media-folders.js`
+  - `includes/modules/media-folders/admin/assets/media-folders.css`
   - `docs/30-features/media-folders/media-folders-module-spec.md`
+  - `docs/20-development/admin-panel-map.md`
   - `docs/50-ops/regression-protocol.md`
-  - `docs/tasks/BW-TASK-20260317-01-start.md`
+  - `docs/tasks/BW-TASK-20260318-01-start.md`
 - Explicitly out-of-scope surfaces:
-  - Query filter logic
-  - Folder CRUD flows
-  - Storefront behavior
-  - New cache layer or TTL changes
+  - Media Library (`upload.php`)
+  - New AJAX endpoints
+  - Storefront templates
+  - Folder assignment logic
 - Risk analysis:
-  - Main risk is over-invalidating on every post save.
-  - Mitigation: invalidate only on counted-state transitions, keyed by supported post type + mapped taxonomy.
+  - Main risk is disrupting list-table column order or widening the table.
+  - Mitigation: use a narrow fixed-width column and insert before `author` with deterministic fallback order.
 - ADR evaluation (REQUIRED / NOT REQUIRED): NOT REQUIRED
 
 ## Runtime Surface Declaration
-- New hooks expected:
-  - `transition_post_status` (scoped invalidation)
+- New hooks expected: None
 - Hook priority modifications: None
-- Filters expected: None
+- Filters expected:
+  - existing `manage_*_posts_columns` / `manage_edit-*` filters extended to include copy-link column
 - AJAX endpoints expected: None
 - Admin routes expected: None
 
@@ -70,10 +76,10 @@
 - Hidden coupling risks discovered? (Yes/No): No
 
 ## Governance Impact Analysis
-- Authority surfaces touched: Media Folders cache invalidation only
-- Data integrity risk: Low; improves convergence of already-authoritative counts
-- Security surface changes: None
-- Runtime hook/order changes: additive invalidation hook only
+- Authority surfaces touched: Media Folders admin list-table UX only
+- Data integrity risk: Low
+- Security surface changes: None; copy uses already available row permalink only
+- Runtime hook/order changes: existing admin column filters/actions extended
 - Requires ADR? (Yes/No): No
 - Risk register impact required? (Yes/No): No
 - Risk dashboard impact required? (Yes/No): No
@@ -81,13 +87,13 @@
 ## System Invariants Check
 - Declared invariants that MUST remain true:
   - Folder isolation per content type remains strict
-  - Cache keys remain taxonomy + post_type scoped
-  - Assignment flows keep existing invalidation semantics
-  - No query mutation behavior changes
+  - Drag-handle column remains present and unchanged in behavior
+  - No new query/filter behavior is introduced
+  - Feature remains admin-only
 - Any invariant at risk? (Yes/No): No
 - Mitigation plan for invariant protection:
-  - Resolve taxonomy via authoritative post_type -> taxonomy map only.
-  - Invalidate only if post type is supported and counted-state changes.
+  - Scope column registration to supported non-media list screens only.
+  - Reuse the existing Media Folders enqueue/screen gating.
 
 ## Determinism Statement
 - Input/output determinism declared? (Yes/No): Yes
@@ -95,24 +101,22 @@
 - Retry determinism declared? (Yes/No): Yes
 - Pagination/state convergence determinism declared? (Yes/No): Yes
 - Determinism risks and controls:
-  - Same lifecycle transition must always invalidate the same cache namespace.
-  - Unsupported post types must never invalidate Media Folders caches.
-  - Repeated transitions with no counted-state change must not churn caches.
+  - Same row always renders the same copy URL for the current permalink.
+  - Column order is deterministic by explicit anchor priority.
+  - Re-clicking the copy button repeats the same clipboard payload.
 
 ## Testing Strategy
 - Local testing plan:
-  - create new unassigned Page -> `Unassigned Items` increments immediately
-  - create new unassigned Post -> increments immediately
-  - upload new unassigned Media -> increments immediately
-  - create new unassigned Product -> increments immediately
-  - move assigned item to trash / restore -> counts converge
+  - Pages list -> copy button copies permalink
+  - Posts list -> copy button copies permalink
+  - Products list -> copy button copies permalink
+  - drag-handle and marker columns remain aligned
 - Edge cases expected:
-  - auto-draft to draft/publish
-  - publish to trash
-  - draft to publish
+  - rows without usable permalink fallback gracefully
+  - narrow screens do not break column alignment excessively
 - Failure scenarios considered:
-  - unsupported post types should no-op
-  - same counted-state transition should no-op
+  - clipboard API unavailable -> fallback copy path
+  - no JS error if clipboard fails
 
 ## Documentation Update Plan
 Documentation layers that MUST be considered before implementation:
@@ -127,8 +131,8 @@ Documentation layers that MUST be considered before implementation:
   - Impacted? (Yes/No): No
   - Target documents (if known):
 - `docs/20-development/`
-  - Impacted? (Yes/No): No
-  - Target documents (if known):
+  - Impacted? (Yes/No): Yes
+  - Target documents (if known): `docs/20-development/admin-panel-map.md`
 - `docs/30-features/`
   - Impacted? (Yes/No): Yes
   - Target documents (if known): `docs/30-features/media-folders/media-folders-module-spec.md`
@@ -149,7 +153,7 @@ Documentation layers that MUST be considered before implementation:
 - Revert via commit possible? (Yes/No): Yes
 - Database migration involved? (Yes/No): No
 - Manual rollback steps required?
-  - Revert implementation commit(s); no data migration rollback required.
+  - Revert implementation commit(s); no data rollback required.
 
 ## 6A) Documentation Alignment Requirement
 Before implementation begins, the documentation architecture MUST be evaluated.
@@ -165,8 +169,8 @@ The following documentation layers MUST be checked for potential updates:
   - Impacted? (Yes/No): No
   - Target documents (if known):
 - `docs/20-development/`
-  - Impacted? (Yes/No): No
-  - Target documents (if known):
+  - Impacted? (Yes/No): Yes
+  - Target documents (if known): `docs/20-development/admin-panel-map.md`
 - `docs/30-features/`
   - Impacted? (Yes/No): Yes
   - Target documents (if known): `docs/30-features/media-folders/media-folders-module-spec.md`

@@ -177,6 +177,9 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
                 'confirmDelete' => __('Delete this folder?', 'bw'),
                 'selectMedia' => __('Select at least one media item.', 'bw'),
                 'selectItems' => __('Select at least one item.', 'bw'),
+                'copyLink' => __('Copy link', 'bw'),
+                'copiedLink' => __('Copied', 'bw'),
+                'copyFailed' => __('Copy failed', 'bw'),
             ],
         ]);
     }
@@ -208,25 +211,34 @@ if (!function_exists('bw_mf_add_drag_handle_column')) {
         }
 
         $post_type = bw_mf_get_current_screen_post_type();
-        $priority_keys = $post_type === 'product'
+        $drag_priority_keys = $post_type === 'product'
             ? ['name', 'title', 'cb']
             : ['title', 'cb'];
+        $copy_priority_keys = ['author', 'comments', 'date'];
 
         if (isset($columns['bw_mf_drag_handle'])) {
             unset($columns['bw_mf_drag_handle']);
         }
+        if (isset($columns['bw_mf_copy_link'])) {
+            unset($columns['bw_mf_copy_link']);
+        }
 
         $result = [];
-        $inserted = false;
+        $drag_inserted = false;
+        $copy_inserted = false;
         foreach ($columns as $key => $label) {
-            if (!$inserted && in_array($key, $priority_keys, true)) {
+            if (!$drag_inserted && in_array($key, $drag_priority_keys, true)) {
                 $result['bw_mf_drag_handle'] = '';
-                $inserted = true;
+                $drag_inserted = true;
+            }
+            if (!$copy_inserted && in_array($key, $copy_priority_keys, true)) {
+                $result['bw_mf_copy_link'] = __('Link', 'bw');
+                $copy_inserted = true;
             }
             $result[$key] = $label;
         }
 
-        if (!$inserted) {
+        if (!$drag_inserted || !$copy_inserted) {
             // No safe anchor found: preserve original columns unchanged (never append at end).
             return $columns;
         }
@@ -238,12 +250,27 @@ if (!function_exists('bw_mf_add_drag_handle_column')) {
 if (!function_exists('bw_mf_render_drag_handle_column')) {
     function bw_mf_render_drag_handle_column($column_name, $post_id)
     {
-        if ($column_name !== 'bw_mf_drag_handle') {
+        if (!in_array($column_name, ['bw_mf_drag_handle', 'bw_mf_copy_link'], true)) {
             return;
         }
 
         $post = get_post($post_id);
         if (!$post) {
+            return;
+        }
+
+        if ($column_name === 'bw_mf_copy_link') {
+            $permalink = get_permalink($post_id);
+            if (!$permalink) {
+                echo '<span class="bw-mf-copy-link-placeholder" aria-hidden="true">&mdash;</span>';
+                return;
+            }
+
+            printf(
+                '<button type="button" class="bw-mf-copy-link-btn" data-copy-url="%1$s" aria-label="%2$s" title="%2$s"><span class="dashicons dashicons-admin-links" aria-hidden="true"></span></button>',
+                esc_url($permalink),
+                esc_attr__('Copy link', 'bw')
+            );
             return;
         }
 
