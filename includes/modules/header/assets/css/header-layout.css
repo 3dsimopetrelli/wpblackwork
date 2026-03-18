@@ -377,10 +377,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 @media (min-width: 1025px) {
 
     /* Transizioni fluide per gli elementi non già coperti dai loro CSS */
-    .bw-custom-header .bw-search-button__label {
-        transition: color 0.25s ease;
-    }
-
     .bw-custom-header .bw-custom-header__logo-image {
         transition: filter 0.25s ease;
     }
@@ -396,15 +392,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     .bw-custom-header.bw-header-on-dark .bw-navshop__item,
     .bw-custom-header.bw-header-on-dark .bw-navshop__item:hover,
     .bw-custom-header.bw-header-on-dark .bw-navshop__item:focus-visible {
-        color: #ffffff !important;
-    }
-
-    /* Search button e label */
-    .bw-custom-header.bw-header-on-dark .bw-search-button,
-    .bw-custom-header.bw-header-on-dark .bw-search-button__label,
-    .bw-custom-header.bw-header-on-dark .bw-search-button:hover .bw-search-button__label,
-    .bw-custom-header.bw-header-on-dark .bw-search-button:focus .bw-search-button__label,
-    .bw-custom-header.bw-header-on-dark .bw-search-button:focus-visible .bw-search-button__label {
         color: #ffffff !important;
     }
 
