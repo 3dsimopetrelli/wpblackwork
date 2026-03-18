@@ -1,6 +1,7 @@
 /**
  * BW Related Products Widget Styles
- * Layout and grid system for related products widget
+ * Proportional-image grid for related products widget.
+ * Tablet and mobile are always 2 columns (not overridable via Elementor).
  */
 
 .bw-related-products-widget {
@@ -17,18 +18,20 @@
   gap: var(--bw-rp-gap);
   width: 100%;
   box-sizing: border-box;
+  align-items: start; /* proportional: each card is as tall as its content */
 }
 
-/* Responsive defaults */
+/* Tablet: always 2 columns */
 @media (max-width: 1024px) {
   .bw-related-products-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
+/* Mobile: always 2 columns */
 @media (max-width: 767px) {
   .bw-related-products-grid {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -45,21 +48,4 @@
   margin: 0;
   font-size: 16px;
   line-height: 1.5;
-}
-
-/* Product card items in grid */
-.bw-related-products-grid .bw-product-card-item {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.bw-related-products-grid .bw-product-card {
-  height: 100%;
-}
-
-/* Ensure cards fill available space in grid */
-.bw-related-products-grid article {
-  width: 100%;
-  height: 100%;
 }
