@@ -592,3 +592,14 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Keep product-context resolution aligned with `bw_tbl_resolve_product_context_id()`.
   - Reuse the existing BW-SP editor-family convention for future Woo single-product utility widgets where appropriate.
   - Keep closure trace in `docs/tasks/BW-TASK-20260318-02-closure.md`.
+
+### Entry 037
+- Date: 2026-03-18
+- Decision summary: Added `bw-product-breadcrumbs` as the canonical single-product breadcrumb utility widget for Elementor, with deterministic category-path selection and a self-contained scoped style surface.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Product templates need a reusable breadcrumb utility that can be positioned freely in Elementor while remaining stable across products with multiple categories and without depending on theme-specific breadcrumb markup.
+- Risk impact: Low-Medium — runtime is limited to single-product rendering, category resolution uses a fixed precedence rule, and styling is scoped to the widget.
+- Follow-up actions:
+  - Keep the breadcrumb category-path rule deterministic (deepest path first, lowest term ID tie-break).
+  - Keep the widget style surface local to the breadcrumb component.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260318-03-closure.md`.

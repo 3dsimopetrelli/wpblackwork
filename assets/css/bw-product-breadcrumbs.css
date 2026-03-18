@@ -19,7 +19,7 @@
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  font-size: clamp(18px, 2.4vw, 30px);
+  font-size: 18px;
   line-height: 1.1;
   font-weight: 600;
   letter-spacing: -0.03em;
