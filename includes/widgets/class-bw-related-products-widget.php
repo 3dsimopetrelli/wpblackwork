@@ -526,7 +526,6 @@ class BW_Related_Products_Widget extends Widget_Base {
 		$settings         = $this->get_settings_for_display();
 		$query_by         = isset( $settings['query_by'] ) ? $settings['query_by'] : 'category';
 		$posts_per_page   = isset( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 4;
-		$columns          = isset( $settings['columns'] ) ? absint( $settings['columns'] ) : 4;
 		$show_title       = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
 		$show_description = isset( $settings['show_description'] ) && 'yes' === $settings['show_description'];
 		$show_price       = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
@@ -571,7 +570,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 
 		?>
 		<div class="bw-related-products-widget">
-			<div class="bw-related-products-grid" style="--bw-rp-columns: <?php echo esc_attr( $columns ); ?>;">
+			<div class="bw-related-products-grid">
 				<?php
 				foreach ( $related_product_ids as $related_product_id ) {
 					echo BW_Product_Card_Component::render( $related_product_id, $card_settings );
