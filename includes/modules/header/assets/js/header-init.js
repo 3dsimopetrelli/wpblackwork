@@ -140,6 +140,34 @@
     }
 
     /**
+     * Sample an <img> element's average brightness via canvas (8×8 downscale).
+     * Result is cached on the element via a data attribute to avoid repeated
+     * canvas operations on every scroll tick.
+     * Returns false on CORS errors or incomplete images.
+     */
+    function isImgDark(img) {
+        if (!img || !img.complete || !img.naturalWidth) return false;
+        if (img.dataset.bwdz !== undefined) return img.dataset.bwdz === '1';
+        try {
+            var c = document.createElement('canvas');
+            c.width = c.height = 8;
+            var ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, 8, 8);
+            var d = ctx.getImageData(0, 0, 8, 8).data;
+            var b = 0;
+            for (var p = 0; p < d.length; p += 4) {
+                b += (d[p] * 299 + d[p + 1] * 587 + d[p + 2] * 114) / 1000;
+            }
+            var dark = (b / 64) < 100;
+            img.dataset.bwdz = dark ? '1' : '0';
+            return dark;
+        } catch (e) {
+            img.dataset.bwdz = '0';
+            return false;
+        }
+    }
+
+    /**
      * Walk every ancestor of el (up to body) and return true as soon as one
      * of them is effectively dark.  We walk the full chain so that nested
      * Elementor containers (.e-con inside .e-con-boxed) don't cause us to
@@ -147,10 +175,16 @@
      *
      * Per-ancestor checks:
      *   1. background-color is dark
-     *   2. Direct overlay child div is dark (Elementor / Gutenberg pattern)
-     *   3. Has background-image AND child headings are light-coloured
+     *   2. Slick carousel → sample the active slide's <img> via canvas
+     *   3. Direct overlay child div is dark (Elementor / Gutenberg pattern)
+     *   4. Has background-image AND child headings are light-coloured
+     *
+     * Initial check: if the probed element itself is an <img>, sample it first.
      */
     function isSectionDark(el) {
+        // Direct img hit (e.g. elementFromPoint landed on an <img> element)
+        if (el.tagName === 'IMG' && isImgDark(el)) return true;
+
         var current = el;
         var depth = 0;
 
@@ -163,7 +197,19 @@
             var bg = parseColor(st.backgroundColor);
             if (bg && bg.a >= 0.5 && isColorDark(bg, 128)) return true;
 
-            // 2. Elementor / Gutenberg overlay child
+            // 2. Slick carousel: sample the active (non-cloned) slide's image
+            if (current.classList && current.classList.contains('slick-slider')) {
+                var activeSlide = current.querySelector('.slick-active:not(.slick-cloned)') ||
+                                  current.querySelector('.slick-active');
+                if (activeSlide) {
+                    var aImg = activeSlide.querySelector('img');
+                    if (aImg && isImgDark(aImg)) return true;
+                    var aSlideBg = parseColor(window.getComputedStyle(activeSlide).backgroundColor);
+                    if (aSlideBg && aSlideBg.a >= 0.5 && isColorDark(aSlideBg, 128)) return true;
+                }
+            }
+
+            // 3. Elementor / Gutenberg overlay child
             var child = current.firstElementChild;
             while (child) {
                 if (
@@ -178,7 +224,7 @@
                 child = child.nextElementSibling;
             }
 
-            // 3. Has background-image: check heading text colour as heuristic
+            // 4. Has background-image: check heading text colour as heuristic
             if (st.backgroundImage && st.backgroundImage !== 'none') {
                 var headings = current.querySelectorAll('h1, h2, h3, h4');
                 for (var i = 0; i < Math.min(headings.length, 6); i++) {
