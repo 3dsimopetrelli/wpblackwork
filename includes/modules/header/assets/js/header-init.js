@@ -7,6 +7,7 @@
 
     // Dark Zone state
     var isOnDarkZone = false;
+    var darkZoneRemoveTimer = null;
 
     /**
      * Read admin-configured values from bwHeaderConfig (set via wp_localize_script).
@@ -235,9 +236,26 @@
             header.style.pointerEvents = oldPE;
         }
 
-        if (shouldBeOnDark !== isOnDarkZone) {
-            isOnDarkZone = shouldBeOnDark;
-            header.classList.toggle('bw-header-on-dark', shouldBeOnDark);
+        if (shouldBeOnDark) {
+            // Entering dark zone: apply immediately and cancel any pending removal.
+            if (darkZoneRemoveTimer) {
+                clearTimeout(darkZoneRemoveTimer);
+                darkZoneRemoveTimer = null;
+            }
+            if (!isOnDarkZone) {
+                isOnDarkZone = true;
+                header.classList.add('bw-header-on-dark');
+            }
+        } else {
+            // Leaving dark zone: debounce the removal to absorb slider-transition
+            // flicker (slides moving between frames for ~300 ms).
+            if (isOnDarkZone && !darkZoneRemoveTimer) {
+                darkZoneRemoveTimer = setTimeout(function () {
+                    darkZoneRemoveTimer = null;
+                    isOnDarkZone = false;
+                    header.classList.remove('bw-header-on-dark');
+                }, 150);
+            }
         }
     }
 
