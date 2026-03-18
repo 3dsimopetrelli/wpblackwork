@@ -54,7 +54,8 @@ Canonical transition note:
   - Alignment (responsive), Typography group control (Elementor native)
 - `bw-product-description` controls (initial state):
   - `product_id`: explicit product ID override for editor preview
-  - renders the product long description with preserved HTML markup
+  - `description_source`: `description`, `short_description`, `both`
+  - renders product long description, short description, or both with preserved HTML markup
   - Alignment (responsive), Typography group control (Elementor native), Text Color
 - `bw-product-breadcrumbs` controls (initial state):
   - `product_id`: explicit product ID override for editor preview

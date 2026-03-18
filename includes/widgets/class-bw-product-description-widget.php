@@ -35,6 +35,17 @@ class Widget_Bw_Product_Description extends Widget_Base {
             'label' => __( 'Content', 'bw' ),
         ] );
 
+        $this->add_control( 'description_source', [
+            'label'   => __( 'Description Source', 'bw' ),
+            'type'    => Controls_Manager::SELECT,
+            'options' => [
+                'description'       => __( 'Product Description', 'bw' ),
+                'short_description' => __( 'Short Description', 'bw' ),
+                'both'              => __( 'Both', 'bw' ),
+            ],
+            'default' => 'description',
+        ] );
+
         $this->add_control( 'product_id', [
             'label'       => __( 'Product ID', 'bw' ),
             'type'        => Controls_Manager::TEXT,
@@ -104,15 +115,15 @@ class Widget_Bw_Product_Description extends Widget_Base {
         $product = wc_get_product( $product_id );
         if ( ! $product ) {
             if ( $is_editor ) {
-                $this->render_editor_placeholder();
+                $this->render_editor_placeholder( $settings );
             }
             return;
         }
 
-        $description = trim( (string) $product->get_description() );
-        if ( '' === $description ) {
+        $markup = $this->build_description_markup( $product, $settings );
+        if ( '' === $markup ) {
             if ( $is_editor ) {
-                $this->render_editor_placeholder();
+                $this->render_editor_placeholder( $settings );
             }
             return;
         }
@@ -120,7 +131,7 @@ class Widget_Bw_Product_Description extends Widget_Base {
         $this->add_render_attribute( 'wrapper', 'class', 'bw-product-description' );
 
         echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
-        echo wp_kses_post( apply_filters( 'the_content', $description ) );
+        echo wp_kses_post( $markup );
         echo '</div>';
     }
 
@@ -142,11 +153,62 @@ class Widget_Bw_Product_Description extends Widget_Base {
         return $product_id;
     }
 
-    private function render_editor_placeholder() {
+    private function build_description_markup( $product, array $settings ): string {
+        $source            = isset( $settings['description_source'] ) ? $settings['description_source'] : 'description';
+        $description       = trim( (string) $product->get_description() );
+        $short_description = trim( (string) $product->get_short_description() );
+        $parts             = [];
+
+        if ( 'short_description' === $source || 'both' === $source ) {
+            $formatted_short = $this->format_short_description( $short_description );
+            if ( '' !== $formatted_short ) {
+                $parts[] = '<div class="bw-product-description__short">' . $formatted_short . '</div>';
+            }
+        }
+
+        if ( 'description' === $source || 'both' === $source ) {
+            $formatted_description = $this->format_full_description( $description );
+            if ( '' !== $formatted_description ) {
+                $parts[] = '<div class="bw-product-description__full">' . $formatted_description . '</div>';
+            }
+        }
+
+        return implode( '', $parts );
+    }
+
+    private function format_full_description( string $description ): string {
+        if ( '' === $description ) {
+            return '';
+        }
+
+        return (string) apply_filters( 'the_content', $description );
+    }
+
+    private function format_short_description( string $short_description ): string {
+        if ( '' === $short_description ) {
+            return '';
+        }
+
+        if ( has_filter( 'woocommerce_short_description' ) ) {
+            return (string) apply_filters( 'woocommerce_short_description', $short_description );
+        }
+
+        return wpautop( $short_description );
+    }
+
+    private function render_editor_placeholder( array $settings ) {
+        $source = isset( $settings['description_source'] ) ? $settings['description_source'] : 'description';
         $this->add_render_attribute( 'wrapper', 'class', 'bw-product-description' );
 
         echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
-        echo wp_kses_post( wpautop( __( 'Product description', 'bw' ) ) );
+        if ( 'both' === $source ) {
+            echo wp_kses_post( '<div class="bw-product-description__short">' . wpautop( __( 'Product short description', 'bw' ) ) . '</div>' );
+            echo wp_kses_post( '<div class="bw-product-description__full">' . wpautop( __( 'Product description', 'bw' ) ) . '</div>' );
+        } elseif ( 'short_description' === $source ) {
+            echo wp_kses_post( '<div class="bw-product-description__short">' . wpautop( __( 'Product short description', 'bw' ) ) . '</div>' );
+        } else {
+            echo wp_kses_post( '<div class="bw-product-description__full">' . wpautop( __( 'Product description', 'bw' ) ) . '</div>' );
+        }
         echo '</div>';
     }
 
@@ -154,7 +216,19 @@ class Widget_Bw_Product_Description extends Widget_Base {
         ?>
         <#
         view.addRenderAttribute( 'wrapper', 'class', 'bw-product-description' );
-        print( '<div ' + view.getRenderAttributeString( 'wrapper' ) + '><p>Product description</p></div>' );
+        var source = settings.description_source || 'description';
+        var html = '';
+
+        if ( source === 'both' ) {
+            html = '<div class="bw-product-description__short"><p>Product short description</p></div>' +
+                '<div class="bw-product-description__full"><p>Product description</p></div>';
+        } else if ( source === 'short_description' ) {
+            html = '<div class="bw-product-description__short"><p>Product short description</p></div>';
+        } else {
+            html = '<div class="bw-product-description__full"><p>Product description</p></div>';
+        }
+
+        print( '<div ' + view.getRenderAttributeString( 'wrapper' ) + '>' + html + '</div>' );
         #>
         <?php
     }
