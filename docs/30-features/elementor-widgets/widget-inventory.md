@@ -16,6 +16,7 @@ Canonical transition note:
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
 | `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
+| `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
@@ -32,6 +33,7 @@ Canonical transition note:
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-product-slide` -> `BW-SP Gallery Product` (visible title)
+- `bw-product-description` -> `BW-SP Product Description` (visible title)
 - `bw-title-product` -> `BW Title Product` (visible title)
 - Internal slugs above remain the runtime authority.
 
@@ -48,6 +50,10 @@ Canonical transition note:
   - `term_id`: explicit category ID override for editor preview (source: `category` only)
   - `custom_text`: static text input (source: `text` only)
   - Alignment (responsive), Typography group control (Elementor native)
+- `bw-product-description` controls (initial state):
+  - `product_id`: explicit product ID override for editor preview
+  - renders the product long description with preserved HTML markup
+  - Alignment (responsive), Typography group control (Elementor native), Text Color
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-newsletter-subscription`:
   - fixed-design widget
