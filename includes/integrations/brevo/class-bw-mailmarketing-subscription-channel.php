@@ -229,6 +229,16 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                     $sender['name'] = sanitize_text_field( (string) $general_settings['sender_name'] );
                 }
 
+                // Pre-assign contact to the Unconfirmed list so the pending subscriber
+                // is visible in Brevo immediately, before they click the confirmation link.
+                // Brevo's DOI endpoint only adds to includeListIds AFTER confirmation,
+                // so without this step the contact would be invisible until confirmed.
+                $unconfirmed_list_id = isset( $general_settings['unconfirmed_list_id'] ) ? absint( $general_settings['unconfirmed_list_id'] ) : 0;
+                if ( $unconfirmed_list_id > 0 ) {
+                    $client->upsert_contact( $email, $attributes, [ $unconfirmed_list_id ] );
+                    // Non-fatal: failure here does not block the DOI email from being sent.
+                }
+
                 $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], $attributes, $sender );
                 if ( empty( $result['success'] ) && class_exists( 'BW_MailMarketing_Service' ) && BW_MailMarketing_Service::is_unknown_attribute_error( $result ) ) {
                     $attribute_warning = isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Brevo rejected custom attributes.', 'bw' );
