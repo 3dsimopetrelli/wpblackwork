@@ -570,3 +570,14 @@ Notes:
 Bootstrap file renamed to `blackwork-core-plugin.php` from the previous bootstrap filename.
 Runtime references and tooling script paths were aligned.
 Plugin slug, text-domain, internal prefixes, and runtime authority model remain unchanged.
+
+### Entry 035
+- Date: 2026-03-18
+- Decision summary: Brevo DOI flow extended with explicit pre-assign of the contact to the Unconfirmed list before the confirmation email is sent, making pre-confirmation subscribers visible in Brevo immediately.
+- Affected domain: Brevo / Mail Marketing Integration / Elementor subscription widget
+- Rationale: Brevo's `/contacts/doubleOptinConfirmation` endpoint adds the contact to `includeListIds` only after the confirmation link is clicked. Without a preceding `upsert_contact` call, the contact is invisible in all Brevo lists before confirmation, making the pending subscriber untrackable in the Brevo panel.
+- Risk impact: Low — upsert is non-fatal; DOI email is sent regardless of upsert result; single opt-in and checkout paths are unaffected; the Unconfirmed list field defaults to `0` preserving backward-compatible behavior for unconfigured installs.
+- Follow-up actions:
+  - Configure `Unconfirmed list` to `#11 – Blackwork – Unconfirmed` in General settings after deployment.
+  - Removal from the Unconfirmed list after confirmation is not handled by the plugin; implement via Brevo Automation (trigger: added to list #10 → remove from list #11).
+  - Keep closure trace in `docs/tasks/BW-TASK-20260318-01-closure.md`.

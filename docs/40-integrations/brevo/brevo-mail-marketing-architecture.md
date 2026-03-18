@@ -99,9 +99,12 @@ For teams using alternative naming in external docs:
 ## Lists
 - `#10 Blackwork - Marketing`
   - primary list for consent granted contacts (`opt_in=1` + consent metadata present)
+  - configured via General settings field `list_id` (`Main list` dropdown)
 - `#11 Blackwork - Unconfirmed`
-  - placeholder for future DOI/non-checkout capture flows
-  - not actively assigned by the current widget runtime
+  - assigned immediately on DOI submit, before the subscriber clicks the confirmation link
+  - makes pre-confirmation contacts visible in the Brevo panel
+  - configured via General settings field `unconfirmed_list_id` (`Unconfirmed list` dropdown)
+  - optional: if set to `0` / `— None —`, the pre-assign step is skipped and behavior is identical to the previous flow
 
 List behavior rules:
 - When consent is granted, subscribe/upsert into the Marketing list.
@@ -109,6 +112,7 @@ List behavior rules:
 - Fallback marketing list ID is `10` for backward compatibility.
 - Subscription widget channel can inherit the General list or use its own custom list selection.
 - No subscription is allowed without explicit consent gating.
+- Removal from the Unconfirmed list after confirmation is not handled by the plugin; use a Brevo Automation (trigger: added to list #10 → remove from list #11).
 
 ## Subscription channel settings
 Option name:
@@ -245,6 +249,11 @@ Elementor widget path requires:
 ## Double opt-in behavior
 - Supported by General + channel override settings.
 - Widget channel uses the same DOI config authority as other Mail Marketing flows.
+- DOI submit two-step flow (widget channel):
+  1. `upsert_contact(email, attributes, [unconfirmed_list_id])` — assigns contact to Unconfirmed list immediately; non-fatal (DOI proceeds even if upsert fails)
+  2. `send_double_opt_in(email, template_id, redirect_url, [list_id], attributes, sender)` — sends confirmation email; `list_id` (Marketing list) is assigned by Brevo only after the subscriber clicks the confirmation link
+- Before confirmation: contact is visible in Brevo under the Unconfirmed list (if `unconfirmed_list_id` is configured)
+- After confirmation: contact is added to the Marketing list by Brevo automatically
 - On success:
   - DOI paths return a logical success state to the frontend
   - order-based flows persist `_bw_brevo_subscribed = pending`
@@ -369,6 +378,21 @@ Tabs:
 - `General`
 - `Checkout`
 - `Subscription`
+
+General tab option key:
+```text
+bw_mail_marketing_general_settings
+```
+
+General tab operational fields:
+- `api_key` — Brevo API key
+- `list_id` — Main list ID (Marketing list, assigned after DOI confirmation or on single opt-in)
+- `unconfirmed_list_id` — Unconfirmed list ID (assigned immediately on DOI submit, pre-confirmation; optional — `0` skips pre-assign)
+- `default_optin_mode` — `single_opt_in` | `double_opt_in`
+- `double_optin_template_id` — Brevo template ID for DOI confirmation email
+- `double_optin_redirect_url` — redirect URL after subscriber confirms
+- `sender_email` — sender email for DOI outgoing messages
+- `sender_name` — sender name for DOI outgoing messages
 
 Subscription tab responsibilities:
 - enable/disable widget channel
