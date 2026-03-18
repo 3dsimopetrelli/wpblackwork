@@ -323,6 +323,22 @@
 
         var header = document.querySelector('.bw-custom-header');
         if (header) {
+            // Se smart scroll non è attivo, dark zone detection non è stata
+            // inizializzata — la attiviamo qui con il proprio scroll listener.
+            if (header.getAttribute('data-smart-scroll') !== 'yes') {
+                initDarkZoneDetection(header);
+                var nonStickyTicking = false;
+                window.addEventListener('scroll', function () {
+                    if (!nonStickyTicking) {
+                        window.requestAnimationFrame(function () {
+                            checkDarkZoneOverlap(header);
+                            nonStickyTicking = false;
+                        });
+                        nonStickyTicking = true;
+                    }
+                }, { passive: true });
+            }
+
             header.classList.remove('bw-header-preload');
             header.style.opacity = '1';
             header.style.visibility = 'visible';
