@@ -336,7 +336,7 @@
             for (const bp of this._sortedBreakpoints) {
                 if (width <= bp.breakpoint) {
                     showArrows = bp.showArrows === true;
-                    break;
+                    // no break: keep going to find the most specific (smallest) matching bp
                 }
             }
 
@@ -355,7 +355,7 @@
             for (const bp of this._sortedBreakpoints) {
                 if (width <= bp.breakpoint) {
                     showDots = bp.showDots === true;
-                    break;
+                    // no break: keep going to find the most specific (smallest) matching bp
                 }
             }
 
@@ -380,7 +380,7 @@
                     if (bp.imageHeightMode) heightMode  = bp.imageHeightMode;
                     if (bp.imageHeight)     imageHeight = bp.imageHeight;
                     if (bp.imageWidth)      imageWidth  = bp.imageWidth;
-                    break;
+                    // no break: keep going to find the most specific (smallest) matching bp
                 }
             }
 
@@ -410,10 +410,13 @@
          */
         _getActiveBreakpointIndex() {
             const width = $(window).width();
+            let result = -1;
             for (let i = 0; i < this._sortedBreakpoints.length; i++) {
-                if (width <= this._sortedBreakpoints[i].breakpoint) return i;
+                if (width <= this._sortedBreakpoints[i].breakpoint) {
+                    result = i; // keep updating: last match = most specific (smallest) bp
+                }
             }
-            return -1;
+            return result;
         }
 
         /**
