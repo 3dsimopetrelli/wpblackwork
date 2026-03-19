@@ -147,22 +147,49 @@
         },
     };
 
-    // Bootstrap via Elementor's frontend hook.
+    // Shared init helper — guards against double-initialization.
+    function bwInitStickyElement($element) {
+        if ($element.data('bw-sticky-initialized')) { return; }
+        $element.data('bw-sticky-initialized', true);
+
+        var offset  = parseInt($element.data('bw-sticky-offset'), 10) || 0;
+        var devices = $element.data('bw-sticky-on') || 'desktop';
+
+        new BwSticky($element[0], offset, devices);
+    }
+
+    // Primary: Elementor frontend hook (fires when each container is ready).
     $(window).on('elementor/frontend/init', function () {
+        if (
+            typeof elementorFrontend === 'undefined' ||
+            typeof elementorFrontend.hooks === 'undefined'
+        ) { return; }
+
         elementorFrontend.hooks.addAction(
             'frontend/element_ready/container',
             function ($element) {
                 // Never activate inside the Elementor editor canvas.
-                if (elementorFrontend.isEditMode()) { return; }
+                if (
+                    typeof elementorFrontend.isEditMode === 'function' &&
+                    elementorFrontend.isEditMode()
+                ) { return; }
 
                 if ($element.data('bw-sticky') !== 'yes') { return; }
 
-                var offset  = parseInt($element.data('bw-sticky-offset'), 10) || 0;
-                var devices = $element.data('bw-sticky-on') || 'desktop';
-
-                new BwSticky($element[0], offset, devices);
+                bwInitStickyElement($element);
             }
         );
+    });
+
+    // Fallback: scan the DOM directly on document-ready.
+    // Covers cases where Elementor's frontend JS crashes or the hook never fires.
+    $(document).ready(function () {
+        // Small delay so Elementor has a chance to fire its hooks first.
+        setTimeout(function () {
+            $('[data-bw-sticky="yes"]').each(function () {
+                bwInitStickyElement($(this));
+            });
+        }, 300);
     });
 
 })(jQuery);
