@@ -19,7 +19,7 @@ Canonical transition note:
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
-| `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized |
+| `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized presentation/gallery slider; current runtime remains Slick-based |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
@@ -62,6 +62,22 @@ Canonical transition note:
   - deterministic breadcrumb chain for current Woo single product
   - Container style controls: background, padding, radius
   - Text style controls: alignment, typography, link/current/separator colors
+- `bw-presentation-slide` controls/runtime (audit state 2026-03-19):
+  - visible title: `BW-UI Presentation Slider`
+  - layout modes: `horizontal`, `vertical`
+  - image source: `custom` gallery or WooCommerce product gallery query
+  - horizontal mode remains Slick-based with breakpoint repeater settings:
+    - slides to show / scroll
+    - arrows / dots
+    - center mode
+    - variable width / fixed slide width
+    - per-breakpoint image height mode and dimensions
+  - vertical mode:
+    - desktop elevator layout with thumbnail rail + scroll tracking
+    - optional responsive fallback to synchronized Slick main/thumb sliders
+  - popup overlay gallery is still active
+  - custom cursor runtime is still active
+  - current asset/runtime authority still depends on `slick-js` / `.slick-*` selectors; no Embla path is present in the current repository state
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-newsletter-subscription`:
   - fixed-design widget

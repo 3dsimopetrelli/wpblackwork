@@ -68,7 +68,7 @@ Decisions already fixed:
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slide` -> canonical product slider
-- `bw-presentation-slide` -> specialized presentation/gallery slider
+- `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime still Slick-based in repository state audited on 2026-03-19)
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-newsletter-subscription` -> canonical fixed-design Brevo/Mail Marketing opt-in widget for Elementor surfaces

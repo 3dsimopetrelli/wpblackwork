@@ -46,6 +46,24 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 
+## BW-UI Presentation Slider
+- Widget slug: `bw-presentation-slide`
+- Visible editor title: `BW-UI Presentation Slider`
+- Current runtime in this repository state is still **Slick-based**, not Embla-based.
+- Current feature surface:
+  - horizontal slider mode with breakpoint repeater controls
+  - vertical elevator/gallery mode with desktop thumbnails
+  - responsive vertical fallback implemented as synchronized Slick sliders
+  - optional popup overlay gallery
+  - optional custom cursor runtime with zoom / prev / next states
+  - image source: custom gallery or current WooCommerce product gallery query
+- Asset model:
+  - PHP widget depends on `slick-js`, `slick-css`, and `bw-presentation-slide-script`
+  - asset registration remains centralized in `blackwork-core-plugin.php`
+- Audit note (2026-03-19):
+  - the active JS runtime still initializes `$.fn.slick`
+  - no Embla initialization path is present in the current workspace files
+
 ## Visible title alignment (editor)
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`
 - Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
