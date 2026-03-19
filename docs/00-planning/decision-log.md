@@ -603,3 +603,13 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Keep the breadcrumb category-path rule deterministic (deepest path first, lowest term ID tie-break).
   - Keep the widget style surface local to the breadcrumb component.
   - Keep closure trace in `docs/tasks/BW-TASK-20260318-03-closure.md`.
+
+### Entry 038
+- Date: 2026-03-19
+- Decision summary: Extended `bw-product-description` to support deterministic description source modes: full description, short description, or both in fixed order.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Risk impact: Low-Medium — runtime scope remains limited to single-product rendering, empty sources fail safely, and `both` mode uses a fixed render order (`short_description` then `description`).
+- Follow-up actions:
+  - Keep `both` mode order deterministic.
+  - Preserve HTML formatting paths for both long and short product descriptions.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260319-01-closure.md`.
