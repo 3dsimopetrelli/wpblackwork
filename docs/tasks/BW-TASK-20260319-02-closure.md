@@ -53,13 +53,15 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
 - Runtime surfaces touched:
   - Elementor container controls
   - Elementor frontend container render attributes
-  - Elementor editor/frontend style enqueue
+  - Elementor editor style enqueue
+  - Elementor frontend style/script enqueue
 
 - Hooks modified or registered:
   - `init`
-  - `elementor/editor/after_enqueue_styles`
-  - `elementor/frontend/after_enqueue_styles`
-  - `elementor/element/container/section_layout/after_section_end`
+  - `elementor/editor/after_enqueue_scripts`
+  - `elementor/frontend/after_enqueue_scripts`
+  - `elementor/element/container/_section_motion_effects/before_section_end`
+  - `plugins_loaded`
   - `elementor/frontend/container/before_render`
 
 - Database/data surfaces touched: none
@@ -67,7 +69,8 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
 ### Runtime Surface Diff
 
 - New hooks registered:
-  - `elementor/element/container/section_layout/after_section_end`
+  - `elementor/element/container/_section_motion_effects/before_section_end`
+  - `plugins_loaded`
   - `elementor/frontend/container/before_render`
 - Hook priorities modified: none
 - Filters added or removed: none
@@ -81,7 +84,7 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
 - Criterion 1 — Sticky feature is opt-in and disabled by default: **PASS**
 - Criterion 2 — Controls added to Elementor containers, not widgets: **PASS**
 - Criterion 3 — Target usage is the outer pricing/sidebar container: **PASS**
-- Criterion 4 — Top offset control exists and is rendered through a CSS variable: **PASS**
+- Criterion 4 — Top offset control exists and is rendered through wrapper-scoped `data-bw-sticky-offset` attributes consumed by the JS runtime: **PASS**
 - Criterion 5 — Responsive activation mode exists (`desktop`, `tablet`, `all`): **PASS**
 - Criterion 6 — Frontend implementation is CSS-first with no JS fallback: **REVISED** — CSS-first (`position:sticky`) was attempted but failed because Elementor ancestor containers use `overflow:hidden`, which clips sticky elements. Implementation was switched to JS-based `position:fixed` with a placeholder. See Post-Implementation Fixes below.
 - Criterion 7 — Render output stays wrapper-scoped through classes/data attributes on the selected container: **PASS**
@@ -129,7 +132,7 @@ Three regressions were discovered and resolved during live testing:
   - Result: **PASS**
 
 - Surface: Elementor editor/frontend asset loading
-  - Verification performed: sticky CSS enqueued through dedicated module hooks only
+  - Verification performed: sticky CSS is enqueued in the editor; sticky CSS + JS are enqueued on the frontend through dedicated module hooks
   - Result: **PASS**
 
 - Surface: Existing widget behavior
@@ -209,6 +212,7 @@ Three regressions were discovered and resolved during live testing:
 - Manual rollback steps required?
   - Remove `includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php`
   - Remove `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.css`
+  - Remove `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.js`
   - Revert the bootstrap include and documentation updates
 
 ### Post-Closure Monitoring
@@ -233,6 +237,7 @@ Three regressions were discovered and resolved during live testing:
   - `Stay Within Column` stops the element at the parent row bottom edge
   - no sticky behavior when `BW Sticky = None`
   - element width, padding, and styles remain identical before and after sticky activates
+  - editor exposes the controls correctly, while sticky execution remains a frontend runtime concern
 - Operational smoke tests required:
   - apply sticky to an outer pricing/sidebar container
   - scroll until sticky activates — verify no width/style/padding change
