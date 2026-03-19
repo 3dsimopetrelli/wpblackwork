@@ -35,11 +35,11 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     public function get_script_depends() {
-        return [ 'slick-js', 'bw-presentation-slide-script' ];
+        return [ 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js', 'bw-presentation-slide-script' ];
     }
 
     public function get_style_depends() {
-        return [ 'slick-css', 'bw-presentation-slide-style' ];
+        return [ 'bw-embla-core-css', 'bw-presentation-slide-style' ];
     }
 
     protected function register_controls() {
@@ -763,7 +763,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => 'rgba(0, 0, 0, 0.3)',
                 'selectors' => [
-                    '{{WRAPPER}} .slick-dots li button' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-ps-dots-list li button' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -775,7 +775,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => '#000000',
                 'selectors' => [
-                    '{{WRAPPER}} .slick-dots li.slick-active button' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-ps-dots-list li.is-active button' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -798,7 +798,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .slick-dots li button' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-ps-dots-list li button' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -835,7 +835,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .slick-dots' => 'bottom: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-ps-dots-container' => 'bottom: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -861,6 +861,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'type'      => Controls_Manager::COLOR,
                 'default'   => 'rgba(255, 255, 255, 0.95)',
                 'selectors' => [
+                    // Il popup viene spostato in body dal JS con la classe Elementor copiata,
+                    // quindi {{WRAPPER}} continua a funzionare sia in editor sia in frontend.
                     '{{WRAPPER}} .bw-ps-popup-overlay' => 'background-color: {{VALUE}};',
                 ],
             ]
@@ -1452,45 +1454,88 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Render horizontal layout
+     * Render horizontal layout (Embla Carousel)
      */
     protected function render_horizontal_layout( $images, $settings ) {
-        // Get image size from settings
         $image_size_setting = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'full';
-        $image_size = $this->get_image_size( $image_size_setting );
+        $image_size         = $this->get_image_size( $image_size_setting );
+        $dots_position      = $settings['dots_position'] ?? 'center';
+
+        // CSS inline scoped per i breakpoint (slide sizes)
+        $this->render_breakpoint_css( $settings );
 
         ?>
         <div class="bw-ps-horizontal">
-            <div class="bw-ps-slider-horizontal">
-                <?php foreach ( $images as $index => $image ) : ?>
-                    <div class="bw-ps-slide" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
-                        <div class="bw-ps-image bw-ps-image-clickable">
-                            <?php
-                            echo wp_get_attachment_image(
-                                $image['id'],
-                                $image_size,
-                                false,
-                                [
-                                    'loading'  => 'lazy',
-                                    'decoding' => 'async',
-                                ]
-                            );
-                            ?>
+            <!-- Embla viewport: overflow:hidden -->
+            <div class="bw-embla-viewport bw-ps-embla-viewport">
+                <!-- Embla container: display:flex -->
+                <div class="bw-embla-container">
+                    <?php foreach ( $images as $index => $image ) :
+                        // Prima immagine: eager + high priority per LCP ottimale
+                        $is_first   = ( 0 === $index );
+                        $img_attrs  = [
+                            'loading'       => $is_first ? 'eager' : 'lazy',
+                            'decoding'      => $is_first ? 'sync'  : 'async',
+                            'fetchpriority' => $is_first ? 'high'  : 'auto',
+                            'class'         => 'bw-embla-img',
+                        ];
+                    ?>
+                        <div class="bw-embla-slide bw-ps-slide"
+                             data-bw-index="<?php echo esc_attr( $index ); ?>"
+                             data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
+                            <div class="bw-ps-image bw-ps-image-clickable">
+                                <?php echo wp_get_attachment_image( $image['id'], $image_size, false, $img_attrs ); ?>
+                            </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
 
             <div class="bw-ps-arrows-container">
-                <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">
-                    ←
-                </button>
-                <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">
-                    →
-                </button>
+                <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">&#8592;</button>
+                <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">&#8594;</button>
             </div>
+
+            <!-- Container dots: BWEmblaCore inietta la <ul> qui -->
+            <div class="bw-ps-dots-container bw-ps-dots-<?php echo esc_attr( $dots_position ); ?>"></div>
         </div>
         <?php
+    }
+
+    /**
+     * Genera un blocco <style> inline scoped per le slide sizes per breakpoint.
+     * Embla con watchResize:true si ri-misura automaticamente al resize CSS.
+     */
+    protected function render_breakpoint_css( $settings ) {
+        $breakpoints = ! empty( $settings['breakpoints'] ) ? $settings['breakpoints'] : [];
+        if ( empty( $breakpoints ) ) {
+            return;
+        }
+
+        $widget_id = $this->get_id();
+        $selector  = '.elementor-element-' . esc_attr( $widget_id ) . ' .bw-ps-slide';
+
+        $css = '<style>';
+        foreach ( $breakpoints as $bp ) {
+            $bp_px         = absint( $bp['breakpoint'] );
+            $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
+
+            if ( $bp_px <= 0 ) {
+                continue;
+            }
+
+            $slide_size = ( $slides_to_show > 1 )
+                ? 'calc(100% / ' . $slides_to_show . ')'
+                : '100%';
+
+            $css .= '@media (max-width:' . $bp_px . 'px){';
+            $css .= $selector . '{flex:0 0 ' . $slide_size . ';}';
+            $css .= '}';
+        }
+        $css .= '</style>';
+
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo $css;
     }
 
     /**
@@ -1501,7 +1546,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         <div class="bw-ps-vertical">
             <?php if ( $settings['enable_thumbnails'] === 'yes' ) : ?>
                 <div class="bw-ps-thumbnails">
-                    <?php foreach ( $images as $index => $image ) : ?>
+                    <?php foreach ( $images as $index => $image ) :
+                        $is_first = ( 0 === $index );
+                    ?>
                         <div class="bw-ps-thumb" data-index="<?php echo esc_attr( $index ); ?>">
                             <?php
                             echo wp_get_attachment_image(
@@ -1509,8 +1556,10 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                                 'medium',
                                 false,
                                 [
-                                    'loading'  => 'lazy',
-                                    'decoding' => 'async',
+                                    'loading'       => $is_first ? 'eager' : 'lazy',
+                                    'decoding'      => $is_first ? 'sync'  : 'async',
+                                    'fetchpriority' => $is_first ? 'high'  : 'auto',
+                                    'class'         => 'bw-embla-img',
                                 ]
                             );
                             ?>
@@ -1520,7 +1569,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             <?php endif; ?>
 
             <div class="bw-ps-main-images">
-                <?php foreach ( $images as $index => $image ) : ?>
+                <?php foreach ( $images as $index => $image ) :
+                    $is_first = ( 0 === $index );
+                ?>
                     <div class="bw-ps-main-image" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
                         <div class="bw-ps-image bw-ps-image-clickable">
                             <?php
@@ -1529,8 +1580,10 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                                 'full',
                                 false,
                                 [
-                                    'loading'  => 'lazy',
-                                    'decoding' => 'async',
+                                    'loading'       => $is_first ? 'eager' : 'lazy',
+                                    'decoding'      => $is_first ? 'sync'  : 'async',
+                                    'fetchpriority' => $is_first ? 'high'  : 'auto',
+                                    'class'         => 'bw-embla-img',
                                 ]
                             );
                             ?>
@@ -1539,42 +1592,49 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 <?php endforeach; ?>
             </div>
 
-            <!-- Responsive Slick layout (hidden on desktop) -->
+            <!-- Responsive Embla layout (nascosto su desktop) -->
             <div class="bw-ps-vertical-responsive" style="display: none;">
-                <div class="bw-ps-slider-main">
-                    <?php foreach ( $images as $index => $image ) : ?>
-                        <div class="bw-ps-slide-main" data-bw-index="<?php echo esc_attr( $index ); ?>">
-                            <?php
-                            echo wp_get_attachment_image(
-                                $image['id'],
-                                'full',
-                                false,
-                                [
-                                    'loading'  => 'lazy',
-                                    'decoding' => 'async',
-                                ]
-                            );
-                            ?>
-                        </div>
-                    <?php endforeach; ?>
+                <!-- Main slider -->
+                <div class="bw-embla-viewport bw-ps-main-viewport">
+                    <div class="bw-embla-container">
+                        <?php foreach ( $images as $index => $image ) :
+                            $is_first  = ( 0 === $index );
+                            $img_attrs = [
+                                'loading'       => $is_first ? 'eager' : 'lazy',
+                                'decoding'      => $is_first ? 'sync'  : 'async',
+                                'fetchpriority' => $is_first ? 'high'  : 'auto',
+                                'class'         => 'bw-embla-img',
+                            ];
+                        ?>
+                            <div class="bw-embla-slide bw-ps-slide-main"
+                                 data-bw-index="<?php echo esc_attr( $index ); ?>">
+                                <?php echo wp_get_attachment_image( $image['id'], 'full', false, $img_attrs ); ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
 
-                <div class="bw-ps-slider-thumbs">
-                    <?php foreach ( $images as $index => $image ) : ?>
-                        <div class="bw-ps-slide-thumb">
-                            <?php
-                            echo wp_get_attachment_image(
-                                $image['id'],
-                                'thumbnail',
-                                false,
-                                [
-                                    'loading'  => 'lazy',
-                                    'decoding' => 'async',
-                                ]
-                            );
-                            ?>
-                        </div>
-                    <?php endforeach; ?>
+                <!-- Thumbnail slider -->
+                <div class="bw-embla-viewport bw-ps-thumbs-viewport">
+                    <div class="bw-embla-container">
+                        <?php foreach ( $images as $index => $image ) : ?>
+                            <div class="bw-embla-slide bw-ps-slide-thumb"
+                                 data-bw-index="<?php echo esc_attr( $index ); ?>">
+                                <?php
+                                echo wp_get_attachment_image(
+                                    $image['id'],
+                                    'thumbnail',
+                                    false,
+                                    [
+                                        'loading'  => 'lazy',
+                                        'decoding' => 'async',
+                                        'class'    => 'bw-embla-img',
+                                    ]
+                                );
+                                ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1621,7 +1681,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Build responsive configuration for Slick
+     * Build responsive configuration for JS (Embla — no Slick settings)
+     * slidesToShow è gestito da CSS inline in render_breakpoint_css().
+     * Qui passano solo: showArrows, showDots, imageHeightMode, imageHeight, imageWidth.
      */
     protected function build_responsive_config( $settings ) {
         $responsive = [];
@@ -1644,28 +1706,14 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     ];
                 }
 
-                $config = [
-                    'breakpoint'       => absint( $breakpoint['breakpoint'] ),
-                    'showArrows'       => $breakpoint['show_arrows'] === 'yes',
-                    'imageHeightMode'  => $breakpoint['image_height_mode'] ?? 'auto',
-                    'imageHeight'      => $image_height,
-                    'imageWidth'       => $image_width,
-                    'settings'         => [
-                        'slidesToShow'   => absint( $breakpoint['slides_to_show'] ),
-                        'slidesToScroll' => absint( $breakpoint['slides_to_scroll'] ),
-                        'arrows'         => false, // Always false, we use custom arrows
-                        'dots'           => $breakpoint['show_dots'] === 'yes',
-                        'centerMode'     => $breakpoint['center_mode'] === 'yes',
-                        'variableWidth'  => $breakpoint['variable_width'] === 'yes',
-                    ],
+                $responsive[] = [
+                    'breakpoint'      => absint( $breakpoint['breakpoint'] ),
+                    'showArrows'      => $breakpoint['show_arrows'] === 'yes',
+                    'showDots'        => $breakpoint['show_dots'] === 'yes',
+                    'imageHeightMode' => $breakpoint['image_height_mode'] ?? 'auto',
+                    'imageHeight'     => $image_height,
+                    'imageWidth'      => $image_width,
                 ];
-
-                // Add slide width if specified and variable width is off
-                if ( ! empty( $breakpoint['slide_width'] ) && $breakpoint['variable_width'] !== 'yes' ) {
-                    $config['slideWidth'] = absint( $breakpoint['slide_width'] );
-                }
-
-                $responsive[] = $config;
             }
         }
 

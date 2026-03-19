@@ -1,5 +1,8 @@
 # PHP/Composer (solo locale)
 vendor/
+
+# Eccezione: vendor JS assets committati nel repo (UMD builds)
+!assets/js/vendor/
 composer.phar
 
 # Node (solo locale)
