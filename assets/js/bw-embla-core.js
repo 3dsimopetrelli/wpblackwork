@@ -240,7 +240,9 @@
 
         images.forEach(function (img) {
             if (img.complete && img.naturalWidth > 0) {
-                img.classList.add('is-loaded');
+                // Use rAF so the browser first paints opacity:0 (from CSS),
+                // then transitions to opacity:1 — avoids the sync-add-class race.
+                requestAnimationFrame(function () { img.classList.add('is-loaded'); });
                 return;
             }
             var onLoad = function () {
