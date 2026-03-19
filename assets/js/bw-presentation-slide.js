@@ -702,9 +702,23 @@
                 this._cursor = null;
             }
 
+            // Popup overlay: spostato in body da initPopup(), va rimosso esplicitamente
+            // (altrimenti ogni re-init di Elementor accumula overlay orfani nel DOM)
+            if (this.$popupOverlay) {
+                this.$popupOverlay.remove();
+                this.$popupOverlay = null;
+                $('body').css('overflow', ''); // ripristina se il popup era aperto
+            }
+
+            // Cache DOM
             this._$horizontal = null;
             this._$images     = null;
-            this.initialized  = false;
+
+            // Stato istanza
+            this._sortedBreakpoints   = null;
+            this._lastBreakpointIndex = null;
+            this.config               = null;
+            this.initialized          = false;
         }
     }
 
