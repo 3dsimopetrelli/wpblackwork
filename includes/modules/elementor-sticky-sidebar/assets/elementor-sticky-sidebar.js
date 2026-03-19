@@ -130,12 +130,21 @@
             });
             this.$el.before(this.$placeholder);
 
+            // Freeze computed padding values as explicit px to prevent percentage
+            // paddings from recalculating against the viewport (which is the
+            // containing block for position:fixed elements). Without this, a 2%
+            // padding jumps from ~10px (relative to 501px parent) to ~29px
+            // (relative to 1440px viewport), visibly shrinking the content area.
             this.$el.css({
-                position: 'fixed',
-                top:      this.offset + 'px',
-                left:     rect.left + 'px',
-                width:    this.naturalWidth + 'px',
-                zIndex:   999,
+                position:      'fixed',
+                top:           this.offset + 'px',
+                left:          rect.left + 'px',
+                width:         this.naturalWidth + 'px',
+                paddingTop:    cs.paddingTop,
+                paddingRight:  cs.paddingRight,
+                paddingBottom: cs.paddingBottom,
+                paddingLeft:   cs.paddingLeft,
+                zIndex:        999,
             }).addClass('bw-ess-stuck');
         },
 
@@ -149,11 +158,15 @@
             }
 
             this.$el.css({
-                position: '',
-                top:      '',
-                left:     '',
-                width:    '',
-                zIndex:   '',
+                position:      '',
+                top:           '',
+                left:          '',
+                width:         '',
+                paddingTop:    '',
+                paddingRight:  '',
+                paddingBottom: '',
+                paddingLeft:   '',
+                zIndex:        '',
             }).removeClass('bw-ess-stuck');
         },
 
