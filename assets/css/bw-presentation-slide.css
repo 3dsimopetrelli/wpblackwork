@@ -306,25 +306,28 @@
     box-shadow: none !important;
     outline: none !important;
 
-    font-size: 32px;
-    line-height: 1;
-    cursor: pointer;
-    color: #000;
-    transition: color 0.3s ease;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0;
-    text-shadow: none;
-    font-weight: normal;
-    text-decoration: none;
+    font-size: 32px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    color: #000 !important;
+    transition: color 0.3s ease !important;
+    padding: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0 !important;
+    text-shadow: none !important;
+    font-weight: normal !important;
+    text-decoration: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    flex-shrink: 0 !important;
 }
 
 .bw-ps-popup-close:hover {
-    color: #666;
+    color: #666 !important;
     background: none !important;
     background-color: transparent !important;
     border: none !important;
