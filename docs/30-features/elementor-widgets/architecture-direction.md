@@ -22,6 +22,7 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
   - `bw-product-slide` as canonical product slider
 - `Presentation Slider Family`
   - `bw-presentation-slide` as specialized gallery/presentation runtime
+  - audit status (2026-03-19): active implementation is still widget-local Slick runtime; Embla migration is not present in the current repository state
 - `Generic Showcase Family`
   - rationalized outcome of `bw-slick-slider` + `bw-slide-showcase` (single direction under review)
 - `Product Utility Family`
@@ -76,6 +77,11 @@ Direction:
 - create a shared `slider-core` runtime authority for lifecycle and common behavior
 - keep widget-specific behavior in thin adapters
 - maintain one shared engine contract (Slick for current phase)
+
+Current audit note for `bw-presentation-slide`:
+- the widget still owns a substantial widget-local runtime in `assets/js/bw-presentation-slide.js`
+- that runtime directly initializes Slick, handles vertical responsive sync, popup logic, and custom cursor behavior
+- the widget has not yet converged to a shared slider-core or Embla-based authority in the current workspace state
 
 Expected outcomes:
 - one core lifecycle (`init`, `reinit`, `destroy`) per scope

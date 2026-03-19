@@ -269,10 +269,10 @@
 .bw-ps-popup-header {
     position: sticky;
     top: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+    column-gap: 24px;
     padding: 20px 30px;
     background-color: #fff;
     border-bottom: 1px solid #eee;
@@ -281,6 +281,8 @@
 
 .bw-ps-popup-title {
     margin: 0;
+    min-width: 0;
+    flex: 1 1 auto;
     font-size: 24px;
     font-weight: 600;
     color: #000;

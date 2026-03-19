@@ -25,7 +25,7 @@
   - Elementor container control registration
   - Elementor frontend rendering
   - responsive container layouts
-  - editor preview behavior
+  - editor control visibility/configuration behavior
 
 ## Pre-Task Reading Checklist
 - Feature docs to read:
@@ -53,7 +53,7 @@
     - sticky enable switcher
     - sticky top offset control
     - responsive activation control
-  - Apply sticky classes/CSS variables to the selected container wrapper at render time.
+  - Apply wrapper-scoped attributes to the selected container at render time.
   - Implement CSS-first sticky behavior scoped to the chosen container.
   - Do not add JS unless CSS-only proves insufficient for the targeted layout.
 - Files likely impacted:
@@ -108,7 +108,7 @@
 - Any invariant at risk? No major risk expected
 - Mitigation plan for invariant protection:
   - container-only controls
-  - wrapper-scoped classes and CSS variables
+  - wrapper-scoped classes / `data-*` attributes
   - CSS-first implementation with no unnecessary JS
 
 ## Determinism Statement
@@ -126,7 +126,8 @@
   - verify top offset behavior
   - verify disabled-by-default behavior
   - verify desktop-only behavior
-  - verify editor preview and frontend consistency
+  - verify controls are visible/configurable in editor
+  - verify sticky runtime behavior on the frontend
 - Edge cases expected:
   - ancestor overflow blocks sticky
   - flex stretch prevents expected sticky behavior
@@ -169,7 +170,7 @@
 - Revert via commit possible? Yes
 - Database migration involved? No
 - Manual rollback steps required?
-  - Remove the sticky sidebar module include and related asset file
+  - Remove the sticky sidebar module include and related asset files
 
 ## 6A) Documentation Alignment Requirement
 Before implementation begins, evaluate:

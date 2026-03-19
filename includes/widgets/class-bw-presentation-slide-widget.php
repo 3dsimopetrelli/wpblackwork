@@ -1476,7 +1476,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             <div class="bw-ps-popup">
                 <div class="bw-ps-popup-header">
                     <h3 class="bw-ps-popup-title"><?php echo esc_html( $popup_title ); ?></h3>
-                    <button class="bw-ps-popup-close" aria-label="<?php esc_attr_e( 'Close', 'bw-elementor-widgets' ); ?>">&#x2715;</button>
+                    <button class="bw-ps-popup-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'bw-elementor-widgets' ); ?>">
+                        <span class="bw-ps-popup-close-text"><?php esc_html_e( 'Close', 'bw-elementor-widgets' ); ?></span>
+                    </button>
                 </div>
                 <div class="bw-ps-popup-body">
                     <?php foreach ( $images as $index => $image ) : ?>
