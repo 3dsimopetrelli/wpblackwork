@@ -118,14 +118,16 @@
 
             if (!api) return;
 
-            // Visibilità frecce + image-height mode iniziale
+            // Visibilità frecce + dots + image-height mode iniziale
             this._updateArrowsVisibility();
+            this._updateDotsVisibility();
             this._updateImageHeightControls();
 
             // Aggiorna on resize via window (Embla watchResize aggiorna il layout,
-            // noi aggiorniamo solo lo stato delle frecce e l'imageHeight)
+            // noi aggiorniamo solo lo stato delle frecce, dots e imageHeight)
             $(window).on(`resize.bwps-${this.widgetId}`, () => {
                 this._updateArrowsVisibility();
+                this._updateDotsVisibility();
                 this._updateImageHeightControls();
             });
 
@@ -335,6 +337,25 @@
             }
 
             $arrows.css('display', showArrows ? 'flex' : 'none');
+        }
+
+        /* ────────────────────────────────────────────
+           VISIBILITÀ DOTS (responsive)
+        ──────────────────────────────────────────── */
+
+        _updateDotsVisibility() {
+            const width   = $(window).width();
+            const $dots   = this.$wrapper.find('.bw-ps-dots-container');
+            let showDots  = true; // default desktop: mostra
+
+            for (const bp of this._sortedBreakpoints) {
+                if (width <= bp.breakpoint) {
+                    showDots = bp.showDots === true;
+                    break;
+                }
+            }
+
+            $dots.css('display', showDots ? 'flex' : 'none');
         }
 
         /* ────────────────────────────────────────────
