@@ -30,6 +30,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `rationalization-policy.md`: keep/merge/rebuild/delete decisions and deprecation policy
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
+- `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 
 ## Confirmed decisions (current)
 - `bw-add-to-cart` -> DELETE (completed)
