@@ -308,7 +308,7 @@
     box-shadow: none !important;
     outline: none !important;
     font-family: inherit !important;
-    font-size: 32px !important;
+    font-size: 16px !important;
     line-height: 1 !important;
     cursor: pointer !important;
     color: #000 !important;
@@ -328,6 +328,15 @@
     opacity: 1 !important;
     visibility: visible !important;
     flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+
+.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close .bw-ps-popup-close-text {
+    display: inline-block !important;
+    font: inherit !important;
+    color: inherit !important;
+    line-height: 1 !important;
+    letter-spacing: 0.02em !important;
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:hover {
