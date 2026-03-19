@@ -283,9 +283,10 @@
     position: sticky;
     top: 0;
     width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 24px;
+    column-gap: 24px;
     padding: 20px 30px;
     background-color: #fff;
     border-bottom: 1px solid #eee;
@@ -304,6 +305,14 @@
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close {
     appearance: none !important;
     -webkit-appearance: none !important;
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    float: none !important;
     background: none !important;
     background-color: transparent !important;
     border: none !important;
@@ -316,18 +325,26 @@
     color: #000 !important;
     transition: color 0.3s ease !important;
     padding: 0 !important;
-    margin-left: auto !important;
-    display: flex !important;
+    margin: 0 !important;
+    display: inline-flex !important;
     align-items: center !important;
-    justify-content: flex-end !important;
+    justify-content: center !important;
     border-radius: 0 !important;
     text-shadow: none !important;
     font-weight: 400 !important;
     text-decoration: none !important;
     opacity: 1 !important;
     visibility: visible !important;
+    align-self: center !important;
+    justify-self: end !important;
     flex-shrink: 0 !important;
     white-space: nowrap !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    z-index: 1 !important;
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close .bw-ps-popup-close-text {
@@ -336,6 +353,10 @@
     color: inherit !important;
     line-height: 1 !important;
     letter-spacing: 0.02em !important;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    white-space: nowrap !important;
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:hover {
