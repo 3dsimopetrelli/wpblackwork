@@ -608,6 +608,7 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
 - Date: 2026-03-19
 - Decision summary: Extended `bw-product-description` to support deterministic description source modes: full description, short description, or both in fixed order.
 - Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Product templates need a single reusable description widget that can surface either the merchant-authored long description, the short description, or both without forcing duplicate widgets or manual text duplication.
 - Risk impact: Low-Medium — runtime scope remains limited to single-product rendering, empty sources fail safely, and `both` mode uses a fixed render order (`short_description` then `description`).
 - Follow-up actions:
   - Keep `both` mode order deterministic.
