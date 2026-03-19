@@ -169,6 +169,34 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'drag_free',
+            [
+                'label'        => __( 'Drag Free', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'description'  => __( 'Free-scroll drag: the slide does not snap to position, scrolls freely', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'slide_align',
+            [
+                'label'   => __( 'Slide Alignment', 'bw-elementor-widgets' ),
+                'type'    => Controls_Manager::SELECT,
+                'options' => [
+                    'start'  => __( 'Start (default)', 'bw-elementor-widgets' ),
+                    'center' => __( 'Center', 'bw-elementor-widgets' ),
+                    'end'    => __( 'End', 'bw-elementor-widgets' ),
+                ],
+                'default'     => 'start',
+                'description' => __( 'Where to align the selected slide inside the carousel viewport', 'bw-elementor-widgets' ),
+            ]
+        );
+
         $this->end_controls_section();
 
         // Slider → Breakpoints (Horizontal)
@@ -1323,6 +1351,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
                 'speed'            => absint( $settings['transition_speed'] ),
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
+                'dragFree'         => ( $settings['drag_free'] ?? '' ) === 'yes',
+                'align'            => $settings['slide_align'] ?? 'start',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
             'vertical'             => [
@@ -1517,16 +1547,24 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $css = '<style>';
         foreach ( $breakpoints as $bp ) {
-            $bp_px         = absint( $bp['breakpoint'] );
+            $bp_px          = absint( $bp['breakpoint'] );
             $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
+            $variable_width = ( $bp['variable_width'] ?? '' ) === 'yes';
+            $slide_width    = absint( $bp['slide_width'] ?? 0 );
 
             if ( $bp_px <= 0 ) {
                 continue;
             }
 
-            $slide_size = ( $slides_to_show > 1 )
-                ? 'calc(100% / ' . $slides_to_show . ')'
-                : '100%';
+            if ( $variable_width ) {
+                $slide_size = 'auto';
+            } elseif ( $slide_width > 0 ) {
+                $slide_size = $slide_width . 'px';
+            } elseif ( $slides_to_show > 1 ) {
+                $slide_size = 'calc(100% / ' . $slides_to_show . ')';
+            } else {
+                $slide_size = '100%';
+            }
 
             $css .= '@media (max-width:' . $bp_px . 'px){';
             $css .= $selector . '{flex:0 0 ' . $slide_size . ';}';
@@ -1679,9 +1717,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Build responsive configuration for JS (Embla — no Slick settings)
+     * Build responsive configuration for JS (Embla).
      * slidesToShow è gestito da CSS inline in render_breakpoint_css().
-     * Qui passano solo: showArrows, showDots, imageHeightMode, imageHeight, imageWidth.
      */
     protected function build_responsive_config( $settings ) {
         $responsive = [];
@@ -1711,6 +1748,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     'imageHeightMode' => $breakpoint['image_height_mode'] ?? 'auto',
                     'imageHeight'     => $image_height,
                     'imageWidth'      => $image_width,
+                    'slidesToScroll'  => max( 1, absint( $breakpoint['slides_to_scroll'] ?? 1 ) ),
+                    'centerMode'      => ( $breakpoint['center_mode'] ?? '' ) === 'yes',
+                    'variableWidth'   => ( $breakpoint['variable_width'] ?? '' ) === 'yes',
                 ];
             }
         }
