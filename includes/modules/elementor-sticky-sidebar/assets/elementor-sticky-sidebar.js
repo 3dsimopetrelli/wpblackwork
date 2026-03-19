@@ -92,12 +92,30 @@
 
             // Bottom-boundary: adjust `top` so the element parks at parent bottom.
             if (this.bound && this.stuck && this.$parent) {
-                var parentBottom = this.$parent.offset().top + this.$parent.outerHeight();
+                var parentTop    = this.$parent.offset().top;
+                var parentH      = this.$parent.outerHeight();
+                var parentBottom = parentTop + parentH;
                 var elHeight     = this.naturalHeight || this.$el.outerHeight();
-                // How far from the viewport top the bottom of the element would be.
-                var maxTop = parentBottom - elHeight - scrollTop;
-                // Clamp between 0 and the configured offset.
-                var top = maxTop < this.offset ? Math.max(maxTop, 0) : this.offset;
+                var maxTop       = parentBottom - elHeight - scrollTop;
+                var top          = maxTop < this.offset ? Math.max(maxTop, 0) : this.offset;
+
+                /* ---- temporary debug (remove after diagnosis) ---- */
+                if (!this._dbgTimer) {
+                    this._dbgTimer = setTimeout(function () { delete this._dbgTimer; }.bind(this), 500);
+                    console.log('[BwSticky bound]', {
+                        parentEl:     this.$parent[0] && this.$parent[0].className,
+                        parentTop:    parentTop,
+                        parentH:      parentH,
+                        parentBottom: parentBottom,
+                        elHeight:     elHeight,
+                        scrollTop:    scrollTop,
+                        maxTop:       maxTop,
+                        topApplied:   top,
+                        configOffset: this.offset,
+                    });
+                }
+                /* ---- end debug ---- */
+
                 this.$el.css('top', top + 'px');
             }
         },
