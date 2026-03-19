@@ -484,6 +484,48 @@ if (!function_exists('bw_tbl_resolve_product_context_id')) {
             }
         }
 
+        // ── Elementor AJAX re-render fallback ───────────────────────────────────
+        // Quando Elementor ri-renderizza un widget dopo una modifica al pannello, usa
+        // wp_ajax_elementor_ajax. In admin-ajax.php il hook `wp` non gira mai, quindi i
+        // bridge globals non vengono settati dal normale flow. Questo fallback risolve il
+        // prodotto direttamente per quel contesto, come rete di sicurezza aggiuntiva
+        // rispetto al hook bw_tbl_apply_elementor_ajax_product_context().
+        if (wp_doing_ajax()
+            && !empty($_POST['action']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            && 'elementor_ajax' === $_POST['action'] // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            && function_exists('wc_get_product')
+        ) {
+            $ajax_product_id = 0;
+
+            // Caso 1: editor_post_id è il prodotto stesso (editing diretto)
+            if (!empty($_POST['editor_post_id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+                $editor_post_id = absint($_POST['editor_post_id']); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+                if ($editor_post_id > 0 && wc_get_product($editor_post_id)) {
+                    $ajax_product_id = $editor_post_id;
+                }
+            }
+
+            // Caso 2: editing di un template → preview product salvato nelle opzioni
+            if ($ajax_product_id <= 0 && function_exists('bw_tbl_get_preview_product_id')) {
+                $ajax_product_id = absint(bw_tbl_get_preview_product_id());
+            }
+
+            if ($ajax_product_id <= 0 && function_exists('bw_tbl_get_single_product_preview_product_id')) {
+                $ajax_product_id = absint(bw_tbl_get_single_product_preview_product_id(false));
+            }
+
+            if ($ajax_product_id > 0) {
+                if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
+                    error_log('[BW_TBL_PREVIEW_DEBUG] widget=' . (string) $settings['__widget_class'] . ' source=elementor_ajax_rerender id=' . $ajax_product_id); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
+                return [
+                    'id'     => $ajax_product_id,
+                    'source' => 'elementor_ajax_rerender',
+                ];
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         if (!empty($settings['product_id'])) {
             $manual_id = absint($settings['product_id']);
             if (defined('BW_TBL_DEBUG_PREVIEW') && BW_TBL_DEBUG_PREVIEW && !empty($settings['__widget_class'])) {
