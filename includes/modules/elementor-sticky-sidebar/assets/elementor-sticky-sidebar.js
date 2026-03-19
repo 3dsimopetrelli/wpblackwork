@@ -7,9 +7,10 @@
      * Three internal states:
      *  'none'     — element is in normal document flow
      *  'fixed'    — position:fixed, top adjusted dynamically
-     *  'absolute' — position:absolute; bottom:0 inside the parent row
-     *               (activated when the element is too tall to fit in the
-     *                remaining viewport space above the row boundary)
+     *  'absolute' — element teleported to <body> with position:absolute
+     *               at document-relative coordinates tracking the row's
+     *               bottom edge. This sidesteps overflow:hidden and any
+     *               positioned ancestors between the element and the row.
      *
      * @param {HTMLElement} el      The container element.
      * @param {number}      offset  Top offset in px when stuck.
@@ -23,13 +24,12 @@
         this.devices = devices;
         this.bound   = !!bound;
 
-        this.$placeholder     = null;
-        this.$parent          = null;
-        this.stuck            = false;
-        this._boundState      = 'none'; // 'none' | 'fixed' | 'absolute'
-        this._parentWasStatic = false;
+        this.$placeholder = null;
+        this.$parent      = null;
+        this.stuck        = false;
+        this._boundState  = 'none'; // 'none' | 'fixed' | 'absolute'
 
-        // Natural (pre-sticky) geometry — measured before going fixed.
+        // Natural (pre-sticky) geometry.
         this.naturalTop    = 0;
         this.naturalLeft   = 0;
         this.naturalWidth  = 0;
@@ -50,9 +50,6 @@
             if (!this._isActiveDevice()) { return; }
 
             if (this.bound) {
-                // Traverse up to the Elementor row container, which is the shared
-                // parent of both columns and carries the full row height.
-                // The direct parent is usually the same height as the element itself.
                 var $row = this.$el.closest('.e-con.e-parent, .elementor-section');
                 this.$parent = $row.length ? $row : this.$el.parent();
             }
@@ -72,7 +69,6 @@
             return w >= 1025;
         },
 
-        // Capture geometry while element is still in normal flow.
         _measure: function () {
             if (this.stuck) { return; }
             var off            = this.$el.offset();
@@ -100,14 +96,16 @@
             var maxTop       = parentBottom - this.naturalHeight - scrollTop;
 
             if (maxTop < 0) {
-                // Element is too tall to fit — park it at row bottom via absolute.
-                this._goAbsolute();
+                // Element can't fit above the row boundary → teleport to body,
+                // anchored at document-relative bottom of the parent row.
+                this._goAbsolute(parentBottom);
             } else {
-                // Fixed mode: reduce top as we approach the row bottom.
+                // Normal fixed: reduce top as we approach the boundary.
                 this._goFixed(maxTop < this.offset ? maxTop : this.offset);
             }
         },
 
+        // ── Enter sticky mode ───────────────────────────────────────────────────
         _stick: function () {
             if (this.stuck) { return; }
             this.stuck       = true;
@@ -123,7 +121,6 @@
             });
             this.$el.before(this.$placeholder);
 
-            // naturalLeft is document-relative; convert to viewport-relative for fixed.
             var viewportLeft = this.naturalLeft - (window.pageXOffset || 0);
 
             this.$el.css({
@@ -136,19 +133,16 @@
             }).addClass('bw-ess-stuck');
         },
 
+        // ── Switch to / stay in fixed mode ─────────────────────────────────────
         _goFixed: function (top) {
             if (this._boundState === 'fixed') {
                 this.$el.css('top', top + 'px');
                 return;
             }
 
-            // Returning from absolute mode.
+            // Returning from absolute (teleported) mode → move back into the DOM.
             this._boundState = 'fixed';
-
-            if (this._parentWasStatic && this.$parent) {
-                this.$parent.css('position', '');
-                this._parentWasStatic = false;
-            }
+            this.$placeholder.before(this.$el);
 
             var viewportLeft = this.naturalLeft - (window.pageXOffset || 0);
 
@@ -161,38 +155,38 @@
             });
         },
 
-        _goAbsolute: function () {
+        // ── Switch to absolute-in-body mode ────────────────────────────────────
+        _goAbsolute: function (parentBottom) {
             if (this._boundState === 'absolute') { return; }
             this._boundState = 'absolute';
 
-            // Parent row needs position:relative.
-            if (this.$parent.css('position') === 'static') {
-                this.$parent.css('position', 'relative');
-                this._parentWasStatic = true;
-            }
+            // Teleport to <body> so that overflow:hidden / positioned ancestors
+            // between the element and the row container don't clip or misplace it.
+            // In body, position:absolute coordinates are document-relative.
+            var docTop = (parentBottom !== undefined ? parentBottom : this.$parent.offset().top + this.$parent.outerHeight()) - this.naturalHeight;
 
-            // Left offset relative to parent padding box.
-            var parentBorderLeft = parseInt(this.$parent.css('border-left-width'), 10) || 0;
-            var leftInParent     = this.naturalLeft - this.$parent.offset().left - parentBorderLeft;
+            $('body').append(this.$el);
 
             this.$el.css({
                 position: 'absolute',
-                top:      'auto',
-                bottom:   '0',
-                left:     leftInParent + 'px',
+                top:      docTop + 'px',
+                left:     this.naturalLeft + 'px',
                 width:    this.naturalWidth + 'px',
+                bottom:   '',
             });
         },
 
+        // ── Leave sticky mode ───────────────────────────────────────────────────
         _unstick: function () {
             if (!this.stuck) { return; }
             this.stuck       = false;
-            this._boundState = 'none';
 
-            if (this._parentWasStatic && this.$parent) {
-                this.$parent.css('position', '');
-                this._parentWasStatic = false;
+            // If element was teleported to body, restore it before the placeholder.
+            if (this._boundState === 'absolute' && this.$placeholder && this.$placeholder.parent().length) {
+                this.$placeholder.before(this.$el);
             }
+
+            this._boundState = 'none';
 
             if (this.$placeholder) {
                 this.$placeholder.remove();
