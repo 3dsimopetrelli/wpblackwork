@@ -4,13 +4,13 @@
     /**
      * BwSticky — JS-based sticky sidebar.
      *
-     * Three internal states:
-     *  'none'     — element is in normal document flow
-     *  'fixed'    — position:fixed, top adjusted dynamically
-     *  'absolute' — element teleported to <body> with position:absolute
-     *               at document-relative coordinates tracking the row's
-     *               bottom edge. This sidesteps overflow:hidden and any
-     *               positioned ancestors between the element and the row.
+     * Always uses position:fixed + placeholder. The "stay within column"
+     * bound is implemented by setting a negative `top` value when the
+     * parent row has scrolled above the viewport: the element tracks the
+     * row's bottom edge and disappears off the top of the screen, exactly
+     * as if it were position:absolute inside the row — but without any
+     * DOM teleportation, so CSS inheritance from parent containers is
+     * fully preserved and overflow:hidden ancestors cannot clip it.
      *
      * @param {HTMLElement} el      The container element.
      * @param {number}      offset  Top offset in px when stuck.
@@ -27,7 +27,6 @@
         this.$placeholder = null;
         this.$parent      = null;
         this.stuck        = false;
-        this._boundState  = 'none'; // 'none' | 'fixed' | 'absolute'
 
         // Natural (pre-sticky) geometry.
         this.naturalTop    = 0;
@@ -50,6 +49,7 @@
             if (!this._isActiveDevice()) { return; }
 
             if (this.bound) {
+                // Row container = shared parent of both columns.
                 var $row = this.$el.closest('.e-con.e-parent, .elementor-section');
                 this.$parent = $row.length ? $row : this.$el.parent();
             }
@@ -90,26 +90,21 @@
                 this._stick();
             }
 
-            if (!this.bound || !this.$parent) { return; }
-
-            var parentBottom = this.$parent.offset().top + this.$parent.outerHeight();
-            var maxTop       = parentBottom - this.naturalHeight - scrollTop;
-
-            if (maxTop < 0) {
-                // Element can't fit above the row boundary → teleport to body,
-                // anchored at document-relative bottom of the parent row.
-                this._goAbsolute(parentBottom);
-            } else {
-                // Normal fixed: reduce top as we approach the boundary.
-                this._goFixed(maxTop < this.offset ? maxTop : this.offset);
+            // Bound: keep the element within the parent row's height.
+            // When maxTop >= offset → normal sticky at `offset`.
+            // When 0 <= maxTop < offset → element slides toward row bottom.
+            // When maxTop < 0 → top is negative: element is above the viewport,
+            //   scrolling "with the page" without any DOM teleportation needed.
+            if (this.bound && this.$parent) {
+                var parentBottom = this.$parent.offset().top + this.$parent.outerHeight();
+                var maxTop       = parentBottom - this.naturalHeight - scrollTop;
+                this.$el.css('top', (maxTop < this.offset ? maxTop : this.offset) + 'px');
             }
         },
 
-        // ── Enter sticky mode ───────────────────────────────────────────────────
         _stick: function () {
             if (this.stuck) { return; }
-            this.stuck       = true;
-            this._boundState = 'fixed';
+            this.stuck = true;
 
             this.$placeholder = $('<div class="bw-ess-placeholder" aria-hidden="true">').css({
                 display:       'block',
@@ -128,65 +123,13 @@
                 top:      this.offset + 'px',
                 left:     viewportLeft + 'px',
                 width:    this.naturalWidth + 'px',
-                bottom:   '',
                 zIndex:   999,
             }).addClass('bw-ess-stuck');
         },
 
-        // ── Switch to / stay in fixed mode ─────────────────────────────────────
-        _goFixed: function (top) {
-            if (this._boundState === 'fixed') {
-                this.$el.css('top', top + 'px');
-                return;
-            }
-
-            // Returning from absolute (teleported) mode → move back into the DOM.
-            this._boundState = 'fixed';
-            this.$placeholder.before(this.$el);
-
-            var viewportLeft = this.naturalLeft - (window.pageXOffset || 0);
-
-            this.$el.css({
-                position: 'fixed',
-                top:      top + 'px',
-                left:     viewportLeft + 'px',
-                width:    this.naturalWidth + 'px',
-                bottom:   '',
-            });
-        },
-
-        // ── Switch to absolute-in-body mode ────────────────────────────────────
-        _goAbsolute: function (parentBottom) {
-            if (this._boundState === 'absolute') { return; }
-            this._boundState = 'absolute';
-
-            // Teleport to <body> so that overflow:hidden / positioned ancestors
-            // between the element and the row container don't clip or misplace it.
-            // In body, position:absolute coordinates are document-relative.
-            var docTop = (parentBottom !== undefined ? parentBottom : this.$parent.offset().top + this.$parent.outerHeight()) - this.naturalHeight;
-
-            $('body').append(this.$el);
-
-            this.$el.css({
-                position: 'absolute',
-                top:      docTop + 'px',
-                left:     this.naturalLeft + 'px',
-                width:    this.naturalWidth + 'px',
-                bottom:   '',
-            });
-        },
-
-        // ── Leave sticky mode ───────────────────────────────────────────────────
         _unstick: function () {
             if (!this.stuck) { return; }
-            this.stuck       = false;
-
-            // If element was teleported to body, restore it before the placeholder.
-            if (this._boundState === 'absolute' && this.$placeholder && this.$placeholder.parent().length) {
-                this.$placeholder.before(this.$el);
-            }
-
-            this._boundState = 'none';
+            this.stuck = false;
 
             if (this.$placeholder) {
                 this.$placeholder.remove();
@@ -197,7 +140,6 @@
                 position: '',
                 top:      '',
                 left:     '',
-                bottom:   '',
                 width:    '',
                 zIndex:   '',
             }).removeClass('bw-ess-stuck');
