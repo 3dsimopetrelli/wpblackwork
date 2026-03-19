@@ -7,20 +7,28 @@
      * Uses position:fixed + placeholder instead of CSS position:sticky.
      * This works regardless of overflow:hidden/auto on ancestor containers.
      *
+     * When `bound` is true the element stops at the bottom edge of its parent:
+     * instead of scrolling off the screen it "parks" at the parent's bottom by
+     * reducing the fixed `top` value dynamically — no absolute positioning needed.
+     *
      * @param {HTMLElement} el      The container element.
      * @param {number}      offset  Top offset in px when stuck.
      * @param {string}      devices 'desktop' | 'tablet' | 'all'
+     * @param {boolean}     bound   Stop at parent bottom edge.
      */
-    function BwSticky(el, offset, devices) {
+    function BwSticky(el, offset, devices, bound) {
         this.el       = el;
         this.$el      = $(el);
         this.offset   = offset;
         this.devices  = devices;
+        this.bound    = !!bound;
 
-        this.$placeholder = null;
-        this.stuck        = false;
-        this.naturalTop   = 0;
-        this._uid         = 'bwsticky_' + Math.random().toString(36).slice(2);
+        this.$placeholder  = null;
+        this.$parent       = null;
+        this.stuck         = false;
+        this.naturalTop    = 0;
+        this.naturalHeight = 0;
+        this._uid          = 'bwsticky_' + Math.random().toString(36).slice(2);
 
         this._scrollHandler = this._onScroll.bind(this);
         this._resizeHandler = this._debounce(this._onResize.bind(this), 150);
@@ -34,6 +42,10 @@
         _init: function () {
             if (!this._isActiveDevice()) {
                 return;
+            }
+            if (this.bound) {
+                // Cache the parent container reference for bottom-boundary calculation.
+                this.$parent = this.$el.parent();
             }
             this._measure();
             $(window)
@@ -60,10 +72,26 @@
 
         _onScroll: function () {
             var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            if (scrollTop + this.offset >= this.naturalTop) {
-                this._stick();
-            } else {
+
+            if (scrollTop + this.offset < this.naturalTop) {
                 this._unstick();
+                return;
+            }
+
+            // Ensure element is in the stuck (fixed) state.
+            if (!this.stuck) {
+                this._stick();
+            }
+
+            // Bottom-boundary: adjust `top` so the element parks at parent bottom.
+            if (this.bound && this.stuck && this.$parent) {
+                var parentBottom = this.$parent.offset().top + this.$parent.outerHeight();
+                var elHeight     = this.naturalHeight || this.$el.outerHeight();
+                // How far from the viewport top the bottom of the element would be.
+                var maxTop = parentBottom - elHeight - scrollTop;
+                // Clamp between 0 and the configured offset.
+                var top = maxTop < this.offset ? Math.max(maxTop, 0) : this.offset;
+                this.$el.css('top', top + 'px');
             }
         },
 
@@ -76,14 +104,16 @@
             var width  = this.$el.outerWidth();
             var height = this.$el.outerHeight();
 
+            this.naturalHeight = height; // cache for bound calculation
+
             // Insert placeholder so the parent layout doesn't collapse.
             this.$placeholder = $('<div class="bw-ess-placeholder" aria-hidden="true">').css({
-                display:    'block',
-                width:      width  + 'px',
-                height:     height + 'px',
-                visibility: 'hidden',
+                display:       'block',
+                width:         width  + 'px',
+                height:        height + 'px',
+                visibility:    'hidden',
                 pointerEvents: 'none',
-                flexShrink: '0',
+                flexShrink:    '0',
             });
             this.$el.before(this.$placeholder);
 
@@ -125,7 +155,6 @@
         _onResize: function () {
             this._unstick();
             if (!this._isActiveDevice()) {
-                // Disable completely for this viewport — don't re-bind scroll.
                 $(window).off('scroll.' + this._uid);
                 return;
             }
@@ -153,9 +182,10 @@
         $element.data('bw-sticky-initialized', true);
 
         var offset  = parseInt($element.data('bw-sticky-offset'), 10) || 0;
-        var devices = $element.data('bw-sticky-on') || 'desktop';
+        var devices = $element.data('bw-sticky-on')    || 'desktop';
+        var bound   = $element.data('bw-sticky-bound') === 'yes';
 
-        new BwSticky($element[0], offset, devices);
+        new BwSticky($element[0], offset, devices, bound);
     }
 
     // Primary: Elementor frontend hook (fires when each container is ready).
