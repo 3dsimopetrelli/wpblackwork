@@ -30,7 +30,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
   - widget-level dependencies (`get_script_depends()` / `get_style_depends()`)
   - hook-based register/enqueue helpers for selected widget families
   - container/runtime extensions loaded from `includes/modules/` when behavior is not widget-specific
-- Sticky sidebar extension follows the container/runtime extension path rather than widget registration.
+- Sticky sidebar extension follows the container/runtime extension path rather than widget registration. It uses JS-based `position:fixed` (not CSS `position:sticky`) because Elementor ancestor containers apply `overflow:hidden`, which silently suppresses CSS sticky.
 - Slider handles are registered centrally and consumed per widget.
 - Mail Marketing subscription widget assets are registered centrally and can be pre-enqueued by channel runtime when the widget is rendered inside Theme Builder Lite custom footer injection.
 
@@ -51,7 +51,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 2. Slider runtime lifecycle/config logic is duplicated across multiple JS files.
 3. Asset ownership is partially centralized but still fragmented by legacy paths.
 4. Large Elementor control blocks are repeated across related widgets.
-5. Some layout behaviors needed by templates apply to Elementor containers rather than widgets and must be handled through explicit container extensions.
+5. Some layout behaviors needed by templates apply to Elementor containers rather than widgets and must be handled through explicit container extensions. These extensions may require JS rather than CSS when Elementor's own layout engine imposes constraints (e.g. `overflow:hidden` blocking CSS sticky).
 
 ## Confirmed direction (governed)
 - `BW_Product_Card_Renderer` -> canonical product-card markup authority.

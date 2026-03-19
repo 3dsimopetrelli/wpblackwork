@@ -64,23 +64,33 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - `DEPRECATED - ...`
 - Elementor editor panel differentiation applied (BW-UI, BW-SP, deprecated).
 - Reusable BW sticky sidebar controls are available on Elementor containers through the plugin runtime:
-  - opt-in only
-  - CSS-first sticky behavior
+  - opt-in only (default: `BW Sticky = None`)
+  - JS-based sticky (`position:fixed` + placeholder) — works regardless of ancestor `overflow` constraints
+  - optional `Stay Within Column` bound: element stops at parent row bottom without DOM teleportation
   - intended target: the outer pricing/sidebar container
 
 ## Elementor Sticky Sidebar Extension
 - Scope: Elementor containers (not widget-specific).
-- Controls added to containers:
-  - `Enable Sticky Sidebar`
-  - `Sticky Top Offset`
-  - `Sticky Devices`
+- Controls added to containers (in the Motion Effects section of the Advanced tab):
+  - `BW Sticky` — `None` / `Top`
+  - `Sticky Offset` — px slider
+  - `Sticky On` — Desktop Only / Desktop + Tablet / All Devices
+  - `Stay Within Column` — stops the element at the parent row bottom edge
 - Intended usage:
   - apply the control to the outer pricing/sidebar container
   - do not apply it to inner CTA or quantity blocks unless that narrower target is explicitly desired
-- Current implementation is CSS-first (`position: sticky`) with no JS fallback.
-- Known caveats:
-  - sticky can fail if ancestor containers use `overflow: hidden|auto|scroll`
-  - sticky works best when the target container is not stretched and starts from the top of its column
+- Implementation: **JS-based** (`position:fixed` + in-place placeholder). CSS `position:sticky` was evaluated and abandoned — Elementor ancestor containers use `overflow:hidden` which silently suppresses CSS sticky positioning. JS fixed positioning is not affected by overflow constraints.
+- JS file: `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.js`
+- Key implementation contracts:
+  - element stays in its original DOM position; an invisible `bw-ess-placeholder` div holds the layout gap
+  - placeholder copies flex-item properties (`flexGrow`, `flexShrink`, `flexBasis`, `alignSelf`) from the original element so the parent flex container does not reflow
+  - padding values are frozen as computed px at stick time to prevent Elementor percentage paddings (`--container-padding-*`) from expanding against the viewport
+  - `Stay Within Column` uses negative `top` values — no DOM teleportation — CSS inheritance is fully preserved
+  - `bw-ess-stuck` class is added to the container while sticky, removable for project-specific CSS hooks
+- Breakpoints:
+  - Desktop Only: ≥ 1025 px
+  - Desktop + Tablet: ≥ 768 px
+  - All Devices: always active
 - Shared product-card authority extended and adopted in:
   - Woo related template
   - `bw-slick-slider` product path

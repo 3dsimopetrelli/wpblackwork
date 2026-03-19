@@ -5,16 +5,28 @@
 - Task title: Add reusable sticky sidebar controls for Elementor containers
 - Domain: Elementor Runtime / Container Controls / Frontend Layout
 - Tier classification: Tier 1 — reusable container/runtime extension
-- Implementation commit(s): workspace state on current local revision (not committed yet)
+- Implementation commit(s): see Commit Traceability below
 
 ### Commit Traceability
 
-- Commit hash: n/a — task closed from current workspace state before commit creation
-- Commit message: n/a
-- Files impacted:
+Initial implementation commits:
+- `ef383f2` — sticky container (initial CSS-only prototype)
+- `ec958eb` — Replace CSS sticky with JS-based sticky sidebar module
+- `17324a2` — Fix sticky JS: add DOM-ready fallback when Elementor hook doesn't fire
+- `8fa158f` — Add Stay Within Column option to BW Sticky
+- `383afec` — Fix bound parent: traverse to row-level .e-con.e-parent instead of immediate parent
+- `7e7946e` — Add temporary debug logging (removed in subsequent commit)
+- `9584a22` — Fix bound: switch to position:absolute when element exceeds row boundary
+- `556ed7b` — Fix bound: teleport element to body in absolute mode
+- `458ab5e` — Simplify bound: use negative fixed top instead of DOM teleportation
+- `5da25de` — Fix sticky width shrink: re-measure at stick time, copy flex props to placeholder
+- `457d5c2` — Fix content shrink: freeze percentage paddings as px when sticky
+
+Files impacted:
   - `blackwork-core-plugin.php`
   - `includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php`
   - `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.css`
+  - `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.js`
   - `docs/30-features/elementor-widgets/README.md`
   - `docs/10-architecture/elementor-widget-architecture-context.md`
   - `docs/00-planning/decision-log.md`
@@ -31,6 +43,7 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
   - `blackwork-core-plugin.php`
   - `includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php`
   - `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.css`
+  - `includes/modules/elementor-sticky-sidebar/assets/elementor-sticky-sidebar.js`
   - `docs/30-features/elementor-widgets/README.md`
   - `docs/10-architecture/elementor-widget-architecture-context.md`
   - `docs/00-planning/decision-log.md`
@@ -70,7 +83,7 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
 - Criterion 3 — Target usage is the outer pricing/sidebar container: **PASS**
 - Criterion 4 — Top offset control exists and is rendered through a CSS variable: **PASS**
 - Criterion 5 — Responsive activation mode exists (`desktop`, `tablet`, `all`): **PASS**
-- Criterion 6 — Frontend implementation is CSS-first with no JS fallback: **PASS**
+- Criterion 6 — Frontend implementation is CSS-first with no JS fallback: **REVISED** — CSS-first (`position:sticky`) was attempted but failed because Elementor ancestor containers use `overflow:hidden`, which clips sticky elements. Implementation was switched to JS-based `position:fixed` with a placeholder. See Post-Implementation Fixes below.
 - Criterion 7 — Render output stays wrapper-scoped through classes/data attributes on the selected container: **PASS**
 
 ### Testing Evidence
@@ -82,10 +95,30 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
   - `php -l includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php` → pass
   - `composer run lint:main` → pass
 - Edge cases tested:
-  - desktop-only class generation
-  - tablet-and-up class generation
-  - all-devices class generation
+  - desktop-only activation
+  - tablet-and-up activation
+  - all-devices activation
   - asset registration/enqueue path
+  - `Stay Within Column` bound behavior (element stops at parent row bottom)
+  - style preservation when sticky (CSS class inheritance, button colors, padding)
+  - width stability on sticky trigger (no content reflow)
+
+### Post-Implementation Fixes
+
+Three regressions were discovered and resolved during live testing:
+
+**1. Bound: overflow clipping and CSS inheritance loss** (`458ab5e`)
+- Root cause: Initial bound implementation teleported the element to `<body>` using `position:absolute`, which bypassed `overflow:hidden` clipping but broke CSS inheritance from parent Elementor containers (wrong button colors, lost styles).
+- Fix: Eliminated DOM teleportation entirely. `position:fixed` with a negative `top` value is used throughout — when `top < 0`, the element is above the viewport and tracks the page as if it were `position:absolute` without leaving the DOM tree. CSS inheritance is fully preserved; `overflow:hidden` is bypassed because fixed elements ignore overflow on ancestors.
+
+**2. Width shrinking on sticky** (`5da25de`)
+- Root cause 1: `naturalWidth` was measured at init time, before fonts/images fully settle. Measurements were potentially stale.
+- Root cause 2: The placeholder used `display:block; flex-shrink:0` instead of copying the original element's flex-item properties (`flexGrow`, `flexShrink`, `flexBasis`, `alignSelf`). The parent flex container redistributed column widths on stick, causing the fixed element content to compress.
+- Fix: Re-measure via `getBoundingClientRect()` at the exact moment of sticking (element still in normal flow). Placeholder now copies all flex-item properties from the original element via `getComputedStyle`.
+
+**3. Content area shrinking on sticky** (`457d5c2`)
+- Root cause: Elementor containers use percentage padding (e.g. `--container-padding-right: 2%`). When `position:fixed`, the containing block changes from the parent container (~501 px) to the viewport (~1440 px), so `2%` grew from ~10 px to ~29 px per side, visibly compressing the content area (revealed as a green padding area in DevTools).
+- Fix: Before going fixed, all four padding values are read via `getComputedStyle` (already resolved to px by the browser) and set as explicit inline px values. They are cleared on unstick, restoring the original percentage behavior.
 
 ---
 
@@ -104,16 +137,16 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
   - Result: **PASS**
 
 - Surface: Frontend sticky implementation strategy
-  - Verification performed: CSS-first `position: sticky`; no new JS fallback introduced
-  - Result: **PASS**
+  - Verification performed: JS-based `position:fixed` with placeholder; CSS-first `position:sticky` was abandoned because Elementor ancestor containers use `overflow:hidden` which clips sticky elements.
+  - Result: **PASS** (implementation approach revised; behavior contract preserved)
 
 ---
 
 ## 5) Determinism Verification
 
-- Input/output determinism verified? **Yes** — same control values produce the same wrapper classes and sticky top offset
-- Ordering determinism verified? **Yes** — device activation modes resolve through fixed breakpoint classes
-- Retry/re-entry convergence verified? **Yes** — repeated renders converge to the same output attributes and sticky behavior
+- Input/output determinism verified? **Yes** — same control values produce the same `data-bw-sticky*` attributes and JS sticky behavior
+- Ordering determinism verified? **Yes** — device activation modes resolve through fixed breakpoint thresholds (desktop ≥1025 px, tablet ≥768 px, all = always)
+- Retry/re-entry convergence verified? **Yes** — repeated scroll events converge to the same `position:fixed`/natural state; `_unstick`/`_stick` are idempotent
 
 ---
 
@@ -194,16 +227,19 @@ Implemented a reusable sticky sidebar feature for Elementor containers managed b
 - Release Gate required? Yes
 - Runtime surfaces to verify:
   - controls appear on Elementor containers
-  - sticky classes attach to the selected outer container
-  - `Sticky Top Offset` maps to visual top spacing
-  - `Sticky Devices` changes behavior at expected breakpoints
-  - no sticky behavior when the switcher is off
+  - `data-bw-sticky="yes"` and related attributes render on the selected container wrapper
+  - `Sticky Offset` maps to visual top spacing
+  - `Sticky On` changes behavior at expected breakpoints
+  - `Stay Within Column` stops the element at the parent row bottom edge
+  - no sticky behavior when `BW Sticky = None`
+  - element width, padding, and styles remain identical before and after sticky activates
 - Operational smoke tests required:
   - apply sticky to an outer pricing/sidebar container
-  - verify desktop-only behavior
+  - scroll until sticky activates — verify no width/style/padding change
+  - continue scrolling to row bottom — verify element stops at row bottom and scrolls off screen (does not overlap below row)
+  - verify desktop-only behavior (no sticky on mobile)
   - verify tablet-and-up behavior
   - verify all-devices behavior
-  - verify behavior inside a layout with and without overflow constraints
 - Rollback readiness confirmed? **Yes**
 
 ---
