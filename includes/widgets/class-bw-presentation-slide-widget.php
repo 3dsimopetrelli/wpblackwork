@@ -1508,15 +1508,19 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 <!-- Embla container: display:flex -->
                 <div class="bw-embla-container">
                     <?php foreach ( $images as $index => $image ) :
-                        // Prime 5 slide eager: coprono slidesToShow=3 + 2 preload.
-                        // Con loop+center, anche l'ultima slide è immediatamente visibile
-                        // a sinistra del centro → eager per evitare il pop-in tardivo.
-                        $is_first   = ( 0 === $index );
-                        $is_eager   = ( $index < 5 ) || ( $is_loop && $is_center_align && $index === $last_index );
-                        $img_attrs  = [
+                        // Eager set: solo le slide VISIBILI al caricamento iniziale.
+                        // - indice 0 (centro/prima) + indice 1 (destra) sempre eager.
+                        // - Con loop+center, l'ultima slide è visibile a SINISTRA → eager
+                        //   + fetchpriority="high" così scarica in parallelo con slide 0.
+                        // Tenere il set piccolo (2-3 immagini) riduce la contesa di banda
+                        // e fa sì che tutte e tre le slide visibili appaiano insieme.
+                        $is_first        = ( 0 === $index );
+                        $is_loop_center  = $is_loop && $is_center_align && ( $index === $last_index );
+                        $is_eager        = ( $index < 2 ) || $is_loop_center;
+                        $img_attrs       = [
                             'loading'       => $is_eager ? 'eager' : 'lazy',
                             'decoding'      => $is_first ? 'sync'  : 'async',
-                            'fetchpriority' => $is_first ? 'high'  : 'auto',
+                            'fetchpriority' => ( $is_first || $is_loop_center ) ? 'high' : 'auto',
                             'class'         => 'bw-embla-img',
                         ];
                     ?>

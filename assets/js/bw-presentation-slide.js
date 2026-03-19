@@ -85,6 +85,31 @@
             const nextBtn    = this.$wrapper.find('.bw-ps-arrow-next')[0];
             const dotsCont   = this.$wrapper.find('.bw-ps-dots-container')[0];
 
+            // Loop + center: the last slide is rendered to the LEFT of the first
+            // slide and is immediately visible. Preload it via <link rel="preload">
+            // so it downloads with high priority concurrently with slide 0/1,
+            // regardless of whether the HTML has loading="eager" or "lazy"
+            // (page-cache may serve stale HTML with the old lazy attribute).
+            const globalAlign = hCfg.align || 'start';
+            if (hCfg.infinite && globalAlign === 'center') {
+                const $lastImg = this.$wrapper.find('.bw-ps-image img').last();
+                if ($lastImg.length && !$lastImg[0].complete) {
+                    const src    = $lastImg.attr('src');
+                    const srcset = $lastImg.attr('srcset');
+                    const sizes  = $lastImg.attr('sizes');
+                    if (src) {
+                        const link        = document.createElement('link');
+                        link.rel          = 'preload';
+                        link.as           = 'image';
+                        link.href         = src;
+                        link.fetchPriority = 'high';
+                        if (srcset) link.setAttribute('imagesrcset', srcset);
+                        if (sizes)  link.setAttribute('imagesizes',  sizes);
+                        document.head.appendChild(link);
+                    }
+                }
+            }
+
             // Autoplay options (false se disabilitato)
             const autoplayOpts = hCfg.autoplay ? {
                 delay:             hCfg.autoplaySpeed || 3000,
