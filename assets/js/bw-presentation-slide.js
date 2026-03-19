@@ -90,8 +90,7 @@
             // so it downloads with high priority concurrently with slide 0/1,
             // regardless of whether the HTML has loading="eager" or "lazy"
             // (page-cache may serve stale HTML with the old lazy attribute).
-            const globalAlign = hCfg.align || 'start';
-            if (hCfg.infinite && globalAlign === 'center') {
+            if (hCfg.infinite && (hCfg.align || 'start') === 'center') {
                 const $lastImg = this.$wrapper.find('.bw-ps-image img').last();
                 if ($lastImg.length && !$lastImg[0].complete) {
                     const src    = $lastImg.attr('src');
