@@ -29,6 +29,10 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         return [ 'bw-static-showcase-style' ];
     }
 
+    public function get_script_depends() {
+        return [ 'bw-static-showcase-script' ];
+    }
+
     protected function register_controls() {
         $this->register_query_controls();
         $this->register_showcase_label_controls();
@@ -521,10 +525,10 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
     }
 
     protected function render() {
-        $settings   = $this->get_settings_for_display();
-        $post_type  = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+        $settings            = $this->get_settings_for_display();
+        $post_type           = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
         $use_metabox_product = isset( $settings['use_metabox_product'] ) && 'yes' === $settings['use_metabox_product'];
-        $is_editor = class_exists( '\Elementor\Plugin' )
+        $is_editor           = class_exists( '\Elementor\Plugin' )
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
@@ -534,145 +538,120 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             $context_resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
                 ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
                 : [
-                    'id' => absint( get_the_ID() ),
+                    'id'     => absint( get_the_ID() ),
                     'source' => 'fallback',
                 ];
             $current_post_id = isset( $context_resolution['id'] ) ? absint( $context_resolution['id'] ) : 0;
 
             if ( $current_post_id && 'product' === get_post_type( $current_post_id ) ) {
-                // Read the linked product from the metabox
                 $linked_product = get_post_meta( $current_post_id, '_bw_showcase_linked_product', true );
                 $product_id = $linked_product ? absint( $linked_product ) : absint( $current_post_id );
             }
-
         } else {
-            // Use the manually entered product ID
             $product_id = isset( $settings['product_id'] ) ? absint( $settings['product_id'] ) : 0;
         }
 
         $image_crop = isset( $settings['image_crop'] ) && 'yes' === $settings['image_crop'];
 
         if ( ! $product_id ) {
-            if ( ! $is_editor ) {
-                return;
+            if ( $is_editor ) {
+                $this->render_placeholder();
             }
-            ?>
-            <div class="bw-static-showcase-placeholder">
-                <div class="bw-static-showcase-placeholder__inner">
-                    <?php esc_html_e( 'BW Static Showcase: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw-elementor-widgets' ); ?>
-                </div>
-            </div>
-            <?php
             return;
         }
 
-        $post = get_post( $product_id );
+        $post      = get_post( $product_id );
+        $status_ok = $post && ( 'publish' === $post->post_status || $is_editor );
 
-        if ( ! $post || $post->post_type !== $post_type || $post->post_status !== 'publish' ) {
-            if ( ! $is_editor ) {
-                return;
+        if ( ! $post || $post->post_type !== $post_type || ! $status_ok ) {
+            if ( $is_editor ) {
+                $this->render_placeholder();
             }
-            ?>
-            <div class="bw-static-showcase-placeholder">
-                <div class="bw-static-showcase-placeholder__inner">
-                    <?php esc_html_e( 'BW Static Showcase: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw-elementor-widgets' ); ?>
-                </div>
-            </div>
-            <?php
             return;
         }
 
-        $product_title  = get_the_title( $product_id );
-        $permalink      = get_permalink( $product_id );
+        $product_title = get_the_title( $product_id );
+        $permalink     = get_permalink( $product_id );
 
-        // Main image logic
-        $image_url      = '';
-        $showcase_image = get_post_meta( $product_id, '_bw_showcase_image', true );
-        $image_id       = 0;
+        // Single DB call for all post meta
+        $all_meta = get_post_meta( $product_id );
+        $get_meta = static function ( $key ) use ( $all_meta ) {
+            return isset( $all_meta[ $key ][0] ) ? $all_meta[ $key ][0] : '';
+        };
 
-        if ( empty( $showcase_image ) ) {
-            $legacy_image = get_post_meta( $product_id, '_product_showcase_image', true );
-            if ( $legacy_image ) {
-                $showcase_image = $legacy_image;
-            }
+        // Main image — prefer attachment ID for srcset support
+        $showcase_image = $get_meta( '_bw_showcase_image' );
+        if ( '' === $showcase_image ) {
+            $showcase_image = $get_meta( '_product_showcase_image' );
         }
-
-        if ( $showcase_image ) {
+        $image_id  = 0;
+        $image_url = '';
+        if ( '' !== $showcase_image ) {
             if ( is_numeric( $showcase_image ) ) {
-                $image_id  = absint( $showcase_image );
-                $image_url = wp_get_attachment_url( $image_id );
+                $image_id = absint( $showcase_image );
             } else {
                 $image_url = esc_url_raw( $showcase_image );
             }
         }
-
-        if ( ! $image_url && $image_id ) {
-            $image_url = wp_get_attachment_url( $image_id );
-        }
-
-        if ( ! $image_url && has_post_thumbnail( $product_id ) ) {
-            $image_url = get_the_post_thumbnail_url( $product_id, 'large' );
-        }
-
-        // Gallery images for right column
-        $gallery_images = [];
-        if ( function_exists( 'wc_get_product' ) ) {
-            $product = wc_get_product( $product_id );
-            if ( $product ) {
-                $gallery_ids = $product->get_gallery_image_ids();
-                if ( ! empty( $gallery_ids ) ) {
-                    foreach ( array_slice( $gallery_ids, 0, 2 ) as $gallery_id ) {
-                        $gallery_url = wp_get_attachment_url( $gallery_id );
-                        if ( $gallery_url ) {
-                            $gallery_images[] = $gallery_url;
-                        }
-                    }
-                }
+        if ( ! $image_id && ! $image_url ) {
+            $thumb_id = (int) get_post_thumbnail_id( $product_id );
+            if ( $thumb_id ) {
+                $image_id = $thumb_id;
             }
         }
 
-        // Metabox data
-        $showcase_title_meta        = trim( (string) get_post_meta( $product_id, '_bw_showcase_title', true ) );
-        $showcase_title             = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
-        $showcase_description       = trim( (string) get_post_meta( $product_id, '_bw_showcase_description', true ) );
+        // Gallery: store IDs for srcset support (up to 2 images)
+        $gallery_ids = [];
+        if ( function_exists( 'wc_get_product' ) ) {
+            $product = wc_get_product( $product_id );
+            if ( $product ) {
+                $gallery_ids = array_slice( (array) $product->get_gallery_image_ids(), 0, 2 );
+            }
+        }
 
-        // Showcase Label from widget field (supports Dynamic Tags)
-        $showcase_label = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
+        // Metabox data (all from the single batch above)
+        $showcase_title_meta  = trim( (string) $get_meta( '_bw_showcase_title' ) );
+        $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
+        $showcase_description = trim( (string) $get_meta( '_bw_showcase_description' ) );
+        $showcase_label       = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
 
-        $meta_assets_count = get_post_meta( $product_id, '_bw_assets_count', true );
+        $meta_assets_count = $get_meta( '_bw_assets_count' );
         if ( '' === $meta_assets_count ) {
-            $meta_assets_count = get_post_meta( $product_id, '_product_assets_count', true );
+            $meta_assets_count = $get_meta( '_product_assets_count' );
         }
 
-        $meta_size_mb = get_post_meta( $product_id, '_bw_file_size', true );
+        $meta_size_mb = $get_meta( '_bw_file_size' );
         if ( '' === $meta_size_mb ) {
-            $meta_size_mb = get_post_meta( $product_id, '_product_size_mb', true );
+            $meta_size_mb = $get_meta( '_product_size_mb' );
         }
 
-        $meta_formats = get_post_meta( $product_id, '_bw_formats', true );
+        $meta_formats = $get_meta( '_bw_formats' );
         if ( '' === $meta_formats ) {
-            $meta_formats = get_post_meta( $product_id, '_product_formats', true );
+            $meta_formats = $get_meta( '_product_formats' );
         }
 
-        $meta_product_type_raw = get_post_meta( $product_id, '_bw_product_type', true );
+        $meta_product_type_raw = $get_meta( '_bw_product_type' );
         $product_type_value    = sanitize_key( $meta_product_type_raw );
         if ( ! in_array( $product_type_value, [ 'digital', 'physical' ], true ) ) {
             $product_type_value = 'digital';
         }
 
-        $meta_button_text  = get_post_meta( $product_id, '_product_button_text', true );
-        $meta_button_link  = get_post_meta( $product_id, '_product_button_link', true );
-        $meta_color_value  = get_post_meta( $product_id, '_bw_texts_color', true );
+        $meta_button_text = $get_meta( '_product_button_text' );
+        $meta_button_link = $get_meta( '_product_button_link' );
 
-        if ( empty( $meta_color_value ) ) {
-            $meta_color_value = get_post_meta( $product_id, '_product_color', true );
+        $meta_color_value = $get_meta( '_bw_texts_color' );
+        if ( '' === $meta_color_value ) {
+            $meta_color_value = $get_meta( '_product_color' );
         }
-
         $meta_color = sanitize_hex_color( $meta_color_value );
         if ( empty( $meta_color ) ) {
             $meta_color = '#ffffff';
         }
 
+        $meta_info_1_raw = $get_meta( '_bw_info_1' );
+        $meta_info_2_raw = $get_meta( '_bw_info_2' );
+
+        // Processed display values
         $btn_url = $permalink;
         if ( ! empty( $meta_button_link ) ) {
             $btn_url = esc_url( $meta_button_link );
@@ -683,10 +662,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             $button_text = wp_strip_all_tags( $meta_button_text );
         }
 
-        $meta_info_1_raw = get_post_meta( $product_id, '_bw_info_1', true );
-        $meta_info_2_raw = get_post_meta( $product_id, '_bw_info_2', true );
-
-        // Process data
         $assets_display = '';
         if ( '' !== $meta_assets_count ) {
             $assets_number = absint( $meta_assets_count );
@@ -706,18 +681,17 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
 
         $format_badges = [];
         if ( '' !== $meta_formats ) {
-            $raw_formats = explode( ',', $meta_formats );
-            foreach ( $raw_formats as $format ) {
-                $format = trim( wp_strip_all_tags( $format ) );
-                if ( '' !== $format ) {
-                    $format_badges[] = $format;
+            foreach ( explode( ',', $meta_formats ) as $fmt ) {
+                $fmt = trim( wp_strip_all_tags( $fmt ) );
+                if ( '' !== $fmt ) {
+                    $format_badges[] = $fmt;
                 }
             }
         }
 
-        $info_1_display   = '' !== $meta_info_1_raw ? trim( wp_strip_all_tags( $meta_info_1_raw ) ) : '';
-        $info_2_display   = '' !== $meta_info_2_raw ? trim( wp_strip_all_tags( $meta_info_2_raw ) ) : '';
-        $has_digital_info = ( 'digital' === $product_type_value ) && ( $assets_display || $size_display || ! empty( $format_badges ) );
+        $info_1_display    = '' !== $meta_info_1_raw ? trim( wp_strip_all_tags( $meta_info_1_raw ) ) : '';
+        $info_2_display    = '' !== $meta_info_2_raw ? trim( wp_strip_all_tags( $meta_info_2_raw ) ) : '';
+        $has_digital_info  = ( 'digital' === $product_type_value ) && ( $assets_display || $size_display || ! empty( $format_badges ) );
         $has_physical_info = ( 'physical' === $product_type_value ) && ( '' !== $info_1_display || '' !== $info_2_display );
         $has_bottom_info   = $has_digital_info || $has_physical_info;
         $has_cta           = ! empty( $btn_url ) && ! empty( $button_text );
@@ -729,16 +703,12 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             $container_classes[] = 'bw-static-showcase--no-crop';
         }
 
-        $inline_styles = [];
-        if ( ! empty( $meta_color ) ) {
-            $inline_styles[] = '--bw-slide-showcase-text-color: ' . $meta_color . ';';
-            $inline_styles[] = '--bw-slide-showcase-badge-border-color: ' . $meta_color . ';';
-        }
+        $container_style = esc_attr(
+            '--bw-slide-showcase-text-color: ' . $meta_color . '; --bw-slide-showcase-badge-border-color: ' . $meta_color . ';'
+        );
 
-        $container_style_attr = '';
-        if ( ! empty( $inline_styles ) ) {
-            $container_style_attr = ' style="' . esc_attr( implode( ' ', $inline_styles ) ) . '"';
-        }
+        // Shared attributes for lazy images
+        $img_style = $this->build_image_style( $object_fit );
 
         ?>
         <?php if ( '' !== $showcase_label ) : ?>
@@ -747,11 +717,24 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             </div>
         <?php endif; ?>
 
-        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>"<?php echo $container_style_attr; ?>>
+        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>" style="<?php echo $container_style; ?>">
             <div class="bw-static-showcase-left">
-                <?php if ( $image_url ) : ?>
+                <?php if ( $image_id || $image_url ) : ?>
                     <div class="bw-slide-showcase-media">
-                        <img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" class="bw-slide-showcase-image" style="<?php echo $this->build_image_style( $object_fit ); ?>">
+                        <?php if ( $image_id ) : ?>
+                            <?php echo wp_get_attachment_image( $image_id, 'large', false, [
+                                'class'   => 'bw-slide-showcase-image bw-lazy-img',
+                                'loading' => 'lazy',
+                                'style'   => $img_style,
+                                'alt'     => $product_title,
+                            ] ); ?>
+                        <?php else : ?>
+                            <img src="<?php echo esc_url( $image_url ); ?>"
+                                 alt="<?php echo esc_attr( $product_title ); ?>"
+                                 class="bw-slide-showcase-image bw-lazy-img"
+                                 loading="lazy"
+                                 style="<?php echo esc_attr( $img_style ); ?>">
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
@@ -812,10 +795,15 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             </div>
 
             <div class="bw-static-showcase-right">
-                <?php if ( ! empty( $gallery_images ) ) : ?>
-                    <?php foreach ( $gallery_images as $gallery_image_url ) : ?>
+                <?php if ( ! empty( $gallery_ids ) ) : ?>
+                    <?php foreach ( $gallery_ids as $gal_id ) : ?>
                         <div class="bw-static-showcase-right-image">
-                            <img src="<?php echo esc_url( $gallery_image_url ); ?>" alt="<?php echo esc_attr( $product_title ); ?>" style="<?php echo $this->build_image_style( $object_fit ); ?>">
+                            <?php echo wp_get_attachment_image( (int) $gal_id, 'medium_large', false, [
+                                'class'   => 'bw-lazy-img',
+                                'loading' => 'lazy',
+                                'style'   => $img_style,
+                                'alt'     => $product_title,
+                            ] ); ?>
                         </div>
                     <?php endforeach; ?>
                 <?php else : ?>
@@ -828,16 +816,24 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         <?php
     }
 
-    private function build_image_style( $object_fit ) {
-        $styles = [];
-        $styles[] = 'height: 100%;';
-        $styles[] = 'width: 100%;';
+    private function render_placeholder() {
+        ?>
+        <div class="bw-static-showcase-placeholder">
+            <div class="bw-static-showcase-placeholder__inner">
+                <?php esc_html_e( 'BW Static Showcase: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw-elementor-widgets' ); ?>
+            </div>
+        </div>
+        <?php
+    }
 
+    /**
+     * Returns unescaped inline style string for images.
+     * Callers must escape on output: esc_attr() for direct echo, or pass raw to wp_get_attachment_image().
+     */
+    private function build_image_style( $object_fit ) {
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
-        $styles[]     = 'object-fit: ' . $fit_value . ';';
-
-        return esc_attr( implode( ' ', $styles ) );
+        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . ';';
     }
 
     /**
