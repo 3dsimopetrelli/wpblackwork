@@ -1490,6 +1490,14 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $image_size         = $this->get_image_size( $image_size_setting );
         $dots_position      = $settings['dots_position'] ?? 'center';
 
+        // In loop + center mode Embla renders the LAST slide to the left of the
+        // first (center) slide, so it is immediately visible. Mark it eager so
+        // the browser fetches it in parallel with the first slides instead of
+        // queuing it after all lazy images.
+        $is_loop         = ( ( $settings['infinite_loop'] ?? '' ) === 'yes' );
+        $is_center_align = ( ( $settings['slide_align'] ?? 'start' ) === 'center' );
+        $last_index      = count( $images ) - 1;
+
         // CSS inline scoped per i breakpoint (slide sizes)
         $this->render_breakpoint_css( $settings );
 
@@ -1500,11 +1508,11 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 <!-- Embla container: display:flex -->
                 <div class="bw-embla-container">
                     <?php foreach ( $images as $index => $image ) :
-                        // Prima immagine: eager + high priority per LCP ottimale.
-                        // Prime 5 slide eager: coprono slidesToShow=3 + 2 di preload
-                        // laterale senza rischiare pop-in sulle slide visibili.
+                        // Prime 5 slide eager: coprono slidesToShow=3 + 2 preload.
+                        // Con loop+center, anche l'ultima slide è immediatamente visibile
+                        // a sinistra del centro → eager per evitare il pop-in tardivo.
                         $is_first   = ( 0 === $index );
-                        $is_eager   = ( $index < 5 );
+                        $is_eager   = ( $index < 5 ) || ( $is_loop && $is_center_align && $index === $last_index );
                         $img_attrs  = [
                             'loading'       => $is_eager ? 'eager' : 'lazy',
                             'decoding'      => $is_first ? 'sync'  : 'async',
