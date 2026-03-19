@@ -399,18 +399,17 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'default'     => [
                     [
                         'breakpoint'       => 1024,
-                        'slides_to_show'   => 3,
+                        'slides_to_show'   => 2,
                         'slides_to_scroll' => 1,
                         'show_arrows'      => 'yes',
                         'show_dots'        => '',
                     ],
                     [
-                        'breakpoint'       => 768,
+                        'breakpoint'       => 767,
                         'slides_to_show'   => 1,
                         'slides_to_scroll' => 1,
                         'show_arrows'      => '',
                         'show_dots'        => 'yes',
-                        'center_mode'      => 'yes',
                     ],
                 ],
                 'title_field' => 'Breakpoint: {{{ breakpoint }}}px',
