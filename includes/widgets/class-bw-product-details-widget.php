@@ -25,10 +25,6 @@ class Widget_Bw_Product_Details extends Widget_Base {
     }
 
     public function get_style_depends() {
-        if ( ! wp_style_is( 'bw-product-details-style', 'registered' ) ) {
-            $this->register_style();
-        }
-
         return [ 'bw-product-details-style' ];
     }
 
@@ -246,6 +242,13 @@ class Widget_Bw_Product_Details extends Widget_Base {
             && \Elementor\Plugin::$instance->editor
             && \Elementor\Plugin::$instance->editor->is_edit_mode();
 
+        if ( ! function_exists( 'wc_get_product' ) ) {
+            if ( $is_editor ) {
+                echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: WooCommerce not available.', 'bw' ) . '</div>';
+            }
+            return;
+        }
+
         $resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
             ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
             : [ 'id' => absint( get_the_ID() ), 'source' => 'fallback' ];
@@ -253,23 +256,21 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
         if ( ! $product_id ) {
             if ( $is_editor ) {
-                echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw' ) . '</div>';
+                echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: Product not found. Select a Preview Product in Theme Builder Lite > Single Product.', 'bw' ) . '</div>';
             }
             return;
         }
 
-        if ( function_exists( 'wc_get_product' ) ) {
-            $product = wc_get_product( $product_id );
+        $product = wc_get_product( $product_id );
 
-            if ( ! $product ) {
-                if ( $is_editor ) {
-                    echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: Product not found. Select a Preview Product in Theme Builder Lite > Single Product or set Product ID in widget.', 'bw' ) . '</div>';
-                }
-                return;
+        if ( ! $product ) {
+            if ( $is_editor ) {
+                echo '<div class="bw-product-details-widget__notice">' . esc_html__( 'BW Product Details: Product not found. Select a Preview Product in Theme Builder Lite > Single Product.', 'bw' ) . '</div>';
             }
-
-            $product_id = $product->get_id();
+            return;
         }
+
+        $product_id = $product->get_id();
 
         $digital_fields = function_exists( 'bw_get_digital_product_fields' )
             ? bw_get_digital_product_fields()
@@ -313,9 +314,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
         $sections = [
             [
-                'id'      => 'digital',
-                'subtitle'=> __( 'Collection content', 'bw' ),
-                'fields'  => $digital_fields,
+                'id'       => 'digital',
+                'subtitle' => __( 'Collection content', 'bw' ),
+                'fields'   => $digital_fields,
             ],
             [
                 'id'     => 'prints',
@@ -327,13 +328,14 @@ class Widget_Bw_Product_Details extends Widget_Base {
             ],
         ];
 
+        $settings    = $this->get_settings_for_display();
+        $table_title = isset( $settings['table_title'] ) && '' !== $settings['table_title']
+            ? $settings['table_title']
+            : __( 'Product Details', 'bw' );
+
         $this->add_render_attribute( 'wrapper', 'class', 'bw-biblio-widget' );
 
         echo '<div ' . $this->get_render_attribute_string( 'wrapper' ) . '>';
-
-        $settings    = $this->get_settings_for_display();
-        $table_title = isset( $settings['table_title'] ) && '' !== $settings['table_title'] ? $settings['table_title'] : __( 'Product Details', 'bw' );
-
         echo '  <div class="bw-biblio-title">' . esc_html( $table_title ) . '</div>';
 
         foreach ( $sections as $section ) {
@@ -344,6 +346,10 @@ class Widget_Bw_Product_Details extends Widget_Base {
             }
 
             echo '  <div class="bw-biblio-section">';
+
+            if ( ! empty( $section['subtitle'] ) ) {
+                echo '    <div class="bw-biblio-section-subtitle">' . esc_html( $section['subtitle'] ) . '</div>';
+            }
 
             echo '    <div class="bw-biblio-table">';
 
@@ -363,11 +369,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
             }
 
             foreach ( $rows as $row ) {
-                $value = esc_html( $row['value'] );
-
-                if ( '_digital_formats' === $row['meta'] ) {
-                    $value = $this->render_formats_pills( $row['value'] );
-                }
+                $value = '_digital_formats' === $row['meta']
+                    ? $this->render_formats_pills( $row['value'] )
+                    : esc_html( $row['value'] );
 
                 echo '      <div class="bw-biblio-row">';
                 echo '        <div class="bw-biblio-label">' . esc_html( $row['label'] ) . '</div>';
@@ -406,7 +410,6 @@ class Widget_Bw_Product_Details extends Widget_Base {
         foreach ( $rows as $index => $row ) {
             if ( $meta_key === $row['meta'] ) {
                 unset( $rows[ $index ] );
-
                 return $row;
             }
         }
@@ -429,34 +432,5 @@ class Widget_Bw_Product_Details extends Widget_Base {
         );
 
         return '<div class="bw-biblio-pills">' . implode( '', $pills ) . '</div>';
-    }
-
-    private function register_style() {
-        $css_relative_path = 'assets/css/bw-product-details.css';
-        $css_file          = $this->get_asset_path( $css_relative_path );
-        $version           = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-
-        wp_register_style(
-            'bw-product-details-style',
-            $this->get_asset_url( $css_relative_path ),
-            [],
-            $version
-        );
-    }
-
-    private function get_asset_url( $relative_path ) {
-        $base_url = defined( 'BW_MEW_URL' ) ? BW_MEW_URL : plugins_url( '/', $this->get_plugin_main_file() );
-
-        return trailingslashit( $base_url ) . ltrim( $relative_path, '/' );
-    }
-
-    private function get_asset_path( $relative_path ) {
-        $base_path = defined( 'BW_MEW_PATH' ) ? BW_MEW_PATH : dirname( $this->get_plugin_main_file() );
-
-        return trailingslashit( $base_path ) . ltrim( $relative_path, '/' );
-    }
-
-    private function get_plugin_main_file() {
-        return dirname( __FILE__, 3 ) . '/blackwork-core-plugin.php';
     }
 }

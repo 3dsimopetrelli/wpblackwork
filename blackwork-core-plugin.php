@@ -623,6 +623,7 @@ add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_related_produ
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets');
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
+add_action('init', 'bw_register_product_details_widget_assets');
 add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
 add_action('elementor/widgets/widgets_registered', 'bw_unregister_removed_blackwork_widgets', 999);
 
@@ -1337,6 +1338,11 @@ function bw_register_price_variation_widget_assets()
             ]
         );
     }
+}
+
+function bw_register_product_details_widget_assets()
+{
+    bw_register_widget_assets( 'product-details', [], false );
 }
 
 function bw_register_presentation_slide_widget_assets()
