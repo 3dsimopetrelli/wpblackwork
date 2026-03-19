@@ -1,10 +1,11 @@
 /**
  * BW Presentation Slide Widget Styles
- * Supports horizontal slider and vertical elevator layouts with popup
+ * Supporta: layout horizontal (Embla), layout vertical (elevator + Embla responsive)
+ * Stili base Embla (viewport/container) → bw-embla-core.css
  */
 
 /* ========================================
-   WRAPPER & COMMON
+   WRAPPER & COMUNE
    ======================================== */
 .bw-ps-wrapper {
     position: relative;
@@ -16,16 +17,13 @@
     overflow: hidden;
 }
 
+/* Le immagini usano la classe .bw-embla-img da bw-embla-core.css
+   per il fade-in; qui aggiungiamo solo le regole cosmetiche */
 .bw-ps-image img {
     display: block;
     width: 100%;
     height: auto;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    opacity: 0;
-}
-
-.bw-ps-image img.is-loaded {
-    opacity: 1;
+    transition: transform 0.3s ease;
 }
 
 .bw-ps-image-clickable {
@@ -33,23 +31,28 @@
 }
 
 /* ========================================
-   HORIZONTAL LAYOUT
+   LAYOUT HORIZONTAL
    ======================================== */
 .bw-ps-horizontal {
     position: relative;
     width: 100%;
 }
 
-.bw-ps-slider-horizontal {
+/* Il viewport Embla occupa tutto lo spazio */
+.bw-ps-embla-viewport {
     width: 100%;
 }
 
+/* Slide: dimensione di default 100% — override via breakpoint CSS inline in PHP */
 .bw-ps-slide {
     padding: 10px;
     outline: none;
+    /* flex size viene impostato dal <style> inline generato dal PHP per breakpoint */
 }
 
-/* Arrows Container - Bottom Right */
+/* ========================================
+   FRECCE DI NAVIGAZIONE
+   ======================================== */
 .bw-ps-arrows-container {
     position: absolute;
     bottom: 20px;
@@ -62,22 +65,19 @@
 }
 
 .bw-ps-arrow {
-    /* Reset Elementor button styles */
+    /* Reset stili Elementor */
     background: none !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
 
-    /* Custom styles */
     color: #000;
     font-size: 24px;
     cursor: pointer;
     padding: 10px;
     transition: opacity 0.3s ease;
     user-select: none;
-
-    /* Reset other potential Elementor styles */
     border-radius: 0;
     text-shadow: none;
     font-weight: normal;
@@ -108,48 +108,56 @@
     box-shadow: none !important;
 }
 
-/* Slick active slide center mode */
-.bw-ps-slider-horizontal.slick-initialized .slick-slide {
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-}
-
-.bw-ps-slider-horizontal.slick-initialized .slick-slide.slick-active {
-    opacity: 1;
-}
-
-.bw-ps-slider-horizontal.slick-initialized .slick-slide.slick-center {
-    opacity: 1;
+.bw-ps-arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
 }
 
 /* ========================================
-   IMAGE HEIGHT MODES
+   DOTS (PAGINAZIONE)
    ======================================== */
-
-/* Fixed Height Mode - Height fixed, width auto (maintains aspect ratio) */
-.bw-ps-horizontal.bw-ps-height-fixed .bw-ps-image img {
-    width: auto;
-    /* height is set by Elementor control */
-    /* Width adapts automatically to maintain aspect ratio */
-    /* Works perfectly with Variable Width for uniform heights with varying widths */
+.bw-ps-dots-container {
+    position: absolute;
+    bottom: -25px;
+    left: 0;
+    right: 0;
+    display: flex;
+    z-index: 10;
+    pointer-events: none;
 }
 
-/* Contain Mode - Fit image within fixed dimensions */
+.bw-ps-dots-container .bw-ps-dots-list {
+    pointer-events: auto;
+}
+
+/* Allineamento dots */
+.bw-ps-dots-left   { justify-content: flex-start; padding-left: 20px; }
+.bw-ps-dots-center { justify-content: center; }
+.bw-ps-dots-right  { justify-content: flex-end; padding-right: 20px; }
+
+/* ========================================
+   MODALITÀ ALTEZZA IMMAGINI
+   ======================================== */
+
+/* Fixed Height: altezza fissa, larghezza auto */
+.bw-ps-horizontal.bw-ps-height-fixed .bw-ps-image img {
+    width: auto;
+}
+
+/* Contain: adatta l'immagine entro dimensioni fisse */
 .bw-ps-horizontal.bw-ps-height-contain .bw-ps-image img {
     object-fit: contain;
     object-position: center;
-    /* width and height are set by Elementor controls */
 }
 
-/* Cover Mode - Fill fixed dimensions (may crop) */
+/* Cover: riempie le dimensioni fisse (possibile crop) */
 .bw-ps-horizontal.bw-ps-height-cover .bw-ps-image img {
     object-fit: cover;
     object-position: center;
-    /* width and height are set by Elementor controls */
 }
 
 /* ========================================
-   VERTICAL LAYOUT - DESKTOP
+   LAYOUT VERTICAL — DESKTOP (elevator)
    ======================================== */
 .bw-ps-vertical {
     display: flex;
@@ -200,12 +208,15 @@
     margin-bottom: 0;
 }
 
-/* Vertical Responsive Layout (Mobile/Tablet) */
+/* ========================================
+   LAYOUT VERTICAL — RESPONSIVE (Embla)
+   ======================================== */
 .bw-ps-vertical-responsive {
     width: 100%;
 }
 
-.bw-ps-slider-main {
+/* Main viewport */
+.bw-ps-main-viewport {
     margin-bottom: 15px;
 }
 
@@ -213,9 +224,14 @@
     outline: none;
 }
 
-.bw-ps-slider-thumbs {
-    margin: 0 auto;
+.bw-ps-slide-main img {
+    display: block;
+    width: 100%;
+    height: auto;
 }
+
+/* Thumbnails viewport */
+.bw-ps-thumbs-viewport {}
 
 .bw-ps-slide-thumb {
     padding: 5px;
@@ -225,7 +241,7 @@
     transition: opacity 0.3s ease;
 }
 
-.bw-ps-slide-thumb.slick-current {
+.bw-ps-slide-thumb.is-active {
     opacity: 1;
 }
 
@@ -284,14 +300,12 @@
 }
 
 .bw-ps-popup-close {
-    /* Reset Elementor button styles */
     background: none !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
 
-    /* Custom styles */
     font-size: 32px;
     line-height: 1;
     cursor: pointer;
@@ -303,8 +317,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* Reset other potential Elementor styles */
     border-radius: 0;
     text-shadow: none;
     font-weight: normal;
@@ -352,6 +364,13 @@
     width: 100%;
     height: auto;
     display: inline-block;
+    /* Popup images usano bw-embla-img per il fade-in */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bw-ps-popup-image img.is-loaded {
+    opacity: 1;
 }
 
 /* ========================================
@@ -405,7 +424,6 @@
     font-size: var(--bw-ps-arrow-size);
 }
 
-/* Hide system cursor when custom cursor is active */
 .bw-ps-hide-cursor {
     cursor: none !important;
 }
@@ -415,77 +433,15 @@
 }
 
 /* ========================================
-   DOTS POSITIONING
-   ======================================== */
-.bw-ps-wrapper .slick-dots {
-    position: absolute;
-    bottom: -25px;
-    left: 0;
-    right: 0;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    text-align: center;
-    z-index: 10;
-}
-
-.bw-ps-wrapper .slick-dots.bw-ps-dots-left {
-    text-align: left;
-    padding-left: 20px;
-}
-
-.bw-ps-wrapper .slick-dots.bw-ps-dots-center {
-    text-align: center;
-}
-
-.bw-ps-wrapper .slick-dots.bw-ps-dots-right {
-    text-align: right;
-    padding-right: 20px;
-}
-
-.bw-ps-wrapper .slick-dots li {
-    display: inline-block;
-    margin: 0 5px;
-}
-
-.bw-ps-wrapper .slick-dots li button {
-    border: none;
-    background: #000;
-    color: transparent;
-    cursor: pointer;
-    display: block;
-    height: 10px;
-    width: 10px;
-    border-radius: 50%;
-    padding: 0;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.bw-ps-wrapper .slick-dots li button:before {
-    content: '';
-}
-
-.bw-ps-wrapper .slick-dots li.slick-active button {
-    background: #000;
-    opacity: 1;
-}
-
-.bw-ps-wrapper .slick-dots li button:hover {
-    opacity: 0.7;
-}
-
-/* ========================================
    RESPONSIVE
    ======================================== */
 @media (max-width: 1024px) {
-    /* Hide desktop vertical layout */
+    /* Desktop vertical → nasconde e mostra responsive */
     .bw-ps-vertical .bw-ps-thumbnails,
     .bw-ps-vertical .bw-ps-main-images {
         display: none;
     }
 
-    /* Show responsive slider layout */
     .bw-ps-vertical .bw-ps-vertical-responsive {
         display: block !important;
     }
@@ -504,7 +460,7 @@
 }
 
 @media (max-width: 768px) {
-    /* Hide arrows by default on mobile - JavaScript will show them if breakpoint has show_arrows enabled */
+    /* Frecce nascoste di default su mobile (JS le mostra se abilitato per breakpoint) */
     .bw-ps-arrows-container {
         display: none !important;
         bottom: 10px;
@@ -520,14 +476,14 @@
         margin-bottom: 20px;
     }
 
-    /* Disable custom cursor on mobile */
+    /* Cursore disabilitato su mobile */
     .bw-ps-custom-cursor {
         display: none !important;
     }
 }
 
 /* ========================================
-   LOADING STATE
+   STATO CARICAMENTO
    ======================================== */
 .bw-ps-wrapper.loading {
     opacity: 0.5;
@@ -535,14 +491,13 @@
 }
 
 /* ========================================
-   ACCESSIBILITY
+   ACCESSIBILITÀ
    ======================================== */
 .bw-ps-wrapper *:focus-visible {
     outline: 2px solid #0073aa;
     outline-offset: 2px;
 }
 
-/* Screen reader only */
 .bw-ps-sr-only {
     position: absolute;
     width: 1px;

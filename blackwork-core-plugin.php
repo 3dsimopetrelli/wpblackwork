@@ -661,6 +661,53 @@ function bw_unregister_removed_blackwork_widgets($widgets_manager = null)
     }
 }
 
+function bw_register_embla_assets()
+{
+    $embla_core_file = __DIR__ . '/assets/js/vendor/embla-carousel.umd.js';
+    $embla_core_ver = file_exists($embla_core_file) ? filemtime($embla_core_file) : '8.6.0';
+
+    wp_register_script(
+        'embla-js',
+        plugin_dir_url(__FILE__) . 'assets/js/vendor/embla-carousel.umd.js',
+        [],
+        $embla_core_ver,
+        true
+    );
+
+    $embla_autoplay_file = __DIR__ . '/assets/js/vendor/embla-carousel-autoplay.umd.js';
+    $embla_autoplay_ver = file_exists($embla_autoplay_file) ? filemtime($embla_autoplay_file) : '8.1.7';
+
+    wp_register_script(
+        'embla-autoplay-js',
+        plugin_dir_url(__FILE__) . 'assets/js/vendor/embla-carousel-autoplay.umd.js',
+        ['embla-js'],
+        $embla_autoplay_ver,
+        true
+    );
+
+    $bw_embla_core_css_file = __DIR__ . '/assets/css/bw-embla-core.css';
+    $bw_embla_core_css_ver = file_exists($bw_embla_core_css_file) ? filemtime($bw_embla_core_css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-embla-core-css',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-embla-core.css',
+        [],
+        $bw_embla_core_css_ver
+    );
+
+    $bw_embla_core_js_file = __DIR__ . '/assets/js/bw-embla-core.js';
+    $bw_embla_core_js_ver = file_exists($bw_embla_core_js_file) ? filemtime($bw_embla_core_js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-embla-core-js',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-embla-core.js',
+        ['embla-js', 'embla-autoplay-js'],
+        $bw_embla_core_js_ver,
+        true
+    );
+}
+add_action('init', 'bw_register_embla_assets');
+
 function bw_enqueue_slick_slider_assets()
 {
     wp_register_style(
@@ -1300,7 +1347,7 @@ function bw_register_presentation_slide_widget_assets()
     wp_register_style(
         'bw-presentation-slide-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-presentation-slide.css',
-        [],
+        ['bw-embla-core-css'],
         $css_version
     );
 
@@ -1310,7 +1357,7 @@ function bw_register_presentation_slide_widget_assets()
     wp_register_script(
         'bw-presentation-slide-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-presentation-slide.js',
-        ['jquery', 'slick-js'],
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
         $js_version,
         true
     );

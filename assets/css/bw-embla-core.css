@@ -1,0 +1,68 @@
+/**
+ * BW Embla Core — stili strutturali condivisi per tutti i widget Embla
+ * Non contiene stili cosmetici: quelli vanno nel file CSS del widget specifico
+ */
+
+/* ─── Viewport: overflow hidden richiesto da Embla ─── */
+.bw-embla-viewport {
+    overflow: hidden;
+}
+
+/* ─── Container: flex richiesto da Embla ─── */
+.bw-embla-container {
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+    backface-visibility: hidden;
+}
+
+/* ─── Slide base ─── */
+.bw-embla-slide {
+    flex: 0 0 100%;
+    min-width: 0; /* evita flex blowout */
+}
+
+/* ─── Immagini: fade-in quando caricate ─── */
+.bw-embla-img {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bw-embla-img.is-loaded {
+    opacity: 1;
+}
+
+/* ─── Dots lista generata da BWEmblaCore ─── */
+.bw-ps-dots-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.bw-ps-dots-list li button {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.bw-ps-dots-list li button:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.bw-ps-dots-list li.is-active button {
+    background-color: #000;
+    transform: scale(1.2);
+}
+
+.bw-ps-dots-list li button:focus-visible {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
