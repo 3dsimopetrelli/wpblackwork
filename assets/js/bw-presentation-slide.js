@@ -32,7 +32,8 @@
             this._cursorActive = false;
 
             // Sorted breakpoints per image-height mode
-            this._sortedBreakpoints = [];
+            this._sortedBreakpoints    = [];
+            this._lastBreakpointIndex  = undefined; // track active bp for Embla reInit
 
             this.init();
         }
@@ -95,12 +96,13 @@
             } : false;
 
             const emblaOptions = {
-                loop:          hCfg.infinite === true,
-                align:         'start',
-                containScroll: 'trimSnaps',
+                loop:           hCfg.infinite === true,
+                align:          hCfg.align || 'start',
+                containScroll:  'trimSnaps',
                 slidesToScroll: 1,
-                watchResize:   true,
-                watchDrag:     true,
+                dragFree:       hCfg.dragFree === true,
+                watchResize:    true,
+                watchDrag:      true,
             };
 
             this.emblaCore = new BWEmblaCore(viewport, emblaOptions, {
@@ -118,17 +120,18 @@
 
             if (!api) return;
 
-            // Visibilità frecce + dots + image-height mode iniziale
+            // Visibilità frecce + dots + image-height mode + opzioni Embla iniziali
             this._updateArrowsVisibility();
             this._updateDotsVisibility();
             this._updateImageHeightControls();
+            this._updateEmblaBreakpointOptions();
 
-            // Aggiorna on resize via window (Embla watchResize aggiorna il layout,
-            // noi aggiorniamo solo lo stato delle frecce, dots e imageHeight)
+            // Aggiorna on resize via window
             $(window).on(`resize.bwps-${this.widgetId}`, () => {
                 this._updateArrowsVisibility();
                 this._updateDotsVisibility();
                 this._updateImageHeightControls();
+                this._updateEmblaBreakpointOptions();
             });
 
             // Click sulle slide: zoom (popup) o navigazione
@@ -394,6 +397,48 @@
             } else {
                 $images.css('width', '');
             }
+        }
+
+        /* ────────────────────────────────────────────
+           EMBLA BREAKPOINT OPTIONS (slidesToScroll, centerMode, variableWidth)
+        ──────────────────────────────────────────── */
+
+        /**
+         * Restituisce l'indice del breakpoint attivo in _sortedBreakpoints,
+         * oppure -1 se nessun breakpoint è attivo (desktop).
+         */
+        _getActiveBreakpointIndex() {
+            const width = $(window).width();
+            for (let i = 0; i < this._sortedBreakpoints.length; i++) {
+                if (width <= this._sortedBreakpoints[i].breakpoint) return i;
+            }
+            return -1;
+        }
+
+        /**
+         * Chiama emblaApi.reInit() solo quando cambia il breakpoint attivo,
+         * aggiornando slidesToScroll, align (centerMode) e containScroll (variableWidth).
+         */
+        _updateEmblaBreakpointOptions() {
+            if (!this.emblaCore) return;
+            const api = this.emblaCore.api();
+            if (!api) return;
+
+            const idx = this._getActiveBreakpointIndex();
+            if (idx === this._lastBreakpointIndex) return; // nessun cambio
+            this._lastBreakpointIndex = idx;
+
+            const bp    = idx >= 0 ? this._sortedBreakpoints[idx] : null;
+            const hCfg  = this.config.horizontal || {};
+            const baseAlign = hCfg.align || 'start';
+
+            const newOpts = {
+                slidesToScroll: bp?.slidesToScroll || 1,
+                align:          (bp?.centerMode)  ? 'center' : baseAlign,
+                containScroll:  (bp?.centerMode || bp?.variableWidth) ? false : 'trimSnaps',
+            };
+
+            api.reInit(newOpts);
         }
 
         /* ────────────────────────────────────────────
