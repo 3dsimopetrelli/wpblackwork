@@ -150,6 +150,10 @@
 
             const api = this.emblaCore.init();
 
+            if (this.config.horizontal?.enableWheelSwipe && !this.isTouchDevice()) {
+                this.initWheelSwipe(api, viewport);
+            }
+
             // Reveal wrapper after the first slide image is ready so we get a clean
             // coordinated fade-in instead of a jarring opacity jump.
             // A 2s timeout acts as a safety net in case the image never fires load/error.
@@ -667,6 +671,39 @@
            UTILITY
         ──────────────────────────────────────────── */
 
+        /* ────────────────────────────────────────────
+           TRACKPAD WHEEL SWIPE (desktop only)
+        ──────────────────────────────────────────── */
+
+        initWheelSwipe(api, viewport) {
+            // Cooldown: un solo cambio slide per gesto (evita scroll multipli)
+            let _cooldown = false;
+
+            const onWheel = (e) => {
+                const dx = e.deltaX;
+                const dy = e.deltaY;
+
+                // Ignora se il gesto è prevalentemente verticale (scroll di pagina)
+                if (Math.abs(dx) <= Math.abs(dy)) return;
+
+                // Blocca lo scroll orizzontale della pagina mentre siamo sul carousel
+                e.preventDefault();
+
+                if (_cooldown) return;
+                _cooldown = true;
+                setTimeout(() => { _cooldown = false; }, 350);
+
+                if (dx > 0) api.scrollNext();
+                else        api.scrollPrev();
+            };
+
+            viewport.addEventListener('wheel', onWheel, { passive: false });
+
+            // Salva riferimenti per il cleanup nel destroy()
+            this._wheelHandler  = onWheel;
+            this._wheelViewport = viewport;
+        }
+
         isTouchDevice() {
             return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         }
@@ -693,6 +730,13 @@
             if (this._cursorRafId) {
                 cancelAnimationFrame(this._cursorRafId);
                 this._cursorRafId = null;
+            }
+
+            // Wheel swipe handler
+            if (this._wheelHandler && this._wheelViewport) {
+                this._wheelViewport.removeEventListener('wheel', this._wheelHandler);
+                this._wheelHandler  = null;
+                this._wheelViewport = null;
             }
 
             // Cursore: rimosso dal DOM (non solo nascosto)
