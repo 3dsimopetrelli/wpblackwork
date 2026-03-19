@@ -283,7 +283,6 @@
 .bw-ps-popup-header {
     position: sticky;
     top: 0;
-    width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
