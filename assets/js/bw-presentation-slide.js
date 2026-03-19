@@ -117,7 +117,28 @@
 
             const api = this.emblaCore.init();
 
-            this.$wrapper.removeClass('loading');
+            // Reveal wrapper after the first slide image is ready so we get a clean
+            // coordinated fade-in instead of a jarring opacity jump.
+            // A 2s timeout acts as a safety net in case the image never fires load/error.
+            const firstImg = this.$wrapper.find('.bw-ps-image img')[0];
+            const revealWrapper = () => this.$wrapper.removeClass('loading');
+            if (!firstImg) {
+                revealWrapper();
+            } else if (firstImg.complete && firstImg.naturalWidth > 0) {
+                requestAnimationFrame(revealWrapper);
+            } else {
+                let revealed = false;
+                const _done = () => {
+                    if (revealed) return;
+                    revealed = true;
+                    firstImg.removeEventListener('load',  _done);
+                    firstImg.removeEventListener('error', _done);
+                    revealWrapper();
+                };
+                firstImg.addEventListener('load',  _done);
+                firstImg.addEventListener('error', _done);
+                setTimeout(_done, 2000); // fallback
+            }
 
             if (!api) return;
 
