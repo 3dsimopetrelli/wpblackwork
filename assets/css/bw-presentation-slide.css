@@ -288,85 +288,35 @@
     color: #000;
 }
 
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    position: static !important;
-    inset: auto !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    transform: none !important;
-    float: none !important;
+.bw-ps-popup-close {
     background: none !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    outline: none !important;
-    font-family: inherit !important;
-    font-size: 16px !important;
-    line-height: 1 !important;
-    cursor: pointer !important;
-    color: #000 !important;
-    transition: color 0.3s ease !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 0 !important;
-    text-shadow: none !important;
-    font-weight: 400 !important;
-    text-decoration: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    align-self: center !important;
-    justify-self: end !important;
-    flex-shrink: 0 !important;
-    white-space: nowrap !important;
-    width: auto !important;
-    min-width: 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    z-index: 1 !important;
+    outline: none;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    color: #000;
+    transition: color 0.3s ease;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+    text-shadow: none;
+    font-weight: normal;
+    text-decoration: none;
+    opacity: 1;
+    visibility: visible;
+    flex-shrink: 0;
 }
 
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close .bw-ps-popup-close-text {
-    display: inline-block !important;
-    font: inherit !important;
-    color: inherit !important;
-    line-height: 1 !important;
-    letter-spacing: 0.02em !important;
-    position: static !important;
-    inset: auto !important;
-    transform: none !important;
-    white-space: nowrap !important;
-}
-
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:hover {
-    color: #666 !important;
-    background: none !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:focus {
-    outline: none !important;
-    outline-offset: 0 !important;
-    background: none !important;
-    background-color: transparent !important;
-    border: none !important;
-}
-
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:active {
-    background: none !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
+.bw-ps-popup-close:hover  { color: #666; }
+.bw-ps-popup-close:focus  { outline: 2px solid currentColor; outline-offset: 2px; }
+.bw-ps-popup-close:active { opacity: 0.7; }
 
 .bw-ps-popup-body {
     padding: 40px 30px;
@@ -525,14 +475,3 @@
     outline-offset: 2px;
 }
 
-.bw-ps-sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-}

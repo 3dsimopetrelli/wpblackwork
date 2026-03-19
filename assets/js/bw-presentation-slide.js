@@ -35,9 +35,8 @@
             this.emblaThumbs = null; // vertical responsive thumbs
 
             // Cursore custom (per-istanza, non condiviso)
-            this._cursor       = null;
-            this._cursorRafId  = null;
-            this._cursorActive = false;
+            this._cursor      = null;
+            this._cursorRafId = null;
 
             // Sorted breakpoints per image-height mode
             this._sortedBreakpoints    = [];
@@ -150,6 +149,10 @@
 
             const api = this.emblaCore.init();
 
+            // Cache selectors usati da _updateImageHeightControls (chiamata ad ogni slide select)
+            this._$horizontal = this.$wrapper.find('.bw-ps-horizontal');
+            this._$images     = this.$wrapper.find('.bw-ps-image img');
+
             // Reveal wrapper after the first slide image is ready so we get a clean
             // coordinated fade-in instead of a jarring opacity jump.
             // A 2s timeout acts as a safety net in case the image never fires load/error.
@@ -255,7 +258,7 @@
             $thumbnails.find('.bw-ps-thumb')
                 .off(`click.bwps-${this.widgetId}`)
                 .on(`click.bwps-${this.widgetId}`, (e) => {
-                    const index   = parseInt($(e.currentTarget).data('index'), 10);
+                    const index   = parseInt($(e.currentTarget).data('bw-index'), 10);
                     const $target = $mainImageElements.eq(index);
 
                     if (!$target.length) return;
@@ -425,8 +428,8 @@
 
         _updateImageHeightControls() {
             const width      = $(window).width();
-            const $horizontal = this.$wrapper.find('.bw-ps-horizontal');
-            const $images    = this.$wrapper.find('.bw-ps-image img');
+            const $horizontal = this._$horizontal;
+            const $images    = this._$images;
 
             let heightMode   = 'auto';
             let imageHeight  = null;
@@ -526,7 +529,6 @@
                 $overlay.appendTo('body');
             }
 
-            $overlay.attr('data-bw-ps-widget-id', this.widgetId);
             this.$popupOverlay = $overlay;
 
             BWEmblaCore.initImageLoading($overlay[0]);
@@ -599,7 +601,6 @@
 
             // Stato RAF (targX/Y inseguiti con easing, RAF on-demand)
             const state = { targX: 0, targY: 0, curX: 0, curY: 0, running: false };
-            this._cursorState = state;
 
             const animateCursor = () => {
                 const ease = 0.18;
@@ -700,9 +701,10 @@
                 this._cursor.remove();
                 this._cursor = null;
             }
-            this._cursorState = null;
 
-            this.initialized = false;
+            this._$horizontal = null;
+            this._$images     = null;
+            this.initialized  = false;
         }
     }
 
