@@ -284,8 +284,8 @@
     top: 0;
     width: 100%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 24px;
     padding: 20px 30px;
     background-color: #fff;
     border-bottom: 1px solid #eee;
@@ -294,6 +294,8 @@
 
 .bw-ps-popup-title {
     margin: 0;
+    min-width: 0;
+    flex: 1 1 auto;
     font-size: 24px;
     font-weight: 600;
     color: #000;
@@ -314,13 +316,10 @@
     color: #000 !important;
     transition: color 0.3s ease !important;
     padding: 0 !important;
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
+    margin-left: auto !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-end !important;
     border-radius: 0 !important;
     text-shadow: none !important;
     font-weight: 400 !important;
