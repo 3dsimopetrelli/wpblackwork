@@ -1295,6 +1295,17 @@ function bw_register_static_showcase_widget_assets()
         [],
         $css_version
     );
+
+    $js_file = __DIR__ . '/assets/js/bw-static-showcase.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-static-showcase-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-static-showcase.js',
+        [],
+        $js_version,
+        true
+    );
 }
 
 function bw_register_price_variation_widget_assets()

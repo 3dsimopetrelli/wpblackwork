@@ -1,5 +1,17 @@
 /* BW Static Showcase Widget */
 
+/* ========================================
+   LAZY-LOAD FADE-IN
+   ======================================== */
+.bw-lazy-img {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.bw-lazy-img.is-loaded {
+    opacity: 1;
+}
+
 /* Showcase Label */
 .bw-showcase-label {
     display: block;
@@ -20,8 +32,6 @@
 }
 
 .bw-static-showcase-container * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
@@ -58,8 +68,8 @@
 .bw-static-showcase-right-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
     display: block;
+    /* object-fit set via inline style from build_image_style() */
 }
 
 .bw-static-showcase-right-image--placeholder {

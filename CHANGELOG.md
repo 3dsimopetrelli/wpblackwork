@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- Static Showcase: lazy-load fade-in for all three images (main + gallery) via `loading="lazy"` + CSS opacity transition + JS `is-loaded` class.
+- Static Showcase: switched to `wp_get_attachment_image()` for full srcset/sizes support on attachment-based images.
+- Static Showcase: batched all `get_post_meta()` calls into a single DB read per render.
+- Static Showcase: draft/private products now visible in Elementor editor context.
+- Static Showcase: extracted duplicate placeholder HTML into `render_placeholder()`.
+- Static Showcase: removed aggressive `margin: 0; padding: 0` wildcard reset inside container; removed redundant `object-fit: cover` from gallery image CSS (set by inline style).
+- Static Showcase: registered `bw-static-showcase-script` JS handle; widget declares it via `get_script_depends()`.
 - BW Presentation Slide: custom cursor redesigned to fixed glassmorphism (single on/off toggle; 10+ configuration controls removed).
 - BW Presentation Slide: fixed orphaned popup overlay in `<body>` on Elementor widget destroy/re-render.
 - BW Presentation Slide: fixed `TypeError: Cannot read properties of undefined (reading 'removeClass')` — selector cache now assigned before `emblaCore.init()`.
