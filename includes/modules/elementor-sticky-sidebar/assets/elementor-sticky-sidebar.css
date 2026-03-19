@@ -1,29 +1,22 @@
-.elementor-element.bw-ess-sticky-sidebar,
-.e-con.bw-ess-sticky-sidebar {
-  align-self: flex-start;
+/*
+ * BW Sticky Sidebar
+ *
+ * All sticky behavior is handled by JS (position:fixed + placeholder).
+ * This file provides only the stuck-state class for optional user overrides.
+ */
+
+/* Placeholder that fills the layout gap while the element is fixed. */
+.bw-ess-placeholder {
+    display: block;
+    visibility: hidden;
+    pointer-events: none;
+    flex-shrink: 0;
 }
 
-.elementor-element.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--all,
-.e-con.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--all {
-  position: -webkit-sticky;
-  position: sticky;
-  top: var(--bw-ess-sticky-top, 24px);
-}
-
-@media (min-width: 768px) {
-  .elementor-element.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--tablet,
-  .e-con.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--tablet {
-    position: -webkit-sticky;
-    position: sticky;
-    top: var(--bw-ess-sticky-top, 24px);
-  }
-}
-
-@media (min-width: 1025px) {
-  .elementor-element.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--desktop,
-  .e-con.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--desktop {
-    position: -webkit-sticky;
-    position: sticky;
-    top: var(--bw-ess-sticky-top, 24px);
-  }
+/*
+ * .bw-ess-stuck is added to the container while it is in its fixed/sticky
+ * state. Use it in your template CSS to add box-shadow, border, etc.
+ */
+.bw-ess-stuck {
+    /* intentionally empty — override per-project as needed */
 }

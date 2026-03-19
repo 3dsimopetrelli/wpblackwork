@@ -451,6 +451,7 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/system-status/syst
     require_once plugin_dir_path(__FILE__) . 'includes/modules/system-status/system-status-module.php';
 }
 
+// Elementor Sticky Sidebar — JS-based sticky for container elements
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php';
 }

@@ -25,7 +25,7 @@ Canonical transition note:
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slide` | `includes/widgets/class-bw-product-slide-widget.php` | Product Slider | canonical product slider target |
 | `bw-related-post` | `includes/widgets/class-bw-related-post-widget.php` | Query/List | non-product |
-| `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | uses `BW_Product_Card_Component` |
+| `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
 | `bw-slick-slider` | `includes/widgets/class-bw-slick-slider-widget.php` | Generic Slider | rationalize with slide-showcase |
 | `bw-slide-showcase` | `includes/widgets/class-bw-slide-showcase-widget.php` | Showcase Slider | rationalize with slick-slider |
 | `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase |
@@ -73,6 +73,7 @@ Canonical transition note:
   - AJAX response path (`bw_fpw_filter_posts`).
 - `bw-slick-slider` product rendering path is delegated to `BW_Product_Card_Component`.
 - `bw-related-products` product rendering path is delegated to `BW_Product_Card_Component`.
+- `bw-related-products` refactored (2026-03): proportional image grid, simplified controls (removed Image Settings, Overlay Buttons style, Card Container style, open_cart_popup, margin_top/bottom). Desktop columns control uses `selectors` for live Elementor preview without re-render. Tablet/mobile hardcoded to 2 columns in CSS.
 - Removed widgets (governed removal wave completed):
   - `bw-wallpost` (replacement: `bw-product-grid` + `Enable Filter = No`)
   - `bw-add-to-cart`
