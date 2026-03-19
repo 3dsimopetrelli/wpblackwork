@@ -46,6 +46,7 @@ Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-03-19: `BW-TASK-20260319-PS-01` closed — BW Presentation Slide full hardening: glassmorphism cursor redesign (single toggle, 10+ controls removed), three bug fixes (orphaned popup overlay in `destroy()`, selector cache race before `emblaCore.init()`, system cursor hidden over arrow buttons). Feature docs created at `docs/30-features/presentation-slide/`. No Tier 0 surface affected.
 - 2026-03-16: `R-SEC-30` resolved — XSS hardening in `renderCartItems()`: `item.name` and `item.permalink` now HTML-escaped via `_escHtml()`/`_escUrl()` helpers on `BW_CartPopup`; `javascript:` and `data:` URI schemes blocked in href.
 - 2026-03-16: `R-SEC-31` resolved — coupon code XSS hardening in `updateTotals()`: `code` → `safeCode` via `_escHtml()` before `<b>` text node and `data-code` attribute injection.
 - 2026-03-16: Cart popup batch hardening completed — Phase 2 dynamic CSS/admin field removal, visual bug fixes, functional race-condition hardening, performance optimizations (open-cache, partial qty update, batch coupon append), dead code removal (`getCheckoutUrl()`, `bw_cart_popup_hex_to_rgb()`), item-collapse animation, Add-to-Cart button state revert on item removal.

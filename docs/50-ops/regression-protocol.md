@@ -44,6 +44,24 @@ Wave-specific checks:
   - one-time shared core initialization
   - widget-specific adapter behavior preserved
 
+## BW Presentation Slide Widget
+- Task: `BW-TASK-20260319-PS-01`
+- Scope:
+  - `bw-presentation-slide` / `BWPresentationSlide`
+  - Files: `assets/js/bw-presentation-slide.js`, `assets/css/bw-presentation-slide.css`, `includes/widgets/class-bw-presentation-slide-widget.php`
+- Required checks:
+  - Horizontal layout initializes without console errors (no `TypeError: Cannot read properties of undefined`)
+  - Image height modes (auto/fixed/contain/cover) apply correctly at each breakpoint
+  - Custom cursor appears/disappears correctly on image hover (desktop only)
+  - Custom cursor shows `←`/`→` on left/right halves, `+` on center (when popup enabled)
+  - Arrow buttons show pointer cursor when custom cursor mode is active
+  - System cursor is hidden over the image area, restored outside it
+  - Popup opens/closes correctly; overlay removed from `<body>` on close
+  - Widget destroy followed by re-init (Elementor editor re-render) leaves no orphaned `<body>` overlay
+  - Vertical desktop layout: thumbnail click scrolls main panel to correct image
+  - Vertical responsive layout: main/thumb Embla viewports stay synchronized
+  - No regression on pages where widget is absent
+
 ## BW Product Grid Infinite Loading
 - Task: `BW-TASK-20260312-ELW-01`
 - Scope:

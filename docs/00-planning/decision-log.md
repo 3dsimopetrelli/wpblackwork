@@ -615,6 +615,26 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Preserve HTML formatting paths for both long and short product descriptions.
   - Keep closure trace in `docs/tasks/BW-TASK-20260319-01-closure.md`.
 
+### Entry 040
+- Date: 2026-03-19
+- Decision summary: BW Presentation Slide custom cursor redesigned to a fixed glassmorphism design; all cursor configuration controls removed in favor of a single on/off toggle.
+- Affected domain: Elementor Widget / bw-presentation-slide / Frontend UX
+- Rationale: The configurable cursor (10+ controls) introduced complexity with no practical benefit — the design was always intended to be opinionated. A fixed frosted-glass design (88×88 px circle, `backdrop-filter: blur(14px)`, rgba fill, glyph arrows) is simpler to maintain and visually consistent with the site aesthetic. Removing configurability eliminates dead state paths and simplifies the JS init path.
+- Risk impact: Low — widget-scoped UX change; no authority or data surface affected.
+- Follow-up actions:
+  - Keep the cursor as a fixed design. Do not re-introduce individual control options.
+  - Keep mobile `display:none !important` as the suppress mechanism for touch devices.
+  - Keep `bw-ps-hide-cursor .bw-ps-arrow` CSS override to restore pointer on navigation buttons.
+
+### Entry 041
+- Date: 2026-03-19
+- Decision summary: BW Presentation Slide popup overlay moved to `<body>` via `appendTo('body')` in `initPopup()`; `destroy()` must explicitly remove it to prevent orphaned DOM accumulation on Elementor re-render.
+- Affected domain: Elementor Widget / bw-presentation-slide / Frontend Runtime
+- Rationale: `position:fixed` overlay positioned within the widget DOM can be clipped by ancestor stacking contexts in Elementor. Moving to `<body>` is the correct approach. The corresponding destroy-time cleanup is a mandatory pairing — without it, each re-render (Elementor editor save/re-init) leaves an additional orphaned overlay in `<body>`.
+- Risk impact: Low — widget-scoped fix; no authority surface affected.
+- Follow-up actions:
+  - Any future widget that moves DOM to `<body>` must pair the `appendTo` with an explicit `remove()` in `destroy()`.
+
 ### Entry 039
 - Date: 2026-03-19
 - Decision summary: Added a reusable Elementor container sticky sidebar extension managed by the plugin, using JS-based `position:fixed` with an in-place placeholder and container-level controls instead of Elementor Pro sticky features.
