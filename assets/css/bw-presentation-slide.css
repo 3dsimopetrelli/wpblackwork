@@ -286,11 +286,11 @@
     color: #000;
 }
 
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close {
-    background: none;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
+.bw-ps-popup-close {
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     outline: none;
     font-size: 32px;
     line-height: 1;
@@ -312,28 +312,9 @@
     flex-shrink: 0;
 }
 
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:hover {
-    color: #666;
-    background: none;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:focus {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
-    background: none;
-    background-color: transparent;
-    border: none;
-}
-
-.bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:active {
-    background: none;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-}
+.bw-ps-popup-close:hover  { color: #666; }
+.bw-ps-popup-close:focus  { outline: 2px solid currentColor; outline-offset: 2px; }
+.bw-ps-popup-close:active { opacity: 0.7; }
 
 .bw-ps-popup-body {
     padding: 40px 30px;
@@ -492,14 +473,3 @@
     outline-offset: 2px;
 }
 
-.bw-ps-sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-}

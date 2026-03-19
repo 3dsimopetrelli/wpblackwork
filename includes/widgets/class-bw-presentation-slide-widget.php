@@ -1369,7 +1369,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                         $is_first = ( 0 === $index );
                         $is_eager = ( $index < 5 );
                     ?>
-                        <div class="bw-ps-thumb" data-index="<?php echo esc_attr( $index ); ?>">
+                        <div class="bw-ps-thumb" data-bw-index="<?php echo esc_attr( $index ); ?>">
                             <?php
                             echo wp_get_attachment_image(
                                 $image['id'],
@@ -1480,7 +1480,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 </div>
                 <div class="bw-ps-popup-body">
                     <?php foreach ( $images as $index => $image ) : ?>
-                        <div class="bw-ps-popup-image" data-index="<?php echo esc_attr( $index ); ?>">
+                        <div class="bw-ps-popup-image">
                             <?php
                             echo wp_get_attachment_image(
                                 $image['id'],
