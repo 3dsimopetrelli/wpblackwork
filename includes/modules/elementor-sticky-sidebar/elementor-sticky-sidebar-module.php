@@ -167,6 +167,20 @@ function bw_ess_add_sticky_controls( $element ) {
     );
 
     $element->add_control(
+        'bw_ess_sticky_bound',
+        [
+            'label'        => __( 'Stay Within Column', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'description'  => __( 'Stop scrolling when the element reaches the bottom of its parent container.', 'bw-elementor-widgets' ),
+            'condition'    => [ 'bw_ess_sticky' => 'top' ],
+        ]
+    );
+
+    $element->add_control(
         'bw_ess_note',
         [
             'type'            => Controls_Manager::RAW_HTML,
@@ -210,7 +224,12 @@ function bw_ess_apply_render_attributes( $element ) {
         $devices = 'desktop';
     }
 
+    $bound = ( isset( $settings['bw_ess_sticky_bound'] ) && 'yes' === $settings['bw_ess_sticky_bound'] )
+        ? 'yes'
+        : 'no';
+
     $element->add_render_attribute( '_wrapper', 'data-bw-sticky', 'yes' );
     $element->add_render_attribute( '_wrapper', 'data-bw-sticky-offset', $offset );
     $element->add_render_attribute( '_wrapper', 'data-bw-sticky-on', $devices );
+    $element->add_render_attribute( '_wrapper', 'data-bw-sticky-bound', $bound );
 }
