@@ -300,52 +300,57 @@
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close {
-    background: none;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-    outline: none;
-    font-size: 32px;
-    line-height: 1;
-    cursor: pointer;
-    color: #000;
-    transition: color 0.3s ease;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0;
-    text-shadow: none;
-    font-weight: normal;
-    text-decoration: none;
-    opacity: 1;
-    visibility: visible;
-    flex-shrink: 0;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    font-family: inherit !important;
+    font-size: 32px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    color: #000 !important;
+    transition: color 0.3s ease !important;
+    padding: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0 !important;
+    text-shadow: none !important;
+    font-weight: 400 !important;
+    text-decoration: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    flex-shrink: 0 !important;
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:hover {
-    color: #666;
-    background: none;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
+    color: #666 !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:focus {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
-    background: none;
-    background-color: transparent;
-    border: none;
+    outline: 2px solid currentColor !important;
+    outline-offset: 2px !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:active {
-    background: none;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .bw-ps-popup-body {
