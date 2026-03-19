@@ -44,8 +44,15 @@
                 return;
             }
             if (this.bound) {
-                // Cache the parent container reference for bottom-boundary calculation.
-                this.$parent = this.$el.parent();
+                // We need the *row-level* ancestor as the bound container, not the
+                // immediate parent. The sticky element's direct parent is typically
+                // the same height as the element itself (only child), which would
+                // make the boundary trigger immediately.
+                // In Elementor Flexbox Containers the row/section is the nearest
+                // ancestor that carries the `.e-con.e-parent` classes.
+                // Fall back to the immediate parent for non-Elementor markup.
+                var $row = this.$el.closest('.e-con.e-parent, .elementor-section');
+                this.$parent = $row.length ? $row : this.$el.parent();
             }
             this._measure();
             $(window)
