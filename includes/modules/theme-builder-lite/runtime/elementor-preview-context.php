@@ -191,3 +191,87 @@ if (!function_exists('bw_tbl_apply_elementor_single_product_preview_context')) {
     }
 }
 add_action('wp', 'bw_tbl_apply_elementor_single_product_preview_context', 20);
+
+/**
+ * Ripristina il contesto prodotto durante il re-render AJAX di Elementor.
+ *
+ * Quando l'utente modifica un controllo nell'editor, Elementor ri-renderizza il widget
+ * via wp_ajax_elementor_ajax. In quel contesto admin-ajax.php NON esegue il hook `wp`,
+ * quindi bw_tbl_apply_elementor_single_product_preview_context() non gira mai e i bridge
+ * globals restano vuoti. Questo hook (priority 1, prima che Elementor elabori la richiesta)
+ * risolve il product ID e lo inietta nei globals usati da tutti i widget BW.
+ *
+ * Copre due scenari:
+ *   1. Editing diretto di una pagina prodotto → editor_post_id è il prodotto stesso.
+ *   2. Editing di un template BW → legge l'opzione "preview product" salvata nelle impostazioni.
+ */
+if (!function_exists('bw_tbl_apply_elementor_ajax_product_context')) {
+    function bw_tbl_apply_elementor_ajax_product_context()
+    {
+        // Solo per utenti con permessi di editing
+        if (!current_user_can('edit_posts')) {
+            return;
+        }
+
+        if (!class_exists('\Elementor\Plugin') || !function_exists('wc_get_product')) {
+            return;
+        }
+
+        $product_id = 0;
+
+        // Caso 1: si sta editando direttamente una pagina prodotto
+        // editor_post_id è l'ID del post in editing
+        if (!empty($_POST['editor_post_id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $editor_post_id = absint($_POST['editor_post_id']); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            if ($editor_post_id > 0 && wc_get_product($editor_post_id)) {
+                $product_id = $editor_post_id;
+                bw_tbl_preview_debug_log('ajax_context: resolved via editor_post_id', ['product_id' => $product_id]);
+            }
+        }
+
+        // Caso 2: si sta editando un template BW → usa il preview product salvato nelle opzioni
+        if ($product_id <= 0 && function_exists('bw_tbl_get_preview_product_id')) {
+            $option_id = absint(bw_tbl_get_preview_product_id());
+            if ($option_id > 0) {
+                $product_id = $option_id;
+                bw_tbl_preview_debug_log('ajax_context: resolved via option_v1', ['product_id' => $product_id]);
+            }
+        }
+
+        if ($product_id <= 0 && function_exists('bw_tbl_get_single_product_preview_product_id')) {
+            $legacy_id = absint(bw_tbl_get_single_product_preview_product_id(false));
+            if ($legacy_id > 0) {
+                $product_id = $legacy_id;
+                bw_tbl_preview_debug_log('ajax_context: resolved via option_legacy', ['product_id' => $product_id]);
+            }
+        }
+
+        if ($product_id <= 0) {
+            bw_tbl_preview_debug_log('ajax_context: no product resolved, skipping');
+            return;
+        }
+
+        // Setta i bridge globals → bw_tbl_resolve_product_context_id() li troverà
+        $GLOBALS['bw_tbl_preview_product_id'] = $product_id;
+
+        // Setta global $product → widget che lo usano direttamente funzioneranno
+        global $product;
+        $preview_product = wc_get_product($product_id);
+        if ($preview_product && is_a($preview_product, 'WC_Product')) {
+            $product = $preview_product;
+        }
+
+        // Inizializza il WooCommerce product data context
+        if (function_exists('wc_setup_product_data')) {
+            wc_setup_product_data($product_id);
+        }
+
+        bw_tbl_preview_debug_log('ajax_context: bridge set', [
+            'product_id' => $product_id,
+            'wc_product'  => ($product && is_a($product, 'WC_Product')),
+        ]);
+    }
+}
+// Priority 1: prima che Elementor elabori la richiesta AJAX di re-render widget
+add_action('wp_ajax_elementor_ajax', 'bw_tbl_apply_elementor_ajax_product_context', 1);
+
