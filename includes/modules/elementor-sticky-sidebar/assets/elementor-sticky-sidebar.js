@@ -71,11 +71,12 @@
 
         _measure: function () {
             if (this.stuck) { return; }
-            var off            = this.$el.offset();
-            this.naturalTop    = off.top;
-            this.naturalLeft   = off.left;
-            this.naturalWidth  = this.$el.outerWidth();
-            this.naturalHeight = this.$el.outerHeight();
+            var rect           = this.el.getBoundingClientRect();
+            var scrollTop      = window.pageYOffset || 0;
+            var scrollLeft     = window.pageXOffset || 0;
+            this.naturalTop    = rect.top  + scrollTop;
+            this.naturalWidth  = rect.width;
+            this.naturalHeight = rect.height;
         },
 
         _onScroll: function () {
@@ -106,22 +107,33 @@
             if (this.stuck) { return; }
             this.stuck = true;
 
+            // Re-measure at the exact moment of sticking for subpixel accuracy.
+            // The element is still in normal flow here, so getBoundingClientRect
+            // returns its actual rendered geometry.
+            var rect = this.el.getBoundingClientRect();
+            this.naturalWidth  = rect.width;
+            this.naturalHeight = rect.height;
+
+            // Copy flex-item properties from the original element so the parent
+            // flex container does not reflow and redistribute column widths.
+            var cs = window.getComputedStyle(this.el);
             this.$placeholder = $('<div class="bw-ess-placeholder" aria-hidden="true">').css({
-                display:       'block',
+                display:       cs.display,
+                flexGrow:      cs.flexGrow,
+                flexShrink:    cs.flexShrink,
+                flexBasis:     this.naturalWidth + 'px',
+                alignSelf:     cs.alignSelf,
                 width:         this.naturalWidth  + 'px',
                 height:        this.naturalHeight + 'px',
                 visibility:    'hidden',
                 pointerEvents: 'none',
-                flexShrink:    '0',
             });
             this.$el.before(this.$placeholder);
-
-            var viewportLeft = this.naturalLeft - (window.pageXOffset || 0);
 
             this.$el.css({
                 position: 'fixed',
                 top:      this.offset + 'px',
-                left:     viewportLeft + 'px',
+                left:     rect.left + 'px',
                 width:    this.naturalWidth + 'px',
                 zIndex:   999,
             }).addClass('bw-ess-stuck');
