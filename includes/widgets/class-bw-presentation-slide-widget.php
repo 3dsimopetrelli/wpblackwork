@@ -171,19 +171,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'enable_wheel_swipe',
-            [
-                'label'        => __( 'Trackpad Swipe', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-                'description'  => __( 'Two-finger horizontal swipe on trackpad navigates slides (desktop only)', 'bw-elementor-widgets' ),
-            ]
-        );
-
-        $this->add_control(
             'slide_align',
             [
                 'label'   => __( 'Slide Alignment', 'bw-elementor-widgets' ),
@@ -1129,7 +1116,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
                 'dragFree'         => ( $settings['drag_free'] ?? '' ) === 'yes',
-                'enableWheelSwipe' => ( $settings['enable_wheel_swipe'] ?? 'yes' ) === 'yes',
                 'align'            => $settings['slide_align'] ?? 'start',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
