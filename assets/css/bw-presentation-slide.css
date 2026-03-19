@@ -409,6 +409,12 @@
     cursor: none !important;
 }
 
+/* Ripristina il cursore di sistema sulle frecce (fuori dall'area immagini) */
+.bw-ps-hide-cursor .bw-ps-arrow,
+.bw-ps-hide-cursor .bw-ps-arrow * {
+    cursor: pointer !important;
+}
+
 /* ========================================
    RESPONSIVE
    ======================================== */
