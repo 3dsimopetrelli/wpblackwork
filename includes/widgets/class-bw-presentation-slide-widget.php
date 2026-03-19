@@ -143,18 +143,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'transition_speed',
-            [
-                'label'   => __( 'Transition Speed (ms)', 'bw-elementor-widgets' ),
-                'type'    => Controls_Manager::NUMBER,
-                'default' => 500,
-                'min'     => 100,
-                'max'     => 3000,
-                'step'    => 100,
-            ]
-        );
-
-        $this->add_control(
             'pause_on_hover',
             [
                 'label'        => __( 'Pause on Hover', 'bw-elementor-widgets' ),
@@ -1111,8 +1099,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             return;
         }
 
-        // Get popup title - use product name if available
-        $popup_title = $this->get_popup_title();
+        // Popup title calcolato solo se il popup è abilitato
+        $popup_title = $settings['enable_popup'] === 'yes' ? $this->get_popup_title() : '';
 
         // Build configuration for JavaScript
         $config = [
@@ -1126,14 +1114,12 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'infinite'         => $settings['infinite_loop'] === 'yes',
                 'autoplay'         => $settings['autoplay'] === 'yes',
                 'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
-                'speed'            => absint( $settings['transition_speed'] ),
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
                 'dragFree'         => ( $settings['drag_free'] ?? '' ) === 'yes',
                 'align'            => $settings['slide_align'] ?? 'start',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
             'vertical'             => [
-                'enableThumbnails'    => $settings['enable_thumbnails'] === 'yes',
                 'smoothScroll'        => $settings['smooth_scroll'] === 'yes',
                 'enableResponsive'    => $settings['enable_responsive_mode'] === 'yes',
                 'responsiveBreakpoint' => absint( $settings['responsive_breakpoint'] ),
@@ -1169,25 +1155,39 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     /**
      * Get popup title - use product name if in product context
      */
-    protected function get_popup_title() {
+    /**
+     * Risolve il prodotto WooCommerce nel contesto corrente.
+     * Prima prova la global $product, poi bw_tbl_resolve_product_context_id.
+     * Restituisce WC_Product|null.
+     */
+    protected function get_product_context() {
         global $product;
 
         if ( $product && is_a( $product, 'WC_Product' ) ) {
-            return $product->get_name();
+            return $product;
         }
 
         if ( function_exists( 'bw_tbl_resolve_product_context_id' ) && function_exists( 'wc_get_product' ) ) {
             $resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
             $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
             if ( $product_id > 0 ) {
-                $resolved_product = wc_get_product( $product_id );
-                if ( $resolved_product && is_a( $resolved_product, 'WC_Product' ) ) {
-                    return $resolved_product->get_name();
+                $resolved = wc_get_product( $product_id );
+                if ( $resolved && is_a( $resolved, 'WC_Product' ) ) {
+                    return $resolved;
                 }
             }
         }
 
-        // Fallback to post title
+        return null;
+    }
+
+    protected function get_popup_title() {
+        $context_product = $this->get_product_context();
+
+        if ( $context_product ) {
+            return $context_product->get_name();
+        }
+
         if ( is_singular() ) {
             return get_the_title();
         }
@@ -1209,20 +1209,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 ];
             }
         } elseif ( $settings['images_source'] === 'query' ) {
-            // Get current product gallery images
-            global $product;
-            $context_product = null;
-            if ( $product && is_a( $product, 'WC_Product' ) ) {
-                $context_product = $product;
-            } elseif ( function_exists( 'bw_tbl_resolve_product_context_id' ) && function_exists( 'wc_get_product' ) ) {
-                $resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
-                $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
-                if ( $product_id > 0 ) {
-                    $context_product = wc_get_product( $product_id );
-                }
-            }
+            $context_product = $this->get_product_context();
 
-            if ( $context_product && is_a( $context_product, 'WC_Product' ) ) {
+            if ( $context_product ) {
                 $attachment_ids = $context_product->get_gallery_image_ids();
 
                 // Include featured image as first

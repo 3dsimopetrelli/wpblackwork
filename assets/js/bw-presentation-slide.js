@@ -13,6 +13,14 @@
 (function ($) {
     'use strict';
 
+    function debounce(fn, ms) {
+        let timer;
+        return function () {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, arguments), ms);
+        };
+    }
+
     class BWPresentationSlide {
         constructor(element) {
             this.$wrapper  = $(element);
@@ -50,7 +58,8 @@
             }
 
             const responsive = this.config.horizontal?.responsive || [];
-            this._sortedBreakpoints = [...responsive].sort((a, b) => b.breakpoint - a.breakpoint);
+            // Ascendente: il primo match nella direzione crescente è il breakpoint più piccolo
+            this._sortedBreakpoints = [...responsive].sort((a, b) => a.breakpoint - b.breakpoint);
 
             if (this.layoutMode === 'horizontal') {
                 this.initHorizontalLayout();
@@ -172,13 +181,13 @@
             this._updateImageHeightControls();
             this._updateEmblaBreakpointOptions();
 
-            // Aggiorna on resize via window
-            $(window).on(`resize.bwps-${this.widgetId}`, () => {
+            // Aggiorna on resize (debounced: evita esecuzione per ogni pixel)
+            $(window).on(`resize.bwps-${this.widgetId}`, debounce(() => {
                 this._updateArrowsVisibility();
                 this._updateDotsVisibility();
                 this._updateImageHeightControls();
                 this._updateEmblaBreakpointOptions();
-            });
+            }, 150));
 
             // Click sulle slide: zoom (popup) o navigazione
             $(viewport).on(`click.bwps-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
@@ -207,9 +216,9 @@
 
             if (this.config.vertical?.enableResponsive) {
                 this._handleVerticalResponsive(breakpoint);
-                $(window).on(`resize.bwps-vertical-${this.widgetId}`, () => {
+                $(window).on(`resize.bwps-vertical-${this.widgetId}`, debounce(() => {
                     this._handleVerticalResponsive(breakpoint);
-                });
+                }, 150));
             } else {
                 this.initVerticalDesktop();
             }
@@ -276,21 +285,24 @@
                     }
                 });
 
-            // Scroll main → aggiorna thumbnail attivo
+            // Scroll main → aggiorna thumbnail attivo (RAF throttle: max 1 update per frame)
+            let _scrollRaf = null;
             $mainImages
                 .off(`scroll.bwps-${this.widgetId}`)
                 .on(`scroll.bwps-${this.widgetId}`, () => {
-                    const scrollTop   = $mainImages.scrollTop();
-                    let activeIndex   = 0;
-
-                    $mainImageElements.each(function (i) {
-                        if (scrollTop >= this.offsetTop - 100) {
-                            activeIndex = i;
-                        }
+                    if (_scrollRaf) return;
+                    _scrollRaf = requestAnimationFrame(() => {
+                        _scrollRaf = null;
+                        const scrollTop = $mainImages.scrollTop();
+                        let activeIndex = 0;
+                        $mainImageElements.each(function (i) {
+                            if (scrollTop >= this.offsetTop - 100) {
+                                activeIndex = i;
+                            }
+                        });
+                        const $thumbItems = $thumbnails.find('.bw-ps-thumb');
+                        $thumbItems.removeClass('active').eq(activeIndex).addClass('active');
                     });
-
-                    $thumbnails.find('.bw-ps-thumb').removeClass('active');
-                    $thumbnails.find('.bw-ps-thumb').eq(activeIndex).addClass('active');
                 });
 
             $thumbnails.find('.bw-ps-thumb').first().addClass('active');
@@ -381,7 +393,7 @@
             for (const bp of this._sortedBreakpoints) {
                 if (width <= bp.breakpoint) {
                     showArrows = bp.showArrows === true;
-                    // no break: keep going to find the most specific (smallest) matching bp
+                    break; // array ascendente: primo match = breakpoint più piccolo che comprende la larghezza
                 }
             }
 
@@ -400,7 +412,7 @@
             for (const bp of this._sortedBreakpoints) {
                 if (width <= bp.breakpoint) {
                     showDots = bp.showDots === true;
-                    // no break: keep going to find the most specific (smallest) matching bp
+                    break;
                 }
             }
 
@@ -425,7 +437,7 @@
                     if (bp.imageHeightMode) heightMode  = bp.imageHeightMode;
                     if (bp.imageHeight)     imageHeight = bp.imageHeight;
                     if (bp.imageWidth)      imageWidth  = bp.imageWidth;
-                    // no break: keep going to find the most specific (smallest) matching bp
+                    break;
                 }
             }
 
@@ -455,13 +467,12 @@
          */
         _getActiveBreakpointIndex() {
             const width = $(window).width();
-            let result = -1;
             for (let i = 0; i < this._sortedBreakpoints.length; i++) {
                 if (width <= this._sortedBreakpoints[i].breakpoint) {
-                    result = i; // keep updating: last match = most specific (smallest) bp
+                    return i; // array ascendente: primo match è il breakpoint corretto
                 }
             }
-            return result;
+            return -1; // nessun breakpoint attivo → desktop
         }
 
         /**
@@ -539,10 +550,10 @@
         }
 
         openModal(startIndex) {
-            const $overlay     = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
+            const $overlay     = this.$popupOverlay;
+            if (!$overlay || !$overlay.length) return;
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
-
-            if ($overlay.length === 0 || $targetImage.length === 0) return;
+            if (!$targetImage.length) return;
 
             $overlay.fadeIn(300, function () {
                 $(this).addClass('active');
@@ -565,7 +576,8 @@
         }
 
         closeModal() {
-            const $overlay = this.$popupOverlay || $(`.bw-ps-popup-overlay[data-bw-ps-widget-id="${this.widgetId}"]`);
+            const $overlay = this.$popupOverlay;
+            if (!$overlay) return;
             $overlay.removeClass('active').fadeOut(300);
             $('body').css('overflow', '');
         }
@@ -688,6 +700,7 @@
                 this._cursor.remove();
                 this._cursor = null;
             }
+            this._cursorState = null;
 
             this.initialized = false;
         }
