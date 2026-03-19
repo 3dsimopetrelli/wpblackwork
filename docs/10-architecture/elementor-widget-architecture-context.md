@@ -29,6 +29,8 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Mixed runtime architecture:
   - widget-level dependencies (`get_script_depends()` / `get_style_depends()`)
   - hook-based register/enqueue helpers for selected widget families
+  - container/runtime extensions loaded from `includes/modules/` when behavior is not widget-specific
+- Sticky sidebar extension follows the container/runtime extension path rather than widget registration.
 - Slider handles are registered centrally and consumed per widget.
 - Mail Marketing subscription widget assets are registered centrally and can be pre-enqueued by channel runtime when the widget is rendered inside Theme Builder Lite custom footer injection.
 
@@ -49,6 +51,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 2. Slider runtime lifecycle/config logic is duplicated across multiple JS files.
 3. Asset ownership is partially centralized but still fragmented by legacy paths.
 4. Large Elementor control blocks are repeated across related widgets.
+5. Some layout behaviors needed by templates apply to Elementor containers rather than widgets and must be handled through explicit container extensions.
 
 ## Confirmed direction (governed)
 - `BW_Product_Card_Renderer` -> canonical product-card markup authority.

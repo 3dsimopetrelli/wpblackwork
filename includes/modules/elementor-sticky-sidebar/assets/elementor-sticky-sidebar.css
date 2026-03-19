@@ -1,0 +1,29 @@
+.elementor-element.bw-ess-sticky-sidebar,
+.e-con.bw-ess-sticky-sidebar {
+  align-self: flex-start;
+}
+
+.elementor-element.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--all,
+.e-con.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--all {
+  position: -webkit-sticky;
+  position: sticky;
+  top: var(--bw-ess-sticky-top, 24px);
+}
+
+@media (min-width: 768px) {
+  .elementor-element.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--tablet,
+  .e-con.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--tablet {
+    position: -webkit-sticky;
+    position: sticky;
+    top: var(--bw-ess-sticky-top, 24px);
+  }
+}
+
+@media (min-width: 1025px) {
+  .elementor-element.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--desktop,
+  .e-con.bw-ess-sticky-sidebar.bw-ess-sticky-sidebar--desktop {
+    position: -webkit-sticky;
+    position: sticky;
+    top: var(--bw-ess-sticky-top, 24px);
+  }
+}

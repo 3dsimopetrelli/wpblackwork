@@ -15,6 +15,7 @@ Current runtime authority:
 - Widget classes: `includes/widgets/`
 - Widget registration loader: `includes/class-bw-widget-loader.php`
 - Core asset registration: `blackwork-core-plugin.php`
+- Reusable Elementor container extensions: `includes/modules/`
 
 ## Why this doc set exists
 The widget subsystem has grown with mixed patterns:
@@ -61,6 +62,24 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - `BW-SP ...`
   - `DEPRECATED - ...`
 - Elementor editor panel differentiation applied (BW-UI, BW-SP, deprecated).
+- Reusable BW sticky sidebar controls are available on Elementor containers through the plugin runtime:
+  - opt-in only
+  - CSS-first sticky behavior
+  - intended target: the outer pricing/sidebar container
+
+## Elementor Sticky Sidebar Extension
+- Scope: Elementor containers (not widget-specific).
+- Controls added to containers:
+  - `Enable Sticky Sidebar`
+  - `Sticky Top Offset`
+  - `Sticky Devices`
+- Intended usage:
+  - apply the control to the outer pricing/sidebar container
+  - do not apply it to inner CTA or quantity blocks unless that narrower target is explicitly desired
+- Current implementation is CSS-first (`position: sticky`) with no JS fallback.
+- Known caveats:
+  - sticky can fail if ancestor containers use `overflow: hidden|auto|scroll`
+  - sticky works best when the target container is not stretched and starts from the top of its column
 - Shared product-card authority extended and adopted in:
   - Woo related template
   - `bw-slick-slider` product path

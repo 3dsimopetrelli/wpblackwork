@@ -614,3 +614,14 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Keep `both` mode order deterministic.
   - Preserve HTML formatting paths for both long and short product descriptions.
   - Keep closure trace in `docs/tasks/BW-TASK-20260319-01-closure.md`.
+
+### Entry 039
+- Date: 2026-03-19
+- Decision summary: Added a reusable Elementor container sticky sidebar extension managed by the plugin, using CSS-first `position: sticky` and container-level controls instead of Elementor Pro sticky features.
+- Affected domain: Elementor Runtime / Container Controls / Frontend Layout
+- Rationale: Product layouts need a reusable sticky pricing/sidebar behavior applied to the outer container itself, not hardcoded per widget or delegated to Elementor Pro.
+- Risk impact: Low-Medium — behavior is opt-in and CSS-first, but remains sensitive to ancestor overflow and flex/stretch constraints inherent to sticky positioning.
+- Follow-up actions:
+  - Keep the sticky target on the outer pricing/sidebar container as the default usage contract.
+  - Keep JS out of the implementation unless a concrete edge case requires fallback behavior.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260319-02-closure.md`.
