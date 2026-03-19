@@ -138,6 +138,10 @@
                 watchDrag:      true,
             };
 
+            // Cache selectors prima di init() perché onSelect può essere chiamata durante init()
+            this._$horizontal = this.$wrapper.find('.bw-ps-horizontal');
+            this._$images     = this.$wrapper.find('.bw-ps-image img');
+
             this.emblaCore = new BWEmblaCore(viewport, emblaOptions, {
                 prevBtn,
                 nextBtn,
@@ -148,10 +152,6 @@
             });
 
             const api = this.emblaCore.init();
-
-            // Cache selectors usati da _updateImageHeightControls (chiamata ad ogni slide select)
-            this._$horizontal = this.$wrapper.find('.bw-ps-horizontal');
-            this._$images     = this.$wrapper.find('.bw-ps-image img');
 
             // Reveal wrapper after the first slide image is ready so we get a clean
             // coordinated fade-in instead of a jarring opacity jump.
