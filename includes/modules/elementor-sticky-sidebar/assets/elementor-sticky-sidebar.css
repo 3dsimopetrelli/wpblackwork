@@ -1,0 +1,22 @@
+/*
+ * BW Sticky Sidebar
+ *
+ * All sticky behavior is handled by JS (position:fixed + placeholder).
+ * This file provides only the stuck-state class for optional user overrides.
+ */
+
+/* Placeholder that fills the layout gap while the element is fixed. */
+.bw-ess-placeholder {
+    display: block;
+    visibility: hidden;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+/*
+ * .bw-ess-stuck is added to the container while it is in its fixed/sticky
+ * state. Use it in your template CSS to add box-shadow, border, etc.
+ */
+.bw-ess-stuck {
+    /* intentionally empty — override per-project as needed */
+}
