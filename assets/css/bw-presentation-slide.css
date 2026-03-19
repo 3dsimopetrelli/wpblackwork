@@ -368,8 +368,8 @@
 }
 
 .bw-ps-popup-overlay .bw-ps-popup .bw-ps-popup-header .bw-ps-popup-close:focus {
-    outline: 2px solid currentColor !important;
-    outline-offset: 2px !important;
+    outline: none !important;
+    outline-offset: 0 !important;
     background: none !important;
     background-color: transparent !important;
     border: none !important;
