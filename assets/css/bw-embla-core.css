@@ -22,12 +22,18 @@
 }
 
 /* ─── Immagini: fade-in quando caricate ─── */
-.bw-embla-img {
+/* Doppia regola per battere selettori tag/classe del tema (es. img { opacity:1 }) */
+.bw-embla-img,
+.bw-ps-wrapper .bw-embla-img,
+.bw-ps-popup-overlay .bw-embla-img {
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s ease;
+    will-change: opacity;
 }
 
-.bw-embla-img.is-loaded {
+.bw-embla-img.is-loaded,
+.bw-ps-wrapper .bw-embla-img.is-loaded,
+.bw-ps-popup-overlay .bw-embla-img.is-loaded {
     opacity: 1;
 }
 
