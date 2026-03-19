@@ -1500,10 +1500,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 <!-- Embla container: display:flex -->
                 <div class="bw-embla-container">
                     <?php foreach ( $images as $index => $image ) :
-                        // Prima immagine: eager + high priority per LCP ottimale
+                        // Prima immagine: eager + high priority per LCP ottimale.
+                        // Prime 5 slide eager: coprono slidesToShow=3 + 2 di preload
+                        // laterale senza rischiare pop-in sulle slide visibili.
                         $is_first   = ( 0 === $index );
+                        $is_eager   = ( $index < 5 );
                         $img_attrs  = [
-                            'loading'       => $is_first ? 'eager' : 'lazy',
+                            'loading'       => $is_eager ? 'eager' : 'lazy',
                             'decoding'      => $is_first ? 'sync'  : 'async',
                             'fetchpriority' => $is_first ? 'high'  : 'auto',
                             'class'         => 'bw-embla-img',
@@ -1585,6 +1588,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 <div class="bw-ps-thumbnails">
                     <?php foreach ( $images as $index => $image ) :
                         $is_first = ( 0 === $index );
+                        $is_eager = ( $index < 5 );
                     ?>
                         <div class="bw-ps-thumb" data-index="<?php echo esc_attr( $index ); ?>">
                             <?php
@@ -1593,7 +1597,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                                 'medium',
                                 false,
                                 [
-                                    'loading'       => $is_first ? 'eager' : 'lazy',
+                                    'loading'       => $is_eager ? 'eager' : 'lazy',
                                     'decoding'      => $is_first ? 'sync'  : 'async',
                                     'fetchpriority' => $is_first ? 'high'  : 'auto',
                                     'class'         => 'bw-embla-img',
@@ -1608,6 +1612,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             <div class="bw-ps-main-images">
                 <?php foreach ( $images as $index => $image ) :
                     $is_first = ( 0 === $index );
+                    $is_eager = ( $index < 5 );
                 ?>
                     <div class="bw-ps-main-image" data-bw-index="<?php echo esc_attr( $index ); ?>" data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
                         <div class="bw-ps-image bw-ps-image-clickable">
@@ -1617,7 +1622,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                                 'full',
                                 false,
                                 [
-                                    'loading'       => $is_first ? 'eager' : 'lazy',
+                                    'loading'       => $is_eager ? 'eager' : 'lazy',
                                     'decoding'      => $is_first ? 'sync'  : 'async',
                                     'fetchpriority' => $is_first ? 'high'  : 'auto',
                                     'class'         => 'bw-embla-img',
@@ -1636,8 +1641,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     <div class="bw-embla-container">
                         <?php foreach ( $images as $index => $image ) :
                             $is_first  = ( 0 === $index );
+                            $is_eager  = ( $index < 5 );
                             $img_attrs = [
-                                'loading'       => $is_first ? 'eager' : 'lazy',
+                                'loading'       => $is_eager ? 'eager' : 'lazy',
                                 'decoding'      => $is_first ? 'sync'  : 'async',
                                 'fetchpriority' => $is_first ? 'high'  : 'auto',
                                 'class'         => 'bw-embla-img',

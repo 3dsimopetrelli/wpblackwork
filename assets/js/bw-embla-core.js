@@ -239,22 +239,31 @@
         var images = container.querySelectorAll('img');
 
         images.forEach(function (img) {
+            // Always use rAF to reveal: ensures the browser has committed the
+            // opacity:0 paint before we add is-loaded and trigger the transition.
+            // Double-rAF for already-complete images: the first rAF commits the
+            // initial opacity:0 frame; the second triggers the fade to opacity:1.
+            function reveal() {
+                img.classList.add('is-loaded');
+            }
+
             if (img.complete && img.naturalWidth > 0) {
-                // Use rAF so the browser first paints opacity:0 (from CSS),
-                // then transitions to opacity:1 — avoids the sync-add-class race.
-                requestAnimationFrame(function () { img.classList.add('is-loaded'); });
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(reveal);
+                });
                 return;
             }
             var onLoad = function () {
-                img.classList.add('is-loaded');
                 img.removeEventListener('load',  onLoad);
                 img.removeEventListener('error', onError);
+                // rAF here too: load can fire very quickly for cached/lazy images;
+                // rAF guarantees opacity:0 was painted before we reveal.
+                requestAnimationFrame(reveal);
             };
             var onError = function () {
-                // Mostra comunque l'immagine (anche se rotta) per non bloccare il layout
-                img.classList.add('is-loaded');
                 img.removeEventListener('load',  onLoad);
                 img.removeEventListener('error', onError);
+                requestAnimationFrame(reveal);
             };
             img.addEventListener('load',  onLoad);
             img.addEventListener('error', onError);
