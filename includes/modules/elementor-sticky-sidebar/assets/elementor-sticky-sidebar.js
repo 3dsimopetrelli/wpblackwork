@@ -4,12 +4,12 @@
     /**
      * BwSticky — JS-based sticky sidebar.
      *
-     * Uses position:fixed + placeholder instead of CSS position:sticky.
-     * This works regardless of overflow:hidden/auto on ancestor containers.
-     *
-     * When `bound` is true the element stops at the bottom edge of its parent:
-     * instead of scrolling off the screen it "parks" at the parent's bottom by
-     * reducing the fixed `top` value dynamically — no absolute positioning needed.
+     * Three internal states:
+     *  'none'     — element is in normal document flow
+     *  'fixed'    — position:fixed, top adjusted dynamically
+     *  'absolute' — position:absolute; bottom:0 inside the parent row
+     *               (activated when the element is too tall to fit in the
+     *                remaining viewport space above the row boundary)
      *
      * @param {HTMLElement} el      The container element.
      * @param {number}      offset  Top offset in px when stuck.
@@ -17,18 +17,25 @@
      * @param {boolean}     bound   Stop at parent bottom edge.
      */
     function BwSticky(el, offset, devices, bound) {
-        this.el       = el;
-        this.$el      = $(el);
-        this.offset   = offset;
-        this.devices  = devices;
-        this.bound    = !!bound;
+        this.el      = el;
+        this.$el     = $(el);
+        this.offset  = offset;
+        this.devices = devices;
+        this.bound   = !!bound;
 
-        this.$placeholder  = null;
-        this.$parent       = null;
-        this.stuck         = false;
+        this.$placeholder     = null;
+        this.$parent          = null;
+        this.stuck            = false;
+        this._boundState      = 'none'; // 'none' | 'fixed' | 'absolute'
+        this._parentWasStatic = false;
+
+        // Natural (pre-sticky) geometry — measured before going fixed.
         this.naturalTop    = 0;
+        this.naturalLeft   = 0;
+        this.naturalWidth  = 0;
         this.naturalHeight = 0;
-        this._uid          = 'bwsticky_' + Math.random().toString(36).slice(2);
+
+        this._uid = 'bwsticky_' + Math.random().toString(36).slice(2);
 
         this._scrollHandler = this._onScroll.bind(this);
         this._resizeHandler = this._debounce(this._onResize.bind(this), 150);
@@ -40,20 +47,16 @@
     BwSticky.prototype = {
 
         _init: function () {
-            if (!this._isActiveDevice()) {
-                return;
-            }
+            if (!this._isActiveDevice()) { return; }
+
             if (this.bound) {
-                // We need the *row-level* ancestor as the bound container, not the
-                // immediate parent. The sticky element's direct parent is typically
-                // the same height as the element itself (only child), which would
-                // make the boundary trigger immediately.
-                // In Elementor Flexbox Containers the row/section is the nearest
-                // ancestor that carries the `.e-con.e-parent` classes.
-                // Fall back to the immediate parent for non-Elementor markup.
+                // Traverse up to the Elementor row container, which is the shared
+                // parent of both columns and carries the full row height.
+                // The direct parent is usually the same height as the element itself.
                 var $row = this.$el.closest('.e-con.e-parent, .elementor-section');
                 this.$parent = $row.length ? $row : this.$el.parent();
             }
+
             this._measure();
             $(window)
                 .on('scroll.' + this._uid, this._scrollHandler)
@@ -62,19 +65,21 @@
             this._onScroll();
         },
 
-        // True if sticky should be active at current viewport width.
         _isActiveDevice: function () {
             var w = window.innerWidth;
             if (this.devices === 'all')    { return true; }
             if (this.devices === 'tablet') { return w >= 768; }
-            return w >= 1025; // desktop (default)
+            return w >= 1025;
         },
 
-        // Record the element's natural top position (from page top).
+        // Capture geometry while element is still in normal flow.
         _measure: function () {
-            if (!this.stuck) {
-                this.naturalTop = this.$el.offset().top;
-            }
+            if (this.stuck) { return; }
+            var off            = this.$el.offset();
+            this.naturalTop    = off.top;
+            this.naturalLeft   = off.left;
+            this.naturalWidth  = this.$el.outerWidth();
+            this.naturalHeight = this.$el.outerHeight();
         },
 
         _onScroll: function () {
@@ -85,75 +90,109 @@
                 return;
             }
 
-            // Ensure element is in the stuck (fixed) state.
             if (!this.stuck) {
                 this._stick();
             }
 
-            // Bottom-boundary: adjust `top` so the element parks at parent bottom.
-            if (this.bound && this.stuck && this.$parent) {
-                var parentTop    = this.$parent.offset().top;
-                var parentH      = this.$parent.outerHeight();
-                var parentBottom = parentTop + parentH;
-                var elHeight     = this.naturalHeight || this.$el.outerHeight();
-                var maxTop       = parentBottom - elHeight - scrollTop;
-                var top          = maxTop < this.offset ? Math.max(maxTop, 0) : this.offset;
+            if (!this.bound || !this.$parent) { return; }
 
-                /* ---- temporary debug (remove after diagnosis) ---- */
-                if (!this._dbgTimer) {
-                    this._dbgTimer = setTimeout(function () { delete this._dbgTimer; }.bind(this), 500);
-                    console.log('[BwSticky bound]', {
-                        parentEl:     this.$parent[0] && this.$parent[0].className,
-                        parentTop:    parentTop,
-                        parentH:      parentH,
-                        parentBottom: parentBottom,
-                        elHeight:     elHeight,
-                        scrollTop:    scrollTop,
-                        maxTop:       maxTop,
-                        topApplied:   top,
-                        configOffset: this.offset,
-                    });
-                }
-                /* ---- end debug ---- */
+            var parentBottom = this.$parent.offset().top + this.$parent.outerHeight();
+            var maxTop       = parentBottom - this.naturalHeight - scrollTop;
 
-                this.$el.css('top', top + 'px');
+            if (maxTop < 0) {
+                // Element is too tall to fit — park it at row bottom via absolute.
+                this._goAbsolute();
+            } else {
+                // Fixed mode: reduce top as we approach the row bottom.
+                this._goFixed(maxTop < this.offset ? maxTop : this.offset);
             }
         },
 
         _stick: function () {
             if (this.stuck) { return; }
-            this.stuck = true;
+            this.stuck       = true;
+            this._boundState = 'fixed';
 
-            // Capture geometry before going fixed.
-            var rect   = this.el.getBoundingClientRect();
-            var width  = this.$el.outerWidth();
-            var height = this.$el.outerHeight();
-
-            this.naturalHeight = height; // cache for bound calculation
-
-            // Insert placeholder so the parent layout doesn't collapse.
             this.$placeholder = $('<div class="bw-ess-placeholder" aria-hidden="true">').css({
                 display:       'block',
-                width:         width  + 'px',
-                height:        height + 'px',
+                width:         this.naturalWidth  + 'px',
+                height:        this.naturalHeight + 'px',
                 visibility:    'hidden',
                 pointerEvents: 'none',
                 flexShrink:    '0',
             });
             this.$el.before(this.$placeholder);
 
+            // naturalLeft is document-relative; convert to viewport-relative for fixed.
+            var viewportLeft = this.naturalLeft - (window.pageXOffset || 0);
+
             this.$el.css({
                 position: 'fixed',
                 top:      this.offset + 'px',
-                left:     rect.left  + 'px',
-                width:    width      + 'px',
+                left:     viewportLeft + 'px',
+                width:    this.naturalWidth + 'px',
+                bottom:   '',
                 zIndex:   999,
             }).addClass('bw-ess-stuck');
         },
 
+        _goFixed: function (top) {
+            if (this._boundState === 'fixed') {
+                this.$el.css('top', top + 'px');
+                return;
+            }
+
+            // Returning from absolute mode.
+            this._boundState = 'fixed';
+
+            if (this._parentWasStatic && this.$parent) {
+                this.$parent.css('position', '');
+                this._parentWasStatic = false;
+            }
+
+            var viewportLeft = this.naturalLeft - (window.pageXOffset || 0);
+
+            this.$el.css({
+                position: 'fixed',
+                top:      top + 'px',
+                left:     viewportLeft + 'px',
+                width:    this.naturalWidth + 'px',
+                bottom:   '',
+            });
+        },
+
+        _goAbsolute: function () {
+            if (this._boundState === 'absolute') { return; }
+            this._boundState = 'absolute';
+
+            // Parent row needs position:relative.
+            if (this.$parent.css('position') === 'static') {
+                this.$parent.css('position', 'relative');
+                this._parentWasStatic = true;
+            }
+
+            // Left offset relative to parent padding box.
+            var parentBorderLeft = parseInt(this.$parent.css('border-left-width'), 10) || 0;
+            var leftInParent     = this.naturalLeft - this.$parent.offset().left - parentBorderLeft;
+
+            this.$el.css({
+                position: 'absolute',
+                top:      'auto',
+                bottom:   '0',
+                left:     leftInParent + 'px',
+                width:    this.naturalWidth + 'px',
+            });
+        },
+
         _unstick: function () {
             if (!this.stuck) { return; }
-            this.stuck = false;
+            this.stuck       = false;
+            this._boundState = 'none';
+
+            if (this._parentWasStatic && this.$parent) {
+                this.$parent.css('position', '');
+                this._parentWasStatic = false;
+            }
 
             if (this.$placeholder) {
                 this.$placeholder.remove();
@@ -164,12 +203,12 @@
                 position: '',
                 top:      '',
                 left:     '',
+                bottom:   '',
                 width:    '',
                 zIndex:   '',
             }).removeClass('bw-ess-stuck');
         },
 
-        // Re-measure after all images/fonts are loaded (layout may shift).
         _onLoad: function () {
             if (!this.stuck) {
                 this._measure();
@@ -201,7 +240,6 @@
         },
     };
 
-    // Shared init helper — guards against double-initialization.
     function bwInitStickyElement($element) {
         if ($element.data('bw-sticky-initialized')) { return; }
         $element.data('bw-sticky-initialized', true);
@@ -213,7 +251,6 @@
         new BwSticky($element[0], offset, devices, bound);
     }
 
-    // Primary: Elementor frontend hook (fires when each container is ready).
     $(window).on('elementor/frontend/init', function () {
         if (
             typeof elementorFrontend === 'undefined' ||
@@ -223,7 +260,6 @@
         elementorFrontend.hooks.addAction(
             'frontend/element_ready/container',
             function ($element) {
-                // Never activate inside the Elementor editor canvas.
                 if (
                     typeof elementorFrontend.isEditMode === 'function' &&
                     elementorFrontend.isEditMode()
@@ -236,10 +272,7 @@
         );
     });
 
-    // Fallback: scan the DOM directly on document-ready.
-    // Covers cases where Elementor's frontend JS crashes or the hook never fires.
     $(document).ready(function () {
-        // Small delay so Elementor has a chance to fire its hooks first.
         setTimeout(function () {
             $('[data-bw-sticky="yes"]').each(function () {
                 bwInitStickyElement($(this));
