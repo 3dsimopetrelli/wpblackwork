@@ -95,10 +95,11 @@
                 jump:              false,
             } : false;
 
+            const globalAlign   = hCfg.align || 'start';
             const emblaOptions = {
                 loop:           hCfg.infinite === true,
-                align:          hCfg.align || 'start',
-                containScroll:  'trimSnaps',
+                align:          globalAlign,
+                containScroll:  globalAlign === 'start' ? 'trimSnaps' : false,
                 slidesToScroll: 1,
                 dragFree:       hCfg.dragFree === true,
                 watchResize:    true,
@@ -428,14 +429,15 @@
             if (idx === this._lastBreakpointIndex) return; // nessun cambio
             this._lastBreakpointIndex = idx;
 
-            const bp    = idx >= 0 ? this._sortedBreakpoints[idx] : null;
-            const hCfg  = this.config.horizontal || {};
+            const bp        = idx >= 0 ? this._sortedBreakpoints[idx] : null;
+            const hCfg      = this.config.horizontal || {};
             const baseAlign = hCfg.align || 'start';
+            const activeAlign = (bp?.centerMode) ? 'center' : baseAlign;
 
             const newOpts = {
                 slidesToScroll: bp?.slidesToScroll || 1,
-                align:          (bp?.centerMode)  ? 'center' : baseAlign,
-                containScroll:  (bp?.centerMode || bp?.variableWidth) ? false : 'trimSnaps',
+                align:          activeAlign,
+                containScroll:  (bp?.centerMode || bp?.variableWidth || activeAlign !== 'start') ? false : 'trimSnaps',
             };
 
             api.reInit(newOpts);
