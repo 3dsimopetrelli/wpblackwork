@@ -131,9 +131,9 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
             'fields_options' => [
                 'typography' => [ 'default' => 'yes' ],
                 'font_size'  => [
-                    'default'        => [ 'size' => 22, 'unit' => 'px' ],
-                    'tablet_default' => [ 'size' => 22, 'unit' => 'px' ],
-                    'mobile_default' => [ 'size' => 22, 'unit' => 'px' ],
+                    'default'        => [ 'size' => 18, 'unit' => 'px' ],
+                    'tablet_default' => [ 'size' => 18, 'unit' => 'px' ],
+                    'mobile_default' => [ 'size' => 18, 'unit' => 'px' ],
                 ],
                 'line_height' => [
                     'default'        => [ 'size' => 110, 'unit' => '%' ],

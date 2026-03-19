@@ -592,3 +592,36 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Keep product-context resolution aligned with `bw_tbl_resolve_product_context_id()`.
   - Reuse the existing BW-SP editor-family convention for future Woo single-product utility widgets where appropriate.
   - Keep closure trace in `docs/tasks/BW-TASK-20260318-02-closure.md`.
+
+### Entry 037
+- Date: 2026-03-18
+- Decision summary: Added `bw-product-breadcrumbs` as the canonical single-product breadcrumb utility widget for Elementor, with deterministic category-path selection and a self-contained scoped style surface.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Product templates need a reusable breadcrumb utility that can be positioned freely in Elementor while remaining stable across products with multiple categories and without depending on theme-specific breadcrumb markup.
+- Risk impact: Low-Medium — runtime is limited to single-product rendering, category resolution uses a fixed precedence rule, and styling is scoped to the widget.
+- Follow-up actions:
+  - Keep the breadcrumb category-path rule deterministic (deepest path first, lowest term ID tie-break).
+  - Keep the widget style surface local to the breadcrumb component.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260318-03-closure.md`.
+
+### Entry 038
+- Date: 2026-03-19
+- Decision summary: Extended `bw-product-description` to support deterministic description source modes: full description, short description, or both in fixed order.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Product templates need a single reusable description widget that can surface either the merchant-authored long description, the short description, or both without forcing duplicate widgets or manual text duplication.
+- Risk impact: Low-Medium — runtime scope remains limited to single-product rendering, empty sources fail safely, and `both` mode uses a fixed render order (`short_description` then `description`).
+- Follow-up actions:
+  - Keep `both` mode order deterministic.
+  - Preserve HTML formatting paths for both long and short product descriptions.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260319-01-closure.md`.
+
+### Entry 039
+- Date: 2026-03-19
+- Decision summary: Added a reusable Elementor container sticky sidebar extension managed by the plugin, using CSS-first `position: sticky` and container-level controls instead of Elementor Pro sticky features.
+- Affected domain: Elementor Runtime / Container Controls / Frontend Layout
+- Rationale: Product layouts need a reusable sticky pricing/sidebar behavior applied to the outer container itself, not hardcoded per widget or delegated to Elementor Pro.
+- Risk impact: Low-Medium — behavior is opt-in and CSS-first, but remains sensitive to ancestor overflow and flex/stretch constraints inherent to sticky positioning.
+- Follow-up actions:
+  - Keep the sticky target on the outer pricing/sidebar container as the default usage contract.
+  - Keep JS out of the implementation unless a concrete edge case requires fallback behavior.
+  - Keep closure trace in `docs/tasks/BW-TASK-20260319-02-closure.md`.
