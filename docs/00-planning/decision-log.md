@@ -617,11 +617,16 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
 
 ### Entry 039
 - Date: 2026-03-19
-- Decision summary: Added a reusable Elementor container sticky sidebar extension managed by the plugin, using CSS-first `position: sticky` and container-level controls instead of Elementor Pro sticky features.
+- Decision summary: Added a reusable Elementor container sticky sidebar extension managed by the plugin, using JS-based `position:fixed` with an in-place placeholder and container-level controls instead of Elementor Pro sticky features.
 - Affected domain: Elementor Runtime / Container Controls / Frontend Layout
-- Rationale: Product layouts need a reusable sticky pricing/sidebar behavior applied to the outer container itself, not hardcoded per widget or delegated to Elementor Pro.
-- Risk impact: Low-Medium — behavior is opt-in and CSS-first, but remains sensitive to ancestor overflow and flex/stretch constraints inherent to sticky positioning.
+- Rationale: Product layouts need a reusable sticky pricing/sidebar behavior applied to the outer container itself, not hardcoded per widget or delegated to Elementor Pro. CSS-first `position:sticky` was evaluated first and abandoned — Elementor ancestor containers use `overflow:hidden` set by the layout engine, which silently suppresses sticky positioning. JS-based fixed positioning is the only reliable solution in Elementor layouts.
+- Risk impact: Low-Medium — behavior is opt-in; JS runs only on containers with `data-bw-sticky="yes"`; approach is robust to `overflow` constraints.
+- Implementation notes:
+  - `position:fixed` + invisible placeholder replaces CSS sticky.
+  - Negative `top` values are used for the bound (stay-within-column) behavior — no DOM teleportation; CSS inheritance from Elementor parent containers is fully preserved.
+  - Percentage paddings from Elementor (`--container-padding-*`) are frozen as computed px values on stick to prevent viewport-relative recalculation.
+  - Placeholder copies flex-item properties (`flexGrow`, `flexShrink`, `flexBasis`, `alignSelf`) from the original element so the parent flex layout does not reflow.
 - Follow-up actions:
   - Keep the sticky target on the outer pricing/sidebar container as the default usage contract.
-  - Keep JS out of the implementation unless a concrete edge case requires fallback behavior.
+  - Keep `elementor-sticky-sidebar.js` as the sole authority for sticky behavior; do not mix with Elementor Pro sticky.
   - Keep closure trace in `docs/tasks/BW-TASK-20260319-02-closure.md`.

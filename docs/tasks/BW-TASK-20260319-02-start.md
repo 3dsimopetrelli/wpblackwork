@@ -201,3 +201,20 @@ Before implementation begins, evaluate:
 
 ## Governance Enforcement Rule
 Implementation must not begin until architecture inspection confirms the correct Elementor container hooks and the safest wrapper-attribute strategy.
+
+---
+
+## Post-Implementation Note (2026-03-19)
+
+The CSS-first constraint (criterion 6) was overridden during live testing:
+
+**Why CSS-first was abandoned:**
+Elementor ancestor containers use `overflow:hidden` (set by Elementor's layout engine), which causes `position:sticky` to be silently ignored — sticky requires no `overflow` restriction on any ancestor. This is a structural constraint of Elementor layouts that cannot be worked around with CSS alone.
+
+**Final approach:**
+JS-based `position:fixed` with an in-place placeholder (DOM element stays in original position; a `visibility:hidden` placeholder holds the layout gap). This approach:
+- bypasses `overflow:hidden` on ancestors (fixed elements are not clipped by overflow)
+- preserves CSS inheritance from Elementor parent containers (no DOM teleportation)
+- uses negative `top` values to simulate the bound behavior without moving the element in the DOM
+
+Three post-implementation bugs were resolved (overflow clipping, width shrinking, padding expansion). See `BW-TASK-20260319-02-closure.md` § Post-Implementation Fixes for full details.
