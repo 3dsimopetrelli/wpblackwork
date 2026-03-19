@@ -575,43 +575,17 @@
         ──────────────────────────────────────────── */
 
         initCustomCursor() {
-            // Cursore per-istanza: ID univoco per non condividere tra widget
             const cursorId = `bw-ps-cursor-${this.widgetId}`;
             this._cursor   = $(`<div class="bw-ps-custom-cursor" data-cursor-id="${cursorId}"></div>`)
                 .appendTo('body');
 
             const $wrapper = this.$wrapper;
             const $cursor  = this._cursor;
-            const cfg      = this.config;
 
-            const zoomText   = cfg.cursorZoomText       || 'ZOOM';
-            const zoomSize   = isFinite(cfg.cursorZoomTextSize) ? `${cfg.cursorZoomTextSize}px`   : '12px';
-            const borderW    = isFinite(cfg.cursorBorderWidth)  ? `${cfg.cursorBorderWidth}px`    : '2px';
-            const borderC    = cfg.cursorBorderColor            || '#000';
-            const blurStr    = isFinite(parseFloat(cfg.cursorBlur)) ? `${parseFloat(cfg.cursorBlur)}px` : '12px';
-            const arrowC     = cfg.cursorArrowColor             || '#000';
-            const arrowSz    = isFinite(cfg.cursorArrowSize)    ? `${cfg.cursorArrowSize}px`      : '24px';
-            const bgColor    = cfg.cursorBackgroundColor        || '#ffffff';
-            const bgOpacity  = isFinite(parseFloat(cfg.cursorBackgroundOpacity))
-                ? Math.min(Math.max(parseFloat(cfg.cursorBackgroundOpacity), 0), 1)
-                : 0.6;
-            const bgRgba = this._hexToRgba(bgColor, bgOpacity);
+            // Il cursore di sistema si nasconde sempre quando il custom è attivo
+            $wrapper.addClass('bw-ps-hide-cursor');
 
-            if (cfg.hideSystemCursor) {
-                $wrapper.addClass('bw-ps-hide-cursor');
-            }
-
-            $cursor.css({
-                borderWidth:           borderW,
-                borderColor:           borderC,
-                color:                 arrowC,
-                '--bw-ps-cursor-bg':   bgRgba,
-                '--bw-site-blur':      blurStr,
-                '--bw-ps-arrow-size':  arrowSz,
-                '--bw-ps-zoom-size':   zoomSize,
-            });
-
-            // Stato cursore (targX/targY aggiornati da mousemove, RAF on-demand)
+            // Stato RAF (targX/Y inseguiti con easing, RAF on-demand)
             const state = { targX: 0, targY: 0, curX: 0, curY: 0, running: false };
             this._cursorState = state;
 
@@ -620,17 +594,14 @@
                 state.curX += (state.targX - state.curX) * ease;
                 state.curY += (state.targY - state.curY) * ease;
                 $cursor.css({ left: `${state.curX}px`, top: `${state.curY}px` });
-
                 if (state.running) {
                     this._cursorRafId = requestAnimationFrame(animateCursor);
                 }
             };
 
-            // Mousemove: avvia RAF solo se non già attivo
             $wrapper.on(`mousemove.bwps-cursor-${this.widgetId}`, (e) => {
                 state.targX = e.clientX;
                 state.targY = e.clientY;
-
                 if (!state.running) {
                     state.curX    = state.targX;
                     state.curY    = state.targY;
@@ -639,51 +610,43 @@
                 }
             });
 
-            // Mouseleave wrapper: ferma RAF
             $wrapper.on(`mouseleave.bwps-cursor-${this.widgetId}`, () => {
                 state.running = false;
                 if (this._cursorRafId) {
                     cancelAnimationFrame(this._cursorRafId);
                     this._cursorRafId = null;
                 }
-                $cursor.removeClass('active zoom prev next').text('');
+                $cursor.removeClass('active zoom prev next');
             });
 
-            // Stati cursore per layout horizontal
             if (this.layoutMode === 'horizontal') {
-                const emblaApi = this.emblaCore ? this.emblaCore.api() : null;
+                const emblaApi  = this.emblaCore ? this.emblaCore.api() : null;
                 const $viewport = $wrapper.find('.bw-ps-embla-viewport');
 
                 $viewport.on(`mouseenter.bwps-cursor-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
                     const $slide     = $(e.currentTarget).closest('.bw-ps-slide');
                     const slideIndex = parseInt($slide.data('bw-index'), 10);
                     const selected   = emblaApi ? emblaApi.selectedScrollSnap() : 0;
-
                     $cursor.removeClass('zoom prev next');
-
                     if (slideIndex === selected) {
-                        $cursor.addClass('zoom active').text(zoomText);
+                        $cursor.addClass('zoom active');
                     } else {
-                        $cursor.addClass(slideIndex < selected ? 'prev' : 'next')
-                               .addClass('active').text('');
+                        $cursor.addClass(slideIndex < selected ? 'prev' : 'next').addClass('active');
                     }
                 });
 
                 $viewport.on(`mouseleave.bwps-cursor-${this.widgetId}`, '.bw-ps-image-clickable', () => {
-                    $cursor.removeClass('active zoom prev next').text('');
+                    $cursor.removeClass('active zoom prev next');
                 });
             }
 
-            // Stato cursore per layout vertical (desktop)
             if (this.layoutMode === 'vertical') {
-                const $mainImages = $wrapper.find('.bw-ps-main-images .bw-ps-image-clickable');
-
-                $mainImages
+                $wrapper.find('.bw-ps-main-images .bw-ps-image-clickable')
                     .on(`mouseenter.bwps-cursor-${this.widgetId}`, () => {
-                        $cursor.removeClass('prev next').addClass('zoom active').text(zoomText);
+                        $cursor.removeClass('prev next').addClass('zoom active');
                     })
                     .on(`mouseleave.bwps-cursor-${this.widgetId}`, () => {
-                        $cursor.removeClass('active zoom').text('');
+                        $cursor.removeClass('active zoom');
                     });
             }
         }
@@ -691,18 +654,6 @@
         /* ────────────────────────────────────────────
            UTILITY
         ──────────────────────────────────────────── */
-
-        _hexToRgba(hex, alpha) {
-            if (!hex || typeof hex !== 'string') return `rgba(255,255,255,${alpha})`;
-            let h = hex.replace('#', '').trim();
-            if (h.length === 3) h = h.split('').map(c => c + c).join('');
-            if (h.length !== 6) return `rgba(255,255,255,${alpha})`;
-            const r = parseInt(h.slice(0, 2), 16);
-            const g = parseInt(h.slice(2, 4), 16);
-            const b = parseInt(h.slice(4, 6), 16);
-            if ([r, g, b].some(Number.isNaN)) return `rgba(255,255,255,${alpha})`;
-            return `rgba(${r},${g},${b},${alpha})`;
-        }
 
         isTouchDevice() {
             return 'ontouchstart' in window || navigator.maxTouchPoints > 0;

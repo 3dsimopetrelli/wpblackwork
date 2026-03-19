@@ -410,33 +410,28 @@
 }
 
 /* ========================================
-   CUSTOM CURSOR
+   CUSTOM CURSOR — design fisso glassmorphism
    ======================================== */
 .bw-ps-custom-cursor {
     --cursor-scale: 0;
-    --bw-ps-arrow-size: 24px;
-    --bw-ps-zoom-size: 12px;
-    --bw-ps-cursor-bg: rgba(255, 255, 255, 0.6);
     position: fixed;
     pointer-events: none;
     z-index: 99998;
     display: none;
     align-items: center;
     justify-content: center;
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
-    background-color: var(--bw-ps-cursor-bg);
-    border: 2px solid #000;
-    color: #000;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1px;
+    /* Frosted glass: fill leggero + blur forte sul contenuto sottostante */
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.28);
     transform: translate(-50%, -50%) scale(var(--cursor-scale));
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity   0.15s ease;
     opacity: 0;
-    backdrop-filter: blur(var(--bw-site-blur, 12px));
-    -webkit-backdrop-filter: blur(var(--bw-site-blur, 12px));
+    backdrop-filter: blur(14px) saturate(1.8);
+    -webkit-backdrop-filter: blur(14px) saturate(1.8);
     will-change: transform;
 }
 
@@ -446,24 +441,34 @@
     --cursor-scale: 1;
 }
 
-.bw-ps-custom-cursor.zoom {
-    font-size: var(--bw-ps-zoom-size);
-}
-
+/* Freccia ← per la slide a sinistra */
 .bw-ps-custom-cursor.prev::before {
     content: '←';
-    font-size: var(--bw-ps-arrow-size);
+    font-size: 20px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.75);
+    line-height: 1;
 }
 
+/* Freccia → per la slide a destra */
 .bw-ps-custom-cursor.next::before {
     content: '→';
-    font-size: var(--bw-ps-arrow-size);
+    font-size: 20px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.75);
+    line-height: 1;
 }
 
-.bw-ps-hide-cursor {
-    cursor: none !important;
+/* Cerchio pulito per la slide centrale (zoom) */
+.bw-ps-custom-cursor.zoom::before {
+    content: '+';
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(0, 0, 0, 0.6);
+    line-height: 1;
 }
 
+.bw-ps-hide-cursor,
 .bw-ps-hide-cursor * {
     cursor: none !important;
 }
