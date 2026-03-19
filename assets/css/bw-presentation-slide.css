@@ -496,9 +496,9 @@
 }
 
 @media (max-width: 768px) {
-    /* Frecce nascoste di default su mobile (JS le mostra se abilitato per breakpoint) */
+    /* Nota: la visibilità delle frecce è gestita interamente da JS (_updateArrowsVisibility).
+       Non impostare display:none qui — sovrascrive gli inline styles del JS. */
     .bw-ps-arrows-container {
-        display: none !important;
         bottom: 10px;
         right: 10px;
     }
