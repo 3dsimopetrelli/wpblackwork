@@ -681,7 +681,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'size_units' => [ 'px' ],
                 'range'      => [
                     'px' => [
-                        'min'  => 0,
+                        'min'  => -50,
                         'max'  => 200,
                         'step' => 1,
                     ],
@@ -1654,9 +1654,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             <div class="bw-ps-popup">
                 <div class="bw-ps-popup-header">
                     <h3 class="bw-ps-popup-title"><?php echo esc_html( $popup_title ); ?></h3>
-                    <button class="bw-ps-popup-close" aria-label="<?php esc_attr_e( 'Close', 'bw-elementor-widgets' ); ?>">
-                        ×
-                    </button>
+                    <button class="bw-ps-popup-close" aria-label="<?php esc_attr_e( 'Close', 'bw-elementor-widgets' ); ?>">&#x2715;</button>
                 </div>
                 <div class="bw-ps-popup-body">
                     <?php foreach ( $images as $index => $image ) : ?>
