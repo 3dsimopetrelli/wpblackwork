@@ -170,6 +170,19 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'touch_drag',
+            [
+                'label'        => __( 'Touch Drag (Mobile & Tablet)', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Allow swiping with fingers to navigate slides on touch devices. On desktop, mouse drag always works regardless of this setting.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
             'slide_align',
             [
                 'label'   => __( 'Slide Alignment', 'bw-elementor-widgets' ),
@@ -963,6 +976,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'autoplaySpeed'    => absint( $settings['autoplay_speed'] ),
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
                 'dragFree'         => ( $settings['drag_free'] ?? '' ) === 'yes',
+                'enableTouchDrag'  => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
                 'align'            => $settings['slide_align'] ?? 'start',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
