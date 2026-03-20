@@ -35,7 +35,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [ 'bw-product-card-style', 'bw-related-products-style' ];
+		return [ 'bw-wallpost-style', 'bw-product-card-style', 'bw-related-products-style' ];
 	}
 
 	protected function register_controls() {
