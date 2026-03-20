@@ -494,8 +494,9 @@
 }
 
 @media (max-width: 768px) {
-    /* Nota: la visibilità delle frecce è gestita interamente da JS (_updateArrowsVisibility).
-       Non impostare display:none qui — sovrascrive gli inline styles del JS. */
+    /* Visibilità frecce/dots: gestita da CSS @media inline emesso da PHP (render_breakpoint_css).
+       Le regole specifiche per widget sovrascrivono questa regola generica grazie alla
+       specificità più alta (.elementor-element-X .bw-ps-arrows-container vs .bw-ps-arrows-container). */
     .bw-ps-arrows-container {
         bottom: 10px;
         right: 10px;

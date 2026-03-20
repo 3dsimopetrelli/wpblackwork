@@ -1161,8 +1161,25 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Genera un blocco <style> inline scoped per le slide sizes per breakpoint.
-     * Embla con watchResize:true si ri-misura automaticamente al resize CSS.
+     * Genera un blocco <style> inline scoped per breakpoint:
+     * slide sizes, visibilità frecce e visibilità dots.
+     *
+     * PERCHÉ CSS E NON JS per frecce/dots:
+     * Il vecchio approccio JS (_updateArrowsVisibility) leggeva $(window).width()
+     * in un listener resize con 150 ms di debounce. Nell'editor Elementor questo
+     * crea una race condition: il widget si re-inizializza via element_ready e
+     * chiama la funzione mentre l'iframe è ancora in transizione, leggendo la
+     * larghezza sbagliata. Risultato: stato instabile, frecce visibili quando
+     * dovrebbero essere nascoste (o viceversa), necessità di publish + refresh.
+     *
+     * Con CSS @media max-width la visibilità risponde istantaneamente al viewport,
+     * senza JS, senza debounce, senza race condition, funziona anche nell'editor.
+     *
+     * ORDINE DI EMISSIONE: breakpoint dal più grande al più piccolo.
+     * Le regole @media max-width si sovrappongono (es. max-width:400px è incluso
+     * in max-width:2000px). Con l'ordine discendente, il breakpoint più piccolo
+     * arriva DOPO nel foglio di stile e override correttamente quello più grande,
+     * grazie alla normale cascata CSS (stessa specificità, vince l'ultima).
      */
     protected function render_breakpoint_css( $settings ) {
         $breakpoints = ! empty( $settings['breakpoints'] ) ? $settings['breakpoints'] : [];
@@ -1170,8 +1187,16 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             return;
         }
 
-        $widget_id = $this->get_id();
-        $selector  = '.elementor-element-' . esc_attr( $widget_id ) . ' .bw-ps-slide';
+        // Ordine discendente: largest → smallest, per cascata CSS corretta.
+        usort( $breakpoints, function ( $a, $b ) {
+            return absint( $b['breakpoint'] ) - absint( $a['breakpoint'] );
+        } );
+
+        $widget_id   = $this->get_id();
+        $el_prefix   = '.elementor-element-' . esc_attr( $widget_id );
+        $sel_slide   = $el_prefix . ' .bw-ps-slide';
+        $sel_arrows  = $el_prefix . ' .bw-ps-arrows-container';
+        $sel_dots    = $el_prefix . ' .bw-ps-dots-container';
 
         $css = '<style>';
         foreach ( $breakpoints as $bp ) {
@@ -1179,6 +1204,11 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
             $variable_width = ( $bp['variable_width'] ?? '' ) === 'yes';
             $slide_width    = absint( $bp['slide_width'] ?? 0 );
+            // Switcher OFF → '' (stringa vuota); ON → 'yes'.
+            // Default 'yes' per show_arrows (frecce visibili se non impostato).
+            // Default ''  per show_dots   (dots nascosti se non impostato).
+            $show_arrows    = ( $bp['show_arrows'] ?? 'yes' ) === 'yes';
+            $show_dots      = ( $bp['show_dots']   ?? '' )    === 'yes';
 
             if ( $bp_px <= 0 ) {
                 continue;
@@ -1195,7 +1225,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             }
 
             $css .= '@media (max-width:' . $bp_px . 'px){';
-            $css .= $selector . '{flex:0 0 ' . $slide_size . ';}';
+            $css .= $sel_slide  . '{flex:0 0 ' . $slide_size . ';}';
+            $css .= $sel_arrows . '{display:' . ( $show_arrows ? 'flex' : 'none' ) . ';}';
+            $css .= $sel_dots   . '{display:' . ( $show_dots   ? 'flex' : 'none' ) . ';}';
             $css .= '}';
         }
         $css .= '</style>';
@@ -1376,8 +1408,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
                 $responsive[] = [
                     'breakpoint'      => absint( $breakpoint['breakpoint'] ),
-                    'showArrows'      => $breakpoint['show_arrows'] === 'yes',
-                    'showDots'        => $breakpoint['show_dots'] === 'yes',
                     'imageHeightMode' => $breakpoint['image_height_mode'] ?? 'auto',
                     'imageHeight'     => $image_height,
                     'imageWidth'      => $image_width,
