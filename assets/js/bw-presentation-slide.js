@@ -856,6 +856,14 @@
         });
     }
 
+    function isElementorEditMode() {
+        return (
+            typeof elementorFrontend !== 'undefined' &&
+            typeof elementorFrontend.isEditMode === 'function' &&
+            elementorFrontend.isEditMode()
+        );
+    }
+
     $(document).ready(function () {
         initWidgets();
     });
@@ -880,6 +888,15 @@
 
                 const existing = $wrapper.data('bw-ps-instance');
                 if (existing) {
+                    // On normal frontend pages the widget may have already been
+                    // initialized via document.ready(). Re-destroying it here
+                    // removes the popup overlay that was moved to <body>, and the
+                    // second init can no longer recover it from the wrapper.
+                    // In edit mode we still want full destroy/re-init behavior.
+                    if (!isElementorEditMode()) {
+                        return;
+                    }
+
                     existing.destroy();
                     $wrapper.removeData('bw-ps-instance');
                 }
