@@ -1,19 +1,28 @@
 /**
  * Lazy image fade-in using IntersectionObserver.
  *
- * All img[loading="lazy"] start at opacity:0 (via .bw-lazy--fade).
- * When an image enters the viewport:
- *   - cached (complete): immediately add .bw-lazy--loaded → instant visible, then fade
- *   - not yet loaded: wait for load event → fade in on arrival
+ * Scoped to containers where a fade makes sense:
+ *   .bw-related-products-grid, .bw-related-products-widget, .bw-product-grid
  *
- * Falls back gracefully if IntersectionObserver is unsupported (images render normally).
+ * Explicitly skipped:
+ *   .bw-wallpost — has its own hover/opacity/transition system and transition:none on imgs.
+ *   .bw-slick-slider — manages its own lazy loading via data-lazy / Slick.
+ *
+ * Cached images (complete on observe) reveal immediately via the fade transition.
+ * Falls back gracefully if IntersectionObserver is unsupported.
  */
 ( function () {
     'use strict';
 
     if ( ! ( 'IntersectionObserver' in window ) ) {
-        return; // old browsers: images render normally, no fade
+        return;
     }
+
+    var SELECTOR = [
+        '.bw-related-products-grid img[loading="lazy"]',
+        '.bw-related-products-widget img[loading="lazy"]',
+        '.bw-product-grid img[loading="lazy"]',
+    ].join( ', ' );
 
     var observer = new IntersectionObserver( function ( entries ) {
         entries.forEach( function ( entry ) {
@@ -23,7 +32,6 @@
             observer.unobserve( img );
 
             if ( img.complete && img.naturalWidth !== 0 ) {
-                // Cached — reveal immediately (transition runs from opacity:0)
                 img.classList.add( 'bw-lazy--loaded' );
             } else {
                 img.addEventListener( 'load', function () {
@@ -35,11 +43,11 @@
             }
         } );
     }, {
-        rootMargin: '0px 0px 100px 0px' // start 100px before entering viewport
+        rootMargin: '0px 0px 100px 0px'
     } );
 
     function initLazyFade() {
-        document.querySelectorAll( 'img[loading="lazy"]' ).forEach( function ( img ) {
+        document.querySelectorAll( SELECTOR ).forEach( function ( img ) {
             img.classList.add( 'bw-lazy--fade' );
             observer.observe( img );
         } );
