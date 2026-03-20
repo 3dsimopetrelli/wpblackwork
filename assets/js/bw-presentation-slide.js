@@ -597,6 +597,15 @@
 
             this.$popupOverlay = $overlay;
 
+            if ($overlay.hasClass('active') || $overlay.attr('aria-hidden') === 'false') {
+                console.warn('[BW Presentation Slide] Popup overlay is already active during initPopup()', {
+                    widgetId: this.widgetId,
+                    active: $overlay.hasClass('active'),
+                    ariaHidden: $overlay.attr('aria-hidden')
+                });
+                console.trace('[BW Presentation Slide] initPopup active overlay trace');
+            }
+
             BWEmblaCore.initImageLoading($overlay[0]);
 
             $closeBtn.off(`click.bwps-${this.widgetId}`)
@@ -622,6 +631,23 @@
             if (this.isTouchDevice() && !this.config.enablePopupMobile) return;
 
             const $overlay     = this.$popupOverlay;
+            console.groupCollapsed('[BW Presentation Slide] openModal');
+            console.log({
+                widgetId: this.widgetId,
+                startIndex,
+                hasOverlay: !!($overlay && $overlay.length),
+                overlayInBody: !!($overlay && $overlay.length && $overlay.parent().is('body')),
+                overlayActiveBeforeOpen: !!($overlay && $overlay.length && $overlay.hasClass('active')),
+                ariaHiddenBeforeOpen: $overlay && $overlay.length ? $overlay.attr('aria-hidden') : null,
+                layoutMode: this.layoutMode,
+                enablePopup: this.config?.enablePopup,
+                enablePopupMobile: this.config?.enablePopupMobile,
+                isTouchDevice: this.isTouchDevice(),
+            });
+            console.trace('[BW Presentation Slide] openModal trace');
+            console.groupEnd();
+            debugger;
+
             if (!$overlay || !$overlay.length) return;
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
             if (!$targetImage.length) return;
