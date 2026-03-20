@@ -1,40 +1,61 @@
 /**
- * Lazy image fade-in effect.
+ * Lazy image fade-in using IntersectionObserver.
  *
- * For each img[loading="lazy"] that is not yet loaded:
- *   - adds .bw-lazy--fade (opacity: 0, transition)
- *   - adds .bw-lazy--loaded (opacity: 1) when the image finishes loading
+ * Scoped to containers where a fade makes sense:
+ *   .bw-related-products-grid, .bw-related-products-widget, .bw-product-grid
  *
- * Already-loaded images (cache hits) are skipped entirely — no visual flash.
- * Hover images (.bw-slider-hover) get the class but the higher-specificity
- * wallpost/product-card CSS keeps them at opacity:0 until hover — no conflict.
+ * Explicitly skipped:
+ *   .bw-wallpost — has its own hover/opacity/transition system and transition:none on imgs.
+ *   .bw-slick-slider — manages its own lazy loading via data-lazy / Slick.
+ *
+ * Cached images (complete on observe) reveal immediately via the fade transition.
+ * Falls back gracefully if IntersectionObserver is unsupported.
  */
 ( function () {
     'use strict';
 
-    function applyLazyFade() {
-        document.querySelectorAll( 'img[loading="lazy"]' ).forEach( function ( img ) {
-            // Already in cache or loaded before JS ran — skip, render instantly.
+    if ( ! ( 'IntersectionObserver' in window ) ) {
+        return;
+    }
+
+    var SELECTOR = [
+        '.bw-related-products-grid img[loading="lazy"]',
+        '.bw-related-products-widget img[loading="lazy"]',
+        '.bw-product-grid img[loading="lazy"]',
+    ].join( ', ' );
+
+    var observer = new IntersectionObserver( function ( entries ) {
+        entries.forEach( function ( entry ) {
+            if ( ! entry.isIntersecting ) { return; }
+
+            var img = entry.target;
+            observer.unobserve( img );
+
             if ( img.complete && img.naturalWidth !== 0 ) {
-                return;
+                img.classList.add( 'bw-lazy--loaded' );
+            } else {
+                img.addEventListener( 'load', function () {
+                    img.classList.add( 'bw-lazy--loaded' );
+                }, { once: true } );
+                img.addEventListener( 'error', function () {
+                    img.classList.add( 'bw-lazy--loaded' );
+                }, { once: true } );
             }
+        } );
+    }, {
+        rootMargin: '0px 0px 100px 0px'
+    } );
 
+    function initLazyFade() {
+        document.querySelectorAll( SELECTOR ).forEach( function ( img ) {
             img.classList.add( 'bw-lazy--fade' );
-
-            img.addEventListener( 'load', function () {
-                img.classList.add( 'bw-lazy--loaded' );
-            }, { once: true } );
-
-            // On error show the broken-image placeholder normally.
-            img.addEventListener( 'error', function () {
-                img.classList.add( 'bw-lazy--loaded' );
-            }, { once: true } );
+            observer.observe( img );
         } );
     }
 
     if ( document.readyState === 'loading' ) {
-        document.addEventListener( 'DOMContentLoaded', applyLazyFade );
+        document.addEventListener( 'DOMContentLoaded', initLazyFade );
     } else {
-        applyLazyFade();
+        initLazyFade();
     }
 }() );
