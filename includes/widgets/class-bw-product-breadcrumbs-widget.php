@@ -366,18 +366,15 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
     }
 
     protected function content_template() {
-        ?>
-        <#
-        view.addRenderAttribute( 'nav', 'class', 'bw-product-breadcrumbs' );
-        #>
-        <nav {{{ view.getRenderAttributeString( 'nav' ) }}} aria-label="Breadcrumb">
-            <ol class="bw-product-breadcrumbs__list">
-                <li class="bw-product-breadcrumbs__item"><a class="bw-product-breadcrumbs__link" href="#"><?php echo esc_html__( 'Home', 'bw' ); ?></a></li>
-                <li class="bw-product-breadcrumbs__item"><a class="bw-product-breadcrumbs__link" href="#"><?php echo esc_html__( 'Shop', 'bw' ); ?></a></li>
-                <li class="bw-product-breadcrumbs__item"><a class="bw-product-breadcrumbs__link" href="#"><?php echo esc_html__( 'Category', 'bw' ); ?></a></li>
-                <li class="bw-product-breadcrumbs__item"><span class="bw-product-breadcrumbs__current" aria-current="page"><?php echo esc_html__( 'Product Title', 'bw' ); ?></span></li>
-            </ol>
-        </nav>
-        <?php
+        // Deliberately empty: no JS template.
+        //
+        // WHY: Elementor runs content_template() client-side on every control change.
+        // A static JS template would replace the real product breadcrumbs with a
+        // placeholder every time the user edits a style control (color, typography,
+        // padding…), making the title "disappear" in the editor.
+        //
+        // Without a JS template, Elementor applies CSS-selector-based style controls
+        // directly (no HTML re-render), so the PHP-rendered breadcrumbs stay visible.
+        // Only product_id changes (which alter the HTML) trigger an AJAX PHP re-render.
     }
 }
