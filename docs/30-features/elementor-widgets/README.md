@@ -40,6 +40,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slide` -> canonical product slider
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
+  - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-presentation-slide` -> specialized presentation/gallery slider

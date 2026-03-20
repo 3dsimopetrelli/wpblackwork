@@ -57,9 +57,14 @@ Canonical transition note:
   - `description_source`: `description`, `short_description`, `both`
   - renders product long description, short description, or both with preserved HTML markup
   - Alignment (responsive), Typography group control (Elementor native), Text Color
-- `bw-product-breadcrumbs` controls (initial state):
+- `bw-product-breadcrumbs` controls (current state):
   - `product_id`: explicit product ID override for editor preview
   - deterministic breadcrumb chain for current Woo single product
+  - Content controls:
+    - `show_home`
+    - `show_shop`
+    - `show_category_path`
+    - `title_word_limit` (word-based truncation on the current product crumb only; `0` = unlimited)
   - Container style controls: background, padding, radius
   - Text style controls: alignment, typography, link/current/separator colors
 - `bw-presentation-slide` controls/runtime (audit state 2026-03-19):

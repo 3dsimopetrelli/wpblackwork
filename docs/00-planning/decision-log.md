@@ -638,6 +638,17 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
 ### Entry 042
 - Date: 2026-03-20
 - Decision summary: BW Presentation Slide popup UX was hardened and simplified: popup opening now requires a real press sequence, popup image height is bounded to the viewport, popup style controls were removed in favor of fixed CSS defaults, and horizontal arrows now render hidden by default to prevent mobile flicker before breakpoint JS applies.
+
+### Entry 043
+- Date: 2026-03-20
+- Decision summary: Extended `bw-product-breadcrumbs` with per-instance content controls to suppress `Home`, `Shop`, or the category path, and added deterministic word-based truncation for the terminal product-title crumb.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Product templates need breadcrumb variants that can stay minimal without forking the widget or introducing global settings, while long product titles need a stable way to be shortened inside narrow layouts.
+- Risk impact: Low-Medium — runtime remains widget-local, the underlying category-path resolution rule is unchanged, and title truncation applies only to the current product crumb.
+- Follow-up actions:
+  - Keep segment toggles in the widget `Content` tab rather than as plugin-global options.
+  - Preserve the deterministic category-path rule (deepest path first, lowest term ID tie-break).
+  - Keep title truncation word-based, with `0` meaning unlimited.
 - Affected domain: Elementor Widget / bw-presentation-slide / Frontend UX
 - Rationale: The widget had accumulated popup-specific style controls and runtime edge cases that were adding complexity without improving authoring value. The popup open path also needed deterministic interaction gating to prevent stray `pointerup` events from opening the modal, and the arrow container needed a safe initial hidden state to avoid a visible flash on mobile refresh.
 - Risk impact: Low-Medium — changes are widget-scoped, preserve existing core behaviors, and reduce configuration surface while making runtime behavior more deterministic.

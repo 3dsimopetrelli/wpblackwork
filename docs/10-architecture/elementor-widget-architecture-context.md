@@ -65,6 +65,9 @@ Decisions already fixed:
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget with optional filters
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
+  - deterministic category-path resolution remains fixed
+  - instance-level content controls may suppress `Home`, `Shop`, or category path segments without changing the underlying resolution rule
+  - current-title truncation is word-based and applies only to the terminal product crumb
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slide` -> canonical product slider
