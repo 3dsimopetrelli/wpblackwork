@@ -251,6 +251,10 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     overflow-y: auto;
+    /* iOS Safari: enables momentum scrolling inside a fixed container */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent scroll from propagating to the page behind the modal */
+    overscroll-behavior: contain;
 }
 
 .bw-ps-popup-overlay.active {

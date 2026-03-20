@@ -42,6 +42,9 @@
             this._sortedBreakpoints    = [];
             this._lastBreakpointIndex  = undefined; // track active bp for Embla reInit
 
+            // Body scroll lock state (iOS-safe popup scroll locking)
+            this._savedScrollY = 0;
+
             this.init();
         }
 
@@ -192,8 +195,22 @@
                 this._updateEmblaBreakpointOptions();
             }, 150));
 
+            // Track pointer position at press so we can distinguish tap from drag.
+            // Embla doesn't always cancel the click event after a swipe on mobile,
+            // so we check if the pointer moved more than 6px between down and click.
+            let _pdownX = 0, _pdownY = 0;
+            $(viewport).on(`pointerdown.bwps-${this.widgetId}`, (e) => {
+                _pdownX = e.clientX;
+                _pdownY = e.clientY;
+            });
+
             // Click sulle slide: zoom (popup) o navigazione
             $(viewport).on(`click.bwps-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
+                // Ignore if the pointer moved — it was a drag/swipe, not a tap
+                if (Math.abs(e.clientX - _pdownX) > 6 || Math.abs(e.clientY - _pdownY) > 6) {
+                    return;
+                }
+
                 const $slide      = $(e.currentTarget).closest('.bw-ps-slide');
                 const slideIndex  = parseInt($slide.data('bw-index'), 10);
                 const selected    = api.selectedScrollSnap();
@@ -360,8 +377,16 @@
                 }
             });
 
-            // Click su main slide → popup
+            // Click su main slide → popup (con drag detection)
+            let _vpdownX = 0, _vpdownY = 0;
+            $(mainViewport).on(`pointerdown.bwps-vertical-${this.widgetId}`, (e) => {
+                _vpdownX = e.clientX;
+                _vpdownY = e.clientY;
+            });
             $(mainViewport).on(`click.bwps-vertical-${this.widgetId}`, '.bw-ps-slide-main', (e) => {
+                if (Math.abs(e.clientX - _vpdownX) > 6 || Math.abs(e.clientY - _vpdownY) > 6) {
+                    return;
+                }
                 const index = parseInt($(e.currentTarget).data('bw-index'), 10);
                 if (!isNaN(index) && this.config.enablePopup) {
                     this.openModal(index);
@@ -552,36 +577,63 @@
         }
 
         openModal(startIndex) {
+            // Respect the mobile toggle: skip on touch devices if disabled
+            if (this.isTouchDevice() && !this.config.enablePopupMobile) return;
+
             const $overlay     = this.$popupOverlay;
             if (!$overlay || !$overlay.length) return;
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
             if (!$targetImage.length) return;
 
-            $overlay.fadeIn(300, function () {
-                $(this).addClass('active');
-            });
+            // 1. Make display:block while CSS keeps opacity:0 — overlay is transparent
+            //    but laid out, so getBoundingClientRect() returns real values.
+            $overlay.css('display', 'block');
 
-            $('body').css('overflow', 'hidden');
+            // 2. Sync reflow: forces the browser to compute layout before we read rects.
+            void $overlay[0].offsetHeight;
 
-            const scrollToTarget = () => {
-                const headerH  = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
-                const overlayT = $overlay[0].getBoundingClientRect().top;
-                const targetT  = $targetImage[0].getBoundingClientRect().top;
-                const delta    = targetT - overlayT - headerH;
-                $overlay.scrollTop($overlay.scrollTop() + delta);
-            };
+            // 3. Scroll to the target image while still invisible (no visible jump).
+            const headerH     = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
+            const overlayRect = $overlay[0].getBoundingClientRect();
+            const imageRect   = $targetImage[0].getBoundingClientRect();
+            $overlay[0].scrollTop = Math.max(
+                0,
+                $overlay[0].scrollTop + (imageRect.top - overlayRect.top) - headerH
+            );
 
+            // 4. Two rAF frames: guarantees the browser has painted the display:block
+            //    state before we add .active. Required on Safari to trigger the CSS
+            //    opacity transition (reading offsetHeight alone is not enough there).
             requestAnimationFrame(() => {
-                scrollToTarget();
-                setTimeout(scrollToTarget, 150);
+                requestAnimationFrame(() => {
+                    $overlay.addClass('active');
+                });
             });
+
+            // 5. Lock body scroll (iOS-safe: position:fixed trick)
+            this._lockBodyScroll();
         }
 
         closeModal() {
             const $overlay = this.$popupOverlay;
             if (!$overlay) return;
-            $overlay.removeClass('active').fadeOut(300);
-            $('body').css('overflow', '');
+
+            // Trigger CSS opacity transition: 1 → 0
+            $overlay.removeClass('active');
+
+            // Hide after transition ends; timeout is a fallback if the event never fires
+            // (e.g. element removed from DOM, or browser skips transition).
+            let done = false;
+            const hide = () => {
+                if (done) return;
+                done = true;
+                $overlay.css('display', 'none');
+                $overlay[0].scrollTop = 0; // reset scroll for next open
+            };
+            $overlay[0].addEventListener('transitionend', hide, { once: true });
+            setTimeout(hide, 350); // 300 ms transition + 50 ms buffer
+
+            this._unlockBodyScroll();
         }
 
         /* ────────────────────────────────────────────
@@ -665,6 +717,35 @@
         }
 
         /* ────────────────────────────────────────────
+           BODY SCROLL LOCK (iOS-safe)
+           On iOS Safari, `body { overflow: hidden }` does not prevent the page from
+           scrolling behind a modal.  The only reliable fix is `position: fixed` with
+           `top: -scrollY` so the viewport does not jump, then restoring scrollY on close.
+        ──────────────────────────────────────────── */
+
+        _lockBodyScroll() {
+            const body = document.body;
+            if (body.style.position === 'fixed') return; // already locked
+            this._savedScrollY = window.scrollY;
+            body.style.overflow = 'hidden';
+            body.style.position = 'fixed';
+            body.style.top      = `-${this._savedScrollY}px`;
+            body.style.width    = '100%';
+        }
+
+        _unlockBodyScroll() {
+            const body = document.body;
+            if (body.style.position !== 'fixed') return; // was not locked by us
+            const savedY = this._savedScrollY || 0;
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.top      = '';
+            body.style.width    = '';
+            window.scrollTo(0, savedY);
+            this._savedScrollY = 0;
+        }
+
+        /* ────────────────────────────────────────────
            UTILITY
         ──────────────────────────────────────────── */
 
@@ -705,9 +786,9 @@
             // Popup overlay: spostato in body da initPopup(), va rimosso esplicitamente
             // (altrimenti ogni re-init di Elementor accumula overlay orfani nel DOM)
             if (this.$popupOverlay) {
+                this._unlockBodyScroll(); // unlock scroll if popup was open when destroyed
                 this.$popupOverlay.remove();
                 this.$popupOverlay = null;
-                $('body').css('overflow', ''); // ripristina se il popup era aperto
             }
 
             // Cache DOM
