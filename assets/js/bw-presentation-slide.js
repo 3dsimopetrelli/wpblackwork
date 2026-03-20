@@ -215,11 +215,11 @@
 
                 const $slide      = $(e.currentTarget).closest('.bw-ps-slide');
                 const slideIndex  = parseInt($slide.data('bw-index'), 10);
-                const selected    = api.selectedScrollSnap();
+                const activeIndex = this._getCenteredHorizontalSlideIndex(viewport, api);
 
                 if (isNaN(slideIndex)) return;
 
-                if (slideIndex === selected) {
+                if (slideIndex === activeIndex) {
                     if (this.config.enablePopup) {
                         this.openModal(slideIndex);
                     }
@@ -533,6 +533,42 @@
             };
 
             api.reInit(newOpts);
+        }
+
+        /**
+         * Determine the slide that is visually centered in the current viewport.
+         *
+         * Embla's selectedScrollSnap() returns a snap index, which is not always the
+         * same as the visually central slide when multiple slides are visible or when
+         * alignment/variable-width settings are active. For the popup UX we care about
+         * the slide the user perceives as "current", so we derive it from geometry.
+         */
+        _getCenteredHorizontalSlideIndex(viewport, api) {
+            const slides = Array.from(viewport.querySelectorAll('.bw-ps-slide'));
+            if (!slides.length) {
+                return api ? api.selectedScrollSnap() : -1;
+            }
+
+            const viewportRect   = viewport.getBoundingClientRect();
+            const viewportCenter = viewportRect.left + (viewportRect.width / 2);
+            let bestIndex        = -1;
+            let bestDistance     = Infinity;
+
+            slides.forEach((slideEl) => {
+                const slideRect = slideEl.getBoundingClientRect();
+                const slideCenter = slideRect.left + (slideRect.width / 2);
+                const distance = Math.abs(slideCenter - viewportCenter);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    bestIndex = parseInt(slideEl.getAttribute('data-bw-index'), 10);
+                }
+            });
+
+            if (isNaN(bestIndex) || bestIndex < 0) {
+                return api ? api.selectedScrollSnap() : -1;
+            }
+
+            return bestIndex;
         }
 
         /* ────────────────────────────────────────────
