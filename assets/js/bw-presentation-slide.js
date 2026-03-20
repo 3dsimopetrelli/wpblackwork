@@ -735,7 +735,13 @@
         ──────────────────────────────────────────── */
 
         isTouchDevice() {
-            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            // navigator.maxTouchPoints > 0 is no longer a reliable mobile indicator:
+            // Safari 15.5+ and Chrome 112+ on macOS report maxTouchPoints = 5 on ALL
+            // Macs (anti-fingerprinting), which would falsely block the popup on desktops.
+            //
+            // (pointer: coarse) is the W3C standard: true only when the primary input
+            // is imprecise (finger/stylus), false for mouse/trackpad.
+            return window.matchMedia('(pointer: coarse)').matches;
         }
 
         /* ────────────────────────────────────────────
