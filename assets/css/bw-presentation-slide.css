@@ -242,6 +242,9 @@
    POPUP / MODAL
    ======================================== */
 .bw-ps-popup-overlay {
+    --bw-ps-popup-header-height: 0px;
+    --bw-ps-popup-body-pad-top: 40px;
+    --bw-ps-popup-body-pad-bottom: 40px;
     position: fixed;
     inset: 0;
     width: 100%;
@@ -358,9 +361,16 @@
 
 .bw-ps-popup-image img {
     max-width: min(2000px, 100%);
-    width: 100%;
+    width: auto;
+    max-height: calc(
+        100dvh
+        - var(--bw-ps-popup-header-height, 0px)
+        - var(--bw-ps-popup-body-pad-top, 40px)
+        - var(--bw-ps-popup-body-pad-bottom, 40px)
+    );
     height: auto;
     display: inline-block;
+    object-fit: contain;
     /* Popup images usano bw-embla-img per il fade-in */
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -505,4 +515,3 @@
     outline: 2px solid #0073aa;
     outline-offset: 2px;
 }
-

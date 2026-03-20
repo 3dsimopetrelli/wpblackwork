@@ -899,7 +899,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_control(
+        $this->add_responsive_control(
             'popup_max_width',
             [
                 'label'      => __( 'Max Image Width (px)', 'bw-elementor-widgets' ),
@@ -931,7 +931,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_control(
+        $this->add_responsive_control(
             'popup_header_padding',
             [
                 'label'      => __( 'Header Padding', 'bw-elementor-widgets' ),
@@ -939,6 +939,18 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'size_units' => [ 'px', 'em', 'rem' ],
                 'selectors'  => [
                     '{{WRAPPER}} .bw-ps-popup-header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'popup_body_padding',
+            [
+                'label'      => __( 'Body Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', 'rem' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-ps-popup-body' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -1017,7 +1029,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_control(
+        $this->add_responsive_control(
             'popup_close_size',
             [
                 'label'      => __( 'Close Button Size', 'bw-elementor-widgets' ),

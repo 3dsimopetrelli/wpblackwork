@@ -654,6 +654,7 @@
 
             this.$popupOverlay = $overlay;
 
+            this._syncPopupViewportMetrics();
             BWEmblaCore.initImageLoading($overlay[0]);
 
             $closeBtn.off(`click.bwps-${this.widgetId}`)
@@ -672,6 +673,34 @@
                                this.closeModal();
                            }
                        });
+
+            $(window).off(`resize.bwps-${this.widgetId}`)
+                     .on(`resize.bwps-${this.widgetId}`, debounce(() => {
+                         this._syncPopupViewportMetrics();
+                     }, 100));
+        }
+
+        _syncPopupViewportMetrics() {
+            const $overlay = this.$popupOverlay;
+            if (!$overlay || !$overlay.length) return;
+
+            const overlayEl = $overlay[0];
+            const headerEl  = $overlay.find('.bw-ps-popup-header')[0];
+            const bodyEl    = $overlay.find('.bw-ps-popup-body')[0];
+
+            const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 0;
+            let bodyPadTop = 40;
+            let bodyPadBottom = 40;
+
+            if (bodyEl) {
+                const bodyStyles = window.getComputedStyle(bodyEl);
+                bodyPadTop = parseFloat(bodyStyles.paddingTop) || 0;
+                bodyPadBottom = parseFloat(bodyStyles.paddingBottom) || 0;
+            }
+
+            overlayEl.style.setProperty('--bw-ps-popup-header-height', `${headerHeight}px`);
+            overlayEl.style.setProperty('--bw-ps-popup-body-pad-top', `${bodyPadTop}px`);
+            overlayEl.style.setProperty('--bw-ps-popup-body-pad-bottom', `${bodyPadBottom}px`);
         }
 
         openModal(startIndex) {
@@ -683,6 +712,8 @@
             if (!$overlay || !$overlay.length) return;
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
             if (!$targetImage.length) return;
+
+            this._syncPopupViewportMetrics();
 
             // Step 1 — compute scroll position BEFORE locking the body.
             // On iOS Safari, _lockBodyScroll() sets body{position:fixed} which can
