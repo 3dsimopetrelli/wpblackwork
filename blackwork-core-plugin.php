@@ -605,21 +605,21 @@ add_action('init', 'bw_register_divider_style');
 add_action('init', 'bw_register_button_widget_assets');
 add_action('init', 'bw_register_about_menu_widget_assets');
 add_action('init', 'bw_register_wallpost_widget_assets');
-add_action('elementor/frontend/after_register_scripts', 'bw_enqueue_about_menu_widget_assets');
+// about-menu: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets');
-add_action('wp_enqueue_scripts', 'bw_enqueue_custom_class_assets');
+// bw-custom-class.css (full-section Elementor utility) only needed on Elementor pages
 add_action('elementor/frontend/after_enqueue_styles', 'bw_enqueue_custom_class_assets');
 add_action('elementor/editor/after_enqueue_styles', 'bw_enqueue_custom_class_assets');
 add_action('init', 'bw_register_product_grid_widget_assets');
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
+// product-grid: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
 add_action('init', 'bw_register_animated_banner_widget_assets');
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets');
+// animated-banner: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets');
 add_action('wp_enqueue_scripts', 'bw_enqueue_smart_header_assets');
 add_action('init', 'bw_register_static_showcase_widget_assets');
 add_action('init', 'bw_register_related_products_widget_assets');
-add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets');
+// related-products: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets');
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
@@ -1330,26 +1330,39 @@ function bw_register_price_variation_widget_assets()
         $js_version,
         true
     );
-
-    // Localize script for AJAX (only if WooCommerce is loaded)
-    if (function_exists('get_woocommerce_currency_symbol')) {
-        wp_localize_script(
-            'bw-price-variation-script',
-            'bwPriceVariation',
-            [
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('bw_price_variation_nonce'),
-                'priceFormat' => [
-                    'symbol' => html_entity_decode(get_woocommerce_currency_symbol()),
-                    'decimals' => wc_get_price_decimals(),
-                    'decimal_separator' => wc_get_price_decimal_separator(),
-                    'thousand_separator' => wc_get_price_thousand_separator(),
-                    'format' => html_entity_decode(get_woocommerce_price_format()),
-                ],
-            ]
-        );
-    }
 }
+
+/**
+ * Localize bw-price-variation-script only on product pages.
+ * Kept separate from registration to avoid wp_create_nonce() DB hit on every page.
+ */
+function bw_localize_price_variation_widget_assets()
+{
+    if (!function_exists('is_product') || !is_product()) {
+        return;
+    }
+
+    if (!function_exists('get_woocommerce_currency_symbol')) {
+        return;
+    }
+
+    wp_localize_script(
+        'bw-price-variation-script',
+        'bwPriceVariation',
+        [
+            'ajaxUrl'     => admin_url('admin-ajax.php'),
+            'nonce'       => wp_create_nonce('bw_price_variation_nonce'),
+            'priceFormat' => [
+                'symbol'             => html_entity_decode(get_woocommerce_currency_symbol()),
+                'decimals'           => wc_get_price_decimals(),
+                'decimal_separator'  => wc_get_price_decimal_separator(),
+                'thousand_separator' => wc_get_price_thousand_separator(),
+                'format'             => html_entity_decode(get_woocommerce_price_format()),
+            ],
+        ]
+    );
+}
+add_action('wp_enqueue_scripts', 'bw_localize_price_variation_widget_assets', 15);
 
 function bw_register_product_details_widget_assets()
 {
