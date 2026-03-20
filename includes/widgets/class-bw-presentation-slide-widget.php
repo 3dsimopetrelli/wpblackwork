@@ -1149,7 +1149,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 </div>
             </div>
 
-            <div class="bw-ps-arrows-container">
+            <div class="bw-ps-arrows-container" style="display: none;">
                 <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">&#8592;</button>
                 <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">&#8594;</button>
             </div>
