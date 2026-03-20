@@ -43,7 +43,7 @@
 }
 
 /* Forza il reset di qualsiasi parent che potrebbe interferire */
-body:not(.elementor-editor-active) .elementor-top-section {
+body:not(.elementor-editor-active) .elementor-top-section:has(.bw-animated-banner) {
     transform: none !important;
 }
 
@@ -76,8 +76,6 @@ body:not(.elementor-editor-active) .elementor-top-section {
     will-change: transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
 }
 
 .bw-animated-banner__content {
@@ -116,8 +114,9 @@ body:not(.elementor-editor-active) .elementor-top-section {
     }
 }
 
-/* Pause animation on hover */
+/* Pause animation on hover or focus */
 .bw-animated-banner:hover .bw-animated-banner__track,
+.bw-animated-banner:focus-within .bw-animated-banner__track,
 .bw-animated-banner.paused .bw-animated-banner__track {
     animation-play-state: paused;
 }
