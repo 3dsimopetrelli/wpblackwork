@@ -517,6 +517,22 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'enable_popup_mobile',
+            [
+                'label'        => __( 'Enable on Mobile', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'condition'    => [
+                    'enable_popup' => 'yes',
+                ],
+                'description'  => __( 'Show popup zoom on touch devices (mobile/tablet)', 'bw-elementor-widgets' ),
+            ]
+        );
+
         $this->end_controls_section();
 
         // ========================================
@@ -1107,6 +1123,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'widgetId'             => $widget_id,
             'layoutMode'           => $settings['layout_mode'],
             'enablePopup'          => $settings['enable_popup'] === 'yes',
+            'enablePopupMobile'    => ( $settings['enable_popup_mobile'] ?? '' ) === 'yes',
             'enableCustomCursor'   => $settings['enable_custom_cursor'] === 'yes',
             'popupTitle'           => $popup_title,
             'dotsPosition'         => $settings['dots_position'] ?? 'center',
