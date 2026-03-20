@@ -50,9 +50,30 @@ Design is fixed — no user configuration:
 - Full-screen white overlay with sticky header and scrollable image list.
 - Popup title sourced from product name (WooCommerce context) or widget setting.
 - Close button currently renders explicit text `Close` instead of an icon-only glyph.
+- Popup style controls have been intentionally reduced back to a fixed skin.
+  - No dedicated `Style > Popup` typography/color/spacing controls remain.
+  - Header text defaults are now part of widget CSS authority.
+- Current popup typography defaults:
+  - title desktop/tablet: `16px`, `line-height: 20px`
+  - title mobile: `12px`, `line-height: 18px`
+  - close button text: `16px`
 - Popup open/close uses opacity/visibility transitions instead of `display:none` toggling to avoid Safari transition glitches.
 - Body scroll lock is handled in an iOS-safe way through fixed-body state while the modal is open.
+- Popup image height is bounded to the viewport via `max-height: calc(100dvh - header - body padding)` so tall portrait images never exceed the visible viewport.
 - Properly removed from DOM in `destroy()` to prevent orphaned overlays on Elementor re-render.
+
+### Popup Trigger Hardening
+- Popup opening is guarded by a real `pointerdown -> pointerup` sequence on the same target.
+- This prevents stray or synthetic `pointerup` events from opening the popup unexpectedly on refresh or during initialization.
+- The hardening applies to:
+  - horizontal Embla slides
+  - vertical desktop main images
+  - vertical responsive Embla slides
+
+### Arrow Visibility Contract
+- Breakpoint `Show Arrows` is enforced by JS through `_updateArrowsVisibility()`.
+- Arrow markup now renders with `display:none` inline by default.
+- This prevents a mobile flicker where arrow buttons were briefly visible before the breakpoint runtime hid them.
 
 ## Product Context
 

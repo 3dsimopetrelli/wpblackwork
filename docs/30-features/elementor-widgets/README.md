@@ -73,7 +73,15 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - shared Embla base assets live in:
     - `assets/js/bw-embla-core.js`
     - `assets/css/bw-embla-core.css`
-  - popup overlay runtime appends to `<body>` and preserves wrapper-scoped Elementor styling by copying the widget element class before append
+  - popup overlay runtime appends to `<body>`
+  - popup style surface was later intentionally simplified back to fixed CSS defaults instead of Elementor popup style controls
+  - popup title / close defaults now live in widget CSS:
+    - title desktop/tablet: `16px / 20px`
+    - title mobile: `12px / 18px`
+    - close text: `16px`
+  - popup image height is bounded to the viewport
+  - popup opening is guarded by a real `pointerdown -> pointerup` sequence
+  - arrow buttons render hidden by default and are shown only after breakpoint JS confirms `show arrows`
 
 ## Visible title alignment (editor)
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`

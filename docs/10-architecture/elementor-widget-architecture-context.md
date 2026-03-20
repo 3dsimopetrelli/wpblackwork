@@ -68,10 +68,17 @@ Decisions already fixed:
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slide` -> canonical product slider
-- `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout)
+- `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-newsletter-subscription` -> canonical fixed-design Brevo/Mail Marketing opt-in widget for Elementor surfaces
+
+Current popup/runtime note for `bw-presentation-slide`:
+- popup overlay is moved to `<body>` at runtime
+- popup style customization was intentionally reduced back to fixed CSS defaults
+- title and close text sizing are now owned directly by widget CSS, not Elementor popup style controls
+- popup opening is guarded by a real press sequence (`pointerdown` then `pointerup` on the same target)
+- horizontal arrow buttons start hidden in markup and are made visible only after responsive JS confirms the active breakpoint should show them
 
 Visible editor title alignment (current):
 - `bw-slick-slider` -> `BW-UI Product Slider`

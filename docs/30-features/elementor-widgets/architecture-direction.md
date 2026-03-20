@@ -82,6 +82,11 @@ Current audit note for `bw-presentation-slide`:
 - the widget still owns a substantial widget-local runtime in `assets/js/bw-presentation-slide.js`
 - that runtime directly initializes `BWEmblaCore` for horizontal and responsive-vertical flows, and still owns popup logic, custom cursor behavior, and vertical desktop elevator behavior
 - the widget has migrated away from Slick, but it has not yet converged to a thinner shared slider-core adapter
+- popup styling direction has been simplified:
+  - fixed CSS defaults instead of a growing Elementor popup style surface
+  - viewport-bounded popup images
+  - explicit interaction gating for popup opening
+  - initial arrow visibility controlled defensively to avoid breakpoint flicker before JS init
 
 Expected outcomes:
 - one core lifecycle (`init`, `reinit`, `destroy`) per scope

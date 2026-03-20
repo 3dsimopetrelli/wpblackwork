@@ -80,7 +80,18 @@ Canonical transition note:
     - overlay appended to `<body>`
     - sticky popup header
     - close button currently renders explicit text `Close`
+    - popup style controls were removed again after cleanup; popup typography/close sizing are fixed in CSS
+    - title defaults:
+      - desktop/tablet: `16px`, `line-height: 20px`
+      - mobile: `12px`, `line-height: 18px`
+    - close text default: `16px`
+    - popup images are constrained to viewport height
+    - popup opening now requires a real `pointerdown -> pointerup` interaction on the same target
   - custom cursor runtime is still active
+  - horizontal arrows:
+    - rendered hidden by default
+    - visibility enabled only by responsive JS breakpoint evaluation
+    - prevents mobile flicker of arrows during initial refresh
   - current asset/runtime authority depends on:
     - `embla-js`
     - `embla-autoplay-js`

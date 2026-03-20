@@ -89,3 +89,9 @@
   - custom cursor
   - breakpoint/image-height application
   - vertical desktop elevator behavior
+- additional verified runtime notes after follow-up implementation:
+  - popup open path is guarded by a real `pointerdown -> pointerup` sequence on the same target
+  - popup overlay appends to `<body>` and remains widget-local runtime authority
+  - popup image height is bounded to the viewport
+  - popup style controls were intentionally removed again in favor of fixed CSS defaults
+  - horizontal arrows render hidden by default and are shown only after breakpoint runtime confirms `show arrows`
