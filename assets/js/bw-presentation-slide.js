@@ -195,23 +195,41 @@
                 this._updateEmblaBreakpointOptions();
             }, 150));
 
-            // Track pointer position at press so we can distinguish tap from drag.
-            // We use pointerdown + pointerup (not click) because Safari does not fire
-            // click events on elements with cursor:none, which the custom-cursor feature
-            // sets on the entire widget wrapper. pointerup is a raw pointer event and
-            // is dispatched by Safari regardless of the cursor CSS property.
-            let _pdownX = 0, _pdownY = 0;
-            $(viewport).on(`pointerdown.bwps-${this.widgetId}`, (e) => {
-                _pdownX = e.clientX;
-                _pdownY = e.clientY;
+            // Track a real press sequence so popup opening can only happen after
+            // a pointerdown on the same clickable slide. This prevents accidental
+            // openModal() calls from stray/synthetic pointerup events.
+            let _pressState = null;
+            $(viewport).on(`pointerdown.bwps-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
+                _pressState = {
+                    x: e.clientX,
+                    y: e.clientY,
+                    pointerId: e.pointerId,
+                    target: e.currentTarget,
+                };
+            });
+
+            $(viewport).on(`pointercancel.bwps-${this.widgetId} pointerleave.bwps-${this.widgetId}`, () => {
+                _pressState = null;
             });
 
             // pointerup sulle slide: zoom (popup) o navigazione
             $(viewport).on(`pointerup.bwps-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
-                // Ignore if the pointer moved — it was a drag/swipe, not a tap
-                if (Math.abs(e.clientX - _pdownX) > 6 || Math.abs(e.clientY - _pdownY) > 6) {
+                if (
+                    !_pressState ||
+                    _pressState.pointerId !== e.pointerId ||
+                    _pressState.target !== e.currentTarget
+                ) {
+                    _pressState = null;
                     return;
                 }
+
+                // Ignore if the pointer moved — it was a drag/swipe, not a tap
+                if (Math.abs(e.clientX - _pressState.x) > 6 || Math.abs(e.clientY - _pressState.y) > 6) {
+                    _pressState = null;
+                    return;
+                }
+
+                _pressState = null;
 
                 const $slide      = $(e.currentTarget).closest('.bw-ps-slide');
                 const slideIndex  = parseInt($slide.data('bw-index'), 10);
@@ -295,11 +313,32 @@
                     $(e.currentTarget).addClass('active');
                 });
 
-            // pointerup main image → popup (pointerup invece di click: Safari non genera
-            // click su elementi con cursor:none, usato dal custom-cursor feature)
+            // pointerup main image → popup, but only after a real pointerdown on
+            // the same image. This keeps Safari support without allowing stray
+            // pointerup events to trigger popup opening.
+            let _mainPressState = null;
+            $mainImageElements.find('.bw-ps-image-clickable')
+                .off(`pointerdown.bwps-${this.widgetId}`)
+                .on(`pointerdown.bwps-${this.widgetId}`, (e) => {
+                    _mainPressState = {
+                        pointerId: e.pointerId,
+                        target: e.currentTarget,
+                    };
+                });
+
             $mainImageElements.find('.bw-ps-image-clickable')
                 .off(`pointerup.bwps-${this.widgetId}`)
                 .on(`pointerup.bwps-${this.widgetId}`, (e) => {
+                    if (
+                        !_mainPressState ||
+                        _mainPressState.pointerId !== e.pointerId ||
+                        _mainPressState.target !== e.currentTarget
+                    ) {
+                        _mainPressState = null;
+                        return;
+                    }
+
+                    _mainPressState = null;
                     const index = parseInt(
                         $(e.currentTarget).closest('.bw-ps-main-image').data('bw-index'), 10
                     );
@@ -380,18 +419,36 @@
                 }
             });
 
-            // pointerup su main slide → popup (con drag detection)
-            // Uso pointerup invece di click: Safari non genera click su elementi
-            // con cursor:none (impostato dal custom-cursor feature su tutto il wrapper).
-            let _vpdownX = 0, _vpdownY = 0;
-            $(mainViewport).on(`pointerdown.bwps-vertical-${this.widgetId}`, (e) => {
-                _vpdownX = e.clientX;
-                _vpdownY = e.clientY;
+            // pointerup su main slide → popup (con drag detection), but only after
+            // a matching pointerdown on the same slide.
+            let _vpPressState = null;
+            $(mainViewport).on(`pointerdown.bwps-vertical-${this.widgetId}`, '.bw-ps-slide-main', (e) => {
+                _vpPressState = {
+                    x: e.clientX,
+                    y: e.clientY,
+                    pointerId: e.pointerId,
+                    target: e.currentTarget,
+                };
+            });
+            $(mainViewport).on(`pointercancel.bwps-vertical-${this.widgetId} pointerleave.bwps-vertical-${this.widgetId}`, () => {
+                _vpPressState = null;
             });
             $(mainViewport).on(`pointerup.bwps-vertical-${this.widgetId}`, '.bw-ps-slide-main', (e) => {
-                if (Math.abs(e.clientX - _vpdownX) > 6 || Math.abs(e.clientY - _vpdownY) > 6) {
+                if (
+                    !_vpPressState ||
+                    _vpPressState.pointerId !== e.pointerId ||
+                    _vpPressState.target !== e.currentTarget
+                ) {
+                    _vpPressState = null;
                     return;
                 }
+
+                if (Math.abs(e.clientX - _vpPressState.x) > 6 || Math.abs(e.clientY - _vpPressState.y) > 6) {
+                    _vpPressState = null;
+                    return;
+                }
+
+                _vpPressState = null;
                 const index = parseInt($(e.currentTarget).data('bw-index'), 10);
                 if (!isNaN(index) && this.config.enablePopup) {
                     this.openModal(index);
@@ -597,15 +654,6 @@
 
             this.$popupOverlay = $overlay;
 
-            if ($overlay.hasClass('active') || $overlay.attr('aria-hidden') === 'false') {
-                console.warn('[BW Presentation Slide] Popup overlay is already active during initPopup()', {
-                    widgetId: this.widgetId,
-                    active: $overlay.hasClass('active'),
-                    ariaHidden: $overlay.attr('aria-hidden')
-                });
-                console.trace('[BW Presentation Slide] initPopup active overlay trace');
-            }
-
             BWEmblaCore.initImageLoading($overlay[0]);
 
             $closeBtn.off(`click.bwps-${this.widgetId}`)
@@ -631,22 +679,6 @@
             if (this.isTouchDevice() && !this.config.enablePopupMobile) return;
 
             const $overlay     = this.$popupOverlay;
-            console.groupCollapsed('[BW Presentation Slide] openModal');
-            console.log({
-                widgetId: this.widgetId,
-                startIndex,
-                hasOverlay: !!($overlay && $overlay.length),
-                overlayInBody: !!($overlay && $overlay.length && $overlay.parent().is('body')),
-                overlayActiveBeforeOpen: !!($overlay && $overlay.length && $overlay.hasClass('active')),
-                ariaHiddenBeforeOpen: $overlay && $overlay.length ? $overlay.attr('aria-hidden') : null,
-                layoutMode: this.layoutMode,
-                enablePopup: this.config?.enablePopup,
-                enablePopupMobile: this.config?.enablePopupMobile,
-                isTouchDevice: this.isTouchDevice(),
-            });
-            console.trace('[BW Presentation Slide] openModal trace');
-            console.groupEnd();
-            debugger;
 
             if (!$overlay || !$overlay.length) return;
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
