@@ -67,43 +67,43 @@ Canonical transition note:
     - `title_word_limit` (word-based truncation on the current product crumb only; `0` = unlimited)
   - Container style controls: background, padding, radius
   - Text style controls: alignment, typography, link/current/separator colors
-- `bw-presentation-slide` controls/runtime (audit state 2026-03-19):
+- `bw-presentation-slide` controls/runtime (audit state 2026-03-20):
   - visible title: `BW-UI Presentation Slider`
   - layout modes: `horizontal`, `vertical`
   - image source: `custom` gallery or WooCommerce product gallery query
-  - horizontal mode is Embla-based with breakpoint repeater settings:
+  - **Slider Settings** (horizontal mode):
+    - `infinite_loop`, `autoplay`, `autoplay_speed`, `pause_on_hover`
+    - `drag_free` — free-scroll, no snap
+    - `touch_drag` — enable/disable swipe on touch devices (mobile & tablet); desktop mouse drag always active; implemented via Embla `watchDrag` callback filtering `PointerEvent.pointerType`
+    - `slide_align` — start / center / end
+  - horizontal mode breakpoint repeater (`breakpoints`):
     - slides to show / scroll
-    - arrows / dots
-    - alignment (`start` / `center` / `end`)
-    - drag-free
-    - variable width / fixed slide width
+    - show arrows / show dots — **CSS-managed** (not JS): `render_breakpoint_css()` emits scoped `@media (max-width: Xpx)` rules sorted descending; breakpoints must not be assumed to be sorted in JS for this purpose
+    - center mode / variable width / fixed slide width
     - per-breakpoint image height mode and dimensions
   - vertical mode:
     - desktop elevator layout with thumbnail rail + scroll tracking
     - optional responsive fallback to synchronized Embla main/thumb sliders
-  - popup overlay gallery is still active
-    - overlay appended to `<body>`
+  - popup overlay gallery:
+    - overlay appended to `<body>` on init, removed on `destroy()`
     - sticky popup header
-    - close button currently renders explicit text `Close`
-    - popup style controls were removed again after cleanup; popup typography/close sizing are fixed in CSS
-    - title defaults:
-      - desktop/tablet: `16px`, `line-height: 20px`
-      - mobile: `12px`, `line-height: 18px`
-    - close text default: `16px`
-    - popup images are constrained to viewport height
-    - popup opening now requires a real `pointerdown -> pointerup` interaction on the same target
-  - custom cursor runtime is still active
-  - horizontal arrows:
-    - rendered hidden by default
-    - visibility enabled only by responsive JS breakpoint evaluation
-    - prevents mobile flicker of arrows during initial refresh
+    - close button renders explicit text `Close`
+    - popup typography/close sizing fixed in CSS (no user controls)
+    - title defaults: desktop/tablet `16px / 20px lh`, mobile `12px / 18px lh`
+    - popup images constrained to viewport height via `max-height: calc(100dvh - header - padding)`
+    - popup open/close uses `opacity` + `visibility` transitions (not `display` toggling) — Safari-safe
+    - popup opening requires a real `pointerdown → pointerup` sequence on the same target
+    - body scroll locked via iOS-safe `position:fixed` pattern during popup open
+  - custom cursor: single on/off toggle (`enable_custom_cursor`); fixed glassmorphism design; desktop-only
+  - arrow/dots visibility:
+    - **CSS-only**: emitted by `render_breakpoint_css()` as scoped `@media` rules
+    - JS functions `_updateArrowsVisibility()` and `_updateDotsVisibility()` have been removed
+    - `showArrows` / `showDots` removed from JS `data-config` payload
+    - arrows HTML rendered without `style=""` inline — CSS media rules take immediate effect
   - current asset/runtime authority depends on:
-    - `embla-js`
-    - `embla-autoplay-js`
-    - `bw-embla-core-js`
-    - `bw-embla-core-css`
+    - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
     - `bw-presentation-slide-script`
-  - shared Embla base styles/classes are provided by `bw-embla-core.css`; widget-local CSS still owns popup, cursor, arrows, dots, elevator layout, and responsive presentation skin
+  - shared Embla base styles/classes in `bw-embla-core.css`; widget-local CSS owns popup, cursor, arrows, dots, elevator layout, responsive skin
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-newsletter-subscription`:
   - fixed-design widget

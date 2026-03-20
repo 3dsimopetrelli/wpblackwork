@@ -70,10 +70,41 @@ Design is fixed — no user configuration:
   - vertical desktop main images
   - vertical responsive Embla slides
 
-### Arrow Visibility Contract
-- Breakpoint `Show Arrows` is enforced by JS through `_updateArrowsVisibility()`.
-- Arrow markup now renders with `display:none` inline by default.
-- This prevents a mobile flicker where arrow buttons were briefly visible before the breakpoint runtime hid them.
+### Arrow & Dots Visibility Contract
+
+Arrow and dots visibility per breakpoint is managed **entirely by CSS `@media` rules** emitted inline by PHP (`render_breakpoint_css()`), not by JavaScript.
+
+**Why CSS, not JS:**
+The previous JS approach (`_updateArrowsVisibility`) read `$(window).width()` with 150ms debounce. In the Elementor editor this caused a race condition: the widget re-initialized via `element_ready` and called the function while the preview iframe was still transitioning between desktop/mobile views, reading the wrong width. Result: arrows visible when they should be hidden, needing publish + refresh.
+
+**How it works:**
+- `render_breakpoint_css()` sorts breakpoints **descending** (largest → smallest) before emitting CSS.
+- For each breakpoint it emits:
+  ```css
+  @media (max-width: Xpx) {
+      .elementor-element-{id} .bw-ps-arrows-container { display: flex | none; }
+      .elementor-element-{id} .bw-ps-dots-container   { display: flex | none; }
+      .elementor-element-{id} .bw-ps-slide             { flex: 0 0 ...; }
+  }
+  ```
+- Because breakpoints are emitted largest→smallest, the smallest breakpoint rule always arrives last in the stylesheet and overrides larger ones via normal cascade (same specificity, last wins).
+- For widths wider than the largest configured breakpoint: no media rule applies, base CSS `display: flex` is the default (arrows and dots shown).
+- The `.bw-ps-arrows-container` HTML is rendered **without** any `style=""` inline attribute so CSS rules take effect immediately.
+- `_updateArrowsVisibility()` and `_updateDotsVisibility()` have been removed from JS. The resize listener now only calls `_updateImageHeightControls()` and `_updateEmblaBreakpointOptions()`.
+
+### Slider Settings — Touch Drag
+
+`touch_drag` SWITCHER (default: Yes). Controls whether swipe/touch drag is enabled on touch devices (mobile & tablet).
+
+- **Yes (default):** Embla `watchDrag: true` — all pointer types can drag (mouse, touch, pen).
+- **No:** Embla `watchDrag: (api, evt) => evt.pointerType === 'mouse'` — only desktop mouse drag works; touch and pen are blocked.
+
+Desktop mouse drag is always active and is not affected by this setting.
+
+Implementation uses the Embla `watchDrag` callback API. `PointerEvent.pointerType` values:
+- `'mouse'` → desktop/trackpad
+- `'touch'` → touchscreen (mobile, tablet)
+- `'pen'` → stylus
 
 ## Product Context
 
@@ -96,9 +127,10 @@ Used by both `get_popup_title()` and `get_images_for_render()`.
 
 - Custom cursor is desktop-only (`display:none !important` at ≤768px).
 - Arrow button cursor (`cursor:pointer`) is explicitly restored via CSS override so `bw-ps-hide-cursor` does not suppress it.
-- Breakpoints sorted ascending; first match wins (`break` after match).
+- **Breakpoints are sorted descending** (largest → smallest) when emitting CSS — required for correct `@media max-width` cascade. JS `_sortedBreakpoints` is still sorted ascending for `_updateImageHeightControls()` and `_updateEmblaBreakpointOptions()` (first-match-break semantics remain).
 - Selector cache (`_$horizontal`, `_$images`) must be assigned **before** `emblaCore.init()` because `onSelect` fires during init.
 - Desktop vertical mode is intentionally not Embla-driven; it remains a custom elevator layout with thumbnail-triggered scroll.
+- `showArrows` and `showDots` have been removed from the JS `data-config` payload — arrow/dots visibility is now a CSS-only concern.
 
 ## Fixes Log
 
