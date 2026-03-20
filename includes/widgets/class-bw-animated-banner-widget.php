@@ -25,18 +25,10 @@ class BW_Animated_Banner_Widget extends Widget_Base {
     }
 
     public function get_style_depends() {
-        if ( ! wp_style_is( 'bw-animated-banner-style', 'registered' ) && function_exists( 'bw_register_animated_banner_widget_assets' ) ) {
-            bw_register_animated_banner_widget_assets();
-        }
-
         return [ 'bw-animated-banner-style' ];
     }
 
     public function get_script_depends() {
-        if ( ! wp_script_is( 'bw-animated-banner-script', 'registered' ) && function_exists( 'bw_register_animated_banner_widget_assets' ) ) {
-            bw_register_animated_banner_widget_assets();
-        }
-
         return [ 'bw-animated-banner-script' ];
     }
 
