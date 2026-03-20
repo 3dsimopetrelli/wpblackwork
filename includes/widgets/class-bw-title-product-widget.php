@@ -205,6 +205,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
         }
 
         $this->add_render_attribute( 'title', 'class', 'bw-title-product' );
+        $this->add_render_attribute( 'title', 'style', 'margin:0;padding:0;' );
 
         printf(
             '<%1$s %2$s>%3$s</%1$s>',
@@ -303,6 +304,7 @@ class Widget_Bw_Title_Product extends Widget_Base {
             label = 'Product Title';
         }
         view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
+        view.addRenderAttribute( 'title', 'style', 'margin:0;padding:0;' );
         print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>' + label + '</' + tag + '>' );
         #>
         <?php
