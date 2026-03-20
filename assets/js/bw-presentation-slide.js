@@ -196,16 +196,18 @@
             }, 150));
 
             // Track pointer position at press so we can distinguish tap from drag.
-            // Embla doesn't always cancel the click event after a swipe on mobile,
-            // so we check if the pointer moved more than 6px between down and click.
+            // We use pointerdown + pointerup (not click) because Safari does not fire
+            // click events on elements with cursor:none, which the custom-cursor feature
+            // sets on the entire widget wrapper. pointerup is a raw pointer event and
+            // is dispatched by Safari regardless of the cursor CSS property.
             let _pdownX = 0, _pdownY = 0;
             $(viewport).on(`pointerdown.bwps-${this.widgetId}`, (e) => {
                 _pdownX = e.clientX;
                 _pdownY = e.clientY;
             });
 
-            // Click sulle slide: zoom (popup) o navigazione
-            $(viewport).on(`click.bwps-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
+            // pointerup sulle slide: zoom (popup) o navigazione
+            $(viewport).on(`pointerup.bwps-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
                 // Ignore if the pointer moved — it was a drag/swipe, not a tap
                 if (Math.abs(e.clientX - _pdownX) > 6 || Math.abs(e.clientY - _pdownY) > 6) {
                     return;
@@ -293,10 +295,11 @@
                     $(e.currentTarget).addClass('active');
                 });
 
-            // Click main image → popup
+            // pointerup main image → popup (pointerup invece di click: Safari non genera
+            // click su elementi con cursor:none, usato dal custom-cursor feature)
             $mainImageElements.find('.bw-ps-image-clickable')
-                .off(`click.bwps-${this.widgetId}`)
-                .on(`click.bwps-${this.widgetId}`, (e) => {
+                .off(`pointerup.bwps-${this.widgetId}`)
+                .on(`pointerup.bwps-${this.widgetId}`, (e) => {
                     const index = parseInt(
                         $(e.currentTarget).closest('.bw-ps-main-image').data('bw-index'), 10
                     );
@@ -377,13 +380,15 @@
                 }
             });
 
-            // Click su main slide → popup (con drag detection)
+            // pointerup su main slide → popup (con drag detection)
+            // Uso pointerup invece di click: Safari non genera click su elementi
+            // con cursor:none (impostato dal custom-cursor feature su tutto il wrapper).
             let _vpdownX = 0, _vpdownY = 0;
             $(mainViewport).on(`pointerdown.bwps-vertical-${this.widgetId}`, (e) => {
                 _vpdownX = e.clientX;
                 _vpdownY = e.clientY;
             });
-            $(mainViewport).on(`click.bwps-vertical-${this.widgetId}`, '.bw-ps-slide-main', (e) => {
+            $(mainViewport).on(`pointerup.bwps-vertical-${this.widgetId}`, '.bw-ps-slide-main', (e) => {
                 if (Math.abs(e.clientX - _vpdownX) > 6 || Math.abs(e.clientY - _vpdownY) > 6) {
                     return;
                 }
