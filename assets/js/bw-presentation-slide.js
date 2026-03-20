@@ -181,16 +181,15 @@
 
             if (!api) return;
 
-            // Visibilità frecce + dots + image-height mode + opzioni Embla iniziali
-            this._updateArrowsVisibility();
-            this._updateDotsVisibility();
+            // Frecce e dots: visibilità gestita da CSS @media inline (PHP render_breakpoint_css).
+            // Nessuna funzione JS necessaria — CSS risponde istantaneamente senza race conditions.
+
+            // Image-height mode + opzioni Embla (ancora JS: non gestibili solo da CSS)
             this._updateImageHeightControls();
             this._updateEmblaBreakpointOptions();
 
             // Aggiorna on resize (debounced: evita esecuzione per ogni pixel)
             $(window).on(`resize.bwps-${this.widgetId}`, debounce(() => {
-                this._updateArrowsVisibility();
-                this._updateDotsVisibility();
                 this._updateImageHeightControls();
                 this._updateEmblaBreakpointOptions();
             }, 150));
@@ -469,44 +468,6 @@
             if (this.emblaThumbs) { this.emblaThumbs.destroy(); this.emblaThumbs = null; }
             this.$wrapper.find('.bw-ps-main-viewport').off(`.bwps-vertical-${this.widgetId}`);
             this.$wrapper.find('.bw-ps-thumbs-viewport').off(`.bwps-vertical-${this.widgetId}`);
-        }
-
-        /* ────────────────────────────────────────────
-           VISIBILITÀ FRECCE (responsive)
-        ──────────────────────────────────────────── */
-
-        _updateArrowsVisibility() {
-            const width     = $(window).width();
-            const $arrows   = this.$wrapper.find('.bw-ps-arrows-container');
-            let showArrows  = true; // default desktop: mostra
-
-            for (const bp of this._sortedBreakpoints) {
-                if (width <= bp.breakpoint) {
-                    showArrows = bp.showArrows === true;
-                    break; // array ascendente: primo match = breakpoint più piccolo che comprende la larghezza
-                }
-            }
-
-            $arrows.css('display', showArrows ? 'flex' : 'none');
-        }
-
-        /* ────────────────────────────────────────────
-           VISIBILITÀ DOTS (responsive)
-        ──────────────────────────────────────────── */
-
-        _updateDotsVisibility() {
-            const width   = $(window).width();
-            const $dots   = this.$wrapper.find('.bw-ps-dots-container');
-            let showDots  = true; // default desktop: mostra
-
-            for (const bp of this._sortedBreakpoints) {
-                if (width <= bp.breakpoint) {
-                    showDots = bp.showDots === true;
-                    break;
-                }
-            }
-
-            $dots.css('display', showDots ? 'flex' : 'none');
         }
 
         /* ────────────────────────────────────────────
