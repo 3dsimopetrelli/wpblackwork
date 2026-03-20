@@ -354,9 +354,13 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
     }
 
     private function apply_breadcrumb_settings( array $breadcrumbs, array $settings ): array {
-        $show_home          = empty( $settings['show_home'] ) || 'yes' === $settings['show_home'];
-        $show_shop          = empty( $settings['show_shop'] ) || 'yes' === $settings['show_shop'];
-        $show_category_path = empty( $settings['show_category_path'] ) || 'yes' === $settings['show_category_path'];
+        // SWITCHER OFF stores '' (empty string); SWITCHER ON stores 'yes'.
+        // empty('') === true, so the old empty() || 'yes' === ... check was always true:
+        // turning the switcher OFF had no effect. Correct check: exactly 'yes'.
+        // get_settings_for_display() always resolves defaults so the keys are always present.
+        $show_home          = 'yes' === $settings['show_home'];
+        $show_shop          = 'yes' === $settings['show_shop'];
+        $show_category_path = 'yes' === $settings['show_category_path'];
         $title_word_limit   = isset( $settings['title_word_limit'] ) ? absint( $settings['title_word_limit'] ) : 0;
 
         $breadcrumbs = array_values(
