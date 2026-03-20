@@ -1489,7 +1489,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $popup_image_size = $this->get_image_size( $popup_image_size_setting );
 
         ?>
-        <div class="bw-ps-popup-overlay" style="display: none;">
+        <div class="bw-ps-popup-overlay" aria-hidden="true">
             <div class="bw-ps-popup">
                 <div class="bw-ps-popup-header">
                     <h3 class="bw-ps-popup-title"><?php echo esc_html( $popup_title ); ?></h3>
