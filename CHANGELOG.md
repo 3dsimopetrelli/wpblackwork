@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Price Variation: removed "Other Payment Methods" section entirely (controls, style section, render block, JS toggle handler, CSS).
+- Price Variation: removed "Open Cart Popup" control — cart popup always opens on add-to-cart via AJAX handler; control was unused.
+- Price Variation: fixed dead-code bug in `get_default_variation()` — bare `return;` prevented fallback to first variation; now correctly falls back to `$variations_data[0]` when no in-stock variation exists.
 - Static Showcase: lazy-load fade-in for all three images (main + gallery) via `loading="lazy"` + CSS opacity transition + JS `is-loaded` class.
 - Static Showcase: switched to `wp_get_attachment_image()` for full srcset/sizes support on attachment-based images.
 - Static Showcase: batched all `get_post_meta()` calls into a single DB read per render.
