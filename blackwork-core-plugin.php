@@ -617,8 +617,6 @@ add_action('init', 'bw_register_animated_banner_widget_assets');
 // animated-banner: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets');
 add_action('wp_enqueue_scripts', 'bw_enqueue_smart_header_assets');
-add_action('init', 'bw_register_lazy_images_assets');
-add_action('wp_enqueue_scripts', 'bw_enqueue_lazy_images_assets');
 add_action('init', 'bw_register_static_showcase_widget_assets');
 add_action('init', 'bw_register_related_products_widget_assets');
 // related-products: editor only — frontend assets handled via get_style_depends()/get_script_depends()
@@ -2451,26 +2449,4 @@ function bw_fpw_get_price_markup($post_id)
     }
 
     return '';
-}
-
-
-/**
- * Register lazy-image fade-in assets.
- */
-function bw_register_lazy_images_assets() {
-    $css_file = BW_MEW_PATH . 'assets/css/bw-lazy-images.css';
-    $js_file  = BW_MEW_PATH . 'assets/js/bw-lazy-images.js';
-    $css_ver  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-    $js_ver   = file_exists( $js_file )  ? filemtime( $js_file )  : '1.0.0';
-
-    wp_register_style( 'bw-lazy-images-style', BW_MEW_URL . 'assets/css/bw-lazy-images.css', [], $css_ver );
-    wp_register_script( 'bw-lazy-images-script', BW_MEW_URL . 'assets/js/bw-lazy-images.js', [], $js_ver, true );
-}
-
-/**
- * Enqueue lazy-image fade-in assets on all frontend pages.
- */
-function bw_enqueue_lazy_images_assets() {
-    wp_enqueue_style( 'bw-lazy-images-style' );
-    wp_enqueue_script( 'bw-lazy-images-script' );
 }
