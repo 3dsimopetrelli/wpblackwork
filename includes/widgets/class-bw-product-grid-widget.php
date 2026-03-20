@@ -29,7 +29,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     public function get_style_depends() {
-        return [ 'bw-product-grid-style' ];
+        return [ 'bw-wallpost-style', 'bw-product-card-style', 'bw-product-grid-style' ];
     }
 
     protected function register_controls() {

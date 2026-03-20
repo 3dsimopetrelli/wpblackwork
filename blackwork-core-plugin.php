@@ -1119,7 +1119,7 @@ function bw_register_product_grid_widget_assets()
     wp_register_style(
         'bw-product-grid-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-product-grid.css',
-        [],
+        ['bw-wallpost-style', 'bw-product-card-style'],
         $css_version
     );
 
