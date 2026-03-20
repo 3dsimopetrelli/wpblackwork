@@ -148,39 +148,7 @@ function bw_mew_enqueue_related_products_assets()
         return;
     }
 
-    if (function_exists('bw_register_wallpost_widget_assets')) {
-        bw_register_wallpost_widget_assets();
-    }
-
-    if (wp_style_is('bw-wallpost-style', 'registered') && !wp_style_is('bw-wallpost-style', 'enqueued')) {
-        wp_enqueue_style('bw-wallpost-style');
-    }
-
-    if (!wp_style_is('bw-product-card-style', 'registered')) {
-        $product_card_css_file = BW_MEW_PATH . 'assets/css/bw-product-card.css';
-        $product_card_version = file_exists($product_card_css_file) ? filemtime($product_card_css_file) : '1.0.0';
-
-        wp_register_style(
-            'bw-product-card-style',
-            BW_MEW_URL . 'assets/css/bw-product-card.css',
-            [],
-            $product_card_version
-        );
-    }
-
-    if (wp_style_is('bw-product-card-style', 'registered') && !wp_style_is('bw-product-card-style', 'enqueued')) {
-        wp_enqueue_style('bw-product-card-style');
-    }
-
-    $css_file = BW_MEW_PATH . 'woocommerce/css/bw-related-products.css';
-    $version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
-
-    wp_enqueue_style(
-        'bw-related-products-style',
-        plugin_dir_url(__FILE__) . 'css/bw-related-products.css',
-        ['bw-wallpost-style', 'bw-product-card-style'],
-        $version
-    );
+    wp_enqueue_style('bw-related-products-style');
 }
 
 /**

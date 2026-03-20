@@ -1072,7 +1072,7 @@ function bw_register_related_products_widget_assets()
     wp_register_style(
         'bw-related-products-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-related-products.css',
-        ['bw-product-card-style'], // Dipende dal CSS delle card
+        ['bw-wallpost-style', 'bw-product-card-style'],
         $css_version
     );
 }
