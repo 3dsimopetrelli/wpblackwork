@@ -19,7 +19,7 @@ Canonical transition note:
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
-| `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized presentation/gallery slider; current runtime remains Slick-based |
+| `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized presentation/gallery slider; horizontal and responsive-vertical runtime are Embla-based |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
@@ -57,27 +57,53 @@ Canonical transition note:
   - `description_source`: `description`, `short_description`, `both`
   - renders product long description, short description, or both with preserved HTML markup
   - Alignment (responsive), Typography group control (Elementor native), Text Color
-- `bw-product-breadcrumbs` controls (initial state):
+- `bw-product-breadcrumbs` controls (current state):
   - `product_id`: explicit product ID override for editor preview
   - deterministic breadcrumb chain for current Woo single product
+  - Content controls:
+    - `show_home`
+    - `show_shop`
+    - `show_category_path`
+    - `title_word_limit` (word-based truncation on the current product crumb only; `0` = unlimited)
   - Container style controls: background, padding, radius
   - Text style controls: alignment, typography, link/current/separator colors
 - `bw-presentation-slide` controls/runtime (audit state 2026-03-19):
   - visible title: `BW-UI Presentation Slider`
   - layout modes: `horizontal`, `vertical`
   - image source: `custom` gallery or WooCommerce product gallery query
-  - horizontal mode remains Slick-based with breakpoint repeater settings:
+  - horizontal mode is Embla-based with breakpoint repeater settings:
     - slides to show / scroll
     - arrows / dots
-    - center mode
+    - alignment (`start` / `center` / `end`)
+    - drag-free
     - variable width / fixed slide width
     - per-breakpoint image height mode and dimensions
   - vertical mode:
     - desktop elevator layout with thumbnail rail + scroll tracking
-    - optional responsive fallback to synchronized Slick main/thumb sliders
+    - optional responsive fallback to synchronized Embla main/thumb sliders
   - popup overlay gallery is still active
+    - overlay appended to `<body>`
+    - sticky popup header
+    - close button currently renders explicit text `Close`
+    - popup style controls were removed again after cleanup; popup typography/close sizing are fixed in CSS
+    - title defaults:
+      - desktop/tablet: `16px`, `line-height: 20px`
+      - mobile: `12px`, `line-height: 18px`
+    - close text default: `16px`
+    - popup images are constrained to viewport height
+    - popup opening now requires a real `pointerdown -> pointerup` interaction on the same target
   - custom cursor runtime is still active
-  - current asset/runtime authority still depends on `slick-js` / `.slick-*` selectors; no Embla path is present in the current repository state
+  - horizontal arrows:
+    - rendered hidden by default
+    - visibility enabled only by responsive JS breakpoint evaluation
+    - prevents mobile flicker of arrows during initial refresh
+  - current asset/runtime authority depends on:
+    - `embla-js`
+    - `embla-autoplay-js`
+    - `bw-embla-core-js`
+    - `bw-embla-core-css`
+    - `bw-presentation-slide-script`
+  - shared Embla base styles/classes are provided by `bw-embla-core.css`; widget-local CSS still owns popup, cursor, arrows, dots, elevator layout, and responsive presentation skin
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-newsletter-subscription`:
   - fixed-design widget
@@ -114,5 +140,5 @@ Canonical transition note:
   - declares normal Elementor style/script depends
   - also has channel-level runtime pre-enqueue logic for Theme Builder Lite footer injection
 - Slider handles are registered centrally and consumed per widget:
-  - `slick-js`, `slick-css`
+  - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
   - `bw-slick-slider-js`, `bw-product-slide-js`, `bw-presentation-slide-script`

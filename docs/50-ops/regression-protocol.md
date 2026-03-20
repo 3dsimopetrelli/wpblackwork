@@ -55,8 +55,11 @@ Wave-specific checks:
   - Custom cursor appears/disappears correctly on image hover (desktop only)
   - Custom cursor shows `←`/`→` on left/right halves, `+` on center (when popup enabled)
   - Arrow buttons show pointer cursor when custom cursor mode is active
+  - Horizontal arrows do not flicker visible on mobile refresh when the active breakpoint has `Show Arrows = off`
   - System cursor is hidden over the image area, restored outside it
   - Popup opens/closes correctly; overlay removed from `<body>` on close
+  - Popup does not auto-open on refresh; opening requires a real user press sequence
+  - Popup portrait/tall images remain bounded within the viewport height
   - Widget destroy followed by re-init (Elementor editor re-render) leaves no orphaned `<body>` overlay
   - Vertical desktop layout: thumbnail click scrolls main panel to correct image
   - Vertical responsive layout: main/thumb Embla viewports stay synchronized

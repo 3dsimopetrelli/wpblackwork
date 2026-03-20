@@ -1,6 +1,5 @@
 <?php
 use Elementor\Controls_Manager;
-use Elementor\Group_Control_Typography;
 use Elementor\Repeater;
 use Elementor\Widget_Base;
 use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
@@ -873,175 +872,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $this->end_controls_section();
 
-        // Style → Popup
-        $this->start_controls_section(
-            'section_style_popup',
-            [
-                'label'     => __( 'Popup', 'bw-elementor-widgets' ),
-                'tab'       => Controls_Manager::TAB_STYLE,
-                'condition' => [
-                    'enable_popup' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_overlay_bg',
-            [
-                'label'     => __( 'Overlay Background', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => 'rgba(255, 255, 255, 0.95)',
-                'selectors' => [
-                    // Il popup viene spostato in body dal JS con la classe Elementor copiata,
-                    // quindi {{WRAPPER}} continua a funzionare sia in editor sia in frontend.
-                    '{{WRAPPER}} .bw-ps-popup-overlay' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_max_width',
-            [
-                'label'      => __( 'Max Image Width (px)', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min'  => 800,
-                        'max'  => 3000,
-                        'step' => 100,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 2000,
-                    'unit' => 'px',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-popup-image img' => 'max-width: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_header_heading',
-            [
-                'label'     => __( 'Header', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::HEADING,
-                'separator' => 'before',
-            ]
-        );
-
-        $this->add_control(
-            'popup_header_padding',
-            [
-                'label'      => __( 'Header Padding', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', 'rem' ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-popup-header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_header_bg',
-            [
-                'label'     => __( 'Header Background', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#ffffff',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-ps-popup-header' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_title_heading',
-            [
-                'label'     => __( 'Title', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::HEADING,
-                'separator' => 'before',
-            ]
-        );
-
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'     => 'popup_title_typography',
-                'selector' => '{{WRAPPER}} .bw-ps-popup-title',
-            ]
-        );
-
-        $this->add_control(
-            'popup_title_color',
-            [
-                'label'     => __( 'Title Color', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#000000',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-ps-popup-title' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_close_heading',
-            [
-                'label'     => __( 'Close Button', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::HEADING,
-                'separator' => 'before',
-            ]
-        );
-
-        $this->add_control(
-            'popup_close_color',
-            [
-                'label'     => __( 'Close Button Color', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#000000',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-ps-popup-close' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_close_hover_color',
-            [
-                'label'     => __( 'Close Button Hover Color', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#666666',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-ps-popup-close:hover' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_close_size',
-            [
-                'label'      => __( 'Close Button Size', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min'  => 16,
-                        'max'  => 60,
-                        'step' => 1,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 24,
-                    'unit' => 'px',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-popup-close' => 'font-size: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
         // Style → Vertical Thumbnails
         $this->start_controls_section(
             'section_style_vertical_thumbs',
@@ -1319,7 +1149,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 </div>
             </div>
 
-            <div class="bw-ps-arrows-container">
+            <div class="bw-ps-arrows-container" style="display: none;">
                 <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">&#8592;</button>
                 <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">&#8594;</button>
             </div>

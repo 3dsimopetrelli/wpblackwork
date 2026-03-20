@@ -52,6 +52,42 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
             'label_block' => true,
         ] );
 
+        $this->add_control( 'show_home', [
+            'label'        => __( 'Show Home', 'bw' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw' ),
+            'label_off'    => __( 'No', 'bw' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'show_shop', [
+            'label'        => __( 'Show Shop', 'bw' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw' ),
+            'label_off'    => __( 'No', 'bw' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'show_category_path', [
+            'label'        => __( 'Show Category Path', 'bw' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw' ),
+            'label_off'    => __( 'No', 'bw' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
+        $this->add_control( 'title_word_limit', [
+            'label'       => __( 'Title Word Limit', 'bw' ),
+            'type'        => Controls_Manager::NUMBER,
+            'default'     => 0,
+            'min'         => 0,
+            'step'        => 1,
+            'description' => __( 'Set to 0 to show the full product title. Positive values limit only the current breadcrumb item by word count.', 'bw' ),
+        ] );
+
         $this->end_controls_section();
 
         $this->start_controls_section( 'section_style_box', [
@@ -184,9 +220,13 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
         $product_id  = $this->resolve_product_id( $settings );
         $breadcrumbs = $product_id > 0 ? $this->build_breadcrumbs( $product_id ) : [];
 
+        if ( ! empty( $breadcrumbs ) ) {
+            $breadcrumbs = $this->apply_breadcrumb_settings( $breadcrumbs, $settings );
+        }
+
         if ( empty( $breadcrumbs ) ) {
             if ( $is_editor ) {
-                $breadcrumbs = $this->get_editor_placeholder_breadcrumbs();
+                $breadcrumbs = $this->get_editor_placeholder_breadcrumbs( $settings );
             } else {
                 return;
             }
@@ -248,6 +288,7 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
                 'label'   => __( 'Home', 'bw' ),
                 'url'     => home_url( '/' ),
                 'current' => false,
+                'type'    => 'home',
             ],
         ];
 
@@ -257,6 +298,7 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
                 'label'   => get_the_title( $shop_page_id ),
                 'url'     => get_permalink( $shop_page_id ),
                 'current' => false,
+                'type'    => 'shop',
             ];
         }
 
@@ -268,6 +310,7 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
             'label'   => $product->get_name(),
             'url'     => '',
             'current' => true,
+            'type'    => 'current_product',
         ];
 
         return $breadcrumbs;
@@ -303,10 +346,60 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
                 'label'   => $term->name,
                 'url'     => $term_link,
                 'current' => false,
+                'type'    => 'category',
             ];
         }
 
         return $breadcrumbs;
+    }
+
+    private function apply_breadcrumb_settings( array $breadcrumbs, array $settings ): array {
+        $show_home          = empty( $settings['show_home'] ) || 'yes' === $settings['show_home'];
+        $show_shop          = empty( $settings['show_shop'] ) || 'yes' === $settings['show_shop'];
+        $show_category_path = empty( $settings['show_category_path'] ) || 'yes' === $settings['show_category_path'];
+        $title_word_limit   = isset( $settings['title_word_limit'] ) ? absint( $settings['title_word_limit'] ) : 0;
+
+        $breadcrumbs = array_values(
+            array_filter(
+                $breadcrumbs,
+                static function ( array $crumb ) use ( $show_home, $show_shop, $show_category_path ) {
+                    $type = isset( $crumb['type'] ) ? $crumb['type'] : '';
+
+                    if ( 'home' === $type ) {
+                        return $show_home;
+                    }
+
+                    if ( 'shop' === $type ) {
+                        return $show_shop;
+                    }
+
+                    if ( 'category' === $type ) {
+                        return $show_category_path;
+                    }
+
+                    return true;
+                }
+            )
+        );
+
+        if ( $title_word_limit > 0 ) {
+            foreach ( $breadcrumbs as &$crumb ) {
+                if ( ! empty( $crumb['current'] ) && 'current_product' === ( $crumb['type'] ?? '' ) ) {
+                    $crumb['label'] = $this->truncate_breadcrumb_words( $crumb['label'], $title_word_limit );
+                }
+            }
+            unset( $crumb );
+        }
+
+        return $breadcrumbs;
+    }
+
+    private function truncate_breadcrumb_words( string $text, int $word_limit ): string {
+        if ( $word_limit <= 0 ) {
+            return $text;
+        }
+
+        return wp_trim_words( wp_strip_all_tags( $text ), $word_limit, '...' );
     }
 
     private function resolve_best_category_term( array $terms ) {
@@ -340,29 +433,35 @@ class Widget_Bw_Product_Breadcrumbs extends Widget_Base {
         return $valid_terms[0];
     }
 
-    private function get_editor_placeholder_breadcrumbs(): array {
-        return [
+    private function get_editor_placeholder_breadcrumbs( array $settings ): array {
+        $breadcrumbs = [
             [
                 'label'   => __( 'Home', 'bw' ),
                 'url'     => '#',
                 'current' => false,
+                'type'    => 'home',
             ],
             [
                 'label'   => __( 'Shop', 'bw' ),
                 'url'     => '#',
                 'current' => false,
+                'type'    => 'shop',
             ],
             [
                 'label'   => __( 'Category', 'bw' ),
                 'url'     => '#',
                 'current' => false,
+                'type'    => 'category',
             ],
             [
                 'label'   => __( 'Product Title', 'bw' ),
                 'url'     => '',
                 'current' => true,
+                'type'    => 'current_product',
             ],
         ];
+
+        return $this->apply_breadcrumb_settings( $breadcrumbs, $settings );
     }
 
     protected function content_template() {

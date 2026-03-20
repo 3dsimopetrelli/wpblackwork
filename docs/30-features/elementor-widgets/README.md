@@ -40,6 +40,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slide` -> canonical product slider
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
+  - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-presentation-slide` -> specialized presentation/gallery slider
@@ -49,20 +50,39 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 ## BW-UI Presentation Slider
 - Widget slug: `bw-presentation-slide`
 - Visible editor title: `BW-UI Presentation Slider`
-- Current runtime in this repository state is still **Slick-based**, not Embla-based.
+- Current runtime in this repository state is **Embla-based** for:
+  - horizontal carousel mode
+  - vertical responsive main/thumb mode
+- Vertical desktop remains a non-Embla elevator layout with thumbnail rail + main image panel.
 - Current feature surface:
-  - horizontal slider mode with breakpoint repeater controls
+  - horizontal Embla carousel mode with breakpoint repeater controls
   - vertical elevator/gallery mode with desktop thumbnails
-  - responsive vertical fallback implemented as synchronized Slick sliders
+  - responsive vertical fallback implemented as synchronized Embla main/thumb viewports
   - optional popup overlay gallery
   - optional custom cursor runtime with zoom / prev / next states
   - image source: custom gallery or current WooCommerce product gallery query
 - Asset model:
-  - PHP widget depends on `slick-js`, `slick-css`, and `bw-presentation-slide-script`
+  - PHP widget depends on:
+    - `embla-js`
+    - `embla-autoplay-js`
+    - `bw-embla-core-js`
+    - `bw-embla-core-css`
+    - `bw-presentation-slide-script`
   - asset registration remains centralized in `blackwork-core-plugin.php`
 - Audit note (2026-03-19):
-  - the active JS runtime still initializes `$.fn.slick`
-  - no Embla initialization path is present in the current workspace files
+  - the active JS runtime initializes `BWEmblaCore`
+  - shared Embla base assets live in:
+    - `assets/js/bw-embla-core.js`
+    - `assets/css/bw-embla-core.css`
+  - popup overlay runtime appends to `<body>`
+  - popup style surface was later intentionally simplified back to fixed CSS defaults instead of Elementor popup style controls
+  - popup title / close defaults now live in widget CSS:
+    - title desktop/tablet: `16px / 20px`
+    - title mobile: `12px / 18px`
+    - close text: `16px`
+  - popup image height is bounded to the viewport
+  - popup opening is guarded by a real `pointerdown -> pointerup` sequence
+  - arrow buttons render hidden by default and are shown only after breakpoint JS confirms `show arrows`
 
 ## Visible title alignment (editor)
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`

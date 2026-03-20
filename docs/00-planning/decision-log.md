@@ -635,6 +635,29 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
 - Follow-up actions:
   - Any future widget that moves DOM to `<body>` must pair the `appendTo` with an explicit `remove()` in `destroy()`.
 
+### Entry 042
+- Date: 2026-03-20
+- Decision summary: BW Presentation Slide popup UX was hardened and simplified: popup opening now requires a real press sequence, popup image height is bounded to the viewport, popup style controls were removed in favor of fixed CSS defaults, and horizontal arrows now render hidden by default to prevent mobile flicker before breakpoint JS applies.
+
+### Entry 043
+- Date: 2026-03-20
+- Decision summary: Extended `bw-product-breadcrumbs` with per-instance content controls to suppress `Home`, `Shop`, or the category path, and added deterministic word-based truncation for the terminal product-title crumb.
+- Affected domain: Elementor Widgets / WooCommerce / Single Product
+- Rationale: Product templates need breadcrumb variants that can stay minimal without forking the widget or introducing global settings, while long product titles need a stable way to be shortened inside narrow layouts.
+- Risk impact: Low-Medium — runtime remains widget-local, the underlying category-path resolution rule is unchanged, and title truncation applies only to the current product crumb.
+- Follow-up actions:
+  - Keep segment toggles in the widget `Content` tab rather than as plugin-global options.
+  - Preserve the deterministic category-path rule (deepest path first, lowest term ID tie-break).
+  - Keep title truncation word-based, with `0` meaning unlimited.
+- Affected domain: Elementor Widget / bw-presentation-slide / Frontend UX
+- Rationale: The widget had accumulated popup-specific style controls and runtime edge cases that were adding complexity without improving authoring value. The popup open path also needed deterministic interaction gating to prevent stray `pointerup` events from opening the modal, and the arrow container needed a safe initial hidden state to avoid a visible flash on mobile refresh.
+- Risk impact: Low-Medium — changes are widget-scoped, preserve existing core behaviors, and reduce configuration surface while making runtime behavior more deterministic.
+- Follow-up actions:
+  - Keep popup typography/close sizing as fixed CSS authority unless a future redesign justifies reopening that control surface.
+  - Keep popup images bounded to the viewport.
+  - Keep arrow visibility JS-driven, but start the arrow container hidden in markup to avoid pre-init flicker.
+  - Preserve the pointerdown/pointerup gating for popup open triggers across all layout variants.
+
 ### Entry 039
 - Date: 2026-03-19
 - Decision summary: Added a reusable Elementor container sticky sidebar extension managed by the plugin, using JS-based `position:fixed` with an in-place placeholder and container-level controls instead of Elementor Pro sticky features.

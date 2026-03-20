@@ -242,6 +242,9 @@
    POPUP / MODAL
    ======================================== */
 .bw-ps-popup-overlay {
+    --bw-ps-popup-header-height: 0px;
+    --bw-ps-popup-body-pad-top: 40px;
+    --bw-ps-popup-body-pad-bottom: 40px;
     position: fixed;
     inset: 0;
     width: 100%;
@@ -304,47 +307,67 @@
     z-index: 10;
 }
 
-.bw-ps-popup-title {
+.bw-ps-popup-header .bw-ps-popup-title {
     margin: 0;
     min-width: 0;
     flex: 1 1 auto;
-    font-size: 24px;
+    font-size: 16px !important;
+    line-height: 20px !important;
     font-weight: 600;
     color: #000;
 }
 
-.bw-ps-popup-close {
+.bw-ps-popup-header .bw-ps-popup-close,
+.bw-ps-popup-header .bw-ps-popup-close .bw-ps-popup-close-text {
     background: none !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    outline: none;
-    font-size: 32px;
-    line-height: 1;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -webkit-tap-highlight-color: transparent;
+    font-size: 16px !important;
+    line-height: 1 !important;
     cursor: pointer;
     color: #000;
     transition: color 0.3s ease;
     padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0;
+    border-radius: 0 !important;
     text-shadow: none;
     font-weight: normal;
     text-decoration: none;
     opacity: 1;
     visibility: visible;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .bw-ps-popup-close:hover  { color: #666; }
-.bw-ps-popup-close:focus  { outline: 2px solid currentColor; outline-offset: 2px; }
+.bw-ps-popup-close:focus,
+.bw-ps-popup-close:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
 .bw-ps-popup-close:active { opacity: 0.7; }
 
 .bw-ps-popup-body {
     padding: 40px 30px;
+}
+
+@media (max-width: 767px) {
+    .bw-ps-popup-header .bw-ps-popup-title {
+        font-size: 12px !important;
+        line-height: 18px !important;
+    }
 }
 
 .bw-ps-popup-image {
@@ -358,9 +381,16 @@
 
 .bw-ps-popup-image img {
     max-width: min(2000px, 100%);
-    width: 100%;
+    width: auto;
+    max-height: calc(
+        100dvh
+        - var(--bw-ps-popup-header-height, 0px)
+        - var(--bw-ps-popup-body-pad-top, 40px)
+        - var(--bw-ps-popup-body-pad-bottom, 40px)
+    );
     height: auto;
     display: inline-block;
+    object-fit: contain;
     /* Popup images usano bw-embla-img per il fade-in */
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -458,10 +488,6 @@
         padding: 15px 20px;
     }
 
-    .bw-ps-popup-title {
-        font-size: 18px;
-    }
-
     .bw-ps-popup-body {
         padding: 20px 15px;
     }
@@ -501,8 +527,7 @@
 /* ========================================
    ACCESSIBILITÀ
    ======================================== */
-.bw-ps-wrapper *:focus-visible {
+.bw-ps-wrapper *:focus-visible:not(.bw-ps-popup-close) {
     outline: 2px solid #0073aa;
     outline-offset: 2px;
 }
-

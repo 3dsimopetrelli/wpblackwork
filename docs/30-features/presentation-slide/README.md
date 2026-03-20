@@ -49,7 +49,31 @@ Design is fixed — no user configuration:
 - Overlay is appended to `<body>` (required for `position:fixed`).
 - Full-screen white overlay with sticky header and scrollable image list.
 - Popup title sourced from product name (WooCommerce context) or widget setting.
+- Close button currently renders explicit text `Close` instead of an icon-only glyph.
+- Popup style controls have been intentionally reduced back to a fixed skin.
+  - No dedicated `Style > Popup` typography/color/spacing controls remain.
+  - Header text defaults are now part of widget CSS authority.
+- Current popup typography defaults:
+  - title desktop/tablet: `16px`, `line-height: 20px`
+  - title mobile: `12px`, `line-height: 18px`
+  - close button text: `16px`
+- Popup open/close uses opacity/visibility transitions instead of `display:none` toggling to avoid Safari transition glitches.
+- Body scroll lock is handled in an iOS-safe way through fixed-body state while the modal is open.
+- Popup image height is bounded to the viewport via `max-height: calc(100dvh - header - body padding)` so tall portrait images never exceed the visible viewport.
 - Properly removed from DOM in `destroy()` to prevent orphaned overlays on Elementor re-render.
+
+### Popup Trigger Hardening
+- Popup opening is guarded by a real `pointerdown -> pointerup` sequence on the same target.
+- This prevents stray or synthetic `pointerup` events from opening the popup unexpectedly on refresh or during initialization.
+- The hardening applies to:
+  - horizontal Embla slides
+  - vertical desktop main images
+  - vertical responsive Embla slides
+
+### Arrow Visibility Contract
+- Breakpoint `Show Arrows` is enforced by JS through `_updateArrowsVisibility()`.
+- Arrow markup now renders with `display:none` inline by default.
+- This prevents a mobile flicker where arrow buttons were briefly visible before the breakpoint runtime hid them.
 
 ## Product Context
 
@@ -64,6 +88,7 @@ Used by both `get_popup_title()` and `get_images_for_render()`.
 - Class: `BWPresentationSlide` (one instance per widget).
 - Initialized via `elementorFrontend.hooks.addAction('frontend/element_ready/bw-presentation-slide.default', ...)`.
 - Embla instances: `this.emblaCore` (horizontal), `this.emblaMain` / `this.emblaThumbs` (vertical responsive).
+- Shared engine contract is `BWEmblaCore`; the widget does not directly initialize Slick anymore.
 - Event namespacing: `.bwps-{widgetId}` and `.bwps-cursor-{widgetId}` for clean per-instance teardown.
 - `destroy()` removes cursor element, popup overlay, all namespaced events, RAF animation.
 
@@ -73,6 +98,7 @@ Used by both `get_popup_title()` and `get_images_for_render()`.
 - Arrow button cursor (`cursor:pointer`) is explicitly restored via CSS override so `bw-ps-hide-cursor` does not suppress it.
 - Breakpoints sorted ascending; first match wins (`break` after match).
 - Selector cache (`_$horizontal`, `_$images`) must be assigned **before** `emblaCore.init()` because `onSelect` fires during init.
+- Desktop vertical mode is intentionally not Embla-driven; it remains a custom elevator layout with thumbnail-triggered scroll.
 
 ## Fixes Log
 

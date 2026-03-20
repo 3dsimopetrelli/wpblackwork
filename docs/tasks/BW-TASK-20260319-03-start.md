@@ -42,7 +42,7 @@
 ## Scope Declaration
 - Proposed strategy:
   - inspect current widget class, asset registration, and JS runtime
-  - verify whether the active implementation is Slick-based or Embla-based
+  - verify the actual Embla migration surface and identify any remaining non-Embla subflows
   - document the current real feature surface and known architectural constraints
   - update the relevant Markdown files so they match the repository state
 - Files likely impacted:
@@ -51,7 +51,7 @@
   - `docs/30-features/elementor-widgets/widget-inventory.md`
   - `docs/30-features/elementor-widgets/architecture-direction.md`
 - Explicitly out-of-scope surfaces:
-  - runtime rewrites from Slick to Embla
+  - runtime rewrites beyond documentation alignment
   - popup redesign
   - cursor redesign
   - unrelated slider/widget refactors
@@ -76,6 +76,22 @@
   - `docs/30-features/elementor-widgets/widget-inventory.md`
   - `docs/30-features/elementor-widgets/architecture-direction.md`
 
-## Current audit hypothesis (to verify)
-- `bw-presentation-slide` is still Slick-based in the current repository state
-- Embla migration may have been discussed or partially developed, but is not yet the live authority in this workspace
+## Current audit result (verified)
+- `bw-presentation-slide` is Embla-based in the current repository state for:
+  - horizontal carousel mode
+  - responsive vertical main/thumb mode
+- desktop vertical mode remains a custom non-Embla elevator layout
+- shared Embla asset authority lives in:
+  - `assets/js/bw-embla-core.js`
+  - `assets/css/bw-embla-core.css`
+- the widget still owns substantial widget-local runtime behavior for:
+  - popup overlay
+  - custom cursor
+  - breakpoint/image-height application
+  - vertical desktop elevator behavior
+- additional verified runtime notes after follow-up implementation:
+  - popup open path is guarded by a real `pointerdown -> pointerup` sequence on the same target
+  - popup overlay appends to `<body>` and remains widget-local runtime authority
+  - popup image height is bounded to the viewport
+  - popup style controls were intentionally removed again in favor of fixed CSS defaults
+  - horizontal arrows render hidden by default and are shown only after breakpoint runtime confirms `show arrows`
