@@ -123,11 +123,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'label'   => __( 'Alignment', 'bw' ),
 				'type'    => Controls_Manager::CHOOSE,
 				'options' => [
-					'left'   => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+					'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
 					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
-					'right'  => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+					'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
 				],
-				'default'   => 'left',
+				'default'   => 'flex-start',
 				'selectors' => [
 					'{{WRAPPER}} .bw-price-variation__price-wrapper' => 'justify-content: {{VALUE}};',
 				],
@@ -335,7 +335,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				],
 				'default'    => [ 'size' => 1, 'unit' => 'px' ],
 				'selectors'  => [
-					'{{WRAPPER}} .bw-price-variation__variation-button' => 'border-width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-price-variation__variation-button' => 'border-width: {{SIZE}}{{UNIT}}; border-style: solid;',
 				],
 				'condition'  => [
 					'button_border_switch' => 'yes',
@@ -870,9 +870,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 'label'   => __( 'Alignment', 'bw' ),
                                 'type'    => Controls_Manager::CHOOSE,
 				'options' => [
-					'left'   => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+					'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
 					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
-					'right'  => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+					'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
 				],
 				'default'   => 'left',
 				'selectors' => [
@@ -1007,7 +1007,6 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 // Get attributes for variations
                 list( $main_attribute_name, $main_attribute_values ) = $this->get_main_attribute( $product->get_variation_attributes() );
 
-                $border_style = isset( $settings['button_border_switch'] ) && 'yes' === $settings['button_border_switch'] ? 'solid' : 'none';
                 ?>
                 <?php
                 $default_variation_id   = $default_variation['id'];
@@ -1063,7 +1062,6 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                                         class="<?php echo esc_attr( trim( $button_classes ) ); ?>"
                                                         data-variation-id="<?php echo esc_attr( $matched_variation['id'] ); ?>"
                                                         data-variation='<?php echo esc_attr( wp_json_encode( $matched_variation ) ); ?>'
-                                                        style="border-style: <?php echo esc_attr( $border_style ); ?>;"
                                                         type="button"
                                                         aria-pressed="<?php echo esc_attr( 'active' === $is_active ? 'true' : 'false' ); ?>"
                                                         aria-disabled="<?php echo esc_attr( $is_out_of_stock ? 'true' : 'false' ); ?>"

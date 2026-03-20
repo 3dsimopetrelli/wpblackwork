@@ -130,7 +130,14 @@
                 jump:              false,
             } : false;
 
-            const globalAlign   = hCfg.align || 'start';
+            const globalAlign     = hCfg.align || 'start';
+            // enableTouchDrag: quando false, il drag via touch/pen (mobile & tablet) è disabilitato.
+            // Il mouse (desktop) funziona sempre indipendentemente da questa impostazione.
+            // Embla watchDrag API: https://www.embla-carousel.com/api/options/#watchdrag
+            // Il callback riceve (emblaApi, PointerEvent). PointerEvent.pointerType può essere
+            // 'mouse' (desktop), 'touch' (touchscreen) o 'pen' (stilo).
+            const enableTouchDrag = hCfg.enableTouchDrag !== false; // default true
+
             const emblaOptions = {
                 loop:           hCfg.infinite === true,
                 align:          globalAlign,
@@ -138,7 +145,11 @@
                 slidesToScroll: 1,
                 dragFree:       hCfg.dragFree === true,
                 watchResize:    true,
-                watchDrag:      true,
+                // watchDrag: true   → tutti i pointer types possono trascinare (default)
+                // watchDrag: fn     → solo 'mouse' può trascinare (touch/pen bloccati)
+                watchDrag: enableTouchDrag
+                    ? true
+                    : (_emblaApi, evt) => evt.pointerType === 'mouse',
             };
 
             // Cache selectors prima di init() perché onSelect può essere chiamata durante init()

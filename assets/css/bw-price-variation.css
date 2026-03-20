@@ -50,7 +50,7 @@
 	line-height: 1.4;
 	color: #000000;
 	background-color: #ffffff;
-	border: 1px solid #000000;
+	border: none;
 	border-radius: 50px;
 	cursor: pointer;
 	transition: all 0.3s ease;
