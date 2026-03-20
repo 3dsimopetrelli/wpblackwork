@@ -311,7 +311,8 @@
     margin: 0;
     min-width: 0;
     flex: 1 1 auto;
-    font-size: 24px;
+    font-size: 16px;
+    line-height: 20px;
     font-weight: 600;
     color: #000;
 }
@@ -325,7 +326,7 @@
     appearance: none !important;
     -webkit-appearance: none !important;
     -webkit-tap-highlight-color: transparent;
-    font-size: 32px;
+    font-size: 18px;
     line-height: 1;
     cursor: pointer;
     color: #000;
@@ -359,6 +360,13 @@
 
 .bw-ps-popup-body {
     padding: 40px 30px;
+}
+
+@media (max-width: 767px) {
+    .bw-ps-popup-title {
+        font-size: 12px;
+        line-height: 18px;
+    }
 }
 
 .bw-ps-popup-image {

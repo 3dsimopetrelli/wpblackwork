@@ -1,6 +1,5 @@
 <?php
 use Elementor\Controls_Manager;
-use Elementor\Group_Control_Typography;
 use Elementor\Repeater;
 use Elementor\Widget_Base;
 use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
@@ -873,77 +872,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $this->end_controls_section();
 
-        // Style → Popup
-        $this->start_controls_section(
-            'section_style_popup',
-            [
-                'label'     => __( 'Popup', 'bw-elementor-widgets' ),
-                'tab'       => Controls_Manager::TAB_STYLE,
-                'condition' => [
-                    'enable_popup' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'popup_title_heading',
-            [
-                'label'     => __( 'Title', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::HEADING,
-                'separator' => 'before',
-            ]
-        );
-
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'     => 'popup_title_typography',
-                'selector' => '{{WRAPPER}} .bw-ps-popup-title',
-            ]
-        );
-
-        $this->add_control(
-            'popup_close_heading',
-            [
-                'label'     => __( 'Close Button', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::HEADING,
-                'separator' => 'before',
-            ]
-        );
-
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'     => 'popup_close_typography',
-                'selector' => '{{WRAPPER}} .bw-ps-popup-close',
-            ]
-        );
-
-        $this->add_responsive_control(
-            'popup_close_size',
-            [
-                'label'      => __( 'Close Button Size', 'bw-elementor-widgets' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min'  => 16,
-                        'max'  => 60,
-                        'step' => 1,
-                    ],
-                ],
-                'default'    => [
-                    'size' => 24,
-                    'unit' => 'px',
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-popup-close' => 'font-size: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
         // Style → Vertical Thumbnails
         $this->start_controls_section(
             'section_style_vertical_thumbs',
@@ -1064,165 +992,11 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             }
 
             if ( $settings['enable_popup'] === 'yes' ) {
-                $this->render_popup_modal_styles( $settings, $widget_id );
-                $this->render_popup_modal( $images, $settings, $popup_title, $widget_id );
+                $this->render_popup_modal( $images, $settings, $popup_title );
             }
             ?>
         </div>
         <?php
-    }
-
-    /**
-     * Render widget-scoped popup styles.
-     *
-     * The popup overlay is moved to <body> via JS, so Elementor's {{WRAPPER}}
-     * selectors no longer match reliably. We generate widget-scoped CSS tied to
-     * the popup overlay data attribute instead.
-     */
-    protected function render_popup_modal_styles( $settings, $widget_id ) {
-        $selector = '.bw-ps-popup-overlay[data-bw-ps-widget-id="' . esc_attr( $widget_id ) . '"]';
-        $css      = '';
-
-        $css .= $this->build_popup_typography_css(
-            $settings,
-            'popup_title_typography',
-            $selector . ' .bw-ps-popup-title'
-        );
-
-        $css .= $this->build_popup_typography_css(
-            $settings,
-            'popup_close_typography',
-            $selector . ' .bw-ps-popup-close, ' . $selector . ' .bw-ps-popup-close .bw-ps-popup-close-text'
-        );
-
-        $css .= $this->build_popup_responsive_dimension_css(
-            $settings,
-            'popup_close_size',
-            $selector . ' .bw-ps-popup-close, ' . $selector . ' .bw-ps-popup-close .bw-ps-popup-close-text',
-            'font-size'
-        );
-
-        if ( '' === trim( $css ) ) {
-            return;
-        }
-
-        echo '<style class="bw-ps-popup-inline-style" data-bw-ps-widget-id="' . esc_attr( $widget_id ) . '">';
-        echo wp_strip_all_tags( $css );
-        echo '</style>';
-    }
-
-    /**
-     * Build widget-scoped popup typography CSS with responsive tablet/mobile overrides.
-     */
-    protected function build_popup_typography_css( $settings, $prefix, $selector ) {
-        $desktop = $this->build_popup_typography_declarations( $settings, $prefix );
-        $tablet  = $this->build_popup_typography_declarations( $settings, $prefix, 'tablet' );
-        $mobile  = $this->build_popup_typography_declarations( $settings, $prefix, 'mobile' );
-        $css     = '';
-
-        if ( '' !== $desktop ) {
-            $css .= $selector . '{' . $desktop . '}';
-        }
-
-        if ( '' !== $tablet ) {
-            $css .= '@media (max-width: 1024px){' . $selector . '{' . $tablet . '}}';
-        }
-
-        if ( '' !== $mobile ) {
-            $css .= '@media (max-width: 767px){' . $selector . '{' . $mobile . '}}';
-        }
-
-        return $css;
-    }
-
-    /**
-     * Build CSS declarations for popup typography controls.
-     */
-    protected function build_popup_typography_declarations( $settings, $prefix, $device = '' ) {
-        $suffix       = $device ? '_' . $device : '';
-        $declarations = [];
-
-        if ( '' === $device ) {
-            $static_map = [
-                'font_family'     => 'font-family',
-                'font_weight'     => 'font-weight',
-                'text_transform'  => 'text-transform',
-                'font_style'      => 'font-style',
-                'text_decoration' => 'text-decoration',
-            ];
-
-            foreach ( $static_map as $setting_key => $css_property ) {
-                $value = $settings[ $prefix . '_' . $setting_key ] ?? '';
-                if ( '' === $value || null === $value ) {
-                    continue;
-                }
-                $declarations[] = $css_property . ':' . sanitize_text_field( $value );
-            }
-        }
-
-        $dimension_map = [
-            'font_size'      => 'font-size',
-            'line_height'    => 'line-height',
-            'letter_spacing' => 'letter-spacing',
-            'word_spacing'   => 'word-spacing',
-        ];
-
-        foreach ( $dimension_map as $setting_key => $css_property ) {
-            $formatted = $this->format_popup_dimension_value( $settings[ $prefix . '_' . $setting_key . $suffix ] ?? null );
-            if ( '' === $formatted ) {
-                continue;
-            }
-            $declarations[] = $css_property . ':' . $formatted;
-        }
-
-        return implode( ';', $declarations );
-    }
-
-    /**
-     * Build responsive CSS for slider-style popup controls.
-     */
-    protected function build_popup_responsive_dimension_css( $settings, $control_name, $selector, $property ) {
-        $desktop = $this->format_popup_dimension_value( $settings[ $control_name ] ?? null );
-        $tablet  = $this->format_popup_dimension_value( $settings[ $control_name . '_tablet' ] ?? null );
-        $mobile  = $this->format_popup_dimension_value( $settings[ $control_name . '_mobile' ] ?? null );
-        $css     = '';
-
-        if ( '' !== $desktop ) {
-            $css .= $selector . '{' . $property . ':' . $desktop . ';}';
-        }
-
-        if ( '' !== $tablet ) {
-            $css .= '@media (max-width: 1024px){' . $selector . '{' . $property . ':' . $tablet . ';}}';
-        }
-
-        if ( '' !== $mobile ) {
-            $css .= '@media (max-width: 767px){' . $selector . '{' . $property . ':' . $mobile . ';}}';
-        }
-
-        return $css;
-    }
-
-    /**
-     * Format Elementor responsive dimension values for CSS output.
-     */
-    protected function format_popup_dimension_value( $value ) {
-        if ( ! is_array( $value ) || ! isset( $value['size'] ) || '' === $value['size'] || null === $value['size'] ) {
-            return '';
-        }
-
-        $unit = $value['unit'] ?? 'px';
-        if ( ! in_array( $unit, [ 'px', 'em', 'rem', '%', 'vw', 'vh' ], true ) ) {
-            $unit = 'px';
-        }
-
-        $size = (float) $value['size'];
-        if ( 0.0 === $size && '0' !== (string) $value['size'] ) {
-            return '';
-        }
-
-        $normalized = rtrim( rtrim( sprintf( '%.4F', $size ), '0' ), '.' );
-
-        return $normalized . $unit;
     }
 
     /**
@@ -1539,13 +1313,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     /**
      * Render popup modal
      */
-    protected function render_popup_modal( $images, $settings, $popup_title, $widget_id ) {
+    protected function render_popup_modal( $images, $settings, $popup_title ) {
         // Get popup image size from settings
         $popup_image_size_setting = ! empty( $settings['popup_image_size'] ) ? $settings['popup_image_size'] : 'full';
         $popup_image_size = $this->get_image_size( $popup_image_size_setting );
 
         ?>
-        <div class="bw-ps-popup-overlay" data-bw-ps-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="true">
+        <div class="bw-ps-popup-overlay" aria-hidden="true">
             <div class="bw-ps-popup">
                 <div class="bw-ps-popup-header">
                     <h3 class="bw-ps-popup-title"><?php echo esc_html( $popup_title ); ?></h3>
