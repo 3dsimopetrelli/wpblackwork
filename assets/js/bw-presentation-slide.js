@@ -570,7 +570,7 @@
 
             $(document).off(`keydown.bwps-${this.widgetId}`)
                        .on(`keydown.bwps-${this.widgetId}`, (e) => {
-                           if (e.key === 'Escape' && $overlay.is(':visible')) {
+                           if (e.key === 'Escape' && $overlay.hasClass('active')) {
                                this.closeModal();
                            }
                        });
@@ -585,14 +585,9 @@
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
             if (!$targetImage.length) return;
 
-            // 1. Make display:block while CSS keeps opacity:0 — overlay is transparent
-            //    but laid out, so getBoundingClientRect() returns real values.
-            $overlay.css('display', 'block');
-
-            // 2. Sync reflow: forces the browser to compute layout before we read rects.
-            void $overlay[0].offsetHeight;
-
-            // 3. Scroll to the target image while still invisible (no visible jump).
+            // The overlay is always in the layout (visibility:hidden, not display:none),
+            // so getBoundingClientRect() returns accurate values with no reflow tricks.
+            // Scroll to the target image while the overlay is still invisible.
             const headerH     = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
             const overlayRect = $overlay[0].getBoundingClientRect();
             const imageRect   = $targetImage[0].getBoundingClientRect();
@@ -601,37 +596,27 @@
                 $overlay[0].scrollTop + (imageRect.top - overlayRect.top) - headerH
             );
 
-            // 4. Two rAF frames: guarantees the browser has painted the display:block
-            //    state before we add .active. Required on Safari to trigger the CSS
-            //    opacity transition (reading offsetHeight alone is not enough there).
+            // Single rAF: let the browser commit the scroll before the transition starts,
+            // then add .active to trigger CSS opacity 0→1 + visibility:hidden→visible.
+            // No display toggling needed — visibility approach works on all browsers
+            // including Safari where display:none → display:block breaks CSS transitions.
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    $overlay.addClass('active');
-                });
+                $overlay.addClass('active').attr('aria-hidden', 'false');
+                this._lockBodyScroll();
             });
-
-            // 5. Lock body scroll (iOS-safe: position:fixed trick)
-            this._lockBodyScroll();
         }
 
         closeModal() {
             const $overlay = this.$popupOverlay;
             if (!$overlay) return;
 
-            // Trigger CSS opacity transition: 1 → 0
-            $overlay.removeClass('active');
+            // CSS handles everything: opacity 1→0 (0.3s), then visibility:hidden (0s delay).
+            // No transitionend listener or display toggling needed.
+            $overlay.removeClass('active').attr('aria-hidden', 'true');
 
-            // Hide after transition ends; timeout is a fallback if the event never fires
-            // (e.g. element removed from DOM, or browser skips transition).
-            let done = false;
-            const hide = () => {
-                if (done) return;
-                done = true;
-                $overlay.css('display', 'none');
-                $overlay[0].scrollTop = 0; // reset scroll for next open
-            };
-            $overlay[0].addEventListener('transitionend', hide, { once: true });
-            setTimeout(hide, 350); // 300 ms transition + 50 ms buffer
+            // Reset scrollTop after the transition completes so the next open
+            // always starts at the correct scroll position.
+            setTimeout(() => { $overlay[0].scrollTop = 0; }, 350);
 
             this._unlockBodyScroll();
         }

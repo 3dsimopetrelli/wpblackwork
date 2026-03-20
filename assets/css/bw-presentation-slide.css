@@ -248,17 +248,38 @@
     height: 100%;
     background-color: rgba(255, 255, 255, 0.95);
     z-index: 99999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
     overflow-y: auto;
     /* iOS Safari: enables momentum scrolling inside a fixed container */
     -webkit-overflow-scrolling: touch;
     /* Prevent scroll from propagating to the page behind the modal */
     overscroll-behavior: contain;
+
+    /*
+     * Visibility-based show/hide — never toggling display.
+     *
+     * display:none → display:block + CSS transition is broken on Safari:
+     * the browser discards the element's opacity state when it is display:none,
+     * so there is no "from" value for the transition and Safari skips it.
+     *
+     * visibility:hidden keeps the element in the layout at all times, so
+     * Safari always has a valid starting state and the opacity transition fires
+     * correctly. pointer-events:none prevents interaction while hidden.
+     *
+     * On close: visibility delays 0.3 s (matching opacity transition) so the
+     * element becomes non-interactive only after it has fully faded out.
+     */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
 
 .bw-ps-popup-overlay.active {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    /* On open: visibility is immediate (0s delay), opacity transitions */
+    transition: opacity 0.3s ease, visibility 0s linear 0s;
 }
 
 .bw-ps-popup {
