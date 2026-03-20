@@ -585,9 +585,11 @@
             const $targetImage = $overlay.find('.bw-ps-popup-image').eq(startIndex);
             if (!$targetImage.length) return;
 
-            // The overlay is always in the layout (visibility:hidden, not display:none),
-            // so getBoundingClientRect() returns accurate values with no reflow tricks.
-            // Scroll to the target image while the overlay is still invisible.
+            // Step 1 — compute scroll position BEFORE locking the body.
+            // On iOS Safari, _lockBodyScroll() sets body{position:fixed} which can
+            // trigger the browser chrome to show/hide, resizing the viewport.
+            // getBoundingClientRect() values captured before this resize are accurate;
+            // values captured after may be off by the chrome height (~50-100 px).
             const headerH     = $overlay.find('.bw-ps-popup-header').outerHeight() || 0;
             const overlayRect = $overlay[0].getBoundingClientRect();
             const imageRect   = $targetImage[0].getBoundingClientRect();
@@ -596,13 +598,19 @@
                 $overlay[0].scrollTop + (imageRect.top - overlayRect.top) - headerH
             );
 
-            // Single rAF: let the browser commit the scroll before the transition starts,
-            // then add .active to trigger CSS opacity 0→1 + visibility:hidden→visible.
-            // No display toggling needed — visibility approach works on all browsers
-            // including Safari where display:none → display:block breaks CSS transitions.
+            // Step 2 — lock body scroll synchronously (before the next paint).
+            // Doing it here (not inside rAF) means the page can never scroll under
+            // the overlay for even a single frame, eliminating the visible "jump"
+            // on iOS Safari when the modal opens mid-page.
+            this._lockBodyScroll();
+
+            // Step 3 — show overlay in the next paint.
+            // The browser has committed the scroll lock and the overlay's scrollTop,
+            // so the CSS opacity 0→1 transition starts from a clean state.
+            // visibility:hidden→visible (not display toggling) ensures Safari always
+            // has a valid "from" value for the transition.
             requestAnimationFrame(() => {
                 $overlay.addClass('active').attr('aria-hidden', 'false');
-                this._lockBodyScroll();
             });
         }
 
