@@ -3073,10 +3073,8 @@ class BW_Checkout_Subscribe_Admin {
      * @return array<int,string>
      */
     private function get_cached_brevo_lists_map( $api_key ) {
-        $cache_key = 'bw_brevo_lists_map_' . md5( $api_key );
-        $cached = get_transient( $cache_key );
-        if ( is_array( $cached ) && ! empty( $cached ) ) {
-            return $cached;
+        if ( class_exists( 'BW_Brevo_Lists_Service' ) ) {
+            return BW_Brevo_Lists_Service::get_cached_lists_map( $api_key );
         }
 
         return [];
@@ -3198,61 +3196,14 @@ class BW_Checkout_Subscribe_Admin {
      * @return array
      */
     private function get_brevo_lists( $api_key ) {
-        if ( '' === $api_key ) {
-            return [
-                'success' => false,
-                'message' => __( 'Insert API key and save to load list dropdown. Numeric input fallback remains available.', 'bw' ),
-                'lists'   => [],
-            ];
+        if ( class_exists( 'BW_Brevo_Lists_Service' ) ) {
+            return BW_Brevo_Lists_Service::get_lists( $api_key );
         }
-
-        if ( ! class_exists( 'BW_Brevo_Client' ) ) {
-            return [
-                'success' => false,
-                'message' => __( 'Brevo client unavailable.', 'bw' ),
-                'lists'   => [],
-            ];
-        }
-
-        $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
-        $result = $client->get_lists( 50, 0 );
-
-        if ( empty( $result['success'] ) ) {
-            return [
-                'success' => false,
-                'message' => isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Unable to load lists from Brevo. Use numeric List ID.', 'bw' ),
-                'lists'   => [],
-            ];
-        }
-
-        $lists = [];
-        if ( ! empty( $result['data']['lists'] ) && is_array( $result['data']['lists'] ) ) {
-            foreach ( $result['data']['lists'] as $list ) {
-                if ( empty( $list['id'] ) ) {
-                    continue;
-                }
-
-                $lists[] = [
-                    'id'   => absint( $list['id'] ),
-                    'name' => isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : __( 'Untitled', 'bw' ),
-                ];
-            }
-        }
-
-        if ( empty( $lists ) ) {
-            return [
-                'success' => false,
-                'message' => __( 'No lists returned by API. Use numeric List ID.', 'bw' ),
-                'lists'   => [],
-            ];
-        }
-
-        $this->cache_brevo_lists_map( $api_key, $lists );
 
         return [
-            'success' => true,
-            'message' => '',
-            'lists'   => $lists,
+            'success' => false,
+            'message' => __( 'Brevo lists service unavailable.', 'bw' ),
+            'lists'   => [],
         ];
     }
 
@@ -3263,25 +3214,8 @@ class BW_Checkout_Subscribe_Admin {
      * @param array  $lists   List rows with id/name.
      */
     private function cache_brevo_lists_map( $api_key, $lists ) {
-        $api_key = (string) $api_key;
-        if ( '' === $api_key || ! is_array( $lists ) || empty( $lists ) ) {
-            return;
+        if ( class_exists( 'BW_Brevo_Lists_Service' ) ) {
+            BW_Brevo_Lists_Service::cache_lists_map( $api_key, $lists );
         }
-
-        $map = [];
-        foreach ( $lists as $list ) {
-            $id = isset( $list['id'] ) ? absint( $list['id'] ) : 0;
-            $name = isset( $list['name'] ) ? sanitize_text_field( (string) $list['name'] ) : '';
-            if ( $id > 0 && '' !== $name ) {
-                $map[ $id ] = $name;
-            }
-        }
-
-        if ( empty( $map ) ) {
-            return;
-        }
-
-        $cache_key = 'bw_brevo_lists_map_' . md5( $api_key );
-        set_transient( $cache_key, $map, HOUR_IN_SECONDS );
     }
 }

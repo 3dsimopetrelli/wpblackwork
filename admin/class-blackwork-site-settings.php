@@ -125,6 +125,9 @@ function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
     $allowed_pages = [
         'blackwork-site-settings',
         'blackwork-mail-marketing',
+        'bw-reviews',
+        'bw-reviews-settings',
+        'bw-reviews-edit',
     ];
 
     return !empty($page_slug) && in_array($page_slug, $allowed_pages, true);

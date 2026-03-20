@@ -451,6 +451,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/system-status/syst
     require_once plugin_dir_path(__FILE__) . 'includes/modules/system-status/system-status-module.php';
 }
 
+// Reviews module (custom reviews domain)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/reviews/reviews-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/reviews/reviews-module.php';
+}
+
 // Elementor Sticky Sidebar — JS-based sticky for container elements
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php';
@@ -464,6 +469,7 @@ $bw_checkout_fields_frontend = plugin_dir_path(__FILE__) . 'includes/admin/check
 $bw_checkout_subscribe_admin = plugin_dir_path(__FILE__) . 'includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php';
 $bw_checkout_subscribe_frontend = plugin_dir_path(__FILE__) . 'includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php';
 $bw_brevo_client = plugin_dir_path(__FILE__) . 'includes/integrations/brevo/class-bw-brevo-client.php';
+$bw_brevo_lists_service = plugin_dir_path(__FILE__) . 'includes/integrations/brevo/class-bw-brevo-lists-service.php';
 $bw_mailmarketing_service = plugin_dir_path(__FILE__) . 'includes/integrations/brevo/class-bw-mailmarketing-service.php';
 $bw_mailmarketing_subscription_channel = plugin_dir_path(__FILE__) . 'includes/integrations/brevo/class-bw-mailmarketing-subscription-channel.php';
 
@@ -477,6 +483,10 @@ if (file_exists($bw_checkout_fields_frontend)) {
 
 if (file_exists($bw_brevo_client)) {
     require_once $bw_brevo_client;
+}
+
+if (file_exists($bw_brevo_lists_service)) {
+    require_once $bw_brevo_lists_service;
 }
 
 if (file_exists($bw_mailmarketing_service)) {
@@ -624,6 +634,7 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_product
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
 add_action('init', 'bw_register_product_details_widget_assets');
+add_action('init', 'bw_register_reviews_widget_assets');
 add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
 add_action('elementor/widgets/widgets_registered', 'bw_unregister_removed_blackwork_widgets', 999);
 
@@ -1326,6 +1337,30 @@ function bw_register_price_variation_widget_assets()
     wp_register_script(
         'bw-price-variation-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-price-variation.js',
+        ['jquery'],
+        $js_version,
+        true
+    );
+}
+
+function bw_register_reviews_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-reviews.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-reviews-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-reviews.css',
+        [],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-reviews.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-reviews-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-reviews.js',
         ['jquery'],
         $js_version,
         true
