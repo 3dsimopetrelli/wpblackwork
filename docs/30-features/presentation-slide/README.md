@@ -49,6 +49,9 @@ Design is fixed — no user configuration:
 - Overlay is appended to `<body>` (required for `position:fixed`).
 - Full-screen white overlay with sticky header and scrollable image list.
 - Popup title sourced from product name (WooCommerce context) or widget setting.
+- Close button currently renders explicit text `Close` instead of an icon-only glyph.
+- Popup open/close uses opacity/visibility transitions instead of `display:none` toggling to avoid Safari transition glitches.
+- Body scroll lock is handled in an iOS-safe way through fixed-body state while the modal is open.
 - Properly removed from DOM in `destroy()` to prevent orphaned overlays on Elementor re-render.
 
 ## Product Context
@@ -64,6 +67,7 @@ Used by both `get_popup_title()` and `get_images_for_render()`.
 - Class: `BWPresentationSlide` (one instance per widget).
 - Initialized via `elementorFrontend.hooks.addAction('frontend/element_ready/bw-presentation-slide.default', ...)`.
 - Embla instances: `this.emblaCore` (horizontal), `this.emblaMain` / `this.emblaThumbs` (vertical responsive).
+- Shared engine contract is `BWEmblaCore`; the widget does not directly initialize Slick anymore.
 - Event namespacing: `.bwps-{widgetId}` and `.bwps-cursor-{widgetId}` for clean per-instance teardown.
 - `destroy()` removes cursor element, popup overlay, all namespaced events, RAF animation.
 
@@ -73,6 +77,7 @@ Used by both `get_popup_title()` and `get_images_for_render()`.
 - Arrow button cursor (`cursor:pointer`) is explicitly restored via CSS override so `bw-ps-hide-cursor` does not suppress it.
 - Breakpoints sorted ascending; first match wins (`break` after match).
 - Selector cache (`_$horizontal`, `_$images`) must be assigned **before** `emblaCore.init()` because `onSelect` fires during init.
+- Desktop vertical mode is intentionally not Embla-driven; it remains a custom elevator layout with thumbnail-triggered scroll.
 
 ## Fixes Log
 
