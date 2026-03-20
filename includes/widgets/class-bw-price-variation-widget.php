@@ -123,11 +123,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'label'   => __( 'Alignment', 'bw' ),
 				'type'    => Controls_Manager::CHOOSE,
 				'options' => [
-					'left'   => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+					'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
 					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
-					'right'  => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+					'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
 				],
-				'default'   => 'left',
+				'default'   => 'flex-start',
 				'selectors' => [
 					'{{WRAPPER}} .bw-price-variation__price-wrapper' => 'justify-content: {{VALUE}};',
 				],
@@ -870,9 +870,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 'label'   => __( 'Alignment', 'bw' ),
                                 'type'    => Controls_Manager::CHOOSE,
 				'options' => [
-					'left'   => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+					'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
 					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
-					'right'  => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+					'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
 				],
 				'default'   => 'left',
 				'selectors' => [
