@@ -243,7 +243,7 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
                 return $this->error_response( 'forbidden', __( 'You cannot edit this review.', 'bw' ) );
             }
 
-            if ( empty( $moderation['allow_review_editing'] ) || empty( $moderation['editing_logged_in_owners_only'] ) ) {
+            if ( empty( $moderation['allow_review_editing'] ) ) {
                 return $this->error_response( 'editing_disabled', __( 'Review editing is currently disabled.', 'bw' ) );
             }
 
