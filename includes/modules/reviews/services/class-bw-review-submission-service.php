@@ -130,12 +130,15 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
             }
 
             $verification = [
-                'eligible' => true,
+                'eligible' => false,
                 'order_id' => 0,
             ];
 
-            if ( ! empty( $submission_settings['verified_buyers_only'] ) ) {
+            if ( $user_id > 0 ) {
                 $verification = $this->verified_purchase_service->check_eligibility( $product_id, $identity['email'], $user_id );
+            }
+
+            if ( ! empty( $submission_settings['verified_buyers_only'] ) ) {
                 if ( empty( $verification['eligible'] ) ) {
                     return $this->error_response( 'not_verified_buyer', __( 'Only verified buyers can submit a review for this product.', 'bw' ) );
                 }
