@@ -32,7 +32,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <span class="bw-reviews-rating-picker__label"><?php echo esc_html( $view['config']['strings']['dislike'] ); ?></span>
                             <div class="bw-reviews-rating-picker__stars">
                                 <?php for ( $rating = 1; $rating <= 5; $rating++ ) : ?>
-                                    <button type="button" class="bw-reviews-rating-picker__star" data-rating-value="<?php echo esc_attr( (string) $rating ); ?>" aria-label="<?php echo esc_attr( sprintf( __( '%d stars', 'bw' ), $rating ) ); ?>">★</button>
+                                    <button type="button" class="bw-reviews-rating-picker__star" data-rating-value="<?php echo esc_attr( (string) $rating ); ?>" aria-label="<?php echo esc_attr( sprintf( __( '%d stars', 'bw' ), $rating ) ); ?>">
+                                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                            <path d="M12 2.75 14.936 8.701 21.5 9.655 16.75 14.286 17.871 20.825 12 17.738 6.129 20.825 7.25 14.286 2.5 9.655 9.064 8.701 12 2.75Z"/>
+                                        </svg>
+                                    </button>
                                 <?php endfor; ?>
                             </div>
                             <span class="bw-reviews-rating-picker__label is-right"><?php echo esc_html( $view['config']['strings']['love'] ); ?></span>
