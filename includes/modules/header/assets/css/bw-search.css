@@ -378,8 +378,10 @@ body.bw-search-overlay-active {
     width: 100%;
 }
 
-/* Product Card */
-.bw-product-card {
+/* Product Card
+   Scoped to the search overlay so shared product-card classes used by
+   product grids / wallpost layouts are not polluted by search-specific UI. */
+.bw-search-results .bw-product-card {
     background-color: #FFFFFF;
     border-radius: 8px;
     overflow: hidden;
@@ -400,14 +402,14 @@ body.bw-search-overlay-active {
 }
 
 /* Product Card Link */
-.bw-product-card__link {
+.bw-search-results .bw-product-card__link {
     display: block;
     text-decoration: none;
     color: inherit;
 }
 
 /* Product Image */
-.bw-product-card__image {
+.bw-search-results .bw-product-card__image {
     position: relative;
     width: 100%;
     padding-bottom: 100%; /* 1:1 Aspect Ratio */
@@ -415,7 +417,7 @@ body.bw-search-overlay-active {
     background-color: #F5F5F5;
 }
 
-.bw-product-card__image img {
+.bw-search-results .bw-product-card__image img {
     position: absolute;
     top: 0;
     left: 0;
@@ -425,7 +427,7 @@ body.bw-search-overlay-active {
 }
 
 /* Product Info */
-.bw-product-card__info {
+.bw-search-results .bw-product-card__info {
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -433,7 +435,7 @@ body.bw-search-overlay-active {
 }
 
 /* Product Title */
-.bw-product-card__title {
+.bw-search-results .bw-product-card__title {
     font-size: 16px;
     font-weight: 500;
     color: #080808;
@@ -447,23 +449,23 @@ body.bw-search-overlay-active {
 }
 
 /* Product Price */
-.bw-product-card__price {
+.bw-search-results .bw-product-card__price {
     font-size: 18px;
     font-weight: 600;
     color: #080808;
 }
 
-.bw-product-card__price .amount {
+.bw-search-results .bw-product-card__price .amount {
     color: #080808;
 }
 
-.bw-product-card__price del {
+.bw-search-results .bw-product-card__price del {
     opacity: 0.5;
     margin-right: 8px;
     font-weight: 400;
 }
 
-.bw-product-card__price ins {
+.bw-search-results .bw-product-card__price ins {
     text-decoration: none;
 }
 
@@ -527,15 +529,15 @@ body.bw-search-overlay-active {
         gap: 12px;
     }
 
-    .bw-product-card__info {
+    .bw-search-results .bw-product-card__info {
         padding: 12px;
     }
 
-    .bw-product-card__title {
+    .bw-search-results .bw-product-card__title {
         font-size: 14px;
     }
 
-    .bw-product-card__price {
+    .bw-search-results .bw-product-card__price {
         font-size: 16px;
     }
 
