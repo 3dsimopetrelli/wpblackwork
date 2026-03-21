@@ -21,10 +21,18 @@
     - hover image fallback
     - no hover media
   - kept hover-media logic centralized inside `BW_Product_Card_Component` so all consuming widgets inherit the same behavior
+  - constrained the admin-side hover-video preview so the product edit screen remains usable
+  - added shared product-card hover-video playback control:
+    - no hidden autoplay under the main image
+    - playback starts from `0` on real hover/focus
+    - playback resets on pointer leave / focus leave
+  - preserved nested `<source>` markup through a dedicated allowlist so the browser receives the real video URL rather than only the poster frame
   - documented and registered the new hover-media regression surface
 - Modified implementation files:
   - `includes/product-types/class-bw-product-slider-metabox.php`
   - `includes/components/product-card/class-bw-product-card-component.php`
+  - `blackwork-core-plugin.php`
+  - `assets/js/bw-product-card.js`
   - `assets/css/bw-product-card.css`
 - Modified documentation files:
   - `docs/10-architecture/elementor-widget-architecture-context.md`
@@ -46,7 +54,7 @@
   - Verification performed: field model and save flow updated for image + video
   - Result: PASS
 - Surface name: shared product-card rendering
-  - Verification performed: hover-media precedence implemented in component authority
+  - Verification performed: hover-media precedence implemented in component authority; video `<source>` preserved; hover playback starts/stops deterministically
   - Result: PASS
 - Surface name: consuming widget family
   - Verification performed: component-level authority preserved so product-grid / related-products / slick-slider inherit behavior
@@ -60,6 +68,7 @@
 Notes:
 - hover-media precedence is explicit and deterministic
 - products without configured hover video keep hover image fallback
+- products with configured hover video no longer reveal a mid-play frame when the user enters hover
 
 ## 6) Documentation Alignment Verification
 

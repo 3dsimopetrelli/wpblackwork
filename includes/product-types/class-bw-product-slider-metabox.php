@@ -41,9 +41,9 @@ function bw_render_product_slider_hover_metabox( $post ) {
 
 		<div class="bw-slider-metabox-field" style="margin-bottom:16px;">
 			<strong style="display:block;margin-bottom:8px;"><?php esc_html_e( 'Hover Image', 'bw' ); ?></strong>
-			<div class="bw-slider-metabox-preview bw-slider-metabox-preview--image" style="margin-bottom:10px;">
+			<div class="bw-slider-metabox-preview bw-slider-metabox-preview--image" style="margin-bottom:10px;max-width:280px;">
 				<?php if ( $image_url ) : ?>
-					<img src="<?php echo esc_url( $image_url ); ?>" style="max-width:100%;border-radius:6px;" alt="<?php echo esc_attr__( 'Hover image preview', 'bw' ); ?>">
+					<img src="<?php echo esc_url( $image_url ); ?>" style="display:block;width:100%;height:auto;max-width:280px;border-radius:6px;" alt="<?php echo esc_attr__( 'Hover image preview', 'bw' ); ?>">
 				<?php endif; ?>
 			</div>
 			<input type="hidden" name="bw_slider_hover_image" id="bw_slider_hover_image" value="<?php echo esc_attr( $image_id ); ?>">
@@ -83,7 +83,7 @@ function bw_render_product_slider_hover_metabox( $post ) {
 		var videoFrame = null;
 
 		function renderImagePreview(attachment) {
-			var imageHtml = '<img src="' + attachment.url + '" style="max-width:100%;border-radius:6px;" alt="<?php echo esc_js( __( 'Hover image preview', 'bw' ) ); ?>">';
+			var imageHtml = '<img src="' + attachment.url + '" style="display:block;width:100%;height:auto;max-width:280px;border-radius:6px;" alt="<?php echo esc_js( __( 'Hover image preview', 'bw' ) ); ?>">';
 			$('.bw-slider-metabox-preview--image').html(imageHtml);
 			$('.bw-remove-slider-hover-image').show();
 		}

@@ -131,6 +131,10 @@ Canonical transition note:
   - `_bw_slider_hover_image`
   - no hover media
 - WooCommerce product edit authority for those fields is the `Hover Media` metabox.
+- hover-video playback is governed by the shared product-card runtime:
+  - no hidden autoplay beneath the main image
+  - playback starts on real hover/focus
+  - playback resets on exit
 - `bw-related-products` refactored (2026-03): proportional image grid, simplified controls (removed Image Settings, Overlay Buttons style, Card Container style, open_cart_popup, margin_top/bottom). Desktop columns control uses `selectors` for live Elementor preview without re-render. Tablet/mobile hardcoded to 2 columns in CSS.
 - Removed widgets (governed removal wave completed):
   - `bw-wallpost` (replacement: `bw-product-grid` + `Enable Filter = No`)

@@ -123,6 +123,8 @@ Wave-specific checks:
   - hover image field still saves and removes correctly
   - hover video field saves and removes correctly
   - product with hover video uses video-first behavior on shared product-card surfaces
+  - product with hover video renders a real `<source src="...">` in storefront markup (not poster-only video shell)
+  - hover video starts from the beginning on desktop hover/focus and resets on leave
   - product without hover video still uses hover image fallback
   - product with neither field renders safely without hover-media breakage
   - product-grid / related-products / slick-slider product cards remain clickable and visually stable

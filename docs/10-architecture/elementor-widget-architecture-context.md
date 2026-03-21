@@ -95,6 +95,10 @@ Current product-widget integration note:
 Current shared media note:
 - the WooCommerce product admin metabox labeled `Hover Media` is the current editor authority for product-card hover media
 - widgets consuming `BW_Product_Card_Component` inherit hover-video support automatically when configured on the product
+- hover-video storefront behavior is component-governed:
+  - desktop hover/focus starts playback from the beginning
+  - hover exit resets the video
+  - nested `<source>` markup is intentionally preserved via a minimal allowlist, because generic post-safe sanitization strips `<source>` and would leave only the poster frame
 
 Current popup/runtime note for `bw-presentation-slide`:
 - popup overlay is moved to `<body>` at runtime
