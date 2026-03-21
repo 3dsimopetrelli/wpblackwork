@@ -50,19 +50,6 @@ class BW_Reviews_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_control(
-            'fallback_to_global_reviews_when_empty',
-            [
-                'label'        => __( 'Use Global Reviews When Product Has None', 'bw' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'On', 'bw' ),
-                'label_off'    => __( 'Off', 'bw' ),
-                'return_value' => '1',
-                'default'      => '',
-                'description'  => __( 'When enabled, products without approved reviews will show the global site-wide reviews summary and list instead.', 'bw' ),
-            ]
-        );
-
         $this->end_controls_section();
     }
 

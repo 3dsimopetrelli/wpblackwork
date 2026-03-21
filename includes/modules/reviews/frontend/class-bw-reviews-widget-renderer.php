@@ -86,7 +86,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
             $owned_review = $is_logged_in ? $this->repository->find_by_product_and_user_id( $product_id, get_current_user_id() ) : null;
             $can_edit_own = $this->can_edit_reviews() && $is_logged_in;
             $product_summary = $product_id > 0 ? $this->repository->get_product_summary( $product_id ) : $this->get_empty_summary();
-            $review_source   = $this->resolve_review_source( $settings, $product_summary );
+            $review_source   = $this->resolve_review_source( $product_summary, $display );
             $summary         = 'global' === $review_source ? $this->repository->get_global_summary() : $product_summary;
             $reviews         = 'global' === $review_source
                 ? $this->repository->get_global_reviews( $sort, 0, $limit )
@@ -389,8 +389,8 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
          *
          * @return string
          */
-        private function resolve_review_source( $settings, $product_summary ) {
-            $fallback_enabled = ! empty( $settings['fallback_to_global_reviews_when_empty'] );
+        private function resolve_review_source( $product_summary, $display ) {
+            $fallback_enabled   = ! empty( $display['fallback_to_global_reviews_when_empty'] );
             $has_product_reviews = ! empty( $product_summary['approved_count'] );
 
             if ( $fallback_enabled && ! $has_product_reviews ) {

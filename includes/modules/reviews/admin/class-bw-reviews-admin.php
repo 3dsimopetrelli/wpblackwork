@@ -132,6 +132,7 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                     'show_rating_breakdown' => ! empty( $_POST['bw_reviews_display_show_rating_breakdown'] ) ? 1 : 0,
                     'show_dates'            => ! empty( $_POST['bw_reviews_display_show_dates'] ) ? 1 : 0,
                     'show_verified_badge'   => ! empty( $_POST['bw_reviews_display_show_verified_badge'] ) ? 1 : 0,
+                    'fallback_to_global_reviews_when_empty' => ! empty( $_POST['bw_reviews_display_fallback_to_global_reviews_when_empty'] ) ? 1 : 0,
                 ];
                 update_option( BW_Reviews_Settings::DISPLAY_OPTION, $settings );
             } elseif ( 'submission' === $tab ) {
@@ -455,6 +456,16 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Show verified badge', 'bw' ); ?></th>
                                     <td><label><input type="checkbox" name="bw_reviews_display_show_verified_badge" value="1" <?php checked( $display['show_verified_badge'], 1 ); ?> /> <?php esc_html_e( 'Display the verified purchase badge.', 'bw' ); ?></label></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e( 'Use global reviews when empty', 'bw' ); ?></th>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" name="bw_reviews_display_fallback_to_global_reviews_when_empty" value="1" <?php checked( $display['fallback_to_global_reviews_when_empty'], 1 ); ?> />
+                                            <?php esc_html_e( 'When a product has no approved reviews, show the site-wide reviews summary and review list instead.', 'bw' ); ?>
+                                        </label>
+                                        <p class="description"><?php esc_html_e( 'This helps avoid empty product pages. In this global mode, each review card also shows the reviewed product image and product name so visitors can understand which item the review belongs to.', 'bw' ); ?></p>
+                                    </td>
                                 </tr>
                             <?php elseif ( 'submission' === $active_tab ) : ?>
                                 <tr>

@@ -92,6 +92,7 @@ if ( ! class_exists( 'BW_Reviews_Settings' ) ) {
                 'show_rating_breakdown' => 1,
                 'show_dates'            => 1,
                 'show_verified_badge'   => 1,
+                'fallback_to_global_reviews_when_empty' => 0,
             ];
         }
 
