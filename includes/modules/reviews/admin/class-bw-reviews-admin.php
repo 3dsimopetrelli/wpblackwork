@@ -344,26 +344,81 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
 
             $table = new BW_Reviews_List_Table();
             $table->prepare_items();
+            $counts = $this->repository->get_view_counts();
             ?>
             <div class="wrap bw-admin-root bw-admin-page bw-admin-page-reviews">
                 <style>
                     .bw-admin-page-reviews .column-status,
-                    .bw-admin-page-reviews .column-delete_action {
+                    .bw-admin-page-reviews .column-featured {
                         width: 96px;
                     }
 
-                    .bw-admin-page-reviews .bw-reviews-admin-status-dot {
-                        display: inline-block;
-                        width: 12px;
-                        height: 12px;
-                        border-radius: 999px;
-                        vertical-align: middle;
-                        background: #9aa0a6;
+                    .bw-admin-page-reviews .bw-reviews-admin-stats {
+                        display: grid;
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                        gap: 12px;
+                        margin: 0 0 16px;
                     }
 
-                    .bw-admin-page-reviews .bw-reviews-admin-status-dot.is-approved {
-                        background: #23a55a;
-                        box-shadow: 0 0 0 4px rgba(35, 165, 90, 0.14);
+                    .bw-admin-page-reviews .bw-reviews-admin-stat {
+                        padding: 14px 16px;
+                        border: 1px solid #d0d5dd;
+                        border-radius: 12px;
+                        background: #fff;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-stat__label {
+                        display: block;
+                        margin-bottom: 6px;
+                        color: #667085;
+                        font-size: 12px;
+                        font-weight: 600;
+                        letter-spacing: 0.02em;
+                        text-transform: uppercase;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-stat__value {
+                        color: #101828;
+                        font-size: 24px;
+                        font-weight: 700;
+                        line-height: 1;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-width: 92px;
+                        min-height: 34px;
+                        padding: 0 12px;
+                        border-radius: 999px;
+                        font-weight: 600;
+                        text-decoration: none;
+                        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle.is-approved {
+                        border: 1px solid #15803d;
+                        background: #dcfce7;
+                        color: #166534;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle.is-approved:hover,
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle.is-approved:focus {
+                        background: #bbf7d0;
+                        color: #14532d;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle.is-rejected {
+                        border: 1px solid #b42318;
+                        background: #fee4e2;
+                        color: #b42318;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle.is-rejected:hover,
+                    .bw-admin-page-reviews .bw-reviews-admin-status-toggle.is-rejected:focus {
+                        background: #fecdca;
+                        color: #912018;
                     }
 
                     .bw-admin-page-reviews .bw-reviews-admin-status-label {
@@ -384,17 +439,18 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                         color: #6b7280;
                     }
 
-                    .bw-admin-page-reviews .bw-reviews-admin-delete-button {
-                        color: #fff;
-                        background: #b42318;
-                        border-color: #b42318;
+                    .bw-admin-page-reviews .bw-reviews-admin-pin {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 18px;
+                        line-height: 1;
                     }
 
-                    .bw-admin-page-reviews .bw-reviews-admin-delete-button:hover,
-                    .bw-admin-page-reviews .bw-reviews-admin-delete-button:focus {
-                        color: #fff;
-                        background: #8f1d14;
-                        border-color: #8f1d14;
+                    @media (max-width: 1200px) {
+                        .bw-admin-page-reviews .bw-reviews-admin-stats {
+                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                        }
                     }
                 </style>
                 <div class="bw-admin-header">
@@ -412,6 +468,25 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                         <a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . BW_Reviews_Settings::TAB_PAGE_SLUG ) ); ?>">
                             <?php esc_html_e( 'Open Settings', 'bw' ); ?>
                         </a>
+                    </div>
+                </div>
+
+                <div class="bw-reviews-admin-stats" aria-label="<?php esc_attr_e( 'Review overview', 'bw' ); ?>">
+                    <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Total', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['all'] ) ); ?></span>
+                    </div>
+                    <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Approved', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['approved'] ) ); ?></span>
+                    </div>
+                    <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Rejected', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['rejected'] ) ); ?></span>
+                    </div>
+                    <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Trash', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['trash'] ) ); ?></span>
                     </div>
                 </div>
 
