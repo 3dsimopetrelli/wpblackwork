@@ -429,13 +429,7 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
                 return [];
             }
 
-            $sort_map = [
-                'featured'       => 'featured DESC, created_at DESC',
-                'newest'         => 'created_at DESC',
-                'highest_rating' => 'rating DESC, created_at DESC',
-                'lowest_rating'  => 'rating ASC, created_at DESC',
-            ];
-            $order_by = isset( $sort_map[ $sort ] ) ? $sort_map[ $sort ] : $sort_map['featured'];
+            $order_by = $this->get_review_order_by_clause( $sort );
 
             $sql = $wpdb->prepare(
                 "SELECT * FROM {$this->get_table_name()}
@@ -489,11 +483,7 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
 
             $product_id = absint( $product_id );
             if ( $product_id <= 0 ) {
-                return [
-                    'average_rating' => 0,
-                    'approved_count' => 0,
-                    'breakdown'      => [],
-                ];
+                return $this->get_empty_summary();
             }
 
             $table  = $this->get_table_name();
@@ -536,6 +526,127 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
                 'average_rating' => $avg ? round( (float) $avg, 1 ) : 0,
                 'approved_count' => $total,
                 'breakdown'      => $breakdown,
+            ];
+        }
+
+        /**
+         * Get approved reviews across the whole catalog.
+         *
+         * @param string $sort   Sort mode.
+         * @param int    $offset Offset.
+         * @param int    $limit  Limit.
+         *
+         * @return array<int,array<string,mixed>>
+         */
+        public function get_global_reviews( $sort = 'featured', $offset = 0, $limit = 6 ) {
+            global $wpdb;
+
+            $posts    = $wpdb->posts;
+            $order_by = $this->get_review_order_by_clause( $sort );
+            $sql      = $wpdb->prepare(
+                "SELECT r.*, p.post_title AS product_title
+                FROM {$this->get_table_name()} r
+                LEFT JOIN {$posts} p ON p.ID = r.product_id
+                WHERE r.status = 'approved'
+                ORDER BY {$order_by}
+                LIMIT %d OFFSET %d",
+                max( 1, absint( $limit ) ),
+                max( 0, absint( $offset ) )
+            );
+
+            $rows = $wpdb->get_results( $sql, ARRAY_A );
+
+            return is_array( $rows ) ? $rows : [];
+        }
+
+        /**
+         * Count approved reviews across the whole catalog.
+         *
+         * @return int
+         */
+        public function count_global_reviews() {
+            global $wpdb;
+
+            return absint(
+                $wpdb->get_var(
+                    "SELECT COUNT(*) FROM {$this->get_table_name()} WHERE status = 'approved'"
+                )
+            );
+        }
+
+        /**
+         * Build rating summary for all approved reviews.
+         *
+         * @return array<string,mixed>
+         */
+        public function get_global_summary() {
+            global $wpdb;
+
+            $table  = $this->get_table_name();
+            $avg    = $wpdb->get_var(
+                "SELECT AVG(rating) FROM {$table} WHERE status = 'approved'"
+            );
+            $counts = $wpdb->get_results(
+                "SELECT rating, COUNT(*) AS total FROM {$table} WHERE status = 'approved' GROUP BY rating",
+                ARRAY_A
+            );
+
+            $total     = $this->count_global_reviews();
+            $breakdown = [];
+
+            for ( $rating = 5; $rating >= 1; $rating-- ) {
+                $count = 0;
+                if ( is_array( $counts ) ) {
+                    foreach ( $counts as $row ) {
+                        if ( isset( $row['rating'] ) && absint( $row['rating'] ) === $rating ) {
+                            $count = absint( $row['total'] );
+                            break;
+                        }
+                    }
+                }
+
+                $breakdown[] = [
+                    'rating'  => $rating,
+                    'count'   => $count,
+                    'percent' => $total > 0 ? round( ( $count / $total ) * 100, 1 ) : 0,
+                ];
+            }
+
+            return [
+                'average_rating' => $avg ? round( (float) $avg, 1 ) : 0,
+                'approved_count' => $total,
+                'breakdown'      => $breakdown,
+            ];
+        }
+
+        /**
+         * Resolve SQL order-by clause for approved review lists.
+         *
+         * @param string $sort Sort mode.
+         *
+         * @return string
+         */
+        private function get_review_order_by_clause( $sort ) {
+            $sort_map = [
+                'featured'       => 'featured DESC, created_at DESC',
+                'newest'         => 'created_at DESC',
+                'highest_rating' => 'rating DESC, created_at DESC',
+                'lowest_rating'  => 'rating ASC, created_at DESC',
+            ];
+
+            return isset( $sort_map[ $sort ] ) ? $sort_map[ $sort ] : $sort_map['featured'];
+        }
+
+        /**
+         * Empty summary shape.
+         *
+         * @return array<string,mixed>
+         */
+        private function get_empty_summary() {
+            return [
+                'average_rating' => 0,
+                'approved_count' => 0,
+                'breakdown'      => [],
             ];
         }
     }

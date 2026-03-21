@@ -115,6 +115,7 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
             $sort       = isset( $_POST['sort'] ) ? sanitize_key( wp_unslash( $_POST['sort'] ) ) : 'featured';
             $offset     = isset( $_POST['offset'] ) ? absint( wp_unslash( $_POST['offset'] ) ) : 0;
             $limit      = isset( $_POST['limit'] ) ? absint( wp_unslash( $_POST['limit'] ) ) : max( 1, absint( BW_Reviews_Settings::get_display_settings()['load_more_count'] ) );
+            $source     = isset( $_POST['review_source'] ) ? sanitize_key( wp_unslash( $_POST['review_source'] ) ) : 'product';
 
             if ( $product_id <= 0 || 'product' !== get_post_type( $product_id ) ) {
                 wp_send_json_error(
@@ -131,8 +132,11 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
             $display    = BW_Reviews_Settings::get_display_settings();
             $moderation = BW_Reviews_Settings::get_moderation_settings();
             $owned      = is_user_logged_in() ? $repository->find_by_product_and_user_id( $product_id, get_current_user_id() ) : null;
-            $reviews    = $repository->get_product_reviews( $product_id, $sort, $offset, max( 1, $limit ) );
-            $total      = $repository->count_product_reviews( $product_id );
+            $use_global = 'global' === $source;
+            $reviews    = $use_global
+                ? $repository->get_global_reviews( $sort, $offset, max( 1, $limit ) )
+                : $repository->get_product_reviews( $product_id, $sort, $offset, max( 1, $limit ) );
+            $total      = $use_global ? $repository->count_global_reviews() : $repository->count_product_reviews( $product_id );
             $shown      = $offset + count( $reviews );
 
             wp_send_json_success(
@@ -144,6 +148,7 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
                             'show_verified_badge' => ! empty( $display['show_verified_badge'] ),
                             'can_edit_own'        => is_user_logged_in() && ! empty( $moderation['allow_review_editing'] ) && ! empty( $moderation['editing_logged_in_owners_only'] ),
                             'owned_review_id'     => is_array( $owned ) ? absint( $owned['id'] ) : 0,
+                            'show_product_context' => $use_global,
                         ]
                     ),
                     'hasMore'       => $shown < $total,

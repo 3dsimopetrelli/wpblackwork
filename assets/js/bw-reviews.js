@@ -62,6 +62,7 @@
                 action: 'bw_reviews_load_reviews',
                 nonce: config.nonce,
                 product_id: config.productId,
+                review_source: payload.reviewSource,
                 sort: payload.sort,
                 offset: payload.offset,
                 limit: payload.limit,
@@ -621,6 +622,7 @@
             this.lastRequestToken = 0;
             this.state = {
                 productId: Number(this.config.productId || 0),
+                reviewSource: this.config.reviewSource || 'product',
                 sort: this.config.sortDefault || 'featured',
                 shownCount: Number(this.config.shownCount || 0),
                 hasMore: !!this.config.hasMore,
@@ -840,6 +842,7 @@
             this.syncLoadingState(true, append);
 
             this.pendingListRequest = this.ajaxClient.loadReviews(this.config, {
+                reviewSource: this.state.reviewSource,
                 sort: this.state.sort,
                 offset: offset,
                 limit: limit,

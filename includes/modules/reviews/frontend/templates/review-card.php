@@ -33,6 +33,17 @@ if ( ! defined( 'ABSPATH' ) ) {
         <?php echo wp_kses_post( (string) $card['content_html'] ); ?>
     </div>
 
+    <?php if ( ! empty( $card['show_product_context'] ) && ! empty( $card['product_name'] ) ) : ?>
+        <div class="bw-reviews-card__product">
+            <?php if ( ! empty( $card['product_image_url'] ) ) : ?>
+                <div class="bw-reviews-card__product-thumb">
+                    <img src="<?php echo esc_url( (string) $card['product_image_url'] ); ?>" alt="<?php echo esc_attr( (string) $card['product_name'] ); ?>" loading="lazy" />
+                </div>
+            <?php endif; ?>
+            <div class="bw-reviews-card__product-name"><?php echo esc_html( (string) $card['product_name'] ); ?></div>
+        </div>
+    <?php endif; ?>
+
     <?php if ( ! empty( $card['editable'] ) ) : ?>
         <footer class="bw-reviews-card__footer">
             <button type="button" class="bw-reviews-card__edit" data-review-edit="<?php echo esc_attr( (string) $card['id'] ); ?>">

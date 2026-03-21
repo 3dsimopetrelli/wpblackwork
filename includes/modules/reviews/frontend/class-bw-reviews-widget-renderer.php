@@ -76,26 +76,34 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
          */
         public function build_widget_view( $settings, $widget_id ) {
             $product_id = $this->resolve_product_id( $settings );
-            $summary    = $product_id > 0 ? $this->repository->get_product_summary( $product_id ) : [
-                'average_rating' => 0,
-                'approved_count' => 0,
-                'breakdown'      => [],
-            ];
             $display    = BW_Reviews_Settings::get_display_settings();
             $submission = BW_Reviews_Settings::get_submission_settings();
             $moderation = BW_Reviews_Settings::get_moderation_settings();
             $sort       = 'featured';
             $limit      = max( 1, absint( $display['initial_visible_count'] ) );
-            $reviews    = $product_id > 0 ? $this->repository->get_product_reviews( $product_id, $sort, 0, $limit ) : [];
-            $shown      = count( $reviews );
             $is_logged_in = is_user_logged_in();
             $current_user = $is_logged_in ? wp_get_current_user() : null;
             $owned_review = $is_logged_in ? $this->repository->find_by_product_and_user_id( $product_id, get_current_user_id() ) : null;
             $can_edit_own = $this->can_edit_reviews() && $is_logged_in;
+            $product_summary = $product_id > 0 ? $this->repository->get_product_summary( $product_id ) : $this->get_empty_summary();
+            $review_source   = $this->resolve_review_source( $settings, $product_summary );
+            $summary         = 'global' === $review_source ? $this->repository->get_global_summary() : $product_summary;
+            $reviews         = 'global' === $review_source
+                ? $this->repository->get_global_reviews( $sort, 0, $limit )
+                : ( $product_id > 0 ? $this->repository->get_product_reviews( $product_id, $sort, 0, $limit ) : [] );
+            $shown           = count( $reviews );
+            $card_context    = [
+                'show_dates'          => ! empty( $display['show_dates'] ),
+                'show_verified_badge' => ! empty( $display['show_verified_badge'] ),
+                'can_edit_own'        => $can_edit_own,
+                'owned_review_id'     => is_array( $owned_review ) ? absint( $owned_review['id'] ) : 0,
+                'show_product_context' => 'global' === $review_source,
+            ];
 
             $config = [
                 'instanceId'          => (string) $widget_id,
                 'productId'           => $product_id,
+                'reviewSource'        => $review_source,
                 'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
                 'nonce'               => wp_create_nonce( 'bw_reviews_submit' ),
                 'isLoggedIn'          => $is_logged_in,
@@ -173,12 +181,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'breakdown'            => is_array( $summary['breakdown'] ) ? $summary['breakdown'] : [],
                 'reviews_html'         => $this->render_reviews_html(
                     $reviews,
-                    [
-                        'show_dates'          => ! empty( $display['show_dates'] ),
-                        'show_verified_badge' => ! empty( $display['show_verified_badge'] ),
-                        'can_edit_own'        => $can_edit_own,
-                        'owned_review_id'     => is_array( $owned_review ) ? absint( $owned_review['id'] ) : 0,
-                    ]
+                    $card_context
                 ),
                 'show_breakdown'       => ! empty( $display['show_rating_breakdown'] ),
                 'show_dates'           => ! empty( $display['show_dates'] ),
@@ -190,7 +193,8 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'write_review_label'   => __( 'Write a review', 'bw' ),
                 'sort_label'           => __( 'Featured', 'bw' ),
                 'sort_options'         => $this->get_sort_options(),
-                'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ),
+                'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && absint( $summary['approved_count'] ) > 0,
+                'review_source'        => $review_source,
                 'config'               => $config,
                 'render_modal'         => true,
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
@@ -227,6 +231,9 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'verified_purchase' => $show_verified_badge && ! empty( $review['verified_purchase'] ),
                 'featured'          => ! empty( $review['featured'] ),
                 'editable'          => $can_edit_own && $owned_review_id > 0 && $owned_review_id === $review_id,
+                'show_product_context' => ! empty( $context['show_product_context'] ),
+                'product_name'      => ! empty( $review['product_title'] ) ? (string) $review['product_title'] : get_the_title( isset( $review['product_id'] ) ? absint( $review['product_id'] ) : 0 ),
+                'product_image_url' => ! empty( $context['show_product_context'] ) ? $this->get_product_image_url( isset( $review['product_id'] ) ? absint( $review['product_id'] ) : 0 ) : '',
             ];
         }
 
@@ -372,6 +379,65 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
             $timestamp = strtotime( $mysql_date );
 
             return $timestamp ? wp_date( get_option( 'date_format' ), $timestamp ) : '';
+        }
+
+        /**
+         * Resolve whether widget should fall back to global approved reviews.
+         *
+         * @param array<string,mixed> $settings        Widget settings.
+         * @param array<string,mixed> $product_summary Product summary.
+         *
+         * @return string
+         */
+        private function resolve_review_source( $settings, $product_summary ) {
+            $fallback_enabled = ! empty( $settings['fallback_to_global_reviews_when_empty'] );
+            $has_product_reviews = ! empty( $product_summary['approved_count'] );
+
+            if ( $fallback_enabled && ! $has_product_reviews ) {
+                return 'global';
+            }
+
+            return 'product';
+        }
+
+        /**
+         * Product thumbnail URL for review card context.
+         *
+         * @param int $product_id Product ID.
+         *
+         * @return string
+         */
+        private function get_product_image_url( $product_id ) {
+            $product_id = absint( $product_id );
+
+            if ( $product_id <= 0 ) {
+                return '';
+            }
+
+            $image_url = get_the_post_thumbnail_url( $product_id, 'woocommerce_thumbnail' );
+
+            if ( $image_url ) {
+                return (string) $image_url;
+            }
+
+            if ( function_exists( 'wc_placeholder_img_src' ) ) {
+                return (string) wc_placeholder_img_src( 'woocommerce_thumbnail' );
+            }
+
+            return '';
+        }
+
+        /**
+         * Empty summary shape.
+         *
+         * @return array<string,mixed>
+         */
+        private function get_empty_summary() {
+            return [
+                'average_rating' => 0,
+                'approved_count' => 0,
+                'breakdown'      => [],
+            ];
         }
 
         /**
