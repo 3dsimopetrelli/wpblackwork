@@ -14,7 +14,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: transparent;
+  /* Keep the shared product-card shell visually neutral so widget-level
+     generated CSS cannot force an unintended white tile background. */
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 /* ===================================
