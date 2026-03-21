@@ -52,15 +52,15 @@ if ( ! class_exists( 'BW_Review_Confirmation_Service' ) ) {
                 return '';
             }
 
-            $raw_token = wp_generate_password( 48, false, false );
-            $hash      = $this->hash_token( $raw_token );
-            $expires   = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS * 2 );
+            $raw_token   = wp_generate_password( 48, false, false );
+            $hash        = $this->hash_token( $raw_token );
+            $expires_gmt = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS * 2 );
 
             $this->repository->update_review(
                 $review_id,
                 [
                     'confirmation_token_hash'       => $hash,
-                    'confirmation_token_expires_at' => get_date_from_gmt( $expires, 'Y-m-d H:i:s' ),
+                    'confirmation_token_expires_at' => $expires_gmt,
                     'updated_at'                    => current_time( 'mysql' ),
                 ]
             );
@@ -119,7 +119,8 @@ if ( ! class_exists( 'BW_Review_Confirmation_Service' ) ) {
                 ];
             }
 
-            $expires_at = isset( $review['confirmation_token_expires_at'] ) ? strtotime( (string) $review['confirmation_token_expires_at'] ) : false;
+            $expires_raw = isset( $review['confirmation_token_expires_at'] ) ? (string) $review['confirmation_token_expires_at'] : '';
+            $expires_at  = '' !== $expires_raw ? strtotime( $expires_raw . ' UTC' ) : false;
             if ( ! $expires_at || $expires_at < time() ) {
                 return [
                     'success' => false,

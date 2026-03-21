@@ -161,6 +161,7 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                     'confirmation_success_notice' => isset( $_POST['bw_reviews_email_confirmation_success_notice'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_reviews_email_confirmation_success_notice'] ) ) : $defaults['confirmation_success_notice'],
                     'confirmation_invalid_notice' => isset( $_POST['bw_reviews_email_confirmation_invalid_notice'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_reviews_email_confirmation_invalid_notice'] ) ) : $defaults['confirmation_invalid_notice'],
                     'confirmation_expired_notice' => isset( $_POST['bw_reviews_email_confirmation_expired_notice'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_reviews_email_confirmation_expired_notice'] ) ) : $defaults['confirmation_expired_notice'],
+                    'confirmation_error_page_url' => isset( $_POST['bw_reviews_email_confirmation_error_page_url'] ) ? esc_url_raw( wp_unslash( $_POST['bw_reviews_email_confirmation_error_page_url'] ) ) : $defaults['confirmation_error_page_url'],
                 ];
                 update_option( BW_Reviews_Settings::EMAIL_OPTION, $settings );
             } else {
@@ -373,7 +374,7 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
 
                     .bw-admin-page-reviews .bw-reviews-admin-stats {
                         display: grid;
-                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                        grid-template-columns: repeat(7, minmax(0, 1fr));
                         gap: 12px;
                         margin: 0 0 16px;
                     }
@@ -488,7 +489,13 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                         background: #f2f4f7;
                     }
 
-                    @media (max-width: 1200px) {
+                    @media (max-width: 1400px) {
+                        .bw-admin-page-reviews .bw-reviews-admin-stats {
+                            grid-template-columns: repeat(4, minmax(0, 1fr));
+                        }
+                    }
+
+                    @media (max-width: 900px) {
                         .bw-admin-page-reviews .bw-reviews-admin-stats {
                             grid-template-columns: repeat(2, minmax(0, 1fr));
                         }
@@ -518,8 +525,20 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                         <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['all'] ) ); ?></span>
                     </div>
                     <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Pending conf.', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['pending_confirmation'] ) ); ?></span>
+                    </div>
+                    <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Pending mod.', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['pending_moderation'] ) ); ?></span>
+                    </div>
+                    <div class="bw-reviews-admin-stat">
                         <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Approved', 'bw' ); ?></span>
                         <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['approved'] ) ); ?></span>
+                    </div>
+                    <div class="bw-reviews-admin-stat">
+                        <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Featured', 'bw' ); ?></span>
+                        <span class="bw-reviews-admin-stat__value"><?php echo esc_html( (string) absint( $counts['featured'] ) ); ?></span>
                     </div>
                     <div class="bw-reviews-admin-stat">
                         <span class="bw-reviews-admin-stat__label"><?php esc_html_e( 'Rejected', 'bw' ); ?></span>
@@ -637,11 +656,17 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                             <?php elseif ( 'submission' === $active_tab ) : ?>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Allow guests', 'bw' ); ?></th>
-                                    <td><label><input type="checkbox" name="bw_reviews_submission_allow_guests" value="1" <?php checked( $submission['allow_guests'], 1 ); ?> /> <?php esc_html_e( 'Allow guest users to submit reviews.', 'bw' ); ?></label></td>
+                                    <td>
+                                        <label><input type="checkbox" name="bw_reviews_submission_allow_guests" value="1" <?php checked( $submission['allow_guests'], 1 ); ?> /> <?php esc_html_e( 'Allow guest users to submit reviews.', 'bw' ); ?></label>
+                                        <p class="description"><?php esc_html_e( 'Has no effect when "Logged-in only" is enabled.', 'bw' ); ?></p>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Logged-in only', 'bw' ); ?></th>
-                                    <td><label><input type="checkbox" name="bw_reviews_submission_logged_in_only" value="1" <?php checked( $submission['logged_in_only'], 1 ); ?> /> <?php esc_html_e( 'Require login before submitting reviews.', 'bw' ); ?></label></td>
+                                    <td>
+                                        <label><input type="checkbox" name="bw_reviews_submission_logged_in_only" value="1" <?php checked( $submission['logged_in_only'], 1 ); ?> /> <?php esc_html_e( 'Require login before submitting reviews.', 'bw' ); ?></label>
+                                        <p class="description"><?php esc_html_e( 'When enabled, takes priority over "Allow guests" and blocks all non-logged-in users.', 'bw' ); ?></p>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Verified buyers only', 'bw' ); ?></th>
@@ -695,7 +720,17 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                 </tr>
                                 <tr>
                                     <th scope="row"><label for="bw_reviews_email_confirmation_expired_notice"><?php esc_html_e( 'Expired-link notice', 'bw' ); ?></label></th>
-                                    <td><input type="text" id="bw_reviews_email_confirmation_expired_notice" name="bw_reviews_email_confirmation_expired_notice" class="regular-text" value="<?php echo esc_attr( $emails['confirmation_expired_notice'] ); ?>" /></td>
+                                    <td>
+                                        <input type="text" id="bw_reviews_email_confirmation_expired_notice" name="bw_reviews_email_confirmation_expired_notice" class="regular-text" value="<?php echo esc_attr( $emails['confirmation_expired_notice'] ); ?>" />
+                                        <p class="description"><?php esc_html_e( 'Shown when the widget is present on the redirect target page. If a redirect URL is set below, this notice is not shown.', 'bw' ); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="bw_reviews_email_confirmation_error_page_url"><?php esc_html_e( 'Confirmation error page URL', 'bw' ); ?></label></th>
+                                    <td>
+                                        <input type="url" id="bw_reviews_email_confirmation_error_page_url" name="bw_reviews_email_confirmation_error_page_url" class="regular-text" value="<?php echo esc_attr( $emails['confirmation_error_page_url'] ); ?>" placeholder="https://" />
+                                        <p class="description"><?php esc_html_e( 'When set, expired or invalid confirmation links redirect here instead of the product page. Leave empty to use the product page redirect with the notice above.', 'bw' ); ?></p>
+                                    </td>
                                 </tr>
                             <?php else : ?>
                                 <tr>

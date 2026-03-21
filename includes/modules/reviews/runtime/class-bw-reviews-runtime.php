@@ -211,7 +211,6 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
                 ! is_array( $review )
                 || absint( $review['user_id'] ) !== $current_uid
                 || empty( $moderation['allow_review_editing'] )
-                || empty( $moderation['editing_logged_in_owners_only'] )
             ) {
                 wp_send_json_error(
                     [
@@ -279,12 +278,11 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
                 return;
             }
 
-            $review_id = absint( wp_unslash( $_GET['bw_review_confirm'] ) );
-            $token     = sanitize_text_field( wp_unslash( $_GET['bw_review_token'] ) );
-            $result    = $this->confirmation_service->confirm_review( $review_id, $token );
-            $review    = ! empty( $result['review'] ) && is_array( $result['review'] ) ? $result['review'] : null;
+            $review_id  = absint( wp_unslash( $_GET['bw_review_confirm'] ) );
+            $token      = sanitize_text_field( wp_unslash( $_GET['bw_review_token'] ) );
+            $result     = $this->confirmation_service->confirm_review( $review_id, $token );
+            $review     = ! empty( $result['review'] ) && is_array( $result['review'] ) ? $result['review'] : null;
             $product_id = $review && ! empty( $review['product_id'] ) ? absint( $review['product_id'] ) : 0;
-            $target     = $product_id > 0 ? get_permalink( $product_id ) : home_url( '/' );
 
             $notice_key = 'invalid';
             if ( ! empty( $result['success'] ) ) {
@@ -293,6 +291,20 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
                 $notice_key = sanitize_key( (string) $result['code'] );
             }
 
+            // For expired/invalid tokens, redirect to the configured error page if set.
+            if ( in_array( $notice_key, [ 'expired', 'invalid' ], true ) ) {
+                $emails     = BW_Reviews_Settings::get_email_settings();
+                $error_page = isset( $emails['confirmation_error_page_url'] ) ? esc_url_raw( (string) $emails['confirmation_error_page_url'] ) : '';
+
+                if ( '' !== $error_page ) {
+                    wp_safe_redirect( $error_page );
+                    exit;
+                }
+            }
+
+            // For success or when no dedicated error page is configured, redirect to the product page
+            // (or homepage as fallback) and pass the notice key for JS to pick up.
+            $target = $product_id > 0 ? get_permalink( $product_id ) : home_url( '/' );
             $target = add_query_arg( 'bw_review_notice', $notice_key, $target );
             wp_safe_redirect( $target );
             exit;

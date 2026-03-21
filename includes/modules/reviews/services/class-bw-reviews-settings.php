@@ -138,6 +138,7 @@ if ( ! class_exists( 'BW_Reviews_Settings' ) ) {
                 'confirmation_success_notice' => __( 'Your review has been confirmed.', 'bw' ),
                 'confirmation_invalid_notice' => __( 'The review confirmation link is invalid.', 'bw' ),
                 'confirmation_expired_notice' => __( 'The review confirmation link has expired.', 'bw' ),
+                'confirmation_error_page_url' => '',
             ];
         }
 

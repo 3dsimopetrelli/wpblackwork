@@ -79,6 +79,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
             $display    = BW_Reviews_Settings::get_display_settings();
             $submission = BW_Reviews_Settings::get_submission_settings();
             $moderation = BW_Reviews_Settings::get_moderation_settings();
+            $emails     = BW_Reviews_Settings::get_email_settings();
             $sort       = 'featured';
             $limit      = max( 1, absint( $display['initial_visible_count'] ) );
             $is_logged_in = is_user_logged_in();
@@ -149,6 +150,8 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                     'approved'                 => __( 'Your review is now live.', 'bw' ),
                     'confirmedLive'            => __( 'Your review has been confirmed and is now live. You can find it below.', 'bw' ),
                     'confirmedPending'         => __( 'Your review has been confirmed and is awaiting approval.', 'bw' ),
+                    'confirmationInvalid'      => (string) $emails['confirmation_invalid_notice'],
+                    'confirmationExpired'      => (string) $emails['confirmation_expired_notice'],
                     'continue'                 => __( 'Continue', 'bw' ),
                     'dislike'                  => __( 'Dislike it', 'bw' ),
                     'love'                     => __( 'Love it!', 'bw' ),
@@ -186,7 +189,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'show_breakdown'       => ! empty( $display['show_rating_breakdown'] ),
                 'show_dates'           => ! empty( $display['show_dates'] ),
                 'show_verified_badge'  => ! empty( $display['show_verified_badge'] ),
-                'can_write_review'     => BW_Reviews_Settings::is_enabled(),
+                'can_write_review'     => $this->can_write_reviews(),
                 'has_reviews'          => absint( $summary['approved_count'] ) > 0,
                 'has_more'             => $summary['approved_count'] > $shown,
                 'load_more_label'      => __( 'Show more reviews', 'bw' ),
@@ -339,7 +342,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
         private function can_edit_reviews() {
             $moderation = BW_Reviews_Settings::get_moderation_settings();
 
-            return ! empty( $moderation['allow_review_editing'] ) && ! empty( $moderation['editing_logged_in_owners_only'] );
+            return ! empty( $moderation['allow_review_editing'] );
         }
 
         /**

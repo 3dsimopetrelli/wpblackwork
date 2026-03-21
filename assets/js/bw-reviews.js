@@ -45,6 +45,8 @@
     const CONFIRMATION_MESSAGES = {
         confirmed_approved: 'confirmedLive',
         confirmed_pending: 'confirmedPending',
+        invalid: 'confirmationInvalid',
+        expired: 'confirmationExpired',
     };
 
     class AjaxClient {
@@ -686,7 +688,7 @@
 
             this.$root.on('click' + this.namespace, SELECTORS.writeButton, (event) => {
                 event.preventDefault();
-                if (this.modalController) {
+                if (this.config.canWriteReview && this.modalController) {
                     this.modalController.openCreate(this);
                 }
             });
