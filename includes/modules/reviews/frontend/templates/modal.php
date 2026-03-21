@@ -29,7 +29,6 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <section class="bw-reviews-step is-active" data-step="rating">
                         <h3 class="bw-reviews-step__title"><?php esc_html_e( 'How would you rate this item?', 'bw' ); ?></h3>
                         <div class="bw-reviews-rating-picker" data-rating-picker>
-                            <span class="bw-reviews-rating-picker__label"><?php echo esc_html( $view['config']['strings']['dislike'] ); ?></span>
                             <div class="bw-reviews-rating-picker__stars">
                                 <?php for ( $rating = 1; $rating <= 5; $rating++ ) : ?>
                                     <button type="button" class="bw-reviews-rating-picker__star" data-rating-value="<?php echo esc_attr( (string) $rating ); ?>" aria-label="<?php echo esc_attr( sprintf( __( '%d stars', 'bw' ), $rating ) ); ?>">
@@ -39,7 +38,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                                     </button>
                                 <?php endfor; ?>
                             </div>
-                            <span class="bw-reviews-rating-picker__label is-right"><?php echo esc_html( $view['config']['strings']['love'] ); ?></span>
+                            <div class="bw-reviews-rating-picker__labels">
+                                <span class="bw-reviews-rating-picker__label"><?php echo esc_html( $view['config']['strings']['dislike'] ); ?></span>
+                                <span class="bw-reviews-rating-picker__label is-right"><?php echo esc_html( $view['config']['strings']['love'] ); ?></span>
+                            </div>
                         </div>
                     </section>
 

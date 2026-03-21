@@ -707,13 +707,22 @@
 
 .bw-reviews-rating-picker {
     display: grid !important;
-    gap: 18px !important;
+    gap: 16px !important;
     justify-items: center !important;
 }
 
 .bw-reviews-rating-picker__stars {
     display: inline-flex !important;
     gap: 16px !important;
+}
+
+.bw-reviews-rating-picker__labels {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    max-width: 560px !important;
+    gap: 20px !important;
 }
 
 .bw-reviews-rating-picker__star {
@@ -759,6 +768,7 @@
     color: rgba(17, 17, 17, 0.78) !important;
     font-size: 18px !important;
     line-height: 1.4 !important;
+    text-align: center !important;
 }
 
 .bw-reviews-field {
