@@ -704,9 +704,69 @@
                 return;
             }
 
+            const element = this.$breakdown.get(0);
             const expanded = 'true' === String(this.$summaryTrigger.attr('aria-expanded'));
             this.$summaryTrigger.attr('aria-expanded', expanded ? 'false' : 'true');
-            this.$breakdown.toggleClass('is-open', !expanded);
+
+            if (expanded) {
+                this.closeBreakdown(element);
+                return;
+            }
+
+            this.openBreakdown(element);
+        }
+
+        openBreakdown(element) {
+            if (!element) {
+                return;
+            }
+
+            const $breakdown = this.$breakdown;
+            $breakdown.off('transitionend.bwReviewsBreakdown');
+            $breakdown.addClass('is-open is-animating');
+
+            element.style.height = 'auto';
+            const targetHeight = element.scrollHeight;
+            element.style.height = '0px';
+            element.offsetHeight;
+
+            window.requestAnimationFrame(() => {
+                element.style.height = targetHeight + 'px';
+            });
+
+            $breakdown.one('transitionend.bwReviewsBreakdown', (event) => {
+                if (event.originalEvent && 'height' !== event.originalEvent.propertyName) {
+                    return;
+                }
+
+                $breakdown.removeClass('is-animating');
+                element.style.height = 'auto';
+            });
+        }
+
+        closeBreakdown(element) {
+            if (!element) {
+                return;
+            }
+
+            const $breakdown = this.$breakdown;
+            $breakdown.off('transitionend.bwReviewsBreakdown');
+
+            element.style.height = element.scrollHeight + 'px';
+            element.offsetHeight;
+            $breakdown.addClass('is-animating').removeClass('is-open');
+
+            window.requestAnimationFrame(() => {
+                element.style.height = '0px';
+            });
+
+            $breakdown.one('transitionend.bwReviewsBreakdown', (event) => {
+                if (event.originalEvent && 'height' !== event.originalEvent.propertyName) {
+                    return;
+                }
+
+                $breakdown.removeClass('is-animating');
+            });
         }
 
         toggleSortMenu() {
