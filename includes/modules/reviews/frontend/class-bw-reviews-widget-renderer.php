@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
     class BW_Reviews_Widget_Renderer {
         /**
+         * @var bool
+         */
+        private static $modal_rendered = false;
+
+        /**
          * @var BW_Reviews_Repository
          */
         private $repository;
@@ -137,15 +142,21 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                     'firstNameRequired'        => __( 'First name is required.', 'bw' ),
                     'lastNameRequired'         => __( 'Last name is required.', 'bw' ),
                     'emailRequired'            => __( 'A valid email address is required.', 'bw' ),
+                    'privacyRequired'          => __( 'Please accept the terms and privacy acknowledgement before continuing.', 'bw' ),
                     'ratingRequired'           => __( 'Please select a rating.', 'bw' ),
                     'contentRequired'          => __( 'Please share your review before continuing.', 'bw' ),
                     'duplicateLoggedIn'        => __( 'You already reviewed this product. You can edit your existing review instead.', 'bw' ),
                     'duplicateGuest'           => __( 'A review for this product already exists for this email address.', 'bw' ),
                     'editPending'              => __( 'Your changes were saved and are awaiting approval.', 'bw' ),
                     'editUpdated'              => __( 'Your review has been updated.', 'bw' ),
-                    'confirmationRequired'     => __( 'We’ve sent a confirmation link to your email. Please confirm to publish your review.', 'bw' ),
-                    'pendingModeration'        => __( 'Your review has been received and is awaiting approval.', 'bw' ),
-                    'approved'                 => __( 'Your review is live. Thank you for sharing your perspective.', 'bw' ),
+                    'confirmationRequired'     => __( 'Your review was submitted. Please check your email and click the confirmation link to publish your review.', 'bw' ),
+                    'pendingModeration'        => __( 'Your review was submitted and is awaiting approval.', 'bw' ),
+                    'approved'                 => __( 'Your review is now live.', 'bw' ),
+                    'confirmedLive'            => __( 'Your review has been confirmed and is now live. You can find it below.', 'bw' ),
+                    'confirmedPending'         => __( 'Your review has been confirmed and is awaiting approval.', 'bw' ),
+                    'continue'                 => __( 'Continue', 'bw' ),
+                    'dislike'                  => __( 'Dislike it', 'bw' ),
+                    'love'                     => __( 'Love it!', 'bw' ),
                 ],
                 'identity'            => [
                     'displayName' => $current_user instanceof WP_User ? $current_user->display_name : '',
@@ -194,11 +205,13 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'sort_options'         => $this->get_sort_options(),
                 'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && absint( $summary['approved_count'] ) > 0,
                 'config'               => $config,
-                'notice'               => $this->get_notice(),
+                'render_modal'         => $this->should_render_modal(),
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
                 'modal_title_edit'     => __( 'Edit your review', 'bw' ),
                 'empty_title'          => __( 'No reviews yet', 'bw' ),
                 'empty_message'        => __( 'Be the first to share your experience with this piece.', 'bw' ),
+                'terms_url'            => $this->get_terms_url(),
+                'privacy_url'          => function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '',
             ];
         }
 
@@ -375,37 +388,32 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
         }
 
         /**
-         * Resolve a frontend notice from confirmation redirects.
+         * Determine whether the modal singleton should be rendered.
          *
-         * @return array<string,string>|null
+         * @return bool
          */
-        private function get_notice() {
-            $notice_key = isset( $_GET['bw_review_notice'] ) ? sanitize_key( wp_unslash( $_GET['bw_review_notice'] ) ) : '';
-            if ( '' === $notice_key ) {
-                return null;
+        private function should_render_modal() {
+            if ( self::$modal_rendered ) {
+                return false;
             }
 
-            $email_settings = BW_Reviews_Settings::get_email_settings();
-            $map = [
-                'confirmed_approved' => [
-                    'type'    => 'success',
-                    'message' => ! empty( $email_settings['confirmation_success_notice'] ) ? (string) $email_settings['confirmation_success_notice'] : __( 'Your review has been confirmed.', 'bw' ),
-                ],
-                'confirmed_pending' => [
-                    'type'    => 'success',
-                    'message' => __( 'Your review has been confirmed and is awaiting approval.', 'bw' ),
-                ],
-                'expired' => [
-                    'type'    => 'warning',
-                    'message' => ! empty( $email_settings['confirmation_expired_notice'] ) ? (string) $email_settings['confirmation_expired_notice'] : __( 'The review confirmation link has expired.', 'bw' ),
-                ],
-                'invalid' => [
-                    'type'    => 'error',
-                    'message' => ! empty( $email_settings['confirmation_invalid_notice'] ) ? (string) $email_settings['confirmation_invalid_notice'] : __( 'The review confirmation link is invalid.', 'bw' ),
-                ],
-            ];
+            self::$modal_rendered = true;
+            return true;
+        }
 
-            return isset( $map[ $notice_key ] ) ? $map[ $notice_key ] : null;
+        /**
+         * Resolve the terms of service URL.
+         *
+         * @return string
+         */
+        private function get_terms_url() {
+            $page = get_page_by_path( 'terms-of-service' );
+
+            if ( $page instanceof WP_Post ) {
+                return get_permalink( $page );
+            }
+
+            return home_url( '/terms-of-service/' );
         }
 
         /**

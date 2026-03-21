@@ -81,6 +81,7 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
             $product_id = isset( $payload['product_id'] ) ? absint( $payload['product_id'] ) : 0;
             $rating     = isset( $payload['rating'] ) ? absint( $payload['rating'] ) : 0;
             $content    = isset( $payload['content'] ) ? wp_kses_post( wp_unslash( (string) $payload['content'] ) ) : '';
+            $privacy_ack = ! empty( $payload['privacy_ack'] );
             $source     = isset( $payload['source'] ) ? sanitize_key( (string) $payload['source'] ) : 'product_page';
 
             if ( $product_id <= 0 || 'product' !== get_post_type( $product_id ) ) {
@@ -94,6 +95,10 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
             $content = trim( wp_strip_all_tags( $content ) );
             if ( '' === $content ) {
                 return $this->error_response( 'invalid_content', __( 'Review text is required.', 'bw' ) );
+            }
+
+            if ( ! $privacy_ack ) {
+                return $this->error_response( 'privacy_required', __( 'Please accept the terms and privacy acknowledgement before continuing.', 'bw' ) );
             }
 
             $identity = $this->resolve_identity( $payload, $user_id );
@@ -184,7 +189,7 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
                     'success'              => true,
                     'resultCode'           => 'submitted',
                     'statusAfterSubmit'    => 'pending_confirmation',
-                    'message'              => __( 'We’ve sent a confirmation link to your email. Please confirm to publish your review.', 'bw' ),
+                    'message'              => __( 'Your review was submitted. Please check your email and click the confirmation link to publish your review.', 'bw' ),
                     'requiresConfirmation' => true,
                     'reviewId'             => $review_id,
                 ];
@@ -197,7 +202,7 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
                     'success'              => true,
                     'resultCode'           => 'submitted',
                     'statusAfterSubmit'    => 'pending_moderation',
-                    'message'              => __( 'Your review has been received and is awaiting approval.', 'bw' ),
+                    'message'              => __( 'Your review was submitted and is awaiting approval.', 'bw' ),
                     'requiresConfirmation' => false,
                     'reviewId'             => $review_id,
                 ];
@@ -210,7 +215,7 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
                 'success'              => true,
                 'resultCode'           => 'submitted',
                 'statusAfterSubmit'    => 'approved',
-                'message'              => __( 'Your review is live. Thank you for sharing your perspective.', 'bw' ),
+                'message'              => __( 'Your review is now live.', 'bw' ),
                 'requiresConfirmation' => false,
                 'reviewId'             => $review_id,
             ];
@@ -243,8 +248,9 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
                 return $this->error_response( 'forbidden', __( 'You cannot edit this review.', 'bw' ) );
             }
 
-            $rating     = isset( $payload['rating'] ) ? absint( $payload['rating'] ) : absint( $review['rating'] );
-            $content    = isset( $payload['content'] ) ? trim( wp_strip_all_tags( wp_unslash( (string) $payload['content'] ) ) ) : trim( (string) $review['content'] );
+            $rating      = isset( $payload['rating'] ) ? absint( $payload['rating'] ) : absint( $review['rating'] );
+            $content     = isset( $payload['content'] ) ? trim( wp_strip_all_tags( wp_unslash( (string) $payload['content'] ) ) ) : trim( (string) $review['content'] );
+            $privacy_ack = ! empty( $payload['privacy_ack'] );
 
             if ( $rating < 1 || $rating > 5 ) {
                 return $this->error_response( 'invalid_rating', __( 'Please select a valid rating.', 'bw' ) );
@@ -252,6 +258,10 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
 
             if ( '' === $content ) {
                 return $this->error_response( 'invalid_content', __( 'Review text is required.', 'bw' ) );
+            }
+
+            if ( ! $privacy_ack ) {
+                return $this->error_response( 'privacy_required', __( 'Please accept the terms and privacy acknowledgement before continuing.', 'bw' ) );
             }
 
             $status = (string) $review['status'];

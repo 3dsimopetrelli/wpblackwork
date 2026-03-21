@@ -167,6 +167,7 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
                 'first_name' => isset( $_POST['first_name'] ) ? wp_unslash( $_POST['first_name'] ) : '',
                 'last_name'  => isset( $_POST['last_name'] ) ? wp_unslash( $_POST['last_name'] ) : '',
                 'email'      => isset( $_POST['email'] ) ? wp_unslash( $_POST['email'] ) : '',
+                'privacy_ack' => isset( $_POST['privacy_ack'] ) ? wp_unslash( $_POST['privacy_ack'] ) : '',
                 'source'     => 'product_page',
             ];
 
@@ -251,8 +252,9 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
 
             $review_id = isset( $_POST['review_id'] ) ? absint( wp_unslash( $_POST['review_id'] ) ) : 0;
             $payload   = [
-                'rating'  => isset( $_POST['rating'] ) ? absint( wp_unslash( $_POST['rating'] ) ) : 0,
-                'content' => isset( $_POST['content'] ) ? wp_unslash( $_POST['content'] ) : '',
+                'rating'      => isset( $_POST['rating'] ) ? absint( wp_unslash( $_POST['rating'] ) ) : 0,
+                'content'     => isset( $_POST['content'] ) ? wp_unslash( $_POST['content'] ) : '',
+                'privacy_ack' => isset( $_POST['privacy_ack'] ) ? wp_unslash( $_POST['privacy_ack'] ) : '',
             ];
 
             $result = $this->submission_service->update_review_for_owner( $review_id, $payload, get_current_user_id() );
