@@ -738,7 +738,7 @@
 .bw-reviews-rating-picker__star path {
     fill: transparent !important;
     stroke: #111111 !important;
-    stroke-width: 3px !important;
+    stroke-width: 2px !important;
     stroke-linecap: round !important;
     stroke-linejoin: round !important;
     transition: fill var(--bw-reviews-transition), stroke var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
@@ -945,7 +945,18 @@
 
 .bw-reviews-modal__button[disabled] {
     cursor: not-allowed !important;
-    opacity: 0.34 !important;
+    background: #d9d9d9 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.bw-reviews-modal__button[disabled]:hover,
+.bw-reviews-modal__button[disabled]:focus,
+.bw-reviews-modal__button[disabled]:active {
+    background: #d9d9d9 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 body.bw-reviews-modal-open {
