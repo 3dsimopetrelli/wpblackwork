@@ -83,6 +83,7 @@ if ( ! class_exists( 'BW_Reviews_List_Table' ) ) {
                 'product'   => __( 'Product', 'bw' ),
                 'rating'    => __( 'Rating', 'bw' ),
                 'status'    => __( 'Status', 'bw' ),
+                'delete_action' => __( 'Delete', 'bw' ),
                 'verified'  => __( 'Verified', 'bw' ),
                 'featured'  => __( 'Featured', 'bw' ),
                 'date'      => __( 'Date', 'bw' ),
@@ -271,7 +272,49 @@ if ( ! class_exists( 'BW_Reviews_List_Table' ) ) {
          * @return string
          */
         protected function column_status( $item ) {
-            return esc_html( BW_Reviews_Admin::get_status_label( (string) $item['status'] ) );
+            $status = isset( $item['status'] ) ? sanitize_key( (string) $item['status'] ) : '';
+
+            if ( 'approved' === $status ) {
+                return sprintf(
+                    '<span class="bw-reviews-admin-status-dot is-approved" aria-hidden="true"></span><span class="screen-reader-text">%s</span>',
+                    esc_html__( 'Approved', 'bw' )
+                );
+            }
+
+            return sprintf(
+                '<span class="bw-reviews-admin-status-label is-%1$s">%2$s</span>',
+                esc_attr( $status ),
+                esc_html( BW_Reviews_Admin::get_status_label( $status ) )
+            );
+        }
+
+        /**
+         * Direct delete action column.
+         *
+         * @param array<string,mixed> $item Review row.
+         *
+         * @return string
+         */
+        protected function column_delete_action( $item ) {
+            $review_id = absint( $item['id'] );
+            $base_url  = admin_url( 'admin.php?page=' . BW_Reviews_Settings::LIST_PAGE_SLUG );
+            $delete_url = wp_nonce_url(
+                add_query_arg(
+                    [
+                        'action'    => 'delete',
+                        'review_id' => $review_id,
+                    ],
+                    $base_url
+                ),
+                'bw_reviews_row_action_' . $review_id
+            );
+
+            return sprintf(
+                '<a class="button button-small bw-reviews-admin-delete-button" href="%1$s" onclick="return window.confirm(%2$s);">%3$s</a>',
+                esc_url( $delete_url ),
+                esc_js( __( 'Delete this review permanently?', 'bw' ) ),
+                esc_html__( 'Delete', 'bw' )
+            );
         }
 
         /**

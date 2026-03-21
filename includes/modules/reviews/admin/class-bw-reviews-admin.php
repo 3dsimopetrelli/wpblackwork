@@ -346,6 +346,57 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
             $table->prepare_items();
             ?>
             <div class="wrap bw-admin-root bw-admin-page bw-admin-page-reviews">
+                <style>
+                    .bw-admin-page-reviews .column-status,
+                    .bw-admin-page-reviews .column-delete_action {
+                        width: 96px;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-dot {
+                        display: inline-block;
+                        width: 12px;
+                        height: 12px;
+                        border-radius: 999px;
+                        vertical-align: middle;
+                        background: #9aa0a6;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-dot.is-approved {
+                        background: #23a55a;
+                        box-shadow: 0 0 0 4px rgba(35, 165, 90, 0.14);
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-label {
+                        display: inline-block;
+                        font-weight: 500;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-label.is-rejected {
+                        color: #b42318;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-label.is-pending_confirmation,
+                    .bw-admin-page-reviews .bw-reviews-admin-status-label.is-pending_moderation {
+                        color: #9a6700;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-status-label.is-trash {
+                        color: #6b7280;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-delete-button {
+                        color: #fff;
+                        background: #b42318;
+                        border-color: #b42318;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-delete-button:hover,
+                    .bw-admin-page-reviews .bw-reviews-admin-delete-button:focus {
+                        color: #fff;
+                        background: #8f1d14;
+                        border-color: #8f1d14;
+                    }
+                </style>
                 <div class="bw-admin-header">
                     <h1 class="bw-admin-title"><?php esc_html_e( 'Reviews', 'bw' ); ?></h1>
                     <p class="bw-admin-subtitle"><?php esc_html_e( 'Moderate, feature, and manage the custom reviews stored by the Reviews module.', 'bw' ); ?></p>
