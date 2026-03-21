@@ -327,7 +327,11 @@ if ( ! class_exists( 'BW_Reviews_List_Table' ) ) {
          * @return string
          */
         protected function column_verified( $item ) {
-            return ! empty( $item['verified_purchase'] ) ? esc_html__( 'Yes', 'bw' ) : esc_html__( 'No', 'bw' );
+            if ( ! empty( $item['verified_purchase'] ) ) {
+                return '<span class="bw-reviews-admin-verified is-yes" aria-label="' . esc_attr__( 'Verified purchase', 'bw' ) . '" title="' . esc_attr__( 'Verified purchase', 'bw' ) . '">✓</span>';
+            }
+
+            return '<span class="bw-reviews-admin-verified is-no" aria-label="' . esc_attr__( 'Not verified', 'bw' ) . '" title="' . esc_attr__( 'Not verified', 'bw' ) . '">—</span>';
         }
 
         /**

@@ -349,8 +349,26 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
             <div class="wrap bw-admin-root bw-admin-page bw-admin-page-reviews">
                 <style>
                     .bw-admin-page-reviews .column-status,
+                    .bw-admin-page-reviews .column-status {
+                        width: 180px;
+                    }
+
+                    .bw-admin-page-reviews .column-verified {
+                        width: 84px;
+                    }
+
                     .bw-admin-page-reviews .column-featured {
-                        width: 96px;
+                        width: 72px;
+                    }
+
+                    .bw-admin-page-reviews .column-status,
+                    .bw-admin-page-reviews .column-verified,
+                    .bw-admin-page-reviews .column-featured,
+                    .bw-admin-page-reviews td.column-status,
+                    .bw-admin-page-reviews td.column-verified,
+                    .bw-admin-page-reviews td.column-featured {
+                        text-align: center;
+                        vertical-align: middle;
                     }
 
                     .bw-admin-page-reviews .bw-reviews-admin-stats {
@@ -388,12 +406,13 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                         display: inline-flex;
                         align-items: center;
                         justify-content: center;
-                        min-width: 92px;
+                        min-width: 124px;
                         min-height: 34px;
                         padding: 0 12px;
                         border-radius: 999px;
                         font-weight: 600;
                         text-decoration: none;
+                        white-space: nowrap;
                         transition: background-color .18s ease, color .18s ease, border-color .18s ease;
                     }
 
@@ -445,6 +464,28 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                         justify-content: center;
                         font-size: 18px;
                         line-height: 1;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-verified {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 999px;
+                        font-size: 13px;
+                        font-weight: 700;
+                        line-height: 1;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-verified.is-yes {
+                        color: #166534;
+                        background: #dcfce7;
+                    }
+
+                    .bw-admin-page-reviews .bw-reviews-admin-verified.is-no {
+                        color: #667085;
+                        background: #f2f4f7;
                     }
 
                     @media (max-width: 1200px) {
