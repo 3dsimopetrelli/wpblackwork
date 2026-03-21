@@ -12,11 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
     class BW_Reviews_Widget_Renderer {
         /**
-         * @var bool
-         */
-        private static $modal_rendered = false;
-
-        /**
          * @var BW_Reviews_Repository
          */
         private $repository;
@@ -61,15 +56,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
         public function render_reviews_html( $reviews, $context = [] ) {
             ob_start();
 
-            if ( empty( $reviews ) ) {
-                $this->include_template(
-                    'empty-state.php',
-                    [
-                        'title'   => __( 'No reviews yet', 'bw' ),
-                        'message' => __( 'Be the first to share your experience with this piece.', 'bw' ),
-                    ]
-                );
-            } else {
+            if ( ! empty( $reviews ) ) {
                 foreach ( $reviews as $review ) {
                     $card = $this->prepare_review_card( $review, $context );
                     $this->include_template( 'review-card.php', [ 'card' => $card ] );
@@ -205,7 +192,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'sort_options'         => $this->get_sort_options(),
                 'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ),
                 'config'               => $config,
-                'render_modal'         => $this->should_render_modal(),
+                'render_modal'         => true,
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
                 'modal_title_edit'     => __( 'Edit your review', 'bw' ),
                 'empty_title'          => __( 'No reviews yet', 'bw' ),
@@ -385,20 +372,6 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
             $timestamp = strtotime( $mysql_date );
 
             return $timestamp ? wp_date( get_option( 'date_format' ), $timestamp ) : '';
-        }
-
-        /**
-         * Determine whether the modal singleton should be rendered.
-         *
-         * @return bool
-         */
-        private function should_render_modal() {
-            if ( self::$modal_rendered ) {
-                return false;
-            }
-
-            self::$modal_rendered = true;
-            return true;
         }
 
         /**
