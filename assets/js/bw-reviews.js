@@ -125,6 +125,7 @@
             this.$userName = this.$root.find(SELECTORS.modalUserName);
             this.$userEmail = this.$root.find(SELECTORS.modalUserEmail);
             this.currentWidget = null;
+            this.closeTimer = null;
             this.state = this.getDefaultState();
             this.bound = false;
 
@@ -263,8 +264,16 @@
                 return;
             }
 
+            if (this.closeTimer) {
+                window.clearTimeout(this.closeTimer);
+                this.closeTimer = null;
+            }
+
             this.$root.prop('hidden', false);
             $('body').addClass('bw-reviews-modal-open');
+            window.requestAnimationFrame(() => {
+                this.$root.addClass('is-visible');
+            });
             window.setTimeout(() => {
                 this.$dialog.trigger('focus');
             }, 20);
@@ -279,12 +288,17 @@
                 return;
             }
 
-            this.$root.prop('hidden', true);
+            this.$root.removeClass('is-visible');
             $('body').removeClass('bw-reviews-modal-open');
-            this.currentWidget = null;
-            this.state = this.getDefaultState();
-            this.clearMessage();
-            this.syncStateToUi();
+
+            this.closeTimer = window.setTimeout(() => {
+                this.$root.prop('hidden', true);
+                this.currentWidget = null;
+                this.state = this.getDefaultState();
+                this.clearMessage();
+                this.syncStateToUi();
+                this.closeTimer = null;
+            }, 280);
         }
 
         shouldConfirmClose() {

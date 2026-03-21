@@ -578,6 +578,12 @@
     position: fixed !important;
     inset: 0 !important;
     z-index: 999999 !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+}
+
+.bw-reviews-modal.is-visible {
+    pointer-events: auto !important;
 }
 
 .bw-reviews-modal__backdrop {
@@ -585,6 +591,8 @@
     inset: 0 !important;
     background: rgba(0, 0, 0, 0.74) !important;
     backdrop-filter: blur(4px) !important;
+    opacity: 0 !important;
+    transition: opacity 240ms ease !important;
 }
 
 .bw-reviews-modal__dialog {
@@ -597,6 +605,9 @@
     height: 100% !important;
     padding: 34px !important;
     outline: none !important;
+    opacity: 0 !important;
+    transform: translateY(20px) scale(0.985) !important;
+    transition: opacity 280ms ease, transform 340ms cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
 .bw-reviews-modal__dialog-scroll {
@@ -605,7 +616,17 @@
     overflow: auto !important;
     border-radius: 22px !important;
     background: var(--bw-reviews-modal-bg) !important;
+    border: 1px solid rgba(17, 17, 17, 0.08) !important;
     box-shadow: var(--bw-reviews-shadow) !important;
+}
+
+.bw-reviews-modal.is-visible .bw-reviews-modal__backdrop {
+    opacity: 1 !important;
+}
+
+.bw-reviews-modal.is-visible .bw-reviews-modal__dialog {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
 }
 
 .bw-reviews-modal__inner {
