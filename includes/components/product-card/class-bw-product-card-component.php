@@ -249,7 +249,7 @@ class BW_Product_Card_Component {
 				<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $image_wrapper_classes ) ) ); ?>">
 					<?php echo wp_kses_post( $thumbnail_html ); ?>
 					<?php if ( $hover_video_html ) : ?>
-						<?php echo wp_kses_post( $hover_video_html ); ?>
+						<?php echo wp_kses( $hover_video_html, self::get_allowed_hover_video_html() ); ?>
 					<?php endif; ?>
 					<?php if ( $hover_image_html ) : ?>
 						<?php echo wp_kses_post( $hover_image_html ); ?>
@@ -342,6 +342,33 @@ class BW_Product_Card_Component {
 			esc_url( $video_url ),
 			esc_attr( $video_mime )
 		);
+	}
+
+	/**
+	 * Allowed HTML for hover video markup.
+	 *
+	 * wp_kses_post() strips nested <source> tags, which would leave only the
+	 * poster frame visible. This allowlist preserves the minimal safe video markup.
+	 *
+	 * @return array
+	 */
+	private static function get_allowed_hover_video_html() {
+		return [
+			'video'  => [
+				'class'                  => true,
+				'muted'                  => true,
+				'loop'                   => true,
+				'playsinline'            => true,
+				'preload'                => true,
+				'aria-hidden'            => true,
+				'disablepictureinpicture' => true,
+				'poster'                 => true,
+			],
+			'source' => [
+				'src'  => true,
+				'type' => true,
+			],
+		];
 	}
 
 	/**
