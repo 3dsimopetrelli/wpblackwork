@@ -589,8 +589,8 @@
 .bw-reviews-modal__backdrop {
     position: absolute !important;
     inset: 0 !important;
-    background: rgba(0, 0, 0, 0.74) !important;
-    backdrop-filter: blur(4px) !important;
+    background: rgba(0, 0, 0, 0.72) !important;
+    backdrop-filter: blur(5px) !important;
     opacity: 0 !important;
     transition: opacity 240ms ease !important;
 }
@@ -614,10 +614,11 @@
     width: min(100%, 1080px) !important;
     max-height: calc(100vh - 68px) !important;
     overflow: auto !important;
-    border-radius: 22px !important;
-    background: var(--bw-reviews-modal-bg) !important;
-    border: 1px solid rgba(17, 17, 17, 0.08) !important;
-    box-shadow: var(--bw-reviews-shadow) !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(17, 17, 17, 0.1) !important;
+    box-shadow: 0 38px 110px rgba(0, 0, 0, 0.36) !important;
+    overflow: hidden !important;
 }
 
 .bw-reviews-modal.is-visible .bw-reviews-modal__backdrop {
@@ -636,6 +637,8 @@
     min-height: min(720px, calc(100vh - 68px)) !important;
     padding: 44px 54px 34px !important;
     color: var(--bw-reviews-modal-text) !important;
+    background: #ffffff !important;
+    border-radius: 10px !important;
 }
 
 .bw-reviews-modal__close {
@@ -691,7 +694,7 @@
     margin: 0 auto !important;
     padding: 14px 18px !important;
     border-radius: 14px !important;
-    background: rgba(17, 17, 17, 0.08) !important;
+    background: rgba(17, 17, 17, 0.06) !important;
     color: var(--bw-reviews-modal-text) !important;
     font-size: 15px !important;
     line-height: 1.5 !important;
@@ -711,6 +714,7 @@
 
 .bw-reviews-step.is-active {
     display: block !important;
+    animation: bwReviewsStepFade 220ms ease !important;
 }
 
 .bw-reviews-step__title {
@@ -950,6 +954,18 @@ body.bw-reviews-modal-open {
     overflow: hidden !important;
 }
 
+@keyframes bwReviewsStepFade {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @media (max-width: 1200px) {
     .elementor-widget-bw-reviews .bw-reviews-breakdown__row,
     .bw-reviews-breakdown__row {
@@ -1093,7 +1109,7 @@ body.bw-reviews-modal-open {
     .bw-reviews-modal__dialog-scroll {
         width: 100% !important;
         max-height: 92vh !important;
-        border-radius: 24px 24px 0 0 !important;
+        border-radius: 10px 10px 0 0 !important;
     }
 
     .bw-reviews-modal__inner {
