@@ -50,6 +50,28 @@
     background: transparent !important;
 }
 
+.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-summary__trigger,
+.bw-reviews__shell.is-empty .bw-reviews-summary__trigger,
+.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-summary__count,
+.bw-reviews__shell.is-empty .bw-reviews-summary__count,
+.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-summary__chevron,
+.bw-reviews__shell.is-empty .bw-reviews-summary__chevron {
+    color: #111111 !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews__write,
+.bw-reviews__shell.is-empty .bw-reviews__write,
+.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-sort__trigger,
+.bw-reviews__shell.is-empty .bw-reviews-sort__trigger {
+    color: #111111 !important;
+    border-color: rgba(17, 17, 17, 0.22) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-sort__trigger[disabled],
+.bw-reviews__shell.is-empty .bw-reviews-sort__trigger[disabled] {
+    opacity: 1 !important;
+}
+
 .elementor-widget-bw-reviews .bw-reviews__header,
 .bw-reviews__header {
     display: flex !important;
@@ -263,6 +285,7 @@
     padding: 30px 36px !important;
     border-radius: var(--bw-reviews-radius-lg) !important;
     background: #000 !important;
+    border: 1px solid var(--bw-reviews-border) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown.is-static,
@@ -270,6 +293,30 @@
     margin-bottom: 20px !important;
     padding-top: 20px !important;
     padding-bottom: 20px !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-breakdown.is-collapsible,
+.bw-reviews-breakdown.is-collapsible {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-color: transparent !important;
+    pointer-events: none !important;
+    transition: max-height 220ms ease, opacity 180ms ease, margin-bottom 180ms ease, padding-top 180ms ease, padding-bottom 180ms ease, border-color 180ms ease !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-breakdown.is-collapsible.is-open,
+.bw-reviews-breakdown.is-collapsible.is-open {
+    max-height: 720px !important;
+    opacity: 1 !important;
+    margin-bottom: 28px !important;
+    padding-top: 30px !important;
+    padding-bottom: 30px !important;
+    border-color: var(--bw-reviews-border) !important;
+    pointer-events: auto !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown__summary,

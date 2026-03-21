@@ -706,7 +706,7 @@
 
             const expanded = 'true' === String(this.$summaryTrigger.attr('aria-expanded'));
             this.$summaryTrigger.attr('aria-expanded', expanded ? 'false' : 'true');
-            this.$breakdown.toggleClass('is-open', !expanded).stop(true, true)[expanded ? 'slideUp' : 'slideDown'](200);
+            this.$breakdown.toggleClass('is-open', !expanded);
         }
 
         toggleSortMenu() {

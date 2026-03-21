@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 class="bw-reviews-summary__trigger<?php echo empty( $view['breakdown_interactive'] ) ? ' is-static' : ''; ?>"
                 data-review-summary-trigger
                 aria-expanded="false"
+                aria-controls="bw-reviews-breakdown-<?php echo esc_attr( (string) $view['instance_id'] ); ?>"
                 <?php disabled( empty( $view['breakdown_interactive'] ) ); ?>
             >
                 <span class="bw-reviews-summary__stars" aria-hidden="true">
@@ -80,8 +81,8 @@ if ( ! defined( 'ABSPATH' ) ) {
         <?php if ( ! empty( $view['show_breakdown'] ) ) : ?>
             <div
                 class="bw-reviews-breakdown<?php echo empty( $view['has_reviews'] ) ? ' is-static' : ' is-collapsible'; ?>"
+                id="bw-reviews-breakdown-<?php echo esc_attr( (string) $view['instance_id'] ); ?>"
                 data-review-breakdown
-                <?php echo ! empty( $view['breakdown_interactive'] ) ? 'style="display:none;"' : ''; ?>
             >
                 <div class="bw-reviews-breakdown__summary">
                     <span class="bw-reviews-breakdown__summary-star">★</span>
