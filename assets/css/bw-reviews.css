@@ -157,7 +157,7 @@
     line-height: 1 !important;
     font-weight: 500 !important;
     cursor: pointer !important;
-    transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition) !important;
+    transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews__write:hover,
@@ -603,7 +603,7 @@
     line-height: 1 !important;
     font-weight: 500 !important;
     cursor: pointer !important;
-    transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), color var(--bw-reviews-transition), opacity var(--bw-reviews-transition) !important;
+    transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), color var(--bw-reviews-transition), opacity var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews__more:hover,
@@ -1082,6 +1082,35 @@
 
 body.bw-reviews-modal-open {
     overflow: hidden !important;
+}
+
+/* Loading state */
+.elementor-widget-bw-reviews .bw-reviews.is-loading [data-review-grid],
+.bw-reviews.is-loading [data-review-grid] {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    transition: opacity 200ms ease !important;
+}
+
+/* Button micro-interactions */
+.elementor-widget-bw-reviews .bw-reviews-modal__button:not([disabled]):hover,
+.bw-reviews-modal__button:not([disabled]):hover {
+    background: #111111 !important;
+    opacity: 0.88 !important;
+    transform: translateY(-1px) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-modal__button:not([disabled]):active,
+.bw-reviews-modal__button:not([disabled]):active {
+    opacity: 1 !important;
+    transform: translateY(0) scale(0.98) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews__write:active,
+.bw-reviews__write:active,
+.elementor-widget-bw-reviews .bw-reviews__more:active,
+.bw-reviews__more:active {
+    transform: scale(0.97) !important;
 }
 
 @keyframes bwReviewsStepFade {

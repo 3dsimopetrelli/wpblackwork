@@ -486,35 +486,33 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
                 return $this->get_empty_summary();
             }
 
-            $table  = $this->get_table_name();
-            $avg    = $wpdb->get_var(
+            $table = $this->get_table_name();
+            $row   = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT AVG(rating) FROM {$table} WHERE product_id = %d AND status = 'approved'",
-                    $product_id
-                )
-            );
-            $counts = $wpdb->get_results(
-                $wpdb->prepare(
-                    "SELECT rating, COUNT(*) AS total FROM {$table} WHERE product_id = %d AND status = 'approved' GROUP BY rating",
+                    "SELECT
+                        COUNT(*) AS total,
+                        AVG(rating) AS avg_rating,
+                        SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS r1,
+                        SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) AS r2,
+                        SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) AS r3,
+                        SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) AS r4,
+                        SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) AS r5
+                    FROM {$table}
+                    WHERE product_id = %d AND status = 'approved'",
                     $product_id
                 ),
                 ARRAY_A
             );
 
-            $total     = $this->count_product_reviews( $product_id );
+            if ( ! is_array( $row ) || ! $row['total'] ) {
+                return $this->get_empty_summary();
+            }
+
+            $total     = absint( $row['total'] );
             $breakdown = [];
 
             for ( $rating = 5; $rating >= 1; $rating-- ) {
-                $count = 0;
-                if ( is_array( $counts ) ) {
-                    foreach ( $counts as $row ) {
-                        if ( isset( $row['rating'] ) && absint( $row['rating'] ) === $rating ) {
-                            $count = absint( $row['total'] );
-                            break;
-                        }
-                    }
-                }
-
+                $count       = absint( $row[ 'r' . $rating ] );
                 $breakdown[] = [
                     'rating'  => $rating,
                     'count'   => $count,
@@ -523,7 +521,7 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
             }
 
             return [
-                'average_rating' => $avg ? round( (float) $avg, 1 ) : 0,
+                'average_rating' => round( (float) $row['avg_rating'], 1 ),
                 'approved_count' => $total,
                 'breakdown'      => $breakdown,
             ];
@@ -582,29 +580,30 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
         public function get_global_summary() {
             global $wpdb;
 
-            $table  = $this->get_table_name();
-            $avg    = $wpdb->get_var(
-                "SELECT AVG(rating) FROM {$table} WHERE status = 'approved'"
-            );
-            $counts = $wpdb->get_results(
-                "SELECT rating, COUNT(*) AS total FROM {$table} WHERE status = 'approved' GROUP BY rating",
+            $table = $this->get_table_name();
+            $row   = $wpdb->get_row(
+                "SELECT
+                    COUNT(*) AS total,
+                    AVG(rating) AS avg_rating,
+                    SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS r1,
+                    SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) AS r2,
+                    SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) AS r3,
+                    SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) AS r4,
+                    SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) AS r5
+                FROM {$table}
+                WHERE status = 'approved'",
                 ARRAY_A
             );
 
-            $total     = $this->count_global_reviews();
+            if ( ! is_array( $row ) || ! $row['total'] ) {
+                return $this->get_empty_summary();
+            }
+
+            $total     = absint( $row['total'] );
             $breakdown = [];
 
             for ( $rating = 5; $rating >= 1; $rating-- ) {
-                $count = 0;
-                if ( is_array( $counts ) ) {
-                    foreach ( $counts as $row ) {
-                        if ( isset( $row['rating'] ) && absint( $row['rating'] ) === $rating ) {
-                            $count = absint( $row['total'] );
-                            break;
-                        }
-                    }
-                }
-
+                $count       = absint( $row[ 'r' . $rating ] );
                 $breakdown[] = [
                     'rating'  => $rating,
                     'count'   => $count,
@@ -613,7 +612,7 @@ if ( ! class_exists( 'BW_Reviews_Repository' ) ) {
             }
 
             return [
-                'average_rating' => $avg ? round( (float) $avg, 1 ) : 0,
+                'average_rating' => round( (float) $row['avg_rating'], 1 ),
                 'approved_count' => $total,
                 'breakdown'      => $breakdown,
             ];
