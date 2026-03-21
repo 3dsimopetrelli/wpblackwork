@@ -55,11 +55,11 @@ function bw_render_product_slider_hover_metabox( $post ) {
 
 		<div class="bw-slider-metabox-field">
 			<strong style="display:block;margin-bottom:8px;"><?php esc_html_e( 'Hover Video', 'bw' ); ?></strong>
-			<div class="bw-slider-metabox-preview bw-slider-metabox-preview--video" style="margin-bottom:10px;">
+			<div class="bw-slider-metabox-preview bw-slider-metabox-preview--video" style="margin-bottom:10px;max-width:280px;">
 				<?php if ( $video_url ) : ?>
 					<video
 						src="<?php echo esc_url( $video_url ); ?>"
-						style="width:100%;height:auto;border-radius:6px;display:block;background:#000;"
+						style="width:100%;height:auto;max-width:280px;border-radius:6px;display:block;background:#000;"
 						muted
 						playsinline
 						preload="metadata"
@@ -90,7 +90,7 @@ function bw_render_product_slider_hover_metabox( $post ) {
 
 		function renderVideoPreview(attachment) {
 			var mimeType = attachment.mime || 'video/mp4';
-			var videoHtml = '<video src="' + attachment.url + '" style="width:100%;height:auto;border-radius:6px;display:block;background:#000;" muted playsinline preload="metadata" controls><source src="' + attachment.url + '" type="' + mimeType + '"></video>';
+			var videoHtml = '<video src="' + attachment.url + '" style="width:100%;height:auto;max-width:280px;border-radius:6px;display:block;background:#000;" muted playsinline preload="metadata" controls><source src="' + attachment.url + '" type="' + mimeType + '"></video>';
 			$('.bw-slider-metabox-preview--video').html(videoHtml);
 			$('.bw-remove-slider-hover-video').show();
 		}

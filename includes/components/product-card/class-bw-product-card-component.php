@@ -192,6 +192,10 @@ class BW_Product_Card_Component {
 			$hover_video_html = self::render_hover_video_media( $product, $settings, $image_mode, $poster_url );
 			$hover_image_html = '';
 
+			if ( '' !== $hover_video_html && wp_script_is( 'bw-product-card-script', 'registered' ) ) {
+				wp_enqueue_script( 'bw-product-card-script' );
+			}
+
 			if ( '' === $hover_video_html && $settings['show_hover_image'] ) {
 				$hover_image_id = self::resolve_hover_image_id( $product, $settings );
 
@@ -317,7 +321,6 @@ class BW_Product_Card_Component {
 			'class'                => 'bw-slider-hover bw-product-card-hover-video bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
 			'muted'                => 'muted',
 			'loop'                 => 'loop',
-			'autoplay'             => 'autoplay',
 			'playsinline'          => 'playsinline',
 			'preload'              => 'metadata',
 			'aria-hidden'          => 'true',

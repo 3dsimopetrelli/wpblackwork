@@ -1068,12 +1068,22 @@ function bw_register_related_products_widget_assets()
     // Register product card CSS (shared)
     $product_card_css_file = __DIR__ . '/assets/css/bw-product-card.css';
     $product_card_css_version = file_exists($product_card_css_file) ? filemtime($product_card_css_file) : '1.0.0';
+    $product_card_js_file = __DIR__ . '/assets/js/bw-product-card.js';
+    $product_card_js_version = file_exists($product_card_js_file) ? filemtime($product_card_js_file) : '1.0.0';
 
     wp_register_style(
         'bw-product-card-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-product-card.css',
         [],
         $product_card_css_version
+    );
+
+    wp_register_script(
+        'bw-product-card-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-product-card.js',
+        [],
+        $product_card_js_version,
+        true
     );
 
     // Register related products widget CSS
