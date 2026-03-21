@@ -745,16 +745,20 @@
     width: 74px !important;
     height: 74px !important;
     color: transparent !important;
-    -webkit-text-stroke: 2px var(--bw-reviews-accent) !important;
+    -webkit-text-fill-color: transparent !important;
+    -webkit-text-stroke: 2.2px var(--bw-reviews-accent) !important;
+    text-stroke: 2.2px var(--bw-reviews-accent) !important;
+    opacity: 1 !important;
     font-size: 58px !important;
     line-height: 1 !important;
     cursor: pointer !important;
-    transition: transform var(--bw-reviews-transition), color var(--bw-reviews-transition) !important;
+    transition: transform var(--bw-reviews-transition), color var(--bw-reviews-transition), -webkit-text-fill-color var(--bw-reviews-transition) !important;
 }
 
 .bw-reviews-rating-picker__star.is-selected,
 .bw-reviews-rating-picker__star:hover {
     color: var(--bw-reviews-accent) !important;
+    -webkit-text-fill-color: var(--bw-reviews-accent) !important;
 }
 
 .bw-reviews-rating-picker__label {
