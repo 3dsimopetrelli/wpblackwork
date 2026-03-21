@@ -853,10 +853,14 @@
                     return;
                 }
 
+                const $cards = $(response.data.html || '').filter('.bw-reviews-card');
+
                 if (append) {
-                    this.$grid.append(response.data.html || '');
+                    this.$grid.append($cards);
+                    this.animateInsertedCards($cards);
                 } else {
-                    this.$grid.html(response.data.html || '');
+                    this.$grid.empty().append($cards);
+                    this.animateInsertedCards($cards);
                 }
 
                 this.state.shownCount = Number(response.data.shownCount || 0);
@@ -890,6 +894,27 @@
             }
 
             this.$footer.toggle(this.state.hasMore);
+        }
+
+        animateInsertedCards($cards) {
+            if (!$cards || !$cards.length) {
+                return;
+            }
+
+            $cards.addClass('is-reveal-pending');
+
+            window.requestAnimationFrame(() => {
+                $cards.addClass('is-reveal-animating');
+                $cards.each((index, element) => {
+                    window.setTimeout(() => {
+                        $(element).removeClass('is-reveal-pending');
+                    }, index * 55);
+                });
+            });
+
+            window.setTimeout(() => {
+                $cards.removeClass('is-reveal-animating');
+            }, 700);
         }
 
         openEditModal(reviewId) {

@@ -163,9 +163,7 @@
 .elementor-widget-bw-reviews .bw-reviews__write:hover,
 .bw-reviews__write:hover,
 .elementor-widget-bw-reviews .bw-reviews-sort__trigger:hover,
-.bw-reviews-sort__trigger:hover,
-.elementor-widget-bw-reviews .bw-reviews__more:hover,
-.bw-reviews__more:hover {
+.bw-reviews-sort__trigger:hover {
     background: rgba(17, 17, 17, 0.04) !important;
 }
 
@@ -398,6 +396,17 @@
     background: var(--bw-reviews-surface) !important;
 }
 
+.elementor-widget-bw-reviews .bw-reviews-card.is-reveal-pending,
+.bw-reviews-card.is-reveal-pending {
+    opacity: 0 !important;
+    transform: translateY(18px) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-card.is-reveal-animating,
+.bw-reviews-card.is-reveal-animating {
+    transition: opacity 380ms ease, transform 460ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
 .elementor-widget-bw-reviews .bw-reviews-card.is-featured,
 .bw-reviews-card.is-featured {
     box-shadow: inset 0 0 0 1px rgba(255, 120, 72, 0.14) !important;
@@ -581,14 +590,35 @@
 
 .elementor-widget-bw-reviews .bw-reviews__more,
 .bw-reviews__more {
-    min-height: 54px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 58px !important;
     padding: 0 28px !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
     border-radius: 18px !important;
-    color: var(--bw-reviews-text) !important;
-    font-size: 16px !important;
+    background: transparent !important;
+    color: #111111 !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
     font-weight: 500 !important;
     cursor: pointer !important;
+    transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), color var(--bw-reviews-transition), opacity var(--bw-reviews-transition) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews__more:hover,
+.bw-reviews__more:hover,
+.elementor-widget-bw-reviews .bw-reviews__more:focus-visible,
+.bw-reviews__more:focus-visible {
+    background: #111111 !important;
+    border-color: #111111 !important;
+    color: #ffffff !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews__more[disabled],
+.bw-reviews__more[disabled] {
+    opacity: 0.62 !important;
+    cursor: wait !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-empty,
