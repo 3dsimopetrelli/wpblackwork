@@ -407,6 +407,7 @@
         handleSuccessfulSubmission(data) {
             if ('create' === this.state.mode && this.currentWidget && data.reviewId) {
                 this.currentWidget.state.ownedReviewId = Number(data.reviewId);
+                this.currentWidget.syncWriteButton();
             }
 
             this.state.step = 'done';
@@ -636,6 +637,7 @@
             this.bind();
             this.syncSortUi();
             this.syncFooter();
+            this.syncWriteButton();
         }
 
         parseConfig() {
@@ -688,7 +690,13 @@
 
             this.$root.on('click' + this.namespace, SELECTORS.writeButton, (event) => {
                 event.preventDefault();
-                if (this.config.canWriteReview && this.modalController) {
+                if (!this.config.canWriteReview || !this.modalController) {
+                    return;
+                }
+
+                if (this.state.ownedReviewId && this.config.canEditOwnReview) {
+                    this.openEditModal(this.state.ownedReviewId);
+                } else {
                     this.modalController.openCreate(this);
                 }
             });
@@ -963,6 +971,19 @@
             };
         }
 
+        syncWriteButton() {
+            const $btn = this.$root.find(SELECTORS.writeButton);
+            if (!$btn.length) {
+                return;
+            }
+
+            if (this.state.ownedReviewId && this.config.canEditOwnReview) {
+                $btn.text(this.getString('editReview', 'Edit your review'));
+            } else {
+                $btn.text(this.getString('writeReview', 'Write a review'));
+            }
+        }
+
         scrollIntoView() {
             if (this.element && this.element.scrollIntoView) {
                 this.element.scrollIntoView({
@@ -1005,6 +1026,10 @@
             this.registry.forEach((controller) => {
                 controller.handleDocumentClick(event.target);
             });
+        });
+
+        $(window).on('scroll.bwReviewsGlobal', () => {
+            this.closeAllSortMenus();
         });
 
         this.globalEventsBound = true;
