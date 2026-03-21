@@ -894,6 +894,10 @@
             }
 
             this.$footer.toggle(this.state.hasMore);
+
+            if (this.$loadMore.length) {
+                this.$loadMore.toggle(this.state.hasMore);
+            }
         }
 
         animateInsertedCards($cards) {
@@ -908,13 +912,13 @@
                 $cards.each((index, element) => {
                     window.setTimeout(() => {
                         $(element).removeClass('is-reveal-pending');
-                    }, index * 55);
+                    }, index * 85);
                 });
             });
 
             window.setTimeout(() => {
                 $cards.removeClass('is-reveal-animating');
-            }, 700);
+            }, 980);
         }
 
         openEditModal(reviewId) {

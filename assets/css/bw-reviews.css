@@ -404,7 +404,7 @@
 
 .elementor-widget-bw-reviews .bw-reviews-card.is-reveal-animating,
 .bw-reviews-card.is-reveal-animating {
-    transition: opacity 380ms ease, transform 460ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition: opacity 520ms ease, transform 620ms cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-card.is-featured,
