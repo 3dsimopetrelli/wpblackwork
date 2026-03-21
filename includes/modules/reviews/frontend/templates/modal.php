@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="bw-reviews-modal" data-review-modal hidden>
     <div class="bw-reviews-modal__backdrop" data-review-close></div>
     <div class="bw-reviews-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="bw-reviews-modal-title" tabindex="-1" data-review-modal-dialog>
-        <button type="button" class="bw-reviews-modal__close" data-review-close aria-label="<?php esc_attr_e( 'Close', 'bw' ); ?>">×</button>
         <div class="bw-reviews-modal__dialog-scroll">
+            <button type="button" class="bw-reviews-modal__close" data-review-close aria-label="<?php esc_attr_e( 'Close', 'bw' ); ?>">×</button>
             <div class="bw-reviews-modal__inner">
                 <div class="bw-reviews-modal__top">
                     <p class="bw-reviews-modal__progress" data-review-progress><?php esc_html_e( 'Step 1 of 4', 'bw' ); ?></p>
