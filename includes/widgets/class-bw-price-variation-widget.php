@@ -233,6 +233,31 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
 		$this->end_controls_section();
 
+		$this->start_controls_section(
+			'section_rates_style',
+			[
+				'label' => __( 'Rates', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'product_reviews_margin',
+			[
+				'label'      => __( 'Margin', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-price-variation__reviews-summary' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+				'condition'  => [
+					'show_product_reviews_summary' => 'yes',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+
 		// Variation Buttons Style
 		$this->start_controls_section(
 			'section_buttons_style',
