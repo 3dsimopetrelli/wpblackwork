@@ -165,9 +165,7 @@
 .elementor-widget-bw-reviews .bw-reviews-sort__trigger:hover,
 .bw-reviews-sort__trigger:hover,
 .elementor-widget-bw-reviews .bw-reviews__more:hover,
-.bw-reviews__more:hover,
-.bw-reviews-modal__button:hover,
-.bw-reviews-modal__button:hover {
+.bw-reviews__more:hover {
     background: rgba(17, 17, 17, 0.04) !important;
 }
 
@@ -950,7 +948,15 @@
     line-height: 1 !important;
     font-weight: 600 !important;
     cursor: pointer !important;
-    transition: opacity var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
+    transition: background-color var(--bw-reviews-transition), opacity var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
+}
+
+.bw-reviews-modal__button:hover,
+.bw-reviews-modal__button:focus,
+.bw-reviews-modal__button:active {
+    background: #111111 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
 }
 
 .bw-reviews-modal__button[disabled] {
