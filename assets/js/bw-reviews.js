@@ -889,14 +889,15 @@
         }
 
         syncFooter() {
-            if (!this.$footer.length) {
-                return;
+            const shouldShow = !!this.state.hasMore;
+
+            if (this.$footer.length) {
+                this.$footer.prop('hidden', !shouldShow);
             }
 
-            this.$footer.toggle(this.state.hasMore);
-
             if (this.$loadMore.length) {
-                this.$loadMore.toggle(this.state.hasMore);
+                this.$loadMore.prop('hidden', !shouldShow);
+                this.$loadMore.prop('disabled', !shouldShow || !!this.state.isLoadingList);
             }
         }
 
