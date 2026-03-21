@@ -80,7 +80,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         <?php if ( ! empty( $view['show_breakdown'] ) ) : ?>
             <div
-                class="bw-reviews-breakdown<?php echo empty( $view['has_reviews'] ) ? ' is-static' : ' is-collapsible'; ?>"
+                class="bw-reviews-breakdown<?php echo ! empty( $view['breakdown_interactive'] ) ? ' is-collapsible' : ' is-static'; ?>"
                 id="bw-reviews-breakdown-<?php echo esc_attr( (string) $view['instance_id'] ); ?>"
                 data-review-breakdown
             >
