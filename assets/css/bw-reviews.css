@@ -417,9 +417,18 @@
 .elementor-widget-bw-reviews .bw-reviews-card__heading,
 .bw-reviews-card__heading {
     display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-card__title-group,
+.bw-reviews-card__title-group {
+    display: inline-flex !important;
     align-items: center !important;
     gap: 10px !important;
     flex-wrap: wrap !important;
+    min-width: 0 !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-card__name,
@@ -433,7 +442,10 @@
 
 .elementor-widget-bw-reviews .bw-reviews-card__meta,
 .bw-reviews-card__meta {
-    display: block !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-shrink: 0 !important;
     margin-top: 0 !important;
     color: var(--bw-reviews-text) !important;
 }
@@ -446,6 +458,14 @@
     font-size: 14px !important;
     line-height: 1.35 !important;
     opacity: 1 !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-card__date,
+.bw-reviews-card__date {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    opacity: 0.88 !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-card__badge,
@@ -509,9 +529,9 @@
 
 .elementor-widget-bw-reviews .bw-reviews-card__product-thumb,
 .bw-reviews-card__product-thumb {
-    flex: 0 0 72px !important;
-    width: 72px !important;
-    height: 72px !important;
+    flex: 0 0 50px !important;
+    width: 50px !important;
+    height: 50px !important;
     overflow: hidden !important;
     border-radius: 4px !important;
     background: rgba(255, 255, 255, 0.08) !important;

@@ -13,14 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     <header class="bw-reviews-card__header">
         <div class="bw-reviews-card__identity">
             <div class="bw-reviews-card__heading">
-                <h3 class="bw-reviews-card__name"><?php echo esc_html( (string) $card['reviewer_name'] ); ?></h3>
-                <?php if ( ! empty( $card['verified_purchase'] ) ) : ?>
-                    <span class="bw-reviews-card__badge"><?php esc_html_e( 'Verified', 'bw' ); ?></span>
-                <?php endif; ?>
-            </div>
-            <div class="bw-reviews-card__meta">
+                <div class="bw-reviews-card__title-group">
+                    <h3 class="bw-reviews-card__name"><?php echo esc_html( (string) $card['reviewer_name'] ); ?></h3>
+                    <?php if ( ! empty( $card['verified_purchase'] ) ) : ?>
+                        <span class="bw-reviews-card__badge"><?php esc_html_e( 'Verified', 'bw' ); ?></span>
+                    <?php endif; ?>
+                </div>
                 <?php if ( ! empty( $card['date_label'] ) ) : ?>
-                    <span class="bw-reviews-card__date"><?php echo esc_html( (string) $card['date_label'] ); ?></span>
+                    <div class="bw-reviews-card__meta">
+                        <span class="bw-reviews-card__date"><?php echo esc_html( (string) $card['date_label'] ); ?></span>
+                    </div>
                 <?php endif; ?>
             </div>
             <div class="bw-reviews-card__rating" aria-label="<?php echo esc_attr( sprintf( __( '%d out of 5 stars', 'bw' ), absint( $card['rating'] ) ) ); ?>">
