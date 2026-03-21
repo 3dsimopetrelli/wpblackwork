@@ -29,7 +29,6 @@
     'DEPRECATED - BW WallPost'
   ];
   var WOO_WIDGET_SLUGS = [
-    'bw-product-slide',
     'bw-title-product'
   ];
   var panelObserver = null;
