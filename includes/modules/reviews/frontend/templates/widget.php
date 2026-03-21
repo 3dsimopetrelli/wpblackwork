@@ -39,9 +39,11 @@ if ( ! defined( 'ABSPATH' ) ) {
             </button>
 
             <div class="bw-reviews-controls">
-                <button type="button" class="bw-reviews__write" data-review-open="create">
-                    <?php echo esc_html( (string) $view['write_review_label'] ); ?>
-                </button>
+                <?php if ( ! empty( $view['can_write_review'] ) ) : ?>
+                    <button type="button" class="bw-reviews__write" data-review-open="create">
+                        <?php echo esc_html( (string) $view['write_review_label'] ); ?>
+                    </button>
+                <?php endif; ?>
 
                 <div class="bw-reviews-sort">
                     <button
@@ -100,6 +102,10 @@ if ( ! defined( 'ABSPATH' ) ) {
             <?php
             if ( ! empty( $view['has_reviews'] ) ) {
                 echo wp_kses_post( (string) $view['reviews_html'] );
+            } else {
+                $title   = (string) $view['empty_title'];
+                $message = (string) $view['empty_message'];
+                include __DIR__ . '/empty-state.php';
             }
             ?>
         </div>

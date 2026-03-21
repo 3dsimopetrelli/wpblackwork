@@ -113,7 +113,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <?php esc_html_e( 'Next', 'bw' ); ?>
                         </button>
                         <button type="button" class="bw-reviews-modal__button is-primary" data-review-submit hidden disabled>
-                            <?php esc_html_e( 'Done', 'bw' ); ?>
+                            <?php esc_html_e( 'Submit review', 'bw' ); ?>
                         </button>
                         <button type="button" class="bw-reviews-modal__button is-primary" data-review-finish hidden>
                             <?php echo esc_html( $view['config']['strings']['continue'] ); ?>
