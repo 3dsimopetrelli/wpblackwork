@@ -177,6 +177,39 @@ font-weight: 600;
         margin-top: 20px;
 }
 
+.bw-price-variation__payment-options-wrapper {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	margin-top: 12px;
+}
+
+.bw-price-variation__payment-options {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	line-height: 1.3;
+	font-weight: 400;
+	color: #000000;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+	transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.bw-price-variation__payment-options:hover,
+.bw-price-variation__payment-options:focus {
+	color: #000000;
+	opacity: 0.72;
+	text-decoration: underline;
+}
+
+.bw-price-variation__payment-options.is-disabled {
+	pointer-events: none;
+	opacity: 0.4;
+}
+
 .bw-add-to-cart-button {
 	display: inline-block;
 	width: 100%;

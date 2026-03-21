@@ -205,6 +205,48 @@
         }
 
         /**
+         * Update checkout/payment options link so it follows the active variation.
+         * @param {jQuery} $link
+         * @param {number} productId
+         * @param {Object} variation
+         * @param {string} checkoutUrl
+         */
+        function updatePaymentOptionsLink($link, productId, variation, checkoutUrl) {
+                if (!$link.length || !variation || !checkoutUrl) {
+                        return;
+                }
+
+                const url = new URL(checkoutUrl, window.location.origin);
+
+                url.searchParams.set('add-to-cart', productId);
+                url.searchParams.set('variation_id', variation.id);
+                url.searchParams.set('quantity', 1);
+
+                if (variation.attributes && typeof variation.attributes === 'object') {
+                        Object.entries(variation.attributes).forEach(function(entry) {
+                                const key = entry[0];
+                                const value = entry[1];
+                                if (value !== undefined && value !== null) {
+                                        url.searchParams.set(key, value);
+                                }
+                        });
+                }
+
+                $link.attr({
+                        href: url.toString(),
+                        'data-product_id': productId,
+                        'data-variation_id': variation.id,
+                        'data-selected-variation-id': variation.id
+                });
+
+                if (variation.is_in_stock === false) {
+                        $link.addClass('is-disabled').attr('aria-disabled', 'true');
+                } else {
+                        $link.removeClass('is-disabled').attr('aria-disabled', 'false');
+                }
+        }
+
+        /**
          * Pick the variation to use as default.
          * @param {jQuery} $widget
          * @param {Array} variations
@@ -450,6 +492,8 @@
                 const $licenseBox = $widget.find('.bw-price-variation__license-box');
                 const $buttons = $widget.find('.bw-price-variation__variation-button');
                 const $addToCartButton = $widget.find('.bw-add-to-cart-button');
+                const $paymentOptionsLink = $widget.find('.bw-price-variation__payment-options');
+                const checkoutUrl = $widget.data('checkout-url');
 
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
 
@@ -458,6 +502,7 @@
                         updatePrice($priceDisplay, activeVariation);
                         updateLicenseBox($licenseBox, activeVariation);
                         updateAddToCartButton($addToCartButton, productId, activeVariation);
+                        updatePaymentOptionsLink($paymentOptionsLink, productId, activeVariation, checkoutUrl);
                 }
 
                 $buttons.on('click', function(e) {
@@ -489,6 +534,7 @@
                         updatePrice($priceDisplay, selectedVariation);
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
+                        updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
 
                         $widget.trigger('bw_price_variation_changed', {
                                 variationId: selectedVariation.id,

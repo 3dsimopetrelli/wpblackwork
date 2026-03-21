@@ -162,6 +162,22 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'show_more_payment_options',
+			[
+				'label'        => __( 'Show More Payment Options', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'description'  => __( 'Show a centered text link under Add to Cart that sends the customer straight to checkout with the currently selected license. If no license has been changed yet, it uses the default selected variation.', 'bw' ),
+				'condition'    => [
+					'show_add_to_cart' => 'yes',
+				],
+			]
+		);
+
                 $this->end_controls_section();
         }
 
@@ -1163,6 +1179,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
                         data-default-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
                         data-product-url="<?php echo esc_url( $product->get_permalink() ); ?>"
+                        data-checkout-url="<?php echo esc_url( wc_get_checkout_url() ); ?>"
                 >
                         <!-- Price Display -->
                         <div class="bw-price-variation__price-wrapper">
@@ -1265,6 +1282,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                 }
 
                                 $add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
+                                $checkout_url    = add_query_arg( $url_params, wc_get_checkout_url() );
 
                                 $attributes = [
                                         'href'                 => esc_url( $add_to_cart_url ),
@@ -1290,6 +1308,19 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                         }
                                         ?>><?php echo esc_html( $button_text ); ?></a>
                                 </div>
+				<?php if ( isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'] ) : ?>
+					<div class="bw-price-variation__payment-options-wrapper">
+						<a
+							class="bw-price-variation__payment-options"
+							href="<?php echo esc_url( $checkout_url ); ?>"
+							data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
+							data-variation_id="<?php echo esc_attr( $default_variation_id ); ?>"
+							data-selected-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
+						>
+							<?php esc_html_e( 'More payment options', 'bw' ); ?>
+						</a>
+					</div>
+				<?php endif; ?>
                         <?php endif; ?>
                 </div>
                 <?php
