@@ -50,28 +50,6 @@
     background: transparent !important;
 }
 
-.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-summary__trigger,
-.bw-reviews__shell.is-empty .bw-reviews-summary__trigger,
-.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-summary__count,
-.bw-reviews__shell.is-empty .bw-reviews-summary__count,
-.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-summary__chevron,
-.bw-reviews__shell.is-empty .bw-reviews-summary__chevron {
-    color: #111111 !important;
-}
-
-.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews__write,
-.bw-reviews__shell.is-empty .bw-reviews__write,
-.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-sort__trigger,
-.bw-reviews__shell.is-empty .bw-reviews-sort__trigger {
-    color: #111111 !important;
-    border-color: rgba(17, 17, 17, 0.22) !important;
-}
-
-.elementor-widget-bw-reviews .bw-reviews__shell.is-empty .bw-reviews-sort__trigger[disabled],
-.bw-reviews__shell.is-empty .bw-reviews-sort__trigger[disabled] {
-    opacity: 1 !important;
-}
-
 .elementor-widget-bw-reviews .bw-reviews__header,
 .bw-reviews__header {
     display: flex !important;
@@ -116,7 +94,7 @@
     gap: 14px !important;
     min-height: 48px !important;
     padding: 0 !important;
-    color: var(--bw-reviews-text) !important;
+    color: #111111 !important;
     cursor: pointer !important;
 }
 
@@ -141,7 +119,7 @@
     display: inline-flex !important;
     width: 20px !important;
     height: 20px !important;
-    color: var(--bw-reviews-text) !important;
+    color: #111111 !important;
     transition: transform var(--bw-reviews-transition) !important;
 }
 
@@ -171,10 +149,10 @@
     justify-content: center !important;
     min-height: 58px !important;
     padding: 0 28px !important;
-    border: 1px solid rgba(255, 255, 255, 0.26) !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
     border-radius: 18px !important;
     background: transparent !important;
-    color: var(--bw-reviews-text) !important;
+    color: #111111 !important;
     font-size: 20px !important;
     line-height: 1 !important;
     font-weight: 500 !important;
@@ -190,7 +168,7 @@
 .bw-reviews__more:hover,
 .bw-reviews-modal__button:hover,
 .bw-reviews-modal__button:hover {
-    background: rgba(255, 255, 255, 0.06) !important;
+    background: rgba(17, 17, 17, 0.04) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-sort,
@@ -206,9 +184,9 @@
     width: 58px !important;
     min-width: 58px !important;
     height: 58px !important;
-    border: 1px solid rgba(255, 255, 255, 0.26) !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
     border-radius: 18px !important;
-    color: var(--bw-reviews-text) !important;
+    color: #111111 !important;
     cursor: pointer !important;
     transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), opacity var(--bw-reviews-transition) !important;
 }
@@ -760,7 +738,7 @@
 .bw-reviews-rating-picker__star path {
     fill: transparent !important;
     stroke: #111111 !important;
-    stroke-width: 4px !important;
+    stroke-width: 3px !important;
     stroke-linecap: round !important;
     stroke-linejoin: round !important;
     transition: fill var(--bw-reviews-transition), stroke var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
