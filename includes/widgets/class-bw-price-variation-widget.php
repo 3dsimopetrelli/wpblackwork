@@ -69,6 +69,64 @@ class BW_Price_Variation_Widget extends Widget_Base {
 
                 $this->end_controls_section();
 
+                $this->start_controls_section(
+                        'section_rates_content',
+                        [
+                                'label' => __( 'Rates', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_CONTENT,
+                        ]
+                );
+
+                $this->add_control(
+                        'show_product_reviews_summary',
+                        [
+                                'label'        => __( 'Show Product Reviews', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => '',
+                                'description'  => __( 'Show the review stars and rating summary for the current product under the price. It appears only when this product has approved reviews in the BW Reviews module.', 'bw' ),
+                        ]
+                );
+
+                $this->add_control(
+                        'show_product_reviews_count',
+                        [
+                                'label'        => __( 'Show Reviews Count', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                                'condition'    => [
+                                        'show_product_reviews_summary' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_responsive_control(
+                        'product_reviews_alignment',
+                        [
+                                'label'     => __( 'Alignment', 'bw' ),
+                                'type'      => Controls_Manager::CHOOSE,
+                                'options'   => [
+                                        'flex-start' => [ 'title' => __( 'Left', 'bw' ), 'icon' => 'eicon-text-align-left' ],
+                                        'center'     => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
+                                        'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
+                                ],
+                                'default'   => 'center',
+                                'selectors' => [
+                                        '{{WRAPPER}} .bw-price-variation__reviews-summary' => 'justify-content: {{VALUE}};',
+                                ],
+                                'condition' => [
+                                        'show_product_reviews_summary' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_section();
+
                 // Add To Cart Section
                 $this->start_controls_section(
 			'section_add_to_cart_content',
@@ -952,6 +1010,60 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 return [ $main_attribute_name, $attributes[ $main_attribute_name ] ];
         }
 
+        private function get_product_reviews_summary( $product_id ) {
+                if ( $product_id <= 0 || ! class_exists( 'BW_Reviews_Repository' ) || ! class_exists( 'BW_Reviews_Settings' ) ) {
+                        return null;
+                }
+
+                if ( ! BW_Reviews_Settings::is_enabled() ) {
+                        return null;
+                }
+
+                $repository = new BW_Reviews_Repository();
+                $summary    = $repository->get_product_summary( $product_id );
+
+                if ( empty( $summary['approved_count'] ) ) {
+                        return null;
+                }
+
+                return $summary;
+        }
+
+        private function render_product_reviews_summary( $summary, $show_count ) {
+                $average = isset( $summary['average_rating'] ) ? max( 0, min( 5, (float) $summary['average_rating'] ) ) : 0;
+                $count   = isset( $summary['approved_count'] ) ? absint( $summary['approved_count'] ) : 0;
+
+                if ( $count <= 0 ) {
+                        return '';
+                }
+
+                $fill_percent = min( 100, max( 0, ( $average / 5 ) * 100 ) );
+                $average_label = number_format_i18n( $average, 1 );
+                $count_label   = sprintf(
+                        _n( '%d Review', '%d Reviews', $count, 'bw' ),
+                        $count
+                );
+
+                ob_start();
+                ?>
+                <div class="bw-price-variation__reviews-summary" aria-label="<?php echo esc_attr( sprintf( __( '%1$s rating from %2$d reviews', 'bw' ), $average_label, $count ) ); ?>">
+                        <div class="bw-price-variation__reviews-inline">
+                                <span class="bw-price-variation__reviews-stars" aria-hidden="true">
+                                        <span class="bw-price-variation__reviews-stars-base">★★★★★</span>
+                                        <span class="bw-price-variation__reviews-stars-fill" style="width: <?php echo esc_attr( (string) $fill_percent ); ?>%;">★★★★★</span>
+                                </span>
+                                <span class="bw-price-variation__reviews-rating"><?php echo esc_html( $average_label ); ?></span>
+                                <?php if ( $show_count ) : ?>
+                                        <span class="bw-price-variation__reviews-separator" aria-hidden="true">-</span>
+                                        <span class="bw-price-variation__reviews-count"><?php echo esc_html( $count_label ); ?></span>
+                                <?php endif; ?>
+                        </div>
+                </div>
+                <?php
+
+                return (string) ob_get_clean();
+        }
+
         protected function render() {
                 if ( ! class_exists( 'WooCommerce' ) ) {
                         return;
@@ -1013,6 +1125,12 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 $default_price          = $default_variation['price'];
                 $default_price_html     = $default_variation['price_html'];
                 $default_price_html_raw = wp_kses_post( $default_price_html );
+                $reviews_summary        = ( isset( $settings['show_product_reviews_summary'] ) && 'yes' === $settings['show_product_reviews_summary'] )
+                        ? $this->get_product_reviews_summary( $product->get_id() )
+                        : null;
+                $reviews_summary_html   = $reviews_summary
+                        ? $this->render_product_reviews_summary( $reviews_summary, isset( $settings['show_product_reviews_count'] ) && 'yes' === $settings['show_product_reviews_count'] )
+                        : '';
                 ?>
                 <div
                         class="bw-price-variation"
@@ -1031,6 +1149,10 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                         <?php echo $default_price_html_raw; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </span>
                         </div>
+
+                        <?php if ( '' !== $reviews_summary_html ) : ?>
+                                <?php echo $reviews_summary_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        <?php endif; ?>
 
                         <!-- Variation Buttons -->
                         <?php if ( ! empty( $main_attribute_values ) ) : ?>
