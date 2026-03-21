@@ -28,6 +28,7 @@ class BW_Product_Card_Component {
 			'hover_image_loading'      => 'lazy',
 			'show_image'               => true,
 			'show_hover_image'         => true,
+			'show_hover_video'         => true,
 			'hover_image_source'       => 'meta',
 		'show_title'               => true,
 		'show_description'         => false,
@@ -173,8 +174,10 @@ class BW_Product_Card_Component {
 
 			$thumbnail_html = '';
 			$image_id       = $product->get_image_id();
+			$poster_url     = '';
 
 			if ( $image_id ) {
+				$poster_url     = (string) wp_get_attachment_image_url( $image_id, $image_size );
 				$thumbnail_html = wp_get_attachment_image(
 					$image_id,
 					$image_size,
@@ -186,19 +189,11 @@ class BW_Product_Card_Component {
 				);
 			}
 
-		$hover_image_html = '';
-		if ( $settings['show_hover_image'] ) {
-			$hover_source   = isset( $settings['hover_image_source'] ) ? sanitize_key( (string) $settings['hover_image_source'] ) : 'meta';
-			$hover_image_id = 0;
+			$hover_video_html = self::render_hover_video_media( $product, $settings, $image_mode, $poster_url );
+			$hover_image_html = '';
 
-			if ( 'gallery_first' === $hover_source ) {
-				$gallery_ids = $product->get_gallery_image_ids();
-				if ( ! empty( $gallery_ids ) ) {
-					$hover_image_id = (int) reset( $gallery_ids );
-				}
-			} else {
-				$hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
-			}
+			if ( '' === $hover_video_html && $settings['show_hover_image'] ) {
+				$hover_image_id = self::resolve_hover_image_id( $product, $settings );
 
 				if ( $hover_image_id ) {
 					$hover_image_html = wp_get_attachment_image(
@@ -231,7 +226,7 @@ class BW_Product_Card_Component {
 			[ 'bw-wallpost-image', 'bw-slick-slider-image', 'bw-product-card-image--' . $image_mode ],
 			$settings['image_wrapper_classes']
 		);
-		if ( $hover_image_html ) {
+		if ( $hover_image_html || $hover_video_html ) {
 			$image_wrapper_classes = self::merge_classes(
 				$image_wrapper_classes,
 				[ 'bw-wallpost-image--has-hover', 'bw-slick-slider-image--has-hover' ]
@@ -249,6 +244,9 @@ class BW_Product_Card_Component {
 			<?php if ( $thumbnail_html ) : ?>
 				<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $image_wrapper_classes ) ) ); ?>">
 					<?php echo wp_kses_post( $thumbnail_html ); ?>
+					<?php if ( $hover_video_html ) : ?>
+						<?php echo wp_kses_post( $hover_video_html ); ?>
+					<?php endif; ?>
 					<?php if ( $hover_image_html ) : ?>
 						<?php echo wp_kses_post( $hover_image_html ); ?>
 					<?php endif; ?>
@@ -266,6 +264,81 @@ class BW_Product_Card_Component {
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Resolve the hover image attachment ID.
+	 *
+	 * @param WC_Product $product Product object.
+	 * @param array      $settings Settings.
+	 * @return int
+	 */
+	private static function resolve_hover_image_id( $product, $settings ) {
+		$hover_source   = isset( $settings['hover_image_source'] ) ? sanitize_key( (string) $settings['hover_image_source'] ) : 'meta';
+		$hover_image_id = 0;
+
+		if ( 'gallery_first' === $hover_source ) {
+			$gallery_ids = $product->get_gallery_image_ids();
+			if ( ! empty( $gallery_ids ) ) {
+				$hover_image_id = (int) reset( $gallery_ids );
+			}
+		} else {
+			$hover_image_id = (int) get_post_meta( $product->get_id(), '_bw_slider_hover_image', true );
+		}
+
+		return $hover_image_id;
+	}
+
+	/**
+	 * Render hover video markup when a valid product hover video exists.
+	 *
+	 * Priority is video first; image fallback is handled by the caller.
+	 *
+	 * @param WC_Product $product Product object.
+	 * @param array      $settings Settings.
+	 * @param string     $image_mode Image mode.
+	 * @param string     $poster_url Poster URL.
+	 * @return string
+	 */
+	private static function render_hover_video_media( $product, $settings, $image_mode, $poster_url = '' ) {
+		if ( empty( $settings['show_hover_video'] ) ) {
+			return '';
+		}
+
+		$video_id   = (int) get_post_meta( $product->get_id(), '_bw_slider_hover_video', true );
+		$video_url  = $video_id ? wp_get_attachment_url( $video_id ) : '';
+		$video_mime = $video_id ? (string) get_post_mime_type( $video_id ) : '';
+
+		if ( ! $video_id || ! $video_url || 0 !== strpos( $video_mime, 'video/' ) ) {
+			return '';
+		}
+
+		$attributes = [
+			'class'                => 'bw-slider-hover bw-product-card-hover-video bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
+			'muted'                => 'muted',
+			'loop'                 => 'loop',
+			'autoplay'             => 'autoplay',
+			'playsinline'          => 'playsinline',
+			'preload'              => 'metadata',
+			'aria-hidden'          => 'true',
+			'disablepictureinpicture' => 'disablepictureinpicture',
+		];
+
+		if ( '' !== $poster_url ) {
+			$attributes['poster'] = $poster_url;
+		}
+
+		$attribute_html = '';
+		foreach ( $attributes as $name => $value ) {
+			$attribute_html .= sprintf( ' %s="%s"', esc_attr( $name ), esc_attr( $value ) );
+		}
+
+		return sprintf(
+			'<video%s><source src="%s" type="%s"></video>',
+			$attribute_html,
+			esc_url( $video_url ),
+			esc_attr( $video_mime )
+		);
 	}
 
 	/**

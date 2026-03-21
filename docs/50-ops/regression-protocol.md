@@ -113,6 +113,21 @@ Wave-specific checks:
   - if the user does not change variation, `More payment options` uses the default variation
   - checkout shortcut stays aligned with Add to Cart selected-variation state
 
+## Shared Product Card Hover Media
+- Scope:
+  - `includes/product-types/class-bw-product-slider-metabox.php`
+  - `includes/components/product-card/class-bw-product-card-component.php`
+  - `assets/css/bw-product-card.css`
+- Required checks:
+  - WooCommerce product edit screen shows `Hover Media` metabox
+  - hover image field still saves and removes correctly
+  - hover video field saves and removes correctly
+  - product with hover video uses video-first behavior on shared product-card surfaces
+  - product without hover video still uses hover image fallback
+  - product with neither field renders safely without hover-media breakage
+  - product-grid / related-products / slick-slider product cards remain clickable and visually stable
+  - overlay buttons still appear and remain usable over hover media
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

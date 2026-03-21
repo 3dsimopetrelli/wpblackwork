@@ -126,6 +126,11 @@ Canonical transition note:
   - AJAX response path (`bw_fpw_filter_posts`).
 - `bw-slick-slider` product rendering path is delegated to `BW_Product_Card_Component`.
 - `bw-related-products` product rendering path is delegated to `BW_Product_Card_Component`.
+- shared product-card hover media now resolves in this order:
+  - `_bw_slider_hover_video`
+  - `_bw_slider_hover_image`
+  - no hover media
+- WooCommerce product edit authority for those fields is the `Hover Media` metabox.
 - `bw-related-products` refactored (2026-03): proportional image grid, simplified controls (removed Image Settings, Overlay Buttons style, Card Container style, open_cart_popup, margin_top/bottom). Desktop columns control uses `selectors` for live Elementor preview without re-render. Tablet/mobile hardcoded to 2 columns in CSS.
 - Removed widgets (governed removal wave completed):
   - `bw-wallpost` (replacement: `bw-product-grid` + `Enable Filter = No`)

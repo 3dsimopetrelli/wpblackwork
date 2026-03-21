@@ -60,6 +60,14 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - `bw-product-card.css` -> canonical product-card skin authority.
 - Shared `slider-core` -> runtime authority for slider lifecycle.
 - Shared control groups -> reduce duplicated control blocks where safe.
+- Shared hover-media resolution belongs to `BW_Product_Card_Component`:
+  - product meta authority:
+    - `_bw_slider_hover_video`
+    - `_bw_slider_hover_image`
+  - storefront precedence:
+    - hover video
+    - hover image fallback
+    - no hover media fallback
 
 Decisions already fixed:
 - `bw-add-to-cart` -> DELETE (completed)
@@ -83,6 +91,10 @@ Current product-widget integration note:
 - `bw-price-variation` remains a pricing/license authority widget.
 - It can consume a compact read-only review summary from the Reviews module for the current product only.
 - It must not become a second review-authority surface.
+
+Current shared media note:
+- the WooCommerce product admin metabox labeled `Hover Media` is the current editor authority for product-card hover media
+- widgets consuming `BW_Product_Card_Component` inherit hover-video support automatically when configured on the product
 
 Current popup/runtime note for `bw-presentation-slide`:
 - popup overlay is moved to `<body>` at runtime
