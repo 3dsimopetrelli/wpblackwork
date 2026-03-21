@@ -80,6 +80,39 @@ Wave-specific checks:
   - Masonry mode reflows safely after append/filter changes with no broken overlap
   - legacy unlimited `posts_per_page` instances keep replace-mode behavior and do not enter infinite loading
 
+## BW Reviews System / Widget
+- Scope:
+  - `includes/modules/reviews/`
+  - `includes/widgets/class-bw-reviews-widget.php`
+  - `assets/js/bw-reviews.js`
+  - `assets/css/bw-reviews.css`
+- Required checks:
+  - `Blackwork Site -> Reviews` list screen loads and row actions work
+  - `Blackwork Site -> Reviews Settings` saves correctly across all tabs
+  - WooCommerce native product reviews/comments are suppressed when Reviews is enabled
+  - review submit works for supported policy combinations
+  - email confirmation path transitions to approved or pending moderation according to settings
+  - rejected reviews do not appear on frontend
+  - trashed reviews do not appear on frontend and remain visible in admin trash views
+  - verified badge appears only for true verified purchases
+  - widget sort and load-more remain deterministic
+  - global fallback mode shows global summary/list only when current product has no approved reviews
+  - global fallback cards show reviewed product image/name; normal product cards do not
+
+## BW Price Variation Review / Checkout Additions
+- Scope:
+  - `includes/widgets/class-bw-price-variation-widget.php`
+  - `assets/js/bw-price-variation.js`
+  - `assets/css/bw-price-variation.css`
+- Required checks:
+  - product review summary appears only when the current product has approved BW Reviews reviews
+  - review summary stays hidden when the current product has no approved reviews
+  - review count visibility follows the widget toggle
+  - `More payment options` appears only when enabled
+  - `More payment options` follows the currently selected variation/license
+  - if the user does not change variation, `More payment options` uses the default variation
+  - checkout shortcut stays aligned with Add to Cart selected-variation state
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

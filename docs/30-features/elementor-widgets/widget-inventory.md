@@ -16,11 +16,12 @@ Canonical transition note:
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
 | `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
+| `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces |
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized presentation/gallery slider; horizontal and responsive-vertical runtime are Embla-based |
-| `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget |
+| `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget with current-product review summary and direct-checkout shortcut support |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slide` | `includes/widgets/class-bw-product-slide-widget.php` | Product Slider | canonical product slider target |
@@ -110,6 +111,16 @@ Canonical transition note:
   - minimal editor controls only
   - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
   - public submit handled through nonce-protected server-side AJAX endpoint
+- `bw-reviews`:
+  - minimal editor controls only (`product_id` override)
+  - business/data authority delegated to `includes/modules/reviews/`
+  - server-rendered shell with JS-enhanced modal, sort, and load-more behavior
+  - optional global review fallback is owned by Reviews Settings, not by widget-local state
+- `bw-price-variation`:
+  - now supports a `Rates` content section for current-product BW Reviews summary
+  - can show/hide review count in the inline summary
+  - now supports a `More payment options` checkout shortcut under Add to Cart
+  - checkout shortcut follows the currently selected variation, or the default variation at initial render
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
   - AJAX response path (`bw_fpw_filter_posts`).

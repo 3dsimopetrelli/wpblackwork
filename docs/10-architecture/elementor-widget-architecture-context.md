@@ -41,6 +41,8 @@ Document the current real architecture of Blackwork Elementor widgets and define
   - `bw-product-slide`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
   - `bw-price-variation`, `bw-product-details-table`, `bw-title-product`, `bw-product-description`, `bw-product-breadcrumbs`
+- Product Reviews / Trust:
+  - `bw-reviews`
 - Content/UI utilities:
   - about-menu, button, divider, animated-banner, tags, related-post, static-showcase
 - Marketing / Lead Capture:
@@ -74,7 +76,13 @@ Decisions already fixed:
 - `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
+- `bw-reviews` -> canonical custom-review widget backed by the isolated Reviews module
 - `bw-newsletter-subscription` -> canonical fixed-design Brevo/Mail Marketing opt-in widget for Elementor surfaces
+
+Current product-widget integration note:
+- `bw-price-variation` remains a pricing/license authority widget.
+- It can consume a compact read-only review summary from the Reviews module for the current product only.
+- It must not become a second review-authority surface.
 
 Current popup/runtime note for `bw-presentation-slide`:
 - popup overlay is moved to `<body>` at runtime

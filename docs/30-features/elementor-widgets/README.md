@@ -32,6 +32,8 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
+- `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
+- `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
 
 ## Confirmed decisions (current)
 - `bw-add-to-cart` -> DELETE (completed)
@@ -46,6 +48,8 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
+- `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
+- `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product
 
 ## BW-UI Presentation Slider
 - Widget slug: `bw-presentation-slide`

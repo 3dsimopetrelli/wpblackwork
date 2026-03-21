@@ -11,6 +11,8 @@ It consolidates the structural reality already audited in [`docs/50-ops/admin-pa
 - Main submenu alias (`blackwork-site-settings`): explicit `Site Settings` submenu registered with `add_submenu_page(...)` in `admin/class-blackwork-site-settings.php`.
 - Header submenu (`bw-header-settings`): registered with `add_submenu_page(...)` in `includes/modules/header/admin/header-admin.php`.
 - Mail Marketing submenu (`blackwork-mail-marketing`): registered with `add_submenu_page(...)` in `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php`.
+- Reviews submenu (`bw-reviews`): registered with `add_submenu_page(...)` in `includes/modules/reviews/admin/class-bw-reviews-admin.php`.
+- Reviews Settings submenu (`bw-reviews-settings`): registered with `add_submenu_page(...)` in `includes/modules/reviews/admin/class-bw-reviews-admin.php`.
 
 ### 1.1.1 2026-03 Navigation Restore
 - `Site Settings` submenu was explicitly restored under `Blackwork Site`.
@@ -71,6 +73,12 @@ Mail Marketing module:
 - `bw_brevo_user_check_status`
 - `bw_brevo_user_sync_status`
 
+Reviews module:
+- `bw_reviews_load_reviews`
+- `bw_reviews_submit`
+- `bw_reviews_get_edit_review`
+- `bw_reviews_update_review`
+
 ### 1.5 Admin assets
 Main settings assets:
 - `admin/css/blackwork-site-settings.css`
@@ -109,6 +117,8 @@ Current adoption:
 - `Blackwork Site > Media Folders` settings page
 - `Blackwork Site > Site Settings` router page (header, action bar, card-wrapped tabs/content, save-proxy CTA bound to existing tab submit buttons)
 - `Blackwork Site > Mail Marketing` page (header, action bar with save CTA, UI-kit tabs, card-grouped General/Checkout/Subscription settings)
+- `Blackwork Site > Reviews` page (header shell, stats cards, action/filter bar, WP-native list table, UI-kit styling)
+- `Blackwork Site > Reviews Settings` page (header shell, action bar save CTA, UI-kit tabbed settings cards)
 - `Blackwork Site > Header` page (header shell, action bar save CTA, UI-kit primary tabs, and section-card settings groups)
 - `Blackwork Site > Theme Builder Lite` page (header shell, action bar save CTA, Sections card with UI-kit tabs, card-grouped tab content)
 - `Blackwork Site > All Templates` list screen (WP-native list table wrapped in UI-kit shell/action bar and skinned styles; behavior unchanged)
@@ -120,6 +130,9 @@ Current adoption:
 | Status | `admin.php?page=bw-system-status` | `bw_system_status_render_admin_page` | `includes/modules/system-status/admin/status-page.php` | admin-ajax (`bw_system_status_run_check`) | `.bw-admin-root` |
 | Media Folders (settings) | `admin.php?page=bw-media-folders-settings` | `bw_mf_render_settings_page` | `includes/modules/media-folders/admin/media-folders-settings.php` | custom POST + nonce | `.bw-admin-root` |
 | Mail Marketing | `admin.php?page=blackwork-mail-marketing` | `render_mail_marketing_page` | `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php` | custom POST + nonce | `.bw-admin-root` |
+| Reviews | `admin.php?page=bw-reviews` | `render_list_page` | `includes/modules/reviews/admin/class-bw-reviews-admin.php` | WP list table + custom row/bulk actions + nonce | `.bw-admin-root` |
+| Reviews Settings | `admin.php?page=bw-reviews-settings` | `render_settings_page` | `includes/modules/reviews/admin/class-bw-reviews-admin.php` | custom POST + nonce | `.bw-admin-root` |
+| Edit Review | `admin.php?page=bw-reviews-edit` | `render_edit_page` | `includes/modules/reviews/admin/class-bw-reviews-admin.php` | custom POST + nonce | `.bw-admin-root` |
 | Header | `admin.php?page=bw-header-settings` | `bw_header_render_admin_page` | `includes/modules/header/admin/header-admin.php` | Settings API (`options.php`) | `.bw-admin-root` |
 | Theme Builder Lite | `admin.php?page=bw-theme-builder-lite-settings` | `bw_tbl_render_admin_page` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Settings API + import nonce handler | `.bw-admin-root` |
 | All Templates | `edit.php?post_type=bw_template` | WP list table (`edit.php`) + UX wrapper JS | `includes/modules/theme-builder-lite/admin/bw-template-type-inline.js` | WP List Table native + inline ajax type update | `.bw-admin-root` (injected) |
