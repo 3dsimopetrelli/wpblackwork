@@ -215,13 +215,13 @@ class BW_Product_Slider_Widget extends Widget_Base {
         $this->add_control(
             'mouse_drag',
             [
-                'label'        => __( 'Mouse Drag (Desktop)', 'bw-elementor-widgets' ),
+                'label'        => __( 'Mouse / Trackpad Drag (Desktop)', 'bw-elementor-widgets' ),
                 'type'         => Controls_Manager::SWITCHER,
                 'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
-                'description'  => __( 'Allow dragging slides with the mouse on desktop.', 'bw-elementor-widgets' ),
+                'description'  => __( 'Allow dragging slides with the mouse or two-finger trackpad swipe on desktop.', 'bw-elementor-widgets' ),
             ]
         );
 
