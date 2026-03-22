@@ -440,18 +440,6 @@ class BW_Product_Slider_Widget extends Widget_Base {
             ]
         );
 
-        $this->add_control(
-            'open_cart_popup',
-            [
-                'label'        => __( 'Open Cart Popup on Add to Cart', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => '',
-            ]
-        );
-
         $this->end_controls_section();
 
         // ========================================
@@ -963,8 +951,8 @@ class BW_Product_Slider_Widget extends Widget_Base {
             'show_description'   => ( $settings['show_description'] ?? '' ) === 'yes',
             'show_price'         => ( $settings['show_price'] ?? 'yes' ) === 'yes',
             'show_buttons'       => ( $settings['show_buttons'] ?? 'yes' ) === 'yes',
-            'hover_image_source' => $settings['hover_image_source'] ?? 'meta',
-            'open_cart_popup'    => ( $settings['open_cart_popup'] ?? '' ) === 'yes',
+            'hover_image_source'  => $settings['hover_image_source'] ?? 'meta',
+            'open_cart_popup'     => false,
             'hover_image_loading' => 'lazy',
         ];
 
