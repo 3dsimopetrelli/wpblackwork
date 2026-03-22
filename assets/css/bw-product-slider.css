@@ -1,0 +1,128 @@
+/**
+ * BW Product Slider Widget Styles
+ * Horizontal Embla carousel of product cards.
+ * Structural Embla CSS (viewport/container/slide base) → bw-embla-core.css
+ * Product card styles → bw-product-card.css
+ */
+
+/* ========================================
+   WRAPPER
+   ======================================== */
+.bw-product-slider-wrapper {
+    position: relative;
+    width: 100%;
+    transition: opacity 0.5s ease;
+}
+
+/* Loading state: hide until first card image is ready */
+.bw-product-slider-wrapper.loading {
+    opacity: 0;
+}
+
+/* ========================================
+   LAYOUT HORIZONTAL
+   ======================================== */
+.bw-product-slider-wrapper .bw-ps-horizontal {
+    position: relative;
+    width: 100%;
+}
+
+/* Embla viewport occupies full width */
+.bw-product-slider-wrapper .bw-ps-embla-viewport {
+    width: 100%;
+}
+
+/* Slide: flex size is set by the scoped <style> tag generated in PHP.
+   Padding provides spacing between cards (controlled by Elementor selector). */
+.bw-product-slider-wrapper .bw-ps-slide {
+    padding: 10px;
+    outline: none;
+    box-sizing: border-box;
+    /* Ensure product card fills the slide height */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Product card fills the slide */
+.bw-product-slider-wrapper .bw-ps-slide .bw-product-card-item {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+.bw-product-slider-wrapper .bw-ps-slide .bw-product-card {
+    height: 100%;
+}
+
+/* ========================================
+   NAVIGATION ARROWS
+   ======================================== */
+.bw-product-slider-wrapper .bw-ps-arrows-container {
+    position: absolute;
+    bottom: -40px;
+    right: 0;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    flex-direction: row;
+    align-items: center;
+}
+
+.bw-product-slider-wrapper .bw-ps-arrow {
+    /* Reset stili Elementor */
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+
+    color: #000;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    transition: opacity 0.3s ease;
+    user-select: none;
+    border-radius: 0;
+    text-shadow: none;
+    font-weight: normal;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.bw-product-slider-wrapper .bw-ps-arrow:hover,
+.bw-product-slider-wrapper .bw-ps-arrow:focus,
+.bw-product-slider-wrapper .bw-ps-arrow:active {
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.bw-product-slider-wrapper .bw-ps-arrow:hover  { opacity: 0.7; }
+.bw-product-slider-wrapper .bw-ps-arrow:focus  { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.bw-product-slider-wrapper .bw-ps-arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+/* ========================================
+   DOTS (PAGINATION)
+   ======================================== */
+.bw-product-slider-wrapper .bw-ps-dots-container {
+    position: absolute;
+    bottom: -25px;
+    left: 0;
+    right: 0;
+    display: flex;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.bw-product-slider-wrapper .bw-ps-dots-container .bw-ps-dots-list {
+    pointer-events: auto;
+}
+
+/* Dots alignment */
+.bw-product-slider-wrapper .bw-ps-dots-left   { justify-content: flex-start; padding-left: 20px; }
+.bw-product-slider-wrapper .bw-ps-dots-center { justify-content: center; }
+.bw-product-slider-wrapper .bw-ps-dots-right  { justify-content: flex-end; padding-right: 20px; }

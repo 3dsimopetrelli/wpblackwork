@@ -633,6 +633,7 @@ add_action('init', 'bw_register_related_products_widget_assets');
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets');
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
+add_action('init', 'bw_register_product_slider_widget_assets');
 add_action('init', 'bw_register_product_details_widget_assets');
 add_action('init', 'bw_register_reviews_widget_assets');
 add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
@@ -757,16 +758,6 @@ function bw_enqueue_slick_slider_assets()
         $showcase_version
     );
 
-    $product_slide_css_file = __DIR__ . '/assets/css/bw-product-slide.css';
-    $product_slide_version = file_exists($product_slide_css_file) ? filemtime($product_slide_css_file) : '1.0.0';
-
-    wp_register_style(
-        'bw-product-slide-style',
-        plugin_dir_url(__FILE__) . 'assets/css/bw-product-slide.css',
-        [],
-        $product_slide_version
-    );
-
     $bw_custom_class_css_file = __DIR__ . '/assets/css/bw-custom-class.css';
     $custom_class_version = file_exists($bw_custom_class_css_file) ? filemtime($bw_custom_class_css_file) : '1.0.0';
 
@@ -785,22 +776,6 @@ function bw_enqueue_slick_slider_assets()
         plugin_dir_url(__FILE__) . 'assets/js/bw-slick-slider.js',
         ['jquery', 'slick-js'],
         $slick_slider_js_version,
-        true
-    );
-
-    $product_slide_js_file = __DIR__ . '/assets/js/bw-product-slide.js';
-    $product_slide_version_js = file_exists($product_slide_js_file) ? filemtime($product_slide_js_file) : '1.0.0';
-    $product_slide_deps = ['jquery', 'slick-js'];
-
-    if (class_exists('WooCommerce')) {
-        $product_slide_deps[] = 'wc-add-to-cart-variation';
-    }
-
-    wp_register_script(
-        'bw-product-slide-js',
-        plugin_dir_url(__FILE__) . 'assets/js/bw-product-slide.js',
-        $product_slide_deps,
-        $product_slide_version_js,
         true
     );
 
@@ -1451,6 +1426,30 @@ function bw_enqueue_presentation_slide_widget_assets()
     if (wp_script_is('bw-presentation-slide-script', 'registered')) {
         wp_enqueue_script('bw-presentation-slide-script');
     }
+}
+
+function bw_register_product_slider_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-product-slider.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-product-slider-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-product-slider.css',
+        ['bw-embla-core-css'],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-product-slider.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-product-slider-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-product-slider.js',
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
+        $js_version,
+        true
+    );
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"
