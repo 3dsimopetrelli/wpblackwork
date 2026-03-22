@@ -144,7 +144,10 @@
             // them, block the browser, and forward them to Embla manually.
             let _wheelAccum  = 0;
             let _wheelTimer  = null;
+            const wrapper = this.$wrapper[0];
             this._wheelHandler = (evt) => {
+                // Only intercept when the gesture starts inside our carousel
+                if (!wrapper.contains(evt.target)) return;
                 const isHoriz = Math.abs(evt.deltaX) > Math.abs(evt.deltaY);
                 if (!isHoriz) return; // leave vertical scroll alone
                 evt.preventDefault();
@@ -159,8 +162,9 @@
                     _wheelAccum = 0;
                 }, 80);
             };
-            this._wheelViewport = viewport;
-            viewport.addEventListener('wheel', this._wheelHandler, { passive: false });
+            // Attach at window level so we intercept before Chrome's
+            // back/forward navigation gesture consumes the event.
+            window.addEventListener('wheel', this._wheelHandler, { passive: false });
 
             // Embla breakpoint options (slidesToScroll, align, containScroll)
             this._updateEmblaBreakpointOptions();
@@ -220,10 +224,9 @@
         ──────────────────────────────────────────── */
 
         destroy() {
-            if (this._wheelViewport && this._wheelHandler) {
-                this._wheelViewport.removeEventListener('wheel', this._wheelHandler);
-                this._wheelViewport = null;
-                this._wheelHandler  = null;
+            if (this._wheelHandler) {
+                window.removeEventListener('wheel', this._wheelHandler);
+                this._wheelHandler = null;
             }
 
             if (this.emblaCore) {
