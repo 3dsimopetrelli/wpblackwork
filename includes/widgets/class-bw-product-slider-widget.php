@@ -930,11 +930,48 @@ class BW_Product_Slider_Widget extends Widget_Base {
             }
         }
 
-        $query = new WP_Query( $args );
+        // ── Transient cache ───────────────────────────────────────────────
+        // Skip for random order (must vary each request) and Elementor editor
+        // (must reflect live data during editing).
+        $use_cache = ( 'rand' !== $args['orderby'] )
+            && ! \Elementor\Plugin::$instance->editor->is_edit_mode();
 
-        if ( ! $query->have_posts() ) {
-            echo '<p>' . esc_html__( 'No products found.', 'bw-elementor-widgets' ) . '</p>';
+        $posts     = null;
+        $cache_key = '';
+
+        if ( $use_cache ) {
+            // Key covers only query-affecting args; excludes WP_Query performance flags.
+            $key_data  = [
+                'v'              => 1, // bump to force-invalidate all sliders on schema change
+                'post_type'      => $args['post_type'],
+                'posts_per_page' => $args['posts_per_page'],
+                'orderby'        => $args['orderby'],
+                'order'          => $args['order'] ?? 'DESC',
+                'post__in'       => $args['post__in'] ?? [],
+                'tax_query'      => $args['tax_query'] ?? [],
+            ];
+            $cache_key = 'bw_ps_' . md5( wp_json_encode( $key_data ) );
+            $cached    = get_transient( $cache_key );
+
+            if ( is_array( $cached ) && ! empty( $cached ) ) {
+                // Rebuild post objects from IDs — WordPress object cache usually
+                // has them already, so this is typically zero extra SQL.
+                $posts = array_values( array_filter( array_map( 'get_post', $cached ) ) );
+            }
+        }
+
+        if ( null === $posts ) {
+            $query = new WP_Query( $args );
+            $posts = $query->posts;
             wp_reset_postdata();
+
+            if ( $use_cache && ! empty( $posts ) ) {
+                set_transient( $cache_key, wp_list_pluck( $posts, 'ID' ), 5 * MINUTE_IN_SECONDS );
+            }
+        }
+
+        if ( empty( $posts ) ) {
+            echo '<p>' . esc_html__( 'No products found.', 'bw-elementor-widgets' ) . '</p>';
             return;
         }
 
@@ -963,11 +1000,9 @@ class BW_Product_Slider_Widget extends Widget_Base {
 
         ?>
         <div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
-            <?php $this->render_horizontal_layout( $query->posts, $settings ); ?>
+            <?php $this->render_horizontal_layout( $posts, $settings ); ?>
         </div>
         <?php
-
-        wp_reset_postdata();
     }
 
     /**
