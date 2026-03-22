@@ -82,10 +82,11 @@
             // il mouse desktop funziona sempre.
             const enableTouchDrag = hCfg.enableTouchDrag !== false; // default true
 
+            const desktopPeek   = hCfg.desktopPeek > 0;
             const emblaOptions = {
                 loop:           hCfg.infinite === true,
                 align:          globalAlign,
-                containScroll:  globalAlign === 'start' ? 'trimSnaps' : false,
+                containScroll:  (desktopPeek || globalAlign !== 'start') ? false : 'trimSnaps',
                 slidesToScroll: 1,
                 dragFree:       hCfg.dragFree === true,
                 watchResize:    true,
@@ -173,10 +174,11 @@
             const baseAlign   = hCfg.align || 'start';
             const activeAlign = bp?.centerMode ? 'center' : baseAlign;
 
+            const hasPeek   = bp ? (bp.peek > 0) : (hCfg.desktopPeek > 0);
             const newOpts = {
                 slidesToScroll: bp?.slidesToScroll || 1,
                 align:          activeAlign,
-                containScroll:  (bp?.centerMode || bp?.variableWidth || activeAlign !== 'start') ? false : 'trimSnaps',
+                containScroll:  (bp?.centerMode || bp?.variableWidth || activeAlign !== 'start' || hasPeek) ? false : 'trimSnaps',
             };
 
             api.reInit(newOpts);
