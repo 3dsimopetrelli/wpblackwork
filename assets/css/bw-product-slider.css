@@ -19,14 +19,16 @@
     opacity: 0;
 }
 
-/* Progressive image loading: each image starts invisible and fades in
-   individually as it loads. BWEmblaCore.initImageLoading() adds .is-loaded. */
-.bw-product-slider-wrapper .bw-ps-embla-viewport img {
+/* Progressive image loading: only the MAIN image fades in.
+   .bw-slider-hover is intentionally excluded — its opacity is controlled
+   entirely by the hover CSS in bw-product-card.css and must start at 0.
+   BWEmblaCore.initImageLoading() adds .is-loaded to all imgs. */
+.bw-product-slider-wrapper .bw-ps-embla-viewport img.bw-slider-main {
     opacity: 0;
     transition: opacity 0.35s ease;
 }
 
-.bw-product-slider-wrapper .bw-ps-embla-viewport img.is-loaded {
+.bw-product-slider-wrapper .bw-ps-embla-viewport img.bw-slider-main.is-loaded {
     opacity: 1;
 }
 
