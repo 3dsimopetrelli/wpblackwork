@@ -110,7 +110,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: transparent;
+  /* background-color deliberately omitted: the inline style set by PHP injects
+     background-image:url(poster) to show the product image during the native
+     loop seek (brief black frame between end and restart). */
+  background-size: cover;
+  background-position: center;
   border-radius: inherit;
 }
 
