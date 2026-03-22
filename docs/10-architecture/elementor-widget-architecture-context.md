@@ -38,7 +38,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Product Grid / Query Grid:
   - `bw-product-grid`, `bw-related-products`
 - Slider:
-  - `bw-product-slide`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
+  - `bw-product-slider`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
   - `bw-price-variation`, `bw-product-details-table`, `bw-title-product`, `bw-product-description`, `bw-product-breadcrumbs`
 - Product Reviews / Trust:
@@ -80,7 +80,7 @@ Decisions already fixed:
   - current-title truncation is word-based and applies only to the terminal product crumb
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
-- `bw-product-slide` -> canonical product slider
+- `bw-product-slider` -> canonical current product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
@@ -109,7 +109,7 @@ Current popup/runtime note for `bw-presentation-slide`:
 
 Visible editor title alignment (current):
 - `bw-slick-slider` -> `BW-UI Product Slider`
-- `bw-product-slide` -> `BW-SP Gallery Product`
+- `bw-product-slider` -> `BW-UI Product Slider`
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs`
 - `bw-product-description` -> `BW-SP Product Description`
 - `bw-title-product` -> `BW Title Product`

@@ -63,7 +63,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `bw-add-to-cart-variation` -> DELETE (completed)
   - `bw-wallpost` -> DELETE (completed)
   - `bw-product-grid` -> canonical wall/query-grid widget
-  - `bw-product-slide` -> canonical product slider (visible title: `BW-SP Gallery Product`)
+  - `bw-product-slider` -> canonical current product slider (visible title: `BW-UI Product Slider`)
   - `bw-presentation-slide` -> specialized presentation/gallery slider
   - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)
   - `bw-related-products` -> current best product-card reuse reference

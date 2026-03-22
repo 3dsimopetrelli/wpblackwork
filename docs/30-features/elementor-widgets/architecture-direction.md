@@ -19,7 +19,7 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
   - canonical wall/query-grid widget (`bw-product-grid`, visible title `BW Product Grid`)
   - `bw-related-products` as product-card reuse reference
 - `Product Slider Family`
-  - `bw-product-slide` as canonical product slider
+  - `bw-product-slider` as canonical current product slider
 - `Presentation Slider Family`
   - `bw-presentation-slide` as specialized gallery/presentation runtime
   - audit status (2026-03-20): active implementation is widget-local Embla runtime for horizontal and responsive-vertical flows; desktop vertical remains a non-Embla elevator layout
@@ -77,6 +77,12 @@ Direction:
 - create a shared `slider-core` runtime authority for lifecycle and common behavior
 - keep widget-specific behavior in thin adapters
 - maintain one shared engine contract (Slick for current phase)
+
+Current audit note for `bw-product-slider`:
+- active runtime is already Embla-based
+- query and breakpoint CSS remain widget-local
+- card rendering is delegated to `BW_Product_Card_Component`
+- the widget is thinner than the historical Slick-era product-slide stack and should be treated as the current product-slider authority
 
 Current audit note for `bw-presentation-slide`:
 - the widget still owns a substantial widget-local runtime in `assets/js/bw-presentation-slide.js`

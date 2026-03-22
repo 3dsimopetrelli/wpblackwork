@@ -40,7 +40,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-add-to-cart-variation` -> DELETE (completed)
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget
-- `bw-product-slide` -> canonical product slider
+- `bw-product-slider` -> canonical current product slider
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
   - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget
@@ -91,7 +91,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 ## Visible title alignment (editor)
 - Internal slug `bw-product-grid` -> visible title `BW Product Grid`
 - Internal slug `bw-slick-slider` -> visible title `BW-UI Product Slider`
-- Internal slug `bw-product-slide` -> visible title `BW-SP Gallery Product`
+- Internal slug `bw-product-slider` -> visible title `BW-UI Product Slider`
 - Internal slug `bw-product-breadcrumbs` -> visible title `BW-SP Product Breadcrumbs`
 - Internal slug `bw-product-description` -> visible title `BW-SP Product Description`
 - Internal slug `bw-title-product` -> visible title `BW Title Product`

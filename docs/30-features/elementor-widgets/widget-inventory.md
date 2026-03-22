@@ -24,7 +24,7 @@ Canonical transition note:
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget with current-product review summary and direct-checkout shortcut support |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
-| `bw-product-slide` | `includes/widgets/class-bw-product-slide-widget.php` | Product Slider | canonical product slider target |
+| `bw-product-slider` | `includes/widgets/class-bw-product-slider-widget.php` | Product Slider | canonical current product slider; Embla-based; query-driven; shared product-card delegation |
 | `bw-related-post` | `includes/widgets/class-bw-related-post-widget.php` | Query/List | non-product |
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
 | `bw-slick-slider` | `includes/widgets/class-bw-slick-slider-widget.php` | Generic Slider | rationalize with slide-showcase |
@@ -34,7 +34,7 @@ Canonical transition note:
 
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
-- `bw-product-slide` -> `BW-SP Gallery Product` (visible title)
+- `bw-product-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
 - `bw-title-product` -> `BW Title Product` (visible title)
@@ -161,4 +161,4 @@ Canonical transition note:
   - also has channel-level runtime pre-enqueue logic for Theme Builder Lite footer injection
 - Slider handles are registered centrally and consumed per widget:
   - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
-  - `bw-slick-slider-js`, `bw-product-slide-js`, `bw-presentation-slide-script`
+- `bw-product-slider-script`, `bw-presentation-slide-script`

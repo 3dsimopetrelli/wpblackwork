@@ -130,6 +130,24 @@ Wave-specific checks:
   - product-grid / related-products / slick-slider product cards remain clickable and visually stable
   - overlay buttons still appear and remain usable over hover media
 
+## BW Product Slider
+- Scope:
+  - `includes/widgets/class-bw-product-slider-widget.php`
+  - `assets/js/bw-product-slider.js`
+  - `assets/css/bw-product-slider.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend
+  - Elementor editor re-render destroys and rebuilds one instance cleanly
+  - query controls return expected products
+  - slide card output remains delegated to `BW_Product_Card_Component`
+  - hover video / hover image behavior remains correct inside slider cards
+  - breakpoint CSS correctly controls arrows, dots, and slide widths
+  - Embla `reInit()` updates `slidesToScroll` and align behavior at breakpoint transitions
+  - autoplay / loop / drag-free remain stable
+  - touch drag and mouse drag toggles behave as configured
+  - transient query cache invalidates after product save
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

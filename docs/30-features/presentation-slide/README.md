@@ -3,7 +3,7 @@
 ## Overview
 
 `bw-presentation-slide` is the specialized gallery/presentation slider Elementor widget for Blackwork.
-It is distinct from `bw-product-slide` (product-contextual slider) and is the canonical widget for standalone image galleries.
+It is distinct from `bw-product-slider` (current product-contextual slider) and is the canonical widget for standalone image galleries.
 
 ## Key Files
 
