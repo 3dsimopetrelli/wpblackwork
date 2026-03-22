@@ -163,18 +163,6 @@ class BW_Product_Slider_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'default_slides_to_show',
-            [
-                'label'       => __( 'Slides to Show (Desktop)', 'bw-elementor-widgets' ),
-                'type'        => Controls_Manager::NUMBER,
-                'default'     => 4,
-                'min'         => 1,
-                'max'         => 10,
-                'description' => __( 'Number of slides visible at once on desktop (above all breakpoints).', 'bw-elementor-widgets' ),
-            ]
-        );
-
-        $this->add_control(
             'infinite_loop',
             [
                 'label'        => __( 'Infinite Loop', 'bw-elementor-widgets' ),
@@ -199,36 +187,6 @@ class BW_Product_Slider_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'autoplay_speed',
-            [
-                'label'     => __( 'Autoplay Speed (ms)', 'bw-elementor-widgets' ),
-                'type'      => Controls_Manager::NUMBER,
-                'default'   => 3000,
-                'min'       => 1000,
-                'max'       => 10000,
-                'step'      => 500,
-                'condition' => [
-                    'autoplay' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'pause_on_hover',
-            [
-                'label'        => __( 'Pause on Hover', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-                'condition'    => [
-                    'autoplay' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
             'drag_free',
             [
                 'label'        => __( 'Drag Free', 'bw-elementor-widgets' ),
@@ -236,8 +194,8 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
-                'default'      => '',
-                'description'  => __( 'Free-scroll drag: the slide does not snap to position, scrolls freely.', 'bw-elementor-widgets' ),
+                'default'      => 'yes',
+                'description'  => __( 'Free-scroll drag: the slide does not snap to position, scrolls freely', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -250,7 +208,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
-                'description'  => __( 'Allow swiping with fingers on touch devices. Mouse drag on desktop always works.', 'bw-elementor-widgets' ),
+                'description'  => __( 'Allow swiping with fingers to navigate slides on touch devices. On desktop, mouse drag always works regardless of this setting.', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -265,7 +223,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     'end'    => __( 'End', 'bw-elementor-widgets' ),
                 ],
                 'default'     => 'start',
-                'description' => __( 'Where to align the selected slide inside the carousel viewport.', 'bw-elementor-widgets' ),
+                'description' => __( 'Where to align the selected slide inside the carousel viewport', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -964,9 +922,9 @@ class BW_Product_Slider_Widget extends Widget_Base {
             'horizontal'  => [
                 'infinite'        => ( $settings['infinite_loop'] ?? 'yes' ) === 'yes',
                 'autoplay'        => ( $settings['autoplay'] ?? '' ) === 'yes',
-                'autoplaySpeed'   => absint( $settings['autoplay_speed'] ?? 3000 ),
-                'pauseOnHover'    => ( $settings['pause_on_hover'] ?? 'yes' ) === 'yes',
-                'dragFree'        => ( $settings['drag_free'] ?? '' ) === 'yes',
+                'autoplaySpeed'   => 3000,
+                'pauseOnHover'    => true,
+                'dragFree'        => ( $settings['drag_free'] ?? 'yes' ) === 'yes',
                 'enableTouchDrag' => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
                 'align'           => $settings['slide_align'] ?? 'start',
                 'responsive'      => $this->build_responsive_config( $settings ),
@@ -994,8 +952,8 @@ class BW_Product_Slider_Widget extends Widget_Base {
      */
     protected function render_horizontal_layout( $posts, $settings ) {
         $dots_position   = $settings['dots_position'] ?? 'center';
-        $image_size      = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'large';
-        $default_eager   = max( 1, absint( $settings['default_slides_to_show'] ?? 4 ) );
+        $image_size    = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'large';
+        $default_eager = 4; // First 4 slides load eagerly (desktop default is 4 visible)
 
         // Card settings passed to BW_Product_Card_Component::render()
         $card_settings_base = [
@@ -1057,8 +1015,8 @@ class BW_Product_Slider_Widget extends Widget_Base {
         $sel_arrows = $el_prefix . ' .bw-ps-arrows-container';
         $sel_dots   = $el_prefix . ' .bw-ps-dots-container';
 
-        // Base rule: desktop slide size (above all breakpoints)
-        $default_slides = max( 1, absint( $settings['default_slides_to_show'] ?? 4 ) );
+        // Base rule: 4 slides on desktop (above all breakpoints)
+        $default_slides = 4;
         $base_slide_size = $default_slides > 1 ? 'calc(100% / ' . $default_slides . ')' : '100%';
 
         $css  = '<style>';
