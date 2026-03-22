@@ -36,7 +36,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
     }
 
     public function get_style_depends() {
-        return [ 'bw-wallpost-style', 'bw-product-card-style', 'bw-embla-core-css', 'bw-product-slider-style' ];
+        return [ 'bw-product-card-style', 'bw-embla-core-css', 'bw-product-slider-style' ];
     }
 
     protected function register_controls() {
