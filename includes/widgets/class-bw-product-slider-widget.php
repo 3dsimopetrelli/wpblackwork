@@ -227,6 +227,19 @@ class BW_Product_Slider_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'desktop_peek',
+            [
+                'label'       => __( 'Desktop Peek Amount (px)', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::NUMBER,
+                'default'     => 0,
+                'min'         => 0,
+                'max'         => 400,
+                'step'        => 4,
+                'description' => __( 'Mostra questa quantità di px della slide successiva sul desktop (sopra tutti i breakpoint). 0 = disabilitato.', 'bw-elementor-widgets' ),
+            ]
+        );
+
         $this->end_controls_section();
 
         // Responsive Breakpoints Section
@@ -332,6 +345,23 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'description' => __( 'Fixed width for slides. Leave empty for auto.', 'bw-elementor-widgets' ),
                 'condition'   => [
                     'variable_width!' => 'yes',
+                ],
+            ]
+        );
+
+        $repeater->add_control(
+            'peek_amount',
+            [
+                'label'       => __( 'Peek Amount (px)', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::NUMBER,
+                'default'     => 0,
+                'min'         => 0,
+                'max'         => 400,
+                'step'        => 4,
+                'description' => __( 'Mostra questa quantità di px della slide successiva per suggerire che il carousel è scorrevole. 0 = disabilitato.', 'bw-elementor-widgets' ),
+                'condition'   => [
+                    'variable_width!' => 'yes',
+                    'slide_width'     => '',
                 ],
             ]
         );
@@ -915,6 +945,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'dragFree'        => ( $settings['drag_free'] ?? 'yes' ) === 'yes',
                 'enableTouchDrag' => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
                 'align'           => $settings['slide_align'] ?? 'start',
+                'desktopPeek'     => absint( $settings['desktop_peek'] ?? 0 ),
                 'responsive'      => $this->build_responsive_config( $settings ),
             ],
         ];
@@ -1004,8 +1035,13 @@ class BW_Product_Slider_Widget extends Widget_Base {
         $sel_dots   = $el_prefix . ' .bw-ps-dots-container';
 
         // Base rule: 4 slides on desktop (above all breakpoints)
-        $default_slides = 4;
-        $base_slide_size = $default_slides > 1 ? 'calc(100% / ' . $default_slides . ')' : '100%';
+        $default_slides  = 4;
+        $desktop_peek    = absint( $settings['desktop_peek'] ?? 0 );
+        if ( $desktop_peek > 0 ) {
+            $base_slide_size = 'calc((100% - ' . $desktop_peek . 'px) / ' . $default_slides . ')';
+        } else {
+            $base_slide_size = $default_slides > 1 ? 'calc(100% / ' . $default_slides . ')' : '100%';
+        }
 
         $css  = '<style>';
         $css .= $sel_slide  . '{flex:0 0 ' . $base_slide_size . ';}';
@@ -1024,6 +1060,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
                 $variable_width = ( $bp['variable_width'] ?? '' ) === 'yes';
                 $slide_width    = absint( $bp['slide_width'] ?? 0 );
+                $peek           = absint( $bp['peek_amount'] ?? 0 );
                 $show_arrows    = ( $bp['show_arrows'] ?? 'yes' ) === 'yes';
                 $show_dots      = ( $bp['show_dots'] ?? '' ) === 'yes';
 
@@ -1035,6 +1072,8 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     $slide_size = 'auto';
                 } elseif ( $slide_width > 0 ) {
                     $slide_size = $slide_width . 'px';
+                } elseif ( $peek > 0 ) {
+                    $slide_size = 'calc((100% - ' . $peek . 'px) / ' . $slides_to_show . ')';
                 } elseif ( $slides_to_show > 1 ) {
                     $slide_size = 'calc(100% / ' . $slides_to_show . ')';
                 } else {
@@ -1069,6 +1108,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     'slidesToScroll' => max( 1, absint( $breakpoint['slides_to_scroll'] ?? 1 ) ),
                     'centerMode'     => ( $breakpoint['center_mode'] ?? '' ) === 'yes',
                     'variableWidth'  => ( $breakpoint['variable_width'] ?? '' ) === 'yes',
+                    'peek'           => absint( $breakpoint['peek_amount'] ?? 0 ),
                 ];
             }
         }
