@@ -139,6 +139,29 @@
 
             if (!api) return;
 
+            // Prevent browser back/forward navigation on horizontal trackpad swipe.
+            // Wheel events with deltaX are what triggers page navigation — we intercept
+            // them, block the browser, and forward them to Embla manually.
+            let _wheelAccum  = 0;
+            let _wheelTimer  = null;
+            this._wheelHandler = (evt) => {
+                const isHoriz = Math.abs(evt.deltaX) > Math.abs(evt.deltaY);
+                if (!isHoriz) return; // leave vertical scroll alone
+                evt.preventDefault();
+                _wheelAccum += evt.deltaX;
+                clearTimeout(_wheelTimer);
+                _wheelTimer = setTimeout(() => {
+                    const emblaApi = this.emblaCore && this.emblaCore.api();
+                    if (emblaApi) {
+                        if (_wheelAccum > 20)       emblaApi.scrollNext();
+                        else if (_wheelAccum < -20) emblaApi.scrollPrev();
+                    }
+                    _wheelAccum = 0;
+                }, 80);
+            };
+            this._wheelViewport = viewport;
+            viewport.addEventListener('wheel', this._wheelHandler, { passive: false });
+
             // Embla breakpoint options (slidesToScroll, align, containScroll)
             this._updateEmblaBreakpointOptions();
 
@@ -197,6 +220,12 @@
         ──────────────────────────────────────────── */
 
         destroy() {
+            if (this._wheelViewport && this._wheelHandler) {
+                this._wheelViewport.removeEventListener('wheel', this._wheelHandler);
+                this._wheelViewport = null;
+                this._wheelHandler  = null;
+            }
+
             if (this.emblaCore) {
                 this.emblaCore.destroy();
                 this.emblaCore = null;
