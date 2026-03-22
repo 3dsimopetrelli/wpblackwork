@@ -160,6 +160,10 @@
                 if (evt.deltaMode === 1) dx *= 20;
                 if (evt.deltaMode === 2) dx *= 200;
 
+                // Amplify: raw trackpad deltaX values are very small (3-20px/event)
+                // relative to slide width, making the carousel feel sluggish.
+                dx *= 4;
+
                 // Move Embla's internal scroll target directly — this is what makes
                 // it feel fluid and drag-free instead of jumping slide by slide.
                 const engine    = emblaApi.internalEngine();
