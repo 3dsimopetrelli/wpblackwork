@@ -880,10 +880,15 @@ class BW_Product_Slider_Widget extends Widget_Base {
 
         // ── Build WP_Query args ───────────────────────────────────────────
         $args = [
-            'post_type'      => ! empty( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product',
-            'posts_per_page' => ! empty( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 12,
-            'post_status'    => 'publish',
-            'orderby'        => ! empty( $settings['order_by'] ) ? $settings['order_by'] : 'date',
+            'post_type'              => ! empty( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product',
+            'posts_per_page'         => ! empty( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 12,
+            'post_status'            => 'publish',
+            'orderby'                => ! empty( $settings['order_by'] ) ? $settings['order_by'] : 'date',
+            // Performance: slider has no pagination → skip SQL_CALC_FOUND_ROWS
+            'no_found_rows'          => true,
+            // Performance: skip post meta/term caches — not needed for card rendering
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
         ];
 
         if ( $args['orderby'] !== 'rand' ) {

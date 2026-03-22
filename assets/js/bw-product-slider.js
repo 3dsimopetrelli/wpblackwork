@@ -123,11 +123,16 @@
                 // Ignore vertical-dominant gestures (page scroll)
                 if (Math.abs(evt.deltaX) <= Math.abs(evt.deltaY)) return;
 
-                // Block browser back/forward navigation
-                evt.preventDefault();
-
                 const emblaApi = this.emblaCore?.api();
                 if (!emblaApi) return;
+
+                // If Embla is already handling a pointer drag (touch/mouse),
+                // skip the wheel handler to avoid double-movement on devices
+                // that fire both pointer and wheel events for the same gesture.
+                if (emblaApi.isDragging?.()) return;
+
+                // Block browser back/forward navigation
+                evt.preventDefault();
 
                 // Normalize delta: trackpads = px (deltaMode 0), wheels = lines/pages
                 let dx = evt.deltaX;
@@ -137,33 +142,36 @@
 
                 // Drive Embla's internal scroll target pixel-by-pixel — fluid, drag-free feel
                 const engine    = emblaApi.internalEngine();
+                const snaps     = engine.scrollSnaps;
                 const newTarget = engine.target.get() - dx;
 
                 engine.target.set(
                     engine.options.loop
                         ? newTarget
                         : Math.max(
-                            Math.min(...engine.scrollSnaps),
-                            Math.min(Math.max(...engine.scrollSnaps), newTarget)
+                            Math.min.apply(null, snaps),
+                            Math.min(Math.max.apply(null, snaps), newTarget)
                         )
                 );
                 engine.animation.start();
 
-                // After gesture ends, snap to nearest slide
+                // After gesture ends, snap to nearest slide.
+                // 300ms (not 150ms): gives Embla's deceleration physics time
+                // to settle before snapping, preventing a jarring double-jump.
                 clearTimeout(_wheelEndTimer);
                 _wheelEndTimer = setTimeout(() => {
                     const api2 = this.emblaCore?.api();
                     if (!api2) return;
                     const eng2  = api2.internalEngine();
                     const t     = eng2.target.get();
-                    const snaps = eng2.scrollSnaps;
+                    const snps  = eng2.scrollSnaps;
                     let bestIdx = 0, bestDist = Infinity;
-                    snaps.forEach((s, i) => {
-                        const d = Math.abs(s - t);
+                    for (let i = 0; i < snps.length; i++) {
+                        const d = Math.abs(snps[i] - t);
                         if (d < bestDist) { bestDist = d; bestIdx = i; }
-                    });
+                    }
                     api2.scrollTo(bestIdx);
-                }, 150);
+                }, 300);
             };
 
             // Must be on window: Chrome captures horizontal swipe before element listeners fire

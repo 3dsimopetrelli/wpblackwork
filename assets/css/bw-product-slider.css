@@ -11,7 +11,9 @@
 .bw-product-slider-wrapper {
     position: relative;
     width: 100%;
-    transition: opacity 0.5s ease;
+    /* Transition needed on the base element: CSS transitions animate when
+       a class is removed (loading→visible), not when the class itself has it. */
+    transition: opacity 0.4s ease;
 }
 
 /* Loading state: hide layout until Embla has committed its first paint */
