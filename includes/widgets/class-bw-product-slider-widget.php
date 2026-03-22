@@ -951,10 +951,9 @@ class BW_Product_Slider_Widget extends Widget_Base {
         ];
 
         $this->add_render_attribute( 'wrapper', [
-            'class'              => 'bw-product-slider-wrapper',
-            'data-widget-id'     => esc_attr( $widget_id ),
-            'data-config'        => wp_json_encode( $config ),
-            'data-dots-position' => esc_attr( $settings['dots_position'] ?? 'center' ),
+            'class'          => 'bw-product-slider-wrapper',
+            'data-widget-id' => esc_attr( $widget_id ),
+            'data-config'    => wp_json_encode( $config ),
         ] );
 
         ?>
@@ -971,8 +970,15 @@ class BW_Product_Slider_Widget extends Widget_Base {
      */
     protected function render_horizontal_layout( $posts, $settings ) {
         $dots_position   = $settings['dots_position'] ?? 'center';
-        $image_size    = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'large';
-        $default_eager = 4; // First 4 slides load eagerly (desktop default is 4 visible)
+        $image_size = ! empty( $settings['image_size'] ) ? $settings['image_size'] : 'large';
+
+        // Eager-load the slides visible at the largest breakpoint; lazy-load the rest.
+        $default_eager = 4;
+        if ( ! empty( $settings['breakpoints'] ) ) {
+            $bps_sorted = $settings['breakpoints'];
+            usort( $bps_sorted, fn( $a, $b ) => absint( $b['breakpoint'] ) - absint( $a['breakpoint'] ) );
+            $default_eager = max( 1, absint( $bps_sorted[0]['slides_to_show'] ?? 4 ) );
+        }
 
         // Card settings passed to BW_Product_Card_Component::render()
         $card_settings_base = [
