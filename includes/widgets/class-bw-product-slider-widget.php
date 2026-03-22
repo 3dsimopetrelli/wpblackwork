@@ -1020,21 +1020,39 @@ class BW_Product_Slider_Widget extends Widget_Base {
         $sel_arrows = $el_prefix . ' .bw-ps-arrows-container';
         $sel_dots   = $el_prefix . ' .bw-ps-dots-container';
 
-        // Base rule: 4 slides on desktop (above all breakpoints)
-        $default_slides  = 4;
-        $base_slide_size = 'calc(100% / ' . $default_slides . ')';
-
-        $css  = '<style>';
-        $css .= $sel_slide  . '{flex:0 0 ' . $base_slide_size . ';}';
-        $css .= $sel_arrows . '{display:flex;}';
-        $css .= $sel_dots   . '{display:none;}';
-
         // Breakpoints: largest → smallest
         $breakpoints = ! empty( $settings['breakpoints'] ) ? $settings['breakpoints'] : [];
         if ( ! empty( $breakpoints ) ) {
             usort( $breakpoints, function ( $a, $b ) {
                 return absint( $b['breakpoint'] ) - absint( $a['breakpoint'] );
             } );
+
+            // The largest breakpoint becomes the base rule (no media query).
+            // This ensures the settings apply on any screen wider than that breakpoint too.
+            $top           = $breakpoints[0];
+            $top_slides    = max( 1, absint( $top['slides_to_show'] ?? 1 ) );
+            $top_var       = ( $top['variable_width'] ?? '' ) === 'yes';
+            $top_sw        = absint( $top['slide_width'] ?? 0 );
+            $top_peek      = absint( $top['peek_amount'] ?? 0 );
+            $top_arrows    = ( $top['show_arrows'] ?? 'yes' ) === 'yes';
+            $top_dots      = ( $top['show_dots'] ?? '' ) === 'yes';
+
+            if ( $top_var ) {
+                $base_slide_size = 'auto';
+            } elseif ( $top_sw > 0 ) {
+                $base_slide_size = $top_sw . 'px';
+            } elseif ( $top_peek > 0 ) {
+                $base_slide_size = 'calc((100% - ' . $top_peek . 'px) / ' . $top_slides . ')';
+            } elseif ( $top_slides > 1 ) {
+                $base_slide_size = 'calc(100% / ' . $top_slides . ')';
+            } else {
+                $base_slide_size = '100%';
+            }
+
+            $css  = '<style>';
+            $css .= $sel_slide  . '{flex:0 0 ' . $base_slide_size . ';}';
+            $css .= $sel_arrows . '{display:' . ( $top_arrows ? 'flex' : 'none' ) . ';}';
+            $css .= $sel_dots   . '{display:' . ( $top_dots   ? 'flex' : 'none' ) . ';}';
 
             foreach ( $breakpoints as $bp ) {
                 $bp_px          = absint( $bp['breakpoint'] );
@@ -1067,6 +1085,12 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 $css .= $sel_dots   . '{display:' . ( $show_dots   ? 'flex' : 'none' ) . ';}';
                 $css .= '}';
             }
+        } else {
+            // No breakpoints configured: fall back to hardcoded defaults.
+            $css  = '<style>';
+            $css .= $sel_slide  . '{flex:0 0 calc(100% / 4);}';
+            $css .= $sel_arrows . '{display:flex;}';
+            $css .= $sel_dots   . '{display:none;}';
         }
 
         $css .= '</style>';
