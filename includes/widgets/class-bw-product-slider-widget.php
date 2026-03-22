@@ -1010,7 +1010,10 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     <?php foreach ( $posts as $index => $post ) :
                         $is_eager = ( $index < $default_eager );
                         $card_s   = $card_settings_base;
-                        $card_s['image_loading'] = $is_eager ? 'eager' : 'lazy';
+                        $card_s['image_loading']      = $is_eager ? 'eager' : 'lazy';
+                        // First slide is the LCP candidate: fetchpriority=high tells
+                        // the browser to fetch it before other eager images.
+                        $card_s['image_fetchpriority'] = ( 0 === $index ) ? 'high' : '';
                     ?>
                         <div class="bw-embla-slide bw-ps-slide"
                              data-bw-index="<?php echo esc_attr( $index ); ?>">

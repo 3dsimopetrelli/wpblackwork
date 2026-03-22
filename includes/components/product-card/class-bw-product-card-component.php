@@ -26,6 +26,7 @@ class BW_Product_Card_Component {
 			'image_mode'               => 'cover',
 			'image_loading'            => 'lazy',
 			'hover_image_loading'      => 'lazy',
+			'image_fetchpriority'      => '', // 'high' for LCP slide, '' to omit attribute
 			'show_image'               => true,
 			'show_hover_image'         => true,
 			'show_hover_video'         => true,
@@ -177,16 +178,19 @@ class BW_Product_Card_Component {
 			$poster_url     = '';
 
 			if ( $image_id ) {
-				$poster_url     = (string) wp_get_attachment_image_url( $image_id, $image_size );
-				$thumbnail_html = wp_get_attachment_image(
-					$image_id,
-					$image_size,
-					false,
-					[
-						'loading' => $image_loading,
-						'class'   => 'bw-slider-main bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
-					]
-				);
+				$poster_url = (string) wp_get_attachment_image_url( $image_id, $image_size );
+
+				$img_attrs = [
+					'loading' => $image_loading,
+					'class'   => 'bw-slider-main bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
+				];
+
+				$fetchpriority = isset( \$settings['image_fetchpriority'] ) ? sanitize_key( (string) \$settings['image_fetchpriority'] ) : '';
+				if ( '' !== \$fetchpriority ) {
+					\$img_attrs['fetchpriority'] = \$fetchpriority;
+				}
+
+				$thumbnail_html = wp_get_attachment_image( $image_id, $image_size, false, $img_attrs );
 			}
 
 			$hover_video_html = self::render_hover_video_media( $product, $settings, $image_mode, $poster_url );
