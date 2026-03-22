@@ -139,31 +139,56 @@
 
             if (!api) return;
 
-            // Prevent browser back/forward navigation on horizontal trackpad swipe.
-            // Wheel events with deltaX are what triggers page navigation — we intercept
-            // them, block the browser, and forward them to Embla manually.
-            let _wheelAccum  = 0;
-            let _wheelTimer  = null;
+            // Trackpad horizontal swipe: intercept wheel events at window level
+            // (must be window, not viewport, so Chrome doesn't fire back/forward first).
+            // We drive Embla's internal scroll target pixel-by-pixel for fluid feel,
+            // then snap to the nearest slide when the gesture ends.
+            let _wheelEndTimer = null;
             const wrapper = this.$wrapper[0];
             this._wheelHandler = (evt) => {
-                // Only intercept when the gesture starts inside our carousel
                 if (!wrapper.contains(evt.target)) return;
                 const isHoriz = Math.abs(evt.deltaX) > Math.abs(evt.deltaY);
-                if (!isHoriz) return; // leave vertical scroll alone
+                if (!isHoriz) return;
                 evt.preventDefault();
-                _wheelAccum += evt.deltaX;
-                clearTimeout(_wheelTimer);
-                _wheelTimer = setTimeout(() => {
-                    const emblaApi = this.emblaCore && this.emblaCore.api();
-                    if (emblaApi) {
-                        if (_wheelAccum > 20)       emblaApi.scrollNext();
-                        else if (_wheelAccum < -20) emblaApi.scrollPrev();
-                    }
-                    _wheelAccum = 0;
-                }, 80);
+
+                const emblaApi = this.emblaCore && this.emblaCore.api();
+                if (!emblaApi) return;
+
+                // Normalize deltaX: trackpads use deltaMode=0 (px), scroll wheels
+                // may use deltaMode=1 (lines) or 2 (pages).
+                let dx = evt.deltaX;
+                if (evt.deltaMode === 1) dx *= 20;
+                if (evt.deltaMode === 2) dx *= 200;
+
+                // Move Embla's internal scroll target directly — this is what makes
+                // it feel fluid and drag-free instead of jumping slide by slide.
+                const engine    = emblaApi.internalEngine();
+                const newTarget = engine.target.get() - dx;
+
+                // Clamp to scroll range for non-looping carousels.
+                if (!emblaApi.internalEngine().options.loop) {
+                    const snaps = engine.scrollSnaps;
+                    const lo    = Math.min(...snaps);
+                    const hi    = Math.max(...snaps);
+                    engine.target.set(Math.max(lo, Math.min(hi, newTarget)));
+                } else {
+                    engine.target.set(newTarget);
+                }
+                engine.animation.start();
+
+                // On gesture end, snap to the snap point nearest the current target.
+                clearTimeout(_wheelEndTimer);
+                _wheelEndTimer = setTimeout(() => {
+                    const snaps = engine.scrollSnaps;
+                    const t     = engine.target.get();
+                    let closestIdx = 0, minDist = Infinity;
+                    snaps.forEach((s, i) => {
+                        const d = Math.abs(s - t);
+                        if (d < minDist) { minDist = d; closestIdx = i; }
+                    });
+                    emblaApi.scrollTo(closestIdx);
+                }, 150);
             };
-            // Attach at window level so we intercept before Chrome's
-            // back/forward navigation gesture consumes the event.
             window.addEventListener('wheel', this._wheelHandler, { passive: false });
 
             // Embla breakpoint options (slidesToScroll, align, containScroll)
