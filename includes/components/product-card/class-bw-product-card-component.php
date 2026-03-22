@@ -333,6 +333,10 @@ class BW_Product_Card_Component {
 
 		if ( '' !== $poster_url ) {
 			$attributes['poster'] = $poster_url;
+			// Set the video background to the poster image so that the native
+			// loop seek (brief black frame between end and restart) shows the
+			// product image instead of solid black.
+			$attributes['style']  = 'background-image:url(' . esc_url( $poster_url ) . ')';
 		}
 
 		$attribute_html = '';
@@ -367,6 +371,7 @@ class BW_Product_Card_Component {
 				'aria-hidden'            => true,
 				'disablepictureinpicture' => true,
 				'poster'                 => true,
+				'style'                  => true, // background-image:url(poster) to mask loop black flash
 			],
 			'source' => [
 				'src'  => true,

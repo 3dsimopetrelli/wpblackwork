@@ -886,9 +886,11 @@ class BW_Product_Slider_Widget extends Widget_Base {
             'orderby'                => ! empty( $settings['order_by'] ) ? $settings['order_by'] : 'date',
             // Performance: slider has no pagination → skip SQL_CALC_FOUND_ROWS
             'no_found_rows'          => true,
-            // Performance: skip post meta/term caches — not needed for card rendering
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
+            // update_post_meta_cache and update_post_term_cache are left at their
+            // defaults (true): the card renderer calls get_post_meta() for hover
+            // images/videos, and WooCommerce reads product-type terms via taxonomy
+            // (get_the_terms($id, 'product_type')). Letting WP prime both caches
+            // in one batch query each is faster than N individual DB lookups per card.
         ];
 
         if ( $args['orderby'] !== 'rand' ) {
