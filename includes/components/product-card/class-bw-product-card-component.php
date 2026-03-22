@@ -185,9 +185,9 @@ class BW_Product_Card_Component {
 					'class'   => 'bw-slider-main bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
 				];
 
-				$fetchpriority = isset( \$settings['image_fetchpriority'] ) ? sanitize_key( (string) \$settings['image_fetchpriority'] ) : '';
-				if ( '' !== \$fetchpriority ) {
-					\$img_attrs['fetchpriority'] = \$fetchpriority;
+				$fetchpriority = isset( $settings['image_fetchpriority'] ) ? sanitize_key( (string) $settings['image_fetchpriority'] ) : '';
+				if ( '' !== $fetchpriority ) {
+					$img_attrs['fetchpriority'] = $fetchpriority;
 				}
 
 				$thumbnail_html = wp_get_attachment_image( $image_id, $image_size, false, $img_attrs );
