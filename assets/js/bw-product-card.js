@@ -27,31 +27,54 @@
     return !!(mediaRoot && relatedTarget instanceof Node && mediaRoot.contains(relatedTarget));
   }
 
-  // Seamless loop handler: rewinds the video ~80 ms before it ends so the
-  // decoder never reaches the empty-frame boundary that causes the black flash.
-  // Attached on hover-in, removed on hover-out — stored on the element itself
-  // so repeated enter/leave events never stack duplicate listeners.
+  // Seamless loop — two layers of protection:
+  //
+  // 1. timeupdate (primary): browsers fire this ~4×/sec (every ~250 ms).
+  //    A threshold of 80 ms is smaller than one interval, so the handler
+  //    fires *after* the video has already ended. We use 300 ms so the
+  //    last timeupdate before the end (at ~duration-250ms) is guaranteed
+  //    to cross the threshold and rewind cleanly.
+  //
+  // 2. ended (fallback): if timeupdate somehow fires late, we restart
+  //    immediately in the ended handler before the browser can show black.
+  //
+  // Both handlers are stored on the element so repeated pointer events
+  // can never stack duplicate listeners.
+
   function attachSeamlessLoop(video) {
-    if (video._bwLoopHandler) {
+    if (video._bwLoopAttached) {
       return;
     }
 
-    video._bwLoopHandler = function () {
-      if (video.duration && video.currentTime >= video.duration - 0.08) {
+    video._bwTimeupdateHandler = function () {
+      if (video.duration && video.currentTime >= video.duration - 0.3) {
         video.currentTime = 0;
       }
     };
 
-    video.addEventListener('timeupdate', video._bwLoopHandler);
+    video._bwEndedHandler = function () {
+      video.currentTime = 0;
+      var p = video.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(function () {});
+      }
+    };
+
+    video.addEventListener('timeupdate', video._bwTimeupdateHandler);
+    video.addEventListener('ended',      video._bwEndedHandler);
+    video._bwLoopAttached = true;
   }
 
   function detachSeamlessLoop(video) {
-    if (!video._bwLoopHandler) {
+    if (!video._bwLoopAttached) {
       return;
     }
 
-    video.removeEventListener('timeupdate', video._bwLoopHandler);
-    video._bwLoopHandler = null;
+    video.removeEventListener('timeupdate', video._bwTimeupdateHandler);
+    video.removeEventListener('ended',      video._bwEndedHandler);
+    video._bwTimeupdateHandler = null;
+    video._bwEndedHandler      = null;
+    video._bwLoopAttached      = false;
   }
 
   function playHoverVideo(mediaRoot) {
