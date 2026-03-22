@@ -1,42 +1,35 @@
 /**
  * BW Product Slider Widget — JavaScript
  * Usa BWEmblaCore (bw-embla-core.js) per il carousel orizzontale.
- * Mostra product card (BW_Product_Card_Component) tramite WP_Query.
- * Nessun popup, nessun custom cursor, nessun layout verticale.
+ * Mostra product card via WP_Query. Nessun popup, nessun layout verticale.
  */
 (function ($) {
     'use strict';
 
-    function debounce(fn, ms) {
-        let timer;
-        return function () {
-            clearTimeout(timer);
-            timer = setTimeout(() => fn.apply(this, arguments), ms);
-        };
-    }
+    const debounce = (fn, ms) => {
+        let t;
+        return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    };
 
     class BWProductSlider {
         constructor(element) {
             this.$wrapper  = $(element);
             this.widgetId  = this.$wrapper.data('widget-id');
             this.config    = this.$wrapper.data('config') || {};
-            this.initialized = false;
-
-            // Istanza Embla
             this.emblaCore = null;
-
-            // Sorted breakpoints per Embla reInit (ascendente: primo match = breakpoint attivo)
+            this._wheelHandler         = null;
             this._sortedBreakpoints   = [];
             this._lastBreakpointIndex = undefined;
+            this.initialized          = false;
 
-            this.init();
+            this._init();
         }
 
         /* ────────────────────────────────────────────
            INIT
         ──────────────────────────────────────────── */
 
-        init() {
+        _init() {
             if (this.initialized) return;
             if (typeof BWEmblaCore === 'undefined') {
                 console.warn('BW Product Slider: BWEmblaCore non disponibile.');
@@ -44,30 +37,34 @@
             }
 
             const responsive = this.config.horizontal?.responsive || [];
-            // Ascendente: il primo match è il breakpoint più piccolo attivo
             this._sortedBreakpoints = [...responsive].sort((a, b) => a.breakpoint - b.breakpoint);
 
-            this.initHorizontalLayout();
+            this._initCarousel();
             this.initialized = true;
         }
 
         /* ────────────────────────────────────────────
-           LAYOUT HORIZONTAL
+           CAROUSEL
         ──────────────────────────────────────────── */
 
-        initHorizontalLayout() {
+        _initCarousel() {
             const viewport = this.$wrapper.find('.bw-ps-embla-viewport')[0];
             if (!viewport) return;
 
             this.$wrapper.addClass('loading');
 
-            const hCfg     = this.config.horizontal || {};
-            const dotsPos  = this.config.dotsPosition || 'center';
-            const prevBtn  = this.$wrapper.find('.bw-ps-arrow-prev')[0];
-            const nextBtn  = this.$wrapper.find('.bw-ps-arrow-next')[0];
-            const dotsCont = this.$wrapper.find('.bw-ps-dots-container')[0];
+            const hCfg       = this.config.horizontal || {};
+            const globalAlign = hCfg.align || 'start';
 
-            // Autoplay options (false se disabilitato)
+            // watchDrag: combine touch + mouse toggles
+            const enableTouch = hCfg.enableTouchDrag !== false;
+            const enableMouse = hCfg.enableMouseDrag !== false;
+            let watchDrag;
+            if (enableTouch && enableMouse)          watchDrag = true;
+            else if (!enableTouch && !enableMouse)   watchDrag = false;
+            else if (enableMouse)                    watchDrag = (_, e) => e.pointerType === 'mouse';
+            else                                     watchDrag = (_, e) => e.pointerType !== 'mouse';
+
             const autoplayOpts = hCfg.autoplay ? {
                 delay:             hCfg.autoplaySpeed || 3000,
                 playOnInit:        true,
@@ -77,24 +74,7 @@
                 jump:              false,
             } : false;
 
-            const globalAlign     = hCfg.align || 'start';
-            const enableTouchDrag = hCfg.enableTouchDrag !== false; // default true
-            const enableMouseDrag = hCfg.enableMouseDrag !== false; // default true
-
-            let watchDrag;
-            if ( enableTouchDrag && enableMouseDrag ) {
-                watchDrag = true;
-            } else if ( !enableTouchDrag && !enableMouseDrag ) {
-                watchDrag = false;
-            } else if ( enableMouseDrag ) {
-                // mouse only
-                watchDrag = (_api, evt) => evt.pointerType === 'mouse';
-            } else {
-                // touch/pen only
-                watchDrag = (_api, evt) => evt.pointerType !== 'mouse';
-            }
-
-            const emblaOptions = {
+            this.emblaCore = new BWEmblaCore(viewport, {
                 loop:           hCfg.infinite === true,
                 align:          globalAlign,
                 containScroll:  globalAlign === 'start' ? 'trimSnaps' : false,
@@ -102,100 +82,26 @@
                 dragFree:       hCfg.dragFree === true,
                 watchResize:    true,
                 watchDrag,
-            };
-
-            this.emblaCore = new BWEmblaCore(viewport, emblaOptions, {
-                prevBtn,
-                nextBtn,
-                dotsContainer: dotsCont,
-                dotsPosition:  dotsPos,
+            }, {
+                prevBtn:       this.$wrapper.find('.bw-ps-arrow-prev')[0],
+                nextBtn:       this.$wrapper.find('.bw-ps-arrow-next')[0],
+                dotsContainer: this.$wrapper.find('.bw-ps-dots-container')[0],
+                dotsPosition:  this.config.dotsPosition || 'center',
                 autoplay:      autoplayOpts,
             });
 
             const api = this.emblaCore.init();
 
-            // Reveal wrapper dopo che la prima card è visibile
-            // (prima immagine caricata o timeout di sicurezza 2s)
-            const firstImg = this.$wrapper.find('.bw-ps-slide').first().find('img')[0];
-            const revealWrapper = () => this.$wrapper.removeClass('loading');
-
-            if (!firstImg) {
-                revealWrapper();
-            } else if (firstImg.complete && firstImg.naturalWidth > 0) {
-                requestAnimationFrame(revealWrapper);
-            } else {
-                let revealed = false;
-                const _done = () => {
-                    if (revealed) return;
-                    revealed = true;
-                    firstImg.removeEventListener('load',  _done);
-                    firstImg.removeEventListener('error', _done);
-                    revealWrapper();
-                };
-                firstImg.addEventListener('load',  _done);
-                firstImg.addEventListener('error', _done);
-                setTimeout(_done, 2000); // fallback
-            }
+            // Reveal wrapper once Embla has committed its layout — two rAFs ensure
+            // the initial flex positions are painted before we show the slider.
+            // Individual images fade in progressively via CSS (.bw-ps-embla-viewport img).
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => this.$wrapper.removeClass('loading'));
+            });
 
             if (!api) return;
 
-            // Trackpad horizontal swipe: intercept wheel events at window level
-            // (must be window, not viewport, so Chrome doesn't fire back/forward first).
-            // We drive Embla's internal scroll target pixel-by-pixel for fluid feel,
-            // then snap to the nearest slide when the gesture ends.
-            let _wheelEndTimer = null;
-            const wrapper = this.$wrapper[0];
-            this._wheelHandler = (evt) => {
-                if (!wrapper.contains(evt.target)) return;
-                const isHoriz = Math.abs(evt.deltaX) > Math.abs(evt.deltaY);
-                if (!isHoriz) return;
-                evt.preventDefault();
-
-                const emblaApi = this.emblaCore && this.emblaCore.api();
-                if (!emblaApi) return;
-
-                // Normalize deltaX: trackpads use deltaMode=0 (px), scroll wheels
-                // may use deltaMode=1 (lines) or 2 (pages).
-                let dx = evt.deltaX;
-                if (evt.deltaMode === 1) dx *= 20;
-                if (evt.deltaMode === 2) dx *= 200;
-
-                // Amplify: raw trackpad deltaX values are very small (3-20px/event)
-                // relative to slide width, making the carousel feel sluggish.
-                dx *= 3;
-
-                // Move Embla's internal scroll target directly — this is what makes
-                // it feel fluid and drag-free instead of jumping slide by slide.
-                const engine    = emblaApi.internalEngine();
-                const newTarget = engine.target.get() - dx;
-
-                // Clamp to scroll range for non-looping carousels.
-                if (!emblaApi.internalEngine().options.loop) {
-                    const snaps = engine.scrollSnaps;
-                    const lo    = Math.min(...snaps);
-                    const hi    = Math.max(...snaps);
-                    engine.target.set(Math.max(lo, Math.min(hi, newTarget)));
-                } else {
-                    engine.target.set(newTarget);
-                }
-                engine.animation.start();
-
-                // On gesture end, snap to the snap point nearest the current target.
-                clearTimeout(_wheelEndTimer);
-                _wheelEndTimer = setTimeout(() => {
-                    const snaps = engine.scrollSnaps;
-                    const t     = engine.target.get();
-                    let closestIdx = 0, minDist = Infinity;
-                    snaps.forEach((s, i) => {
-                        const d = Math.abs(s - t);
-                        if (d < minDist) { minDist = d; closestIdx = i; }
-                    });
-                    emblaApi.scrollTo(closestIdx);
-                }, 150);
-            };
-            window.addEventListener('wheel', this._wheelHandler, { passive: false });
-
-            // Embla breakpoint options (slidesToScroll, align, containScroll)
+            this._attachWheelHandler();
             this._updateEmblaBreakpointOptions();
 
             $(window).on(`resize.bwpsl-${this.widgetId}`, debounce(() => {
@@ -204,48 +110,96 @@
         }
 
         /* ────────────────────────────────────────────
-           EMBLA BREAKPOINT OPTIONS
+           TRACKPAD WHEEL — horizontal swipe
         ──────────────────────────────────────────── */
 
-        /**
-         * Restituisce l'indice del breakpoint attivo in _sortedBreakpoints,
-         * oppure -1 se nessun breakpoint è attivo (desktop).
-         */
-        _getActiveBreakpointIndex() {
-            const width = $(window).width();
-            for (let i = 0; i < this._sortedBreakpoints.length; i++) {
-                if (width <= this._sortedBreakpoints[i].breakpoint) {
-                    return i; // array ascendente: primo match è il breakpoint corretto
-                }
-            }
-            return -1; // nessun breakpoint attivo → desktop
+        _attachWheelHandler() {
+            const wrapper = this.$wrapper[0];
+            let _wheelEndTimer = null;
+
+            this._wheelHandler = (evt) => {
+                // Only intercept gestures that originate inside this carousel
+                if (!wrapper.contains(evt.target)) return;
+                // Ignore vertical-dominant gestures (page scroll)
+                if (Math.abs(evt.deltaX) <= Math.abs(evt.deltaY)) return;
+
+                // Block browser back/forward navigation
+                evt.preventDefault();
+
+                const emblaApi = this.emblaCore?.api();
+                if (!emblaApi) return;
+
+                // Normalize delta: trackpads = px (deltaMode 0), wheels = lines/pages
+                let dx = evt.deltaX;
+                if (evt.deltaMode === 1) dx *= 20;
+                if (evt.deltaMode === 2) dx *= 200;
+                dx *= 3; // amplify for responsive feel
+
+                // Drive Embla's internal scroll target pixel-by-pixel — fluid, drag-free feel
+                const engine    = emblaApi.internalEngine();
+                const newTarget = engine.target.get() - dx;
+
+                engine.target.set(
+                    engine.options.loop
+                        ? newTarget
+                        : Math.max(
+                            Math.min(...engine.scrollSnaps),
+                            Math.min(Math.max(...engine.scrollSnaps), newTarget)
+                        )
+                );
+                engine.animation.start();
+
+                // After gesture ends, snap to nearest slide
+                clearTimeout(_wheelEndTimer);
+                _wheelEndTimer = setTimeout(() => {
+                    const api2 = this.emblaCore?.api();
+                    if (!api2) return;
+                    const eng2  = api2.internalEngine();
+                    const t     = eng2.target.get();
+                    const snaps = eng2.scrollSnaps;
+                    let bestIdx = 0, bestDist = Infinity;
+                    snaps.forEach((s, i) => {
+                        const d = Math.abs(s - t);
+                        if (d < bestDist) { bestDist = d; bestIdx = i; }
+                    });
+                    api2.scrollTo(bestIdx);
+                }, 150);
+            };
+
+            // Must be on window: Chrome captures horizontal swipe before element listeners fire
+            window.addEventListener('wheel', this._wheelHandler, { passive: false });
         }
 
-        /**
-         * Chiama emblaApi.reInit() solo quando cambia il breakpoint attivo,
-         * aggiornando slidesToScroll, align (centerMode) e containScroll.
-         */
+        /* ────────────────────────────────────────────
+           BREAKPOINT MANAGEMENT
+        ──────────────────────────────────────────── */
+
+        _getActiveBreakpointIndex() {
+            const width = window.innerWidth;
+            for (let i = 0; i < this._sortedBreakpoints.length; i++) {
+                if (width <= this._sortedBreakpoints[i].breakpoint) return i;
+            }
+            return -1; // wider than all breakpoints → desktop
+        }
+
         _updateEmblaBreakpointOptions() {
             if (!this.emblaCore) return;
             const api = this.emblaCore.api();
             if (!api) return;
 
             const idx = this._getActiveBreakpointIndex();
-            if (idx === this._lastBreakpointIndex) return; // nessun cambio
+            if (idx === this._lastBreakpointIndex) return; // no change
             this._lastBreakpointIndex = idx;
 
-            const bp          = idx >= 0 ? this._sortedBreakpoints[idx] : null;
-            const hCfg        = this.config.horizontal || {};
-            const baseAlign   = hCfg.align || 'start';
-            const activeAlign = bp?.centerMode ? 'center' : baseAlign;
+            const bp        = idx >= 0 ? this._sortedBreakpoints[idx] : null;
+            const baseAlign = this.config.horizontal?.align || 'start';
+            const align     = bp?.centerMode ? 'center' : baseAlign;
 
-            const newOpts = {
-                slidesToScroll: bp?.slidesToScroll || 1,
-                align:          activeAlign,
-                containScroll:  (bp?.centerMode || bp?.variableWidth || activeAlign !== 'start') ? false : 'trimSnaps',
-            };
-
-            api.reInit(newOpts);
+            api.reInit({
+                slidesToScroll: bp?.slidesToScroll ?? 1,
+                align,
+                containScroll:  (bp?.centerMode || bp?.variableWidth || align !== 'start') ? false : 'trimSnaps',
+            });
         }
 
         /* ────────────────────────────────────────────
@@ -257,14 +211,11 @@
                 window.removeEventListener('wheel', this._wheelHandler);
                 this._wheelHandler = null;
             }
-
             if (this.emblaCore) {
                 this.emblaCore.destroy();
                 this.emblaCore = null;
             }
-
             $(window).off(`.bwpsl-${this.widgetId}`);
-
             this._sortedBreakpoints   = null;
             this._lastBreakpointIndex = null;
             this.config               = null;
@@ -277,15 +228,14 @@
     ──────────────────────────────────────────── */
 
     function initWidgets() {
-        $('.bw-product-slider-wrapper').each(function () {
-            const $wrapper = $(this);
-            if ($wrapper.data('bw-product-slider-instance')) return;
-            const instance = new BWProductSlider(this);
-            $wrapper.data('bw-product-slider-instance', instance);
+        document.querySelectorAll('.bw-product-slider-wrapper').forEach(el => {
+            const $el = $(el);
+            if ($el.data('bw-product-slider-instance')) return;
+            $el.data('bw-product-slider-instance', new BWProductSlider(el));
         });
     }
 
-    function isElementorEditMode() {
+    function isEditMode() {
         return (
             typeof elementorFrontend !== 'undefined' &&
             typeof elementorFrontend.isEditMode === 'function' &&
@@ -293,42 +243,29 @@
         );
     }
 
-    $(document).ready(function () {
-        initWidgets();
-    });
+    $(document).ready(initWidgets);
 
-    let hooksRegistered = false;
+    let _hooksRegistered = false;
 
     function registerElementorHooks() {
-        if (hooksRegistered) return;
-        if (
-            typeof elementorFrontend === 'undefined' ||
-            !elementorFrontend.hooks ||
-            typeof elementorFrontend.hooks.addAction !== 'function'
-        ) return;
-
-        hooksRegistered = true;
+        if (_hooksRegistered) return;
+        if (typeof elementorFrontend?.hooks?.addAction !== 'function') return;
+        _hooksRegistered = true;
 
         elementorFrontend.hooks.addAction(
             'frontend/element_ready/bw-product-slider.default',
-            function ($scope) {
+            ($scope) => {
                 const $wrapper = $scope.find('.bw-product-slider-wrapper');
                 if (!$wrapper.length) return;
 
                 const existing = $wrapper.data('bw-product-slider-instance');
                 if (existing) {
-                    // In edit mode: full destroy/re-init for live preview updates.
-                    // On frontend: skip re-init to avoid resetting a working instance.
-                    if (!isElementorEditMode()) {
-                        return;
-                    }
-
+                    if (!isEditMode()) return;
                     existing.destroy();
                     $wrapper.removeData('bw-product-slider-instance');
                 }
 
-                const instance = new BWProductSlider($wrapper[0]);
-                $wrapper.data('bw-product-slider-instance', instance);
+                $wrapper.data('bw-product-slider-instance', new BWProductSlider($wrapper[0]));
             }
         );
     }

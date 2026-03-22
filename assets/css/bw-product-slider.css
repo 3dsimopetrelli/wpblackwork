@@ -14,9 +14,20 @@
     transition: opacity 0.5s ease;
 }
 
-/* Loading state: hide until first card image is ready */
+/* Loading state: hide layout until Embla has committed its first paint */
 .bw-product-slider-wrapper.loading {
     opacity: 0;
+}
+
+/* Progressive image loading: each image starts invisible and fades in
+   individually as it loads. BWEmblaCore.initImageLoading() adds .is-loaded. */
+.bw-product-slider-wrapper .bw-ps-embla-viewport img {
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.bw-product-slider-wrapper .bw-ps-embla-viewport img.is-loaded {
+    opacity: 1;
 }
 
 /* ========================================
@@ -30,6 +41,11 @@
 /* Embla viewport occupies full width */
 .bw-product-slider-wrapper .bw-ps-embla-viewport {
     width: 100%;
+}
+
+/* GPU compositing for smooth scroll transforms */
+.bw-product-slider-wrapper .bw-embla-container {
+    will-change: transform;
 }
 
 /* Slide: flex size is set by the scoped <style> tag generated in PHP.
