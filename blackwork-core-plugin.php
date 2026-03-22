@@ -2407,3 +2407,32 @@ function bw_fpw_get_price_markup($post_id)
 
     return '';
 }
+
+// ── BW Product Slider — cache invalidation ──────────────────────────────────
+
+/**
+ * Delete all BW Product Slider query transients when a product is saved.
+ *
+ * WordPress has no delete-by-prefix API, so we use a targeted DB query.
+ * This only runs on product save events, not on every page load.
+ *
+ * @param int $post_id
+ */
+function bw_ps_clear_query_cache( $post_id ) {
+    if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+        return;
+    }
+    if ( 'product' !== get_post_type( $post_id ) ) {
+        return;
+    }
+
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_bw_ps_%'
+            OR option_name LIKE '_transient_timeout_bw_ps_%'"
+    );
+}
+add_action( 'save_post', 'bw_ps_clear_query_cache' );
+
