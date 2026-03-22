@@ -162,7 +162,7 @@
 
                 // Amplify: raw trackpad deltaX values are very small (3-20px/event)
                 // relative to slide width, making the carousel feel sluggish.
-                dx *= 4;
+                dx *= 3;
 
                 // Move Embla's internal scroll target directly — this is what makes
                 // it feel fluid and drag-free instead of jumping slide by slide.
