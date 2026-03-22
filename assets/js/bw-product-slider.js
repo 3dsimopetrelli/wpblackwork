@@ -78,9 +78,21 @@
             } : false;
 
             const globalAlign     = hCfg.align || 'start';
-            // enableTouchDrag: quando false, il drag via touch/pen è disabilitato;
-            // il mouse desktop funziona sempre.
             const enableTouchDrag = hCfg.enableTouchDrag !== false; // default true
+            const enableMouseDrag = hCfg.enableMouseDrag !== false; // default true
+
+            let watchDrag;
+            if ( enableTouchDrag && enableMouseDrag ) {
+                watchDrag = true;
+            } else if ( !enableTouchDrag && !enableMouseDrag ) {
+                watchDrag = false;
+            } else if ( enableMouseDrag ) {
+                // mouse only
+                watchDrag = (_api, evt) => evt.pointerType === 'mouse';
+            } else {
+                // touch/pen only
+                watchDrag = (_api, evt) => evt.pointerType !== 'mouse';
+            }
 
             const emblaOptions = {
                 loop:           hCfg.infinite === true,
@@ -89,9 +101,7 @@
                 slidesToScroll: 1,
                 dragFree:       hCfg.dragFree === true,
                 watchResize:    true,
-                watchDrag: enableTouchDrag
-                    ? true
-                    : (_emblaApi, evt) => evt.pointerType === 'mouse',
+                watchDrag,
             };
 
             this.emblaCore = new BWEmblaCore(viewport, emblaOptions, {
