@@ -324,7 +324,9 @@ class BW_Product_Card_Component {
 		$attributes = [
 			'class'                => 'bw-slider-hover bw-product-card-hover-video bw-product-card-image-el bw-product-card-image-el--' . $image_mode,
 			'muted'                => 'muted',
-			'loop'                 => 'loop',
+			// No native `loop`: JS (bw-product-card.js) rewinds via timeupdate ~80 ms
+			// before end so the decoder never hits the empty frame that causes the
+			// black flash during the browser's native seek-back-to-start.
 			'playsinline'          => 'playsinline',
 			'preload'              => 'metadata',
 			'aria-hidden'          => 'true',
@@ -365,13 +367,12 @@ class BW_Product_Card_Component {
 			'video'  => [
 				'class'                  => true,
 				'muted'                  => true,
-				'loop'                   => true,
 				'playsinline'            => true,
 				'preload'                => true,
 				'aria-hidden'            => true,
 				'disablepictureinpicture' => true,
 				'poster'                 => true,
-				'style'                  => true, // background-image:url(poster) to mask loop black flash
+				'style'                  => true, // background-image:url(poster) — fallback behind video frames
 			],
 			'source' => [
 				'src'  => true,
