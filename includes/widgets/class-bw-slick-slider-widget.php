@@ -111,19 +111,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             'description' => __( 'Inserisci gli ID separati da virgola.', 'bw-elementor-widgets' ),
         ] );
 
-        // Opzione per aprire cart pop-up su Add to Cart
-        $this->add_control( 'open_cart_popup', [
-            'label'        => __( 'Apri cart pop-up su Add to Cart', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'S\u00EC', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => '',
-            'separator'    => 'before',
-            'description'  => __( 'Se attivo, quando l\'utente clicca su Add to Cart dal BW Slick Slider, si apre il cart pop-up senza ricaricare la pagina. Se disattivo, il pulsante segue il comportamento standard e porta alla pagina del carrello.', 'bw-elementor-widgets' ),
-            'condition'    => [ 'content_type' => 'product' ],
-        ] );
-
         $this->end_controls_section();
 
         $this->start_controls_section( 'layout_section', [
@@ -163,42 +150,6 @@ class Widget_Bw_Slick_Slider extends Widget_Base {
             ],
             'selectors' => [
                 '{{WRAPPER}} .bw-slick-slider' => 'padding-left: {{LEFT}}{{UNIT}}; padding-right: {{RIGHT}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'top_spacing', [
-            'label' => __( 'Top Spacing', 'bw-elementor-widgets' ),
-            'type'  => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', '%' ],
-            'range' => [
-                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
-                '%'  => [ 'min' => 0, 'max' => 30, 'step' => 1 ],
-            ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-slick-slider' => 'padding-top: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'bottom_spacing', [
-            'label' => __( 'Bottom Spacing', 'bw-elementor-widgets' ),
-            'type'  => Controls_Manager::SLIDER,
-            'size_units' => [ 'px', '%' ],
-            'range' => [
-                'px' => [ 'min' => 0, 'max' => 200, 'step' => 1 ],
-                '%'  => [ 'min' => 0, 'max' => 30, 'step' => 1 ],
-            ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-slick-slider' => 'padding-bottom: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'slide_padding', [
-            'label' => __( 'Slide Padding', 'bw-elementor-widgets' ),
-            'type'  => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-slick-slider .bw-slick-item__content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                '{{WRAPPER}} .bw-slick-slider .bw-ss__content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
