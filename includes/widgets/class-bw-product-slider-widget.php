@@ -208,7 +208,20 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
-                'description'  => __( 'Allow swiping with fingers to navigate slides on touch devices. On desktop, mouse drag always works regardless of this setting.', 'bw-elementor-widgets' ),
+                'description'  => __( 'Allow swiping with fingers to navigate slides on touch devices.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'mouse_drag',
+            [
+                'label'        => __( 'Mouse Drag (Desktop)', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Allow dragging slides with the mouse on desktop.', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -931,6 +944,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'pauseOnHover'    => true,
                 'dragFree'        => ( $settings['drag_free'] ?? 'yes' ) === 'yes',
                 'enableTouchDrag' => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
+                'enableMouseDrag' => ( $settings['mouse_drag'] ?? 'yes' ) === 'yes',
                 'align'           => $settings['slide_align'] ?? 'start',
                 'responsive'      => $this->build_responsive_config( $settings ),
             ],
