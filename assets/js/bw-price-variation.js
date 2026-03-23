@@ -644,6 +644,36 @@
                         }
                         var $floatBtn = $floatWrap.find('.bw-float-atc');
 
+                        // ---------- Visual style copy ----------
+                        // The original button's appearance is controlled by the Elementor
+                        // panel (border-radius, colors, font, padding, etc.) and emitted as
+                        // scoped inline <style> tags — we can't reference them from <body>.
+                        // Solution: read the live computed styles once at init and apply them
+                        // as inline styles on the floating button.  Only layout-specific
+                        // overrides (min-width, shadow) remain in bw-price-variation.css.
+                        (function() {
+                                var cs = window.getComputedStyle($addToCartButton[0]);
+                                $floatBtn.css({
+                                        'background-color' : cs.backgroundColor,
+                                        'color'            : cs.color,
+                                        'border-radius'    : cs.borderRadius,
+                                        'border-top'       : cs.borderTopWidth    + ' ' + cs.borderTopStyle    + ' ' + cs.borderTopColor,
+                                        'border-right'     : cs.borderRightWidth  + ' ' + cs.borderRightStyle  + ' ' + cs.borderRightColor,
+                                        'border-bottom'    : cs.borderBottomWidth + ' ' + cs.borderBottomStyle + ' ' + cs.borderBottomColor,
+                                        'border-left'      : cs.borderLeftWidth   + ' ' + cs.borderLeftStyle   + ' ' + cs.borderLeftColor,
+                                        'font-size'        : cs.fontSize,
+                                        'font-weight'      : cs.fontWeight,
+                                        'font-family'      : cs.fontFamily,
+                                        'letter-spacing'   : cs.letterSpacing,
+                                        'text-transform'   : cs.textTransform,
+                                        'padding-top'      : cs.paddingTop,
+                                        'padding-right'    : cs.paddingRight,
+                                        'padding-bottom'   : cs.paddingBottom,
+                                        'padding-left'     : cs.paddingLeft,
+                                        'line-height'      : cs.lineHeight,
+                                });
+                        })();
+
                         // ---------- State sync ----------
                         // Mirror label and disabled state from the original button.
                         // Called once at init and on every variation change.
@@ -676,14 +706,20 @@
                                 });
 
                         // ---------- Visibility observer ----------
-                        // threshold:0 → fires as soon as a single pixel enters/exits.
-                        // No rootMargin needed unless a sticky header overlaps the
-                        // button — add rootMargin: '-HEIGHTpx 0px 0px 0px' if so.
+                        // threshold:0 → callback fires on every entry/exit transition.
+                        //
+                        // Key fix: !isIntersecting alone is not enough — it is also true
+                        // when the button has NOT YET been reached (below the fold on load).
+                        // We show the floating CTA only when the original button is ABOVE
+                        // the viewport (user has scrolled past it downward).
+                        // entry.boundingClientRect.top < 0 → element is above viewport top.
                         var floatObserver = new IntersectionObserver(function(entries) {
-                                var isVisible = entries[0].isIntersecting;
+                                var entry     = entries[0];
+                                var isVisible = entry.isIntersecting;
+                                var showFloat = !isVisible && entry.boundingClientRect.top < 0;
                                 $floatWrap
-                                        .toggleClass('is-visible', !isVisible)
-                                        .attr('aria-hidden', isVisible ? 'true' : 'false');
+                                        .toggleClass('is-visible', showFloat)
+                                        .attr('aria-hidden', showFloat ? 'false' : 'true');
                         }, { threshold: 0 });
 
                         floatObserver.observe($addToCartWrapper[0]);

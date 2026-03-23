@@ -351,19 +351,17 @@
 }
 
 .bw-float-atc {
+	/* Layout only — visual styles (bg, color, border, border-radius,
+	   typography, padding) are copied at runtime from the original button's
+	   computed styles so they always match the Elementor panel settings. */
 	display: block;
-	background-color: #80FD03;
-	color: #000000;
-	font-weight: 700;
-	border: 1px solid #000000;
-	border-radius: 100px;
-	padding: 12px 24px;
+	min-width: 300px;
+	text-align: center;
+	text-decoration: none;
 	cursor: pointer;
 	/* Static shadow — never animated, so no GPU cost */
 	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
 	white-space: nowrap;
-	font-size: 15px;
-	line-height: 1.3;
 	transition: filter 0.18s ease;
 }
 
@@ -383,7 +381,7 @@
 }
 
 @media (max-width: 480px) {
-	/* On very small screens, stretch across the bottom instead */
+	/* On small screens: full-width bottom bar */
 	.bw-float-atc-wrap {
 		right: 0;
 		left: 0;
@@ -397,8 +395,8 @@
 	}
 
 	.bw-float-atc {
+		min-width: 0;
 		width: 100%;
-		text-align: center;
 		box-shadow: none;
 	}
 }
