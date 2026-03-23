@@ -172,4 +172,8 @@
         font-size: 12px;
         line-height: 1.25;
     }
+
+    .bw-product-slider-wrapper .bw-ps-overlay-mobile-hidden {
+        display: none;
+    }
 }

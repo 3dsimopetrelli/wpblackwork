@@ -458,6 +458,22 @@ class BW_Product_Slider_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'show_buttons_mobile',
+            [
+                'label'        => __( 'Show Overlay Buttons on Mobile', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'condition'    => [
+                    'show_buttons' => 'yes',
+                ],
+                'description'  => __( 'Hide the hover overlay buttons on mobile while keeping them visible on desktop and tablet.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
             'hover_image_source',
             [
                 'label'   => __( 'Hover Image Source', 'bw-elementor-widgets' ),
@@ -1030,6 +1046,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
             'show_description'   => ( $settings['show_description'] ?? '' ) === 'yes',
             'show_price'         => ( $settings['show_price'] ?? 'yes' ) === 'yes',
             'show_buttons'       => ( $settings['show_buttons'] ?? 'yes' ) === 'yes',
+            'overlay_classes'    => ( $settings['show_buttons_mobile'] ?? '' ) === 'yes' ? '' : 'bw-ps-overlay-mobile-hidden',
             'hover_image_source'  => $settings['hover_image_source'] ?? 'meta',
             'open_cart_popup'     => false,
             'hover_image_loading' => 'lazy',
