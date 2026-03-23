@@ -489,6 +489,32 @@ class BW_Product_Slider_Widget extends Widget_Base {
 
         $this->end_controls_section();
 
+        $this->start_controls_section(
+            'section_price_settings',
+            [
+                'label' => __( 'Price', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'show_lowest_variation_price_only',
+            [
+                'label'        => __( 'Show Lowest Variation Price Only', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'condition'    => [
+                    'show_price' => 'yes',
+                    'post_type'  => 'product',
+                ],
+                'description'  => __( 'For variable products, show only the lowest variation price instead of the full price range.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->end_controls_section();
+
         // ========================================
         // STYLE TAB
         // ========================================
@@ -551,6 +577,68 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     'full'         => __( 'Full Size (Original)', 'bw-elementor-widgets' ),
                 ],
                 'description' => __( 'Select image size for product card thumbnails.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
+            'section_style_title',
+            [
+                'label' => __( 'Title', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'title_typography',
+                'label'    => __( 'Typography', 'bw-elementor-widgets' ),
+                'selector' => '{{WRAPPER}} .bw-product-card .bw-wallpost-title, {{WRAPPER}} .bw-product-card .bw-slider-title',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'title_padding',
+            [
+                'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-product-card .bw-wallpost-title, {{WRAPPER}} .bw-product-card .bw-slider-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
+            'section_style_price',
+            [
+                'label' => __( 'Price', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'price_typography',
+                'label'    => __( 'Typography', 'bw-elementor-widgets' ),
+                'selector' => '{{WRAPPER}} .bw-product-card .bw-wallpost-price, {{WRAPPER}} .bw-product-card .bw-slider-price, {{WRAPPER}} .bw-product-card .price',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'price_padding',
+            [
+                'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-product-card .bw-wallpost-price, {{WRAPPER}} .bw-product-card .bw-slider-price, {{WRAPPER}} .bw-product-card .price' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
             ]
         );
 
@@ -1077,6 +1165,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
             'show_title'         => ( $settings['show_title'] ?? 'yes' ) === 'yes',
             'show_description'   => ( $settings['show_description'] ?? '' ) === 'yes',
             'show_price'         => ( $settings['show_price'] ?? 'yes' ) === 'yes',
+            'show_lowest_variation_price_only' => ( $settings['show_lowest_variation_price_only'] ?? '' ) === 'yes',
             'show_buttons'       => ( $settings['show_buttons'] ?? 'yes' ) === 'yes',
             'overlay_classes'    => ( $settings['show_buttons_mobile'] ?? '' ) === 'yes' ? '' : 'bw-ps-overlay-mobile-hidden',
             'hover_image_source'  => $settings['hover_image_source'] ?? 'meta',
