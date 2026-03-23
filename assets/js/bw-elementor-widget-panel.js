@@ -120,6 +120,10 @@
       return true;
     }
 
+    if (title === 'BW Reviews' || title === 'BW Title Product') {
+      return true;
+    }
+
     return title.indexOf('BW-UI ') === 0 ||
       title.indexOf('BW-SP ') === 0 ||
       title.indexOf('DEPRECATED -') === 0;
