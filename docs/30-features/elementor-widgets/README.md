@@ -30,6 +30,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `architecture-direction.md`: target architecture (shared product-card, slider-core, controls, asset authority)
 - `rationalization-policy.md`: keep/merge/rebuild/delete decisions and deprecation policy
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
+- `editor-panel-widget-families.md`: editor-only widget card family colors, slug/title mapping rules, and deprecated-card hiding behavior inside the Elementor panel
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
@@ -98,6 +99,11 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
 - WooCommerce editor identity note:
   - `bw-title-product` uses a slug-scoped panel mapping so it still receives the BW-SP purple widget card without requiring a `BW-SP` title prefix or a `BW-SP` visible title.
+- Elementor panel family-color note:
+  - editor panel colors are now governed by a slug-first family-class system, not by visible title prefixes alone
+  - `BW Reviews` and `BW Title Product` are explicit exceptions so they still receive the purple SP family treatment
+  - `BW Product Grid` is explicitly mapped to the black UI family
+  - the dedicated guide is `editor-panel-widget-families.md`
 
 ## Current implementation status (completed waves)
 - Widget panel naming applied:

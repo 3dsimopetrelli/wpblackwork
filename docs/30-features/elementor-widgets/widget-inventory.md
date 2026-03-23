@@ -40,6 +40,18 @@ Canonical transition note:
 - `bw-title-product` -> `BW Title Product` (visible title)
 - Internal slugs above remain the runtime authority.
 
+## Elementor panel family-color mapping (current)
+- `bw-product-grid` -> UI family (`bw-family-ui`)
+- `bw-presentation-slide` -> dedicated presentation-slide family (`bw-family-ui-ps`)
+- `bw-title-product` -> SP family (`bw-family-sp`) via explicit slug map/title exception
+- `bw-reviews` -> SP family (`bw-family-sp`) via explicit slug map/title exception
+- `bw-go-to-app` -> UI family (`bw-family-ui`)
+- `bw-newsletter-subscription` -> UI family (`bw-family-ui`)
+
+Important runtime note:
+- the editor panel no longer relies only on visible title prefixes to decide colors
+- family assignment is now a separate mapping system documented in `editor-panel-widget-families.md`
+
 ## Current implementation deltas (status)
 - `BW Product Grid` naming convergence completed:
   - canonical visible title: `BW Product Grid`

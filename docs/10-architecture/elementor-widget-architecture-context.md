@@ -116,6 +116,36 @@ Visible editor title alignment (current):
 - Scope note: title alignment affects editor labeling only; slug/runtime authority is unchanged.
 - Editor identity exception:
   - `bw-title-product` uses a slug-scoped panel-family mapping to receive the WooCommerce/BW-SP purple editor card without relying on a `BW-SP` title prefix.
+- Elementor panel family-color system (current):
+  - assets:
+    - `assets/js/bw-elementor-widget-panel.js`
+    - `assets/css/bw-elementor-widget-panel.css`
+  - enqueue authority:
+    - `blackwork-core-plugin.php`
+    - hook: `elementor/editor/after_enqueue_scripts`
+  - architecture:
+    - JS classifies widget cards into family classes
+    - CSS owns the visual palette for each family
+    - family assignment is slug-first, with title-prefix fallback
+  - current family classes:
+    - `bw-family-ui`
+    - `bw-family-ui-ps`
+    - `bw-family-sp`
+    - `bw-family-deprecated`
+  - explicit editor exceptions exist for:
+    - `BW Reviews`
+    - `BW Title Product`
+    because their visible titles intentionally do not depend on a `BW-SP` prefix
+  - removed widgets are hidden from the editor panel through the same runtime
+
+Current editor-color governance note:
+- panel colors should not be changed by editing CSS alone
+- the authority surface is the combination of:
+  - Blackwork recognition gate
+  - slug/title family mapping
+  - CSS family palette
+- this area is documented in:
+  - `docs/30-features/elementor-widgets/editor-panel-widget-families.md`
 - Mail Marketing widget note:
   - `bw-newsletter-subscription` intentionally stays as a neutral utility title because its authority surface is Mail Marketing, not a product/widget family namespace.
 
