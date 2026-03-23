@@ -514,9 +514,7 @@
                         }
 
                         const buttonVariationId = $(this).data('variation-id');
-                        const parsedVariation = $(this).data('variation');
-                        const variationFromMap = variationMap[buttonVariationId];
-                        const selectedVariation = variationFromMap || parsedVariation || null;
+                        const selectedVariation = variationMap[buttonVariationId] || null;
 
                         if (!selectedVariation || !selectedVariation.id) {
                                 console.error('BW Price Variation: No variation data found for button');
