@@ -32,10 +32,11 @@ class BW_Product_Card_Component {
 			'show_hover_video'         => true,
 			'hover_image_source'       => 'meta',
 		'show_title'               => true,
-		'show_description'         => false,
-		'description_mode'         => 'auto',
-		'show_price'               => true,
-		'show_buttons'             => true,
+			'show_description'         => false,
+			'description_mode'         => 'auto',
+			'show_price'               => true,
+			'show_lowest_variation_price_only' => false,
+			'show_buttons'             => true,
 		'show_add_to_cart'         => true,
 		'open_cart_popup'          => false,
 		'use_wc_product_class'     => false,
@@ -474,7 +475,7 @@ class BW_Product_Card_Component {
 
 		$price_html = '';
 		if ( $settings['show_price'] ) {
-			$price_html = self::get_price_markup( $product );
+			$price_html = self::get_price_markup( $product, $settings );
 		}
 
 		$title_classes = self::merge_classes( [ 'bw-wallpost-title', 'bw-slick-item__title', 'bw-slick-title', 'bw-slider-title' ], $settings['title_classes'] );
@@ -536,12 +537,47 @@ class BW_Product_Card_Component {
 	/**
 	 * Get price markup for a product.
 	 *
-	 * @param WC_Product $product Product object.
+	 * @param WC_Product $product  Product object.
+	 * @param array      $settings Card settings.
 	 * @return string
 	 */
-	private static function get_price_markup( $product ) {
+	private static function get_price_markup( $product, $settings = [] ) {
 		if ( ! $product instanceof WC_Product ) {
 			return '';
+		}
+
+		$show_lowest_variation_price_only = ! empty( $settings['show_lowest_variation_price_only'] );
+
+		if ( $show_lowest_variation_price_only && $product->is_type( 'variable' ) ) {
+			$format_price = function ( $value ) {
+				if ( '' === $value || null === $value ) {
+					return '';
+				}
+
+				if ( function_exists( 'wc_price' ) && is_numeric( $value ) ) {
+					return wc_price( $value );
+				}
+
+				if ( is_numeric( $value ) ) {
+					$value = number_format_i18n( (float) $value, 2 );
+				}
+
+				return esc_html( $value );
+			};
+
+			$min_price         = $product->get_variation_price( 'min', true );
+			$min_regular_price = $product->get_variation_regular_price( 'min', true );
+			$min_price_markup  = $format_price( $min_price );
+			$min_regular_markup = $format_price( $min_regular_price );
+
+			if ( $min_price_markup && $min_regular_markup && (float) $min_price < (float) $min_regular_price ) {
+				return '<span class="price-original"><del>' . $min_regular_markup . '</del></span>' .
+					'<span class="price-sale">' . $min_price_markup . '</span>';
+			}
+
+			if ( $min_price_markup ) {
+				return '<span class="price-regular">' . $min_price_markup . '</span>';
+			}
 		}
 
 		$price_html = $product->get_price_html();

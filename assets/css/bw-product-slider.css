@@ -74,6 +74,22 @@
 }
 
 /* ========================================
+   CARD TYPOGRAPHY
+   ======================================== */
+.bw-product-slider-wrapper .bw-ps-slide .bw-wallpost-title,
+.bw-product-slider-wrapper .bw-ps-slide .bw-slider-title {
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+.bw-product-slider-wrapper .bw-ps-slide .bw-wallpost-price,
+.bw-product-slider-wrapper .bw-ps-slide .bw-slider-price,
+.bw-product-slider-wrapper .bw-ps-slide .price {
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+/* ========================================
    NAVIGATION ARROWS
    ======================================== */
 .bw-product-slider-wrapper .bw-ps-arrows-container {
@@ -146,3 +162,18 @@
 .bw-product-slider-wrapper .bw-ps-dots-left   { justify-content: flex-start; padding-left: 20px; }
 .bw-product-slider-wrapper .bw-ps-dots-center { justify-content: center; }
 .bw-product-slider-wrapper .bw-ps-dots-right  { justify-content: flex-end; padding-right: 20px; }
+
+@media (max-width: 767px) {
+    .bw-product-slider-wrapper .bw-ps-slide .bw-wallpost-title,
+    .bw-product-slider-wrapper .bw-ps-slide .bw-slider-title,
+    .bw-product-slider-wrapper .bw-ps-slide .bw-wallpost-price,
+    .bw-product-slider-wrapper .bw-ps-slide .bw-slider-price,
+    .bw-product-slider-wrapper .bw-ps-slide .price {
+        font-size: 12px;
+        line-height: 1.25;
+    }
+
+    .bw-product-slider-wrapper .bw-ps-overlay-mobile-hidden {
+        display: none;
+    }
+}

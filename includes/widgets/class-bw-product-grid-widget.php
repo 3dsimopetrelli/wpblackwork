@@ -17,7 +17,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     public function get_icon() {
-        return 'eicon-filter';
+        return 'eicon-posts-grid';
     }
 
     public function get_categories() {

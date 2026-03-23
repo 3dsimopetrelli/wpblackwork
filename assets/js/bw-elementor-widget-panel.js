@@ -33,6 +33,7 @@
   // Use this map to assign a specific family to any widget by slug.
   var SLUG_FAMILY_MAP = {
     'bw-title-product':           'bw-family-sp',
+    'bw-reviews':                 'bw-family-sp',
     'bw-go-to-app':               'bw-family-ui',
     'bw-newsletter-subscription': 'bw-family-ui',
     'bw-product-grid':            'bw-family-ui',
@@ -112,6 +113,10 @@
 
   function isBlackworkWidget($card, title, widgetType) {
     if (widgetType.indexOf('bw-') === 0 || widgetType.indexOf('bw_') === 0) {
+      return true;
+    }
+
+    if (title === 'BW Reviews' || title === 'BW Title Product') {
       return true;
     }
 
