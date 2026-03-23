@@ -980,6 +980,31 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         ]
 		);
 
+	                $this->end_controls_section();
+
+		// ----------------------------------------------------------------
+		// Payment Options — style section
+		// ----------------------------------------------------------------
+		$this->start_controls_section(
+			'section_payment_options_style',
+			[
+				'label' => __( 'Payment Options', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_control(
+			'payment_options_style_enabled',
+			[
+				'label'        => __( 'Enable', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			]
+		);
+
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			[
@@ -987,10 +1012,8 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'label'     => __( 'More Payment Options Typography', 'bw' ),
 				'selector'  => '{{WRAPPER}} .bw-price-variation__payment-options',
 				'condition' => [
-					'show_add_to_cart'            => 'yes',
-					'show_more_payment_options'   => 'yes',
+					'payment_options_style_enabled' => 'yes',
 				],
-				'separator' => 'before',
 			]
 		);
 
@@ -1004,13 +1027,12 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					'{{WRAPPER}} .bw-price-variation__payment-options-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 				'condition'  => [
-					'show_add_to_cart'          => 'yes',
-					'show_more_payment_options' => 'yes',
+					'payment_options_style_enabled' => 'yes',
 				],
 			]
 		);
 
-                $this->end_controls_section();
+		$this->end_controls_section();
         }
 
         private function get_product_id_from_settings( $settings ) {
