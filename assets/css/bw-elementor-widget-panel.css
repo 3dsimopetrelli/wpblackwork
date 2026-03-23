@@ -46,6 +46,54 @@
   background: #6b3fd6 !important;
 }
 
+/* Standalone widgets: black background, white text/icon (no BW-UI/BW-SP prefix) */
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"],
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"],
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] {
+  border-radius: 8px;
+  border: 1px solid #1f1f1f !important;
+  background: #111111 !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .elementor-element-wrapper,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .elementor-element-wrapper,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .elementor-element-wrapper {
+  border-radius: 8px;
+  background: #111111 !important;
+}
+
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .title,
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .elementor-element-title,
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .widget-title,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .title,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .elementor-element-title,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .widget-title,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .title,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .elementor-element-title,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .widget-title {
+  color: #ffffff !important;
+}
+
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .icon,
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .icon i,
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .elementor-element-icon,
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .elementor-element-icon i,
+.elementor-panel .elementor-element[data-widget_type="bw-go-to-app.default"] .elementor-element-icon svg,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .icon,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .icon i,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .elementor-element-icon,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .elementor-element-icon i,
+.elementor-panel .elementor-element[data-widget_type="bw-newsletter-subscription.default"] .elementor-element-icon svg,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .icon,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .icon i,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .elementor-element-icon,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .elementor-element-icon i,
+.elementor-panel .elementor-element[data-widget_type="bw-product-grid.default"] .elementor-element-icon svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
 /* Presentation Slide override: green to distinguish from other BW-UI widgets */
 .elementor-panel .elementor-element[data-widget_type="bw-presentation-slide.default"] {
   background: #2d7d32 !important;
