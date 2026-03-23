@@ -1360,7 +1360,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                         }
                                         ?>><?php echo esc_html( $button_text ); ?></a>
                                 </div>
-				<?php if ( isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'] ) : ?>
+				<?php if ( isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'] && isset( $settings['payment_options_style_enabled'] ) && 'yes' === $settings['payment_options_style_enabled'] ) : ?>
 					<div class="bw-price-variation__payment-options-wrapper">
 						<a
 							class="bw-price-variation__payment-options"
