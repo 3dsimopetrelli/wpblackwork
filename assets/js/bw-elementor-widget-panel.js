@@ -4,6 +4,7 @@
   var CARD_CLASSES = [
     'bw-editor-widget-card',
     'bw-family-ui',
+    'bw-family-ui-ps',
     'bw-family-sp',
     'bw-family-deprecated'
   ];
@@ -28,13 +29,16 @@
     'DEPRECATED - BW Add To Cart Variation',
     'DEPRECATED - BW WallPost'
   ];
-  var WOO_WIDGET_SLUGS = [
-    'bw-title-product',
-    'bw-reviews'
-  ];
-  var UI_WIDGET_SLUGS = [
-    'bw-product-grid'
-  ];
+  // Slug-to-family overrides: checked before title-prefix detection.
+  // Use this map to assign a specific family to any widget by slug.
+  var SLUG_FAMILY_MAP = {
+    'bw-title-product':           'bw-family-sp',
+    'bw-reviews':                 'bw-family-sp',
+    'bw-go-to-app':               'bw-family-ui',
+    'bw-newsletter-subscription': 'bw-family-ui',
+    'bw-product-grid':            'bw-family-ui',
+    'bw-presentation-slide':      'bw-family-ui-ps'
+  };
   var panelObserver = null;
   var observerTick = null;
 
@@ -88,16 +92,8 @@
   function getFamilyClass(title, widgetType) {
     var slug = getWidgetSlug(widgetType);
 
-    if (title === 'BW Reviews' || title === 'BW Title Product') {
-      return 'bw-family-sp';
-    }
-
-    if (slug && UI_WIDGET_SLUGS.indexOf(slug) !== -1) {
-      return 'bw-family-ui';
-    }
-
-    if (slug && WOO_WIDGET_SLUGS.indexOf(slug) !== -1) {
-      return 'bw-family-sp';
+    if (slug && SLUG_FAMILY_MAP[slug]) {
+      return SLUG_FAMILY_MAP[slug];
     }
 
     if (title.indexOf('DEPRECATED -') === 0) {
