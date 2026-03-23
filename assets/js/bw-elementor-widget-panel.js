@@ -29,7 +29,11 @@
     'DEPRECATED - BW WallPost'
   ];
   var WOO_WIDGET_SLUGS = [
-    'bw-title-product'
+    'bw-title-product',
+    'bw-reviews'
+  ];
+  var UI_WIDGET_SLUGS = [
+    'bw-product-grid'
   ];
   var panelObserver = null;
   var observerTick = null;
@@ -83,6 +87,10 @@
 
   function getFamilyClass(title, widgetType) {
     var slug = getWidgetSlug(widgetType);
+
+    if (slug && UI_WIDGET_SLUGS.indexOf(slug) !== -1) {
+      return 'bw-family-ui';
+    }
 
     if (slug && WOO_WIDGET_SLUGS.indexOf(slug) !== -1) {
       return 'bw-family-sp';
