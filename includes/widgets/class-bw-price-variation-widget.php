@@ -594,6 +594,62 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         ]
                 );
 
+		$this->add_control(
+			'license_box_accordion_divider',
+			[
+				'type'  => Controls_Manager::DIVIDER,
+				'style' => 'thick',
+			]
+		);
+
+		$this->add_control(
+			'license_box_accordion_mobile',
+			[
+				'label'        => __( 'Enable Accordion (Mobile/Tablet)', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			]
+		);
+
+		$this->add_control(
+			'license_box_accordion_desktop',
+			[
+				'label'        => __( 'Enable Accordion (Desktop)', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			]
+		);
+
+		$this->add_control(
+			'license_box_accordion_label',
+			[
+				'label'      => __( 'Button Label', 'bw' ),
+				'type'       => Controls_Manager::TEXT,
+				'default'    => __( 'About License', 'bw' ),
+				'conditions' => [
+					'relation' => 'or',
+					'terms'    => [
+						[
+							'name'     => 'license_box_accordion_mobile',
+							'operator' => '===',
+							'value'    => 'yes',
+						],
+						[
+							'name'     => 'license_box_accordion_desktop',
+							'operator' => '===',
+							'value'    => 'yes',
+						],
+					],
+				],
+			]
+		);
+
                 $this->end_controls_section();
 
                 // License Table Style
@@ -1288,8 +1344,35 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         <?php endif; ?>
 
 			<!-- License Box -->
-			<?php $default_license_html = isset( $default_variation['license_html'] ) ? $default_variation['license_html'] : ''; ?>
+			<?php
+			$default_license_html  = isset( $default_variation['license_html'] ) ? $default_variation['license_html'] : '';
+			$accordion_mobile      = isset( $settings['license_box_accordion_mobile'] ) && 'yes' === $settings['license_box_accordion_mobile'];
+			$accordion_desktop     = isset( $settings['license_box_accordion_desktop'] ) && 'yes' === $settings['license_box_accordion_desktop'];
+			$has_accordion         = $accordion_mobile || $accordion_desktop;
+			$accordion_label       = $has_accordion && isset( $settings['license_box_accordion_label'] ) && '' !== trim( $settings['license_box_accordion_label'] )
+				? $settings['license_box_accordion_label']
+				: __( 'About License', 'bw' );
+			$accordion_cls         = 'bw-price-variation__license-accordion';
+			if ( $accordion_mobile ) {
+				$accordion_cls .= ' bw-license-accordion--mobile';
+			}
+			if ( $accordion_desktop ) {
+				$accordion_cls .= ' bw-license-accordion--desktop';
+			}
+			?>
+			<?php if ( $has_accordion ) : ?>
+			<div class="<?php echo esc_attr( $accordion_cls ); ?>">
+				<button class="bw-license-accordion__trigger" type="button" aria-expanded="false">
+					<span class="bw-license-accordion__label"><?php echo esc_html( $accordion_label ); ?></span>
+					<span class="bw-license-accordion__arrow" aria-hidden="true"><svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+				</button>
+				<div class="bw-license-accordion__body" aria-hidden="true">
+					<div class="bw-price-variation__license-box"<?php echo $default_license_html ? '' : ' style="display: none;"'; ?>><?php echo $default_license_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already wp_kses_post'd in get_variations_data() ?></div>
+				</div>
+			</div>
+			<?php else : ?>
 			<div class="bw-price-variation__license-box"<?php echo $default_license_html ? '' : ' style="display: none;"'; ?>><?php echo $default_license_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already wp_kses_post'd in get_variations_data() ?></div>
+			<?php endif; ?>
 
                         <!-- Add To Cart Button -->
                         <?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
