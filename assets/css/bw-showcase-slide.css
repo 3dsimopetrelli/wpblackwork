@@ -96,7 +96,7 @@
     padding: 28px;
     background:
         linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0.28) 100%);
-    color: inherit;
+    color: var(--bw-showcase-slide-text-color, #ffffff);
 }
 
 .bw-showcase-slide-copy {
@@ -109,7 +109,7 @@
     line-height: 1.03;
     font-weight: 700;
     letter-spacing: -0.03em;
-    color: inherit;
+    color: var(--bw-showcase-slide-text-color, #ffffff) !important;
     text-wrap: balance;
 }
 
@@ -118,7 +118,7 @@
     max-width: 560px;
     font-size: 18px;
     line-height: 1.35;
-    color: inherit;
+    color: var(--bw-showcase-slide-text-color, #ffffff) !important;
     opacity: 0.94;
 }
 
@@ -147,7 +147,7 @@
     font-size: 12px;
     font-weight: 500;
     line-height: 1;
-    color: inherit;
+    color: var(--bw-showcase-slide-text-color, #ffffff) !important;
     background: transparent;
     text-transform: uppercase;
     letter-spacing: 0.02em;
