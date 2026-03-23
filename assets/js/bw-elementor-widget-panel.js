@@ -88,6 +88,10 @@
   function getFamilyClass(title, widgetType) {
     var slug = getWidgetSlug(widgetType);
 
+    if (title === 'BW Reviews' || title === 'BW Title Product') {
+      return 'bw-family-sp';
+    }
+
     if (slug && UI_WIDGET_SLUGS.indexOf(slug) !== -1) {
       return 'bw-family-ui';
     }
