@@ -46,6 +46,16 @@
   background: #6b3fd6 !important;
 }
 
+/* Presentation Slide override: green to distinguish from other BW-UI widgets */
+.elementor-panel .elementor-element[data-widget_type="bw-presentation-slide.default"] {
+  background: #2d7d32 !important;
+  border-color: #388e3c !important;
+}
+
+.elementor-panel .elementor-element[data-widget_type="bw-presentation-slide.default"] .elementor-element-wrapper {
+  background: #2d7d32 !important;
+}
+
 /* Deprecated family */
 .elementor-panel .elementor-element.bw-editor-widget-card.bw-family-deprecated {
   background: #2f3238 !important;
