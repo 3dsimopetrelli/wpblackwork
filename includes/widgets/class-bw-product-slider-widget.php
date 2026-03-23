@@ -828,6 +828,28 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'name'     => 'card_buttons_typography',
                 'label'    => __( 'Typography', 'bw-elementor-widgets' ),
                 'selector' => '{{WRAPPER}} .bw-product-card .overlay-button__label, {{WRAPPER}} .bw-product-card .bw-wallpost-overlay-button__label',
+                'fields_options' => [
+                    'font_size' => [
+                        'tablet_default' => [
+                            'size' => 14,
+                            'unit' => 'px',
+                        ],
+                        'mobile_default' => [
+                            'size' => 12,
+                            'unit' => 'px',
+                        ],
+                    ],
+                    'line_height' => [
+                        'tablet_default' => [
+                            'size' => 1.2,
+                            'unit' => 'em',
+                        ],
+                        'mobile_default' => [
+                            'size' => 1.2,
+                            'unit' => 'em',
+                        ],
+                    ],
+                ],
             ]
         );
 
