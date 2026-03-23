@@ -497,6 +497,10 @@
 
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
 
+                // No-op until the floating button is created below.
+                // Will be replaced with the real sync function after floating ATC init.
+                var syncFloatingAtc = function() {};
+
                 if (activeVariation) {
                         updateActiveButton($buttons, activeVariation.id);
                         updatePrice($priceDisplay, activeVariation);
@@ -533,6 +537,7 @@
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
+                        syncFloatingAtc();
 
                         $widget.trigger('bw_price_variation_changed', {
                                 variationId: selectedVariation.id,
@@ -592,6 +597,97 @@
                                 proceedAdd();
                         }, true); // true = capture phase
                 }
+
+                // -----------------------------------------------------------------
+                // Floating Add to Cart
+                //
+                // Strategy: IntersectionObserver on .bw-add-to-cart-wrapper fires
+                // only on viewport-entry/exit transitions — zero scroll-listener
+                // overhead.  The floating button is a singleton appended to <body>
+                // to escape all Elementor stacking contexts and overflow containers.
+                // State sync is one-directional: widget → floating button.
+                // Click delegates to the original button's native capture listener
+                // so all ATC logic (AJAX, cart popup, sold-individually) runs once.
+                //
+                // Sticky Elementor column: if the widget column is position:sticky,
+                // the wrapper never exits the viewport, the observer never fires
+                // "not intersecting", and the floating button stays hidden — correct.
+                // -----------------------------------------------------------------
+                (function() {
+                        // Do nothing inside the Elementor editor
+                        if (typeof elementorFrontend !== 'undefined' && elementorFrontend.isEditMode()) {
+                                return;
+                        }
+
+                        // IntersectionObserver is available in all modern browsers;
+                        // graceful no-op on very old environments
+                        if (typeof IntersectionObserver === 'undefined') {
+                                return;
+                        }
+
+                        var $addToCartWrapper = $widget.find('.bw-add-to-cart-wrapper');
+                        if (!$addToCartWrapper.length || !$addToCartButton.length) {
+                                return;
+                        }
+
+                        // ---------- Singleton floating button ----------
+                        // One element for the whole page regardless of how many
+                        // Price Variation widgets exist.
+                        var $floatWrap = $('#bw-float-atc-wrap');
+                        if (!$floatWrap.length) {
+                                $floatWrap = $(
+                                        '<div id="bw-float-atc-wrap" class="bw-float-atc-wrap" aria-hidden="true">' +
+                                        '<button class="bw-float-atc" type="button" tabindex="-1">Add to Cart</button>' +
+                                        '</div>'
+                                );
+                                $('body').append($floatWrap);
+                        }
+                        var $floatBtn = $floatWrap.find('.bw-float-atc');
+
+                        // ---------- State sync ----------
+                        // Mirror label and disabled state from the original button.
+                        // Called once at init and on every variation change.
+                        syncFloatingAtc = function() {
+                                var text = $addToCartButton.text().trim();
+                                $floatBtn.text(text || 'Add to Cart');
+
+                                var isOos     = activeVariation && activeVariation.is_in_stock === false;
+                                var isDisabled = !activeVariation || isOos || $addToCartButton.hasClass('disabled');
+                                $floatBtn
+                                        .prop('disabled', isDisabled)
+                                        .toggleClass('is-disabled', isDisabled);
+                        };
+
+                        // Initial sync
+                        syncFloatingAtc();
+
+                        // ---------- Click delegation ----------
+                        // Dispatch a real native MouseEvent so the original button's
+                        // capture-phase listener fires exactly as if the user clicked it.
+                        $floatWrap
+                                .off('click.bwFloatAtc')
+                                .on('click.bwFloatAtc', '.bw-float-atc', function() {
+                                        if ($(this).prop('disabled')) {
+                                                return;
+                                        }
+                                        $addToCartButton[0].dispatchEvent(
+                                                new MouseEvent('click', { bubbles: true, cancelable: true })
+                                        );
+                                });
+
+                        // ---------- Visibility observer ----------
+                        // threshold:0 → fires as soon as a single pixel enters/exits.
+                        // No rootMargin needed unless a sticky header overlaps the
+                        // button — add rootMargin: '-HEIGHTpx 0px 0px 0px' if so.
+                        var floatObserver = new IntersectionObserver(function(entries) {
+                                var isVisible = entries[0].isIntersecting;
+                                $floatWrap
+                                        .toggleClass('is-visible', !isVisible)
+                                        .attr('aria-hidden', isVisible ? 'true' : 'false');
+                        }, { threshold: 0 });
+
+                        floatObserver.observe($addToCartWrapper[0]);
+                })();
 
         }
 
