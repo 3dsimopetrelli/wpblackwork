@@ -727,9 +727,92 @@
 
         }
 
+        /**
+         * Initialize the license box accordion.
+         * @param {jQuery} $widget
+         */
+        function initLicenseAccordion($widget) {
+                var $accordion = $widget.find('.bw-price-variation__license-accordion');
+                if (!$accordion.length) return;
+
+                var hasMobile  = $accordion.hasClass('bw-license-accordion--mobile');
+                var hasDesktop = $accordion.hasClass('bw-license-accordion--desktop');
+                var $trigger   = $accordion.find('.bw-license-accordion__trigger');
+                var $body      = $accordion.find('.bw-license-accordion__body');
+                var mql        = window.matchMedia('(min-width: 1025px)');
+
+                function openAccordion() {
+                        $accordion.addClass('is-open');
+                        $trigger.attr('aria-expanded', 'true');
+                        $body.attr('aria-hidden', 'false');
+                        var targetH = $body[0].scrollHeight;
+                        $body.css({ maxHeight: targetH + 'px', opacity: '1' });
+                        $body.one('transitionend.bwAcc', function() {
+                                if ($accordion.hasClass('is-open')) {
+                                        $body.css('max-height', '9999px');
+                                }
+                        });
+                }
+
+                function closeAccordion() {
+                        $accordion.removeClass('is-open');
+                        $trigger.attr('aria-expanded', 'false');
+                        $body.attr('aria-hidden', 'true');
+                        // Fix explicit height before animating to 0
+                        $body.css('max-height', $body[0].scrollHeight + 'px');
+                        requestAnimationFrame(function() {
+                                requestAnimationFrame(function() {
+                                        $body.css({ maxHeight: '0', opacity: '0' });
+                                });
+                        });
+                }
+
+                function activate() {
+                        $accordion.addClass('bw-js-accordion-active');
+                        $body.css({ maxHeight: '0', opacity: '0' });
+                        $accordion.removeClass('is-open');
+                        $trigger.attr('aria-expanded', 'false');
+                        $body.attr('aria-hidden', 'true');
+                }
+
+                function deactivate() {
+                        $accordion.removeClass('bw-js-accordion-active is-open');
+                        $body.css({ maxHeight: '', opacity: '' });
+                        $trigger.attr('aria-expanded', 'false');
+                        $body.attr('aria-hidden', 'false');
+                }
+
+                function updateMode() {
+                        var isDesktop = mql.matches;
+                        if (isDesktop ? hasDesktop : hasMobile) {
+                                activate();
+                        } else {
+                                deactivate();
+                        }
+                }
+
+                updateMode();
+
+                if (mql.addEventListener) {
+                        mql.addEventListener('change', updateMode);
+                } else {
+                        mql.addListener(updateMode); // Safari < 14 fallback
+                }
+
+                $trigger.on('click.bwAccordion', function() {
+                        if (!$accordion.hasClass('bw-js-accordion-active')) return;
+                        if ($accordion.hasClass('is-open')) {
+                                closeAccordion();
+                        } else {
+                                openAccordion();
+                        }
+                });
+        }
+
         $(document).ready(function() {
                 $('.bw-price-variation').each(function() {
                         initPriceVariationWidget($(this));
+                        initLicenseAccordion($(this));
                 });
         });
 
@@ -739,6 +822,7 @@
                                 const $widget = $scope.find('.bw-price-variation');
                                 if ($widget.length) {
                                         initPriceVariationWidget($widget);
+                                        initLicenseAccordion($widget);
                                 }
                         });
                 }
