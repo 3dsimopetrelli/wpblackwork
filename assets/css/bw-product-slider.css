@@ -74,6 +74,22 @@
 }
 
 /* ========================================
+   CARD TYPOGRAPHY
+   ======================================== */
+.bw-product-slider-wrapper .bw-ps-slide .bw-wallpost-title,
+.bw-product-slider-wrapper .bw-ps-slide .bw-slider-title {
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+.bw-product-slider-wrapper .bw-ps-slide .bw-wallpost-price,
+.bw-product-slider-wrapper .bw-ps-slide .bw-slider-price,
+.bw-product-slider-wrapper .bw-ps-slide .price {
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+/* ========================================
    NAVIGATION ARROWS
    ======================================== */
 .bw-product-slider-wrapper .bw-ps-arrows-container {
