@@ -148,6 +148,24 @@ Wave-specific checks:
   - touch drag and mouse drag toggles behave as configured
   - transient query cache invalidates after product save
 
+## BW Showcase Slide
+- Scope:
+  - `includes/widgets/class-bw-showcase-slide-widget.php`
+  - `assets/js/bw-showcase-slide.js`
+  - `assets/css/bw-showcase-slide.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend
+  - Elementor editor re-render destroys and rebuilds one instance cleanly
+  - manual product IDs render in the exact provided order
+  - products without showcase image meta fall back to featured image safely
+  - `Texts color` from the showcase metabox propagates to title, description, and labels
+  - CTA renders as split-pill system (green arrow circle + detached green text pill)
+  - no popup settings or popup runtime are present
+  - breakpoint CSS correctly controls arrows, dots, and slide widths
+  - Embla `reInit()` updates `slidesToScroll` and align behavior at breakpoint transitions
+  - custom cursor can be enabled/disabled without leaving orphaned DOM nodes
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

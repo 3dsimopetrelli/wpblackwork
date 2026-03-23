@@ -82,6 +82,7 @@ Decisions already fixed:
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slider` -> canonical current product slider
 - `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
+- `bw-showcase-slide` -> current Embla-based showcase/content slider sourcing content from the product showcase metabox without popup complexity
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-reviews` -> canonical custom-review widget backed by the isolated Reviews module
@@ -166,6 +167,7 @@ Current editor-color governance note:
 ## Related docs
 - `docs/30-features/elementor-widgets/README.md`
 - `docs/30-features/elementor-widgets/widget-inventory.md`
+- `docs/30-features/elementor-widgets/showcase-slide-widget.md`
 - `docs/30-features/elementor-widgets/architecture-direction.md`
 - `docs/30-features/elementor-widgets/rationalization-policy.md`
 - `docs/30-features/elementor-widgets/migration-sequence.md`

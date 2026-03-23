@@ -632,6 +632,7 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_product
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
 add_action('init', 'bw_register_product_slider_widget_assets');
+add_action('init', 'bw_register_showcase_slide_widget_assets');
 add_action('init', 'bw_register_product_details_widget_assets');
 add_action('init', 'bw_register_reviews_widget_assets');
 add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
@@ -1354,6 +1355,30 @@ function bw_register_product_slider_widget_assets()
     wp_register_script(
         'bw-product-slider-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-product-slider.js',
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
+        $js_version,
+        true
+    );
+}
+
+function bw_register_showcase_slide_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-showcase-slide.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-showcase-slide-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-showcase-slide.css',
+        ['bw-embla-core-css'],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-showcase-slide.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-showcase-slide-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-showcase-slide.js',
         ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
         $js_version,
         true
@@ -2430,4 +2455,3 @@ function bw_ps_clear_query_cache( $post_id ) {
     );
 }
 add_action( 'save_post', 'bw_ps_clear_query_cache' );
-

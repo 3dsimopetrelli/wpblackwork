@@ -35,6 +35,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
+- `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content
 
 ## Confirmed decisions (current)
 - `bw-add-to-cart` -> DELETE (completed)
@@ -47,6 +48,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-presentation-slide` -> specialized presentation/gallery slider
+- `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
