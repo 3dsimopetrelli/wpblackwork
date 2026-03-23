@@ -973,9 +973,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
 					'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
 					'flex-end'   => [ 'title' => __( 'Right', 'bw' ), 'icon' => 'eicon-text-align-right' ],
 				],
-				'default'   => 'left',
+				'default'   => 'flex-start',
 				'selectors' => [
-					'{{WRAPPER}} .bw-add-to-cart-wrapper' => 'text-align: {{VALUE}};',
+					'{{WRAPPER}} .bw-add-to-cart-wrapper' => 'justify-content: {{VALUE}};',
                                 ],
                         ]
 		);
@@ -1255,7 +1255,6 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                                 <button
                                                         class="<?php echo esc_attr( trim( $button_classes ) ); ?>"
                                                         data-variation-id="<?php echo esc_attr( $matched_variation['id'] ); ?>"
-                                                        data-variation='<?php echo esc_attr( wp_json_encode( $matched_variation ) ); ?>'
                                                         type="button"
                                                         aria-pressed="<?php echo esc_attr( 'active' === $is_active ? 'true' : 'false' ); ?>"
                                                         aria-disabled="<?php echo esc_attr( $is_out_of_stock ? 'true' : 'false' ); ?>"
@@ -1266,8 +1265,9 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                 </div>
                         <?php endif; ?>
 
-			<!-- License Box (will be populated by JS) -->
-			<div class="bw-price-variation__license-box" style="display: none;"></div>
+			<!-- License Box -->
+			<?php $default_license_html = isset( $default_variation['license_html'] ) ? $default_variation['license_html'] : ''; ?>
+			<div class="bw-price-variation__license-box"<?php echo $default_license_html ? '' : ' style="display: none;"'; ?>><?php echo $default_license_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already wp_kses_post'd in get_variations_data() ?></div>
 
                         <!-- Add To Cart Button -->
                         <?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>

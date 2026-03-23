@@ -86,26 +86,6 @@ delete_post_meta( $variation_id, '_bw_variation_license_html' );
 }
 
 /**
- * AJAX handler to get variation license HTML.
- */
-add_action( 'wp_ajax_bw_get_variation_license_html', 'bw_get_variation_license_html' );
-
-function bw_get_variation_license_html() {
-// Verify nonce.
-check_ajax_referer( 'bw_price_variation_nonce', 'nonce' );
-
-$variation_id = isset( $_POST['variation_id'] ) ? absint( $_POST['variation_id'] ) : 0;
-
-if ( ! $variation_id ) {
-wp_send_json_error( [ 'message' => 'Invalid variation ID' ] );
-}
-
-$license_html = bw_get_variation_license_table_html( $variation_id );
-
-wp_send_json_success( [ 'html' => $license_html ] );
-}
-
-/**
  * Add CSS for the field in admin.
  */
 add_action( 'admin_head', 'bw_variation_license_html_field_css' );

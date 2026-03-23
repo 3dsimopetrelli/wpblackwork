@@ -1266,15 +1266,10 @@ function bw_register_reviews_widget_assets()
 }
 
 /**
- * Localize bw-price-variation-script only on product pages.
- * Kept separate from registration to avoid wp_create_nonce() DB hit on every page.
+ * Localize bw-price-variation-script on any page where the widget may appear.
  */
 function bw_localize_price_variation_widget_assets()
 {
-    if (!function_exists('is_product') || !is_product()) {
-        return;
-    }
-
     if (!function_exists('get_woocommerce_currency_symbol')) {
         return;
     }
