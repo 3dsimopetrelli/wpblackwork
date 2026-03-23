@@ -29,15 +29,17 @@
     'DEPRECATED - BW Add To Cart Variation',
     'DEPRECATED - BW WallPost'
   ];
-  // Slug-to-family overrides: checked before title-prefix detection.
-  // Use this map to assign a specific family to any widget by slug.
-  var SLUG_FAMILY_MAP = {
-    'bw-title-product':           'bw-family-sp',
-    'bw-reviews':                 'bw-family-sp',
-    'bw-go-to-app':               'bw-family-ui',
-    'bw-newsletter-subscription': 'bw-family-ui',
-    'bw-product-grid':            'bw-family-ui',
-    'bw-presentation-slide':      'bw-family-ui-ps'
+  // Title-to-family map: keyed on exact widget title (always available in DOM).
+  // Use this for widgets without a BW-UI/BW-SP prefix, and for title-based overrides.
+  // NOTE: Elementor panel cards do NOT expose data-widget_type as an HTML attribute,
+  // so slug-based detection is unreliable here — title is the only safe key.
+  var TITLE_FAMILY_MAP = {
+    'BW Title Product':          'bw-family-sp',
+    'BW Reviews':                'bw-family-sp',
+    'Go to App':                 'bw-family-ui',
+    'Newsletter Subscription':   'bw-family-ui',
+    'BW Product Grid':           'bw-family-ui',
+    'BW-UI Presentation Slider': 'bw-family-ui-ps'
   };
   var panelObserver = null;
   var observerTick = null;
@@ -90,10 +92,9 @@
   }
 
   function getFamilyClass(title, widgetType) {
-    var slug = getWidgetSlug(widgetType);
-
-    if (slug && SLUG_FAMILY_MAP[slug]) {
-      return SLUG_FAMILY_MAP[slug];
+    // Title map checked first: works in panel (no data-widget_type) and overrides prefix.
+    if (TITLE_FAMILY_MAP[title]) {
+      return TITLE_FAMILY_MAP[title];
     }
 
     if (title.indexOf('DEPRECATED -') === 0) {
@@ -116,7 +117,7 @@
       return true;
     }
 
-    if (title === 'BW Reviews' || title === 'BW Title Product') {
+    if (TITLE_FAMILY_MAP[title]) {
       return true;
     }
 
