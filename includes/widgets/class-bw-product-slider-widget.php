@@ -1,5 +1,6 @@
 <?php
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
 use Elementor\Repeater;
 use Elementor\Widget_Base;
 
@@ -818,6 +819,15 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}}' => '--bw-card-overlay-buttons-color: {{VALUE}};',
                 ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'card_buttons_typography',
+                'label'    => __( 'Typography', 'bw-elementor-widgets' ),
+                'selector' => '{{WRAPPER}} .bw-product-card .overlay-button__label, {{WRAPPER}} .bw-product-card .bw-wallpost-overlay-button__label',
             ]
         );
 
