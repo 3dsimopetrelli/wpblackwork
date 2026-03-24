@@ -460,6 +460,10 @@
                     ? this._getCenteredSlideIndex(viewport, emblaApi)
                     : 0;
                 const slideIndex = parseInt($(cardEl).closest('.bw-ss-slide').data('bw-index'), 10);
+                const cardRect = cardEl.getBoundingClientRect();
+                const viewportRect = viewport ? viewport.getBoundingClientRect() : null;
+                const viewportCenter = viewportRect ? (viewportRect.left + (viewportRect.width / 2)) : 0;
+                const cardCenter = cardRect.left + (cardRect.width / 2);
 
                 $cursor.removeClass('view prev next active');
 
@@ -470,27 +474,27 @@
                 if (slideIndex === selected) {
                     $cursor.addClass('view active');
                 } else {
-                    $cursor.addClass(slideIndex < selected ? 'prev' : 'next').addClass('active');
+                    $cursor.addClass(cardCenter < viewportCenter ? 'prev' : 'next').addClass('active');
                 }
             };
 
-            $viewport.on(`mouseenter.bwss-cursor-${this.widgetId}`, '.bw-showcase-slide-card', (e) => {
-                updateCursorForCard(e.currentTarget);
-            });
-
-            $viewport.on(`mouseleave.bwss-cursor-${this.widgetId}`, '.bw-showcase-slide-card', () => {
-                $cursor.removeClass('active view prev next');
-            });
-
-            $viewport.on(`mouseenter.bwss-cursor-${this.widgetId}`, 'a', () => {
-                $cursor.removeClass('active view prev next');
-            });
-
-            $viewport.on(`mouseleave.bwss-cursor-${this.widgetId}`, 'a', (e) => {
-                const $card = $(e.currentTarget).closest('.bw-showcase-slide-card');
-                if ($card.length) {
-                    updateCursorForCard($card[0]);
+            $viewport.on(`mousemove.bwss-cursor-${this.widgetId}`, (e) => {
+                if ($(e.target).closest('a, button').length) {
+                    $cursor.removeClass('active view prev next');
+                    return;
                 }
+
+                const $card = $(e.target).closest('.bw-showcase-slide-card');
+                if (!$card.length) {
+                    $cursor.removeClass('active view prev next');
+                    return;
+                }
+
+                updateCursorForCard($card[0]);
+            });
+
+            $viewport.on(`mouseleave.bwss-cursor-${this.widgetId}`, () => {
+                $cursor.removeClass('active view prev next');
             });
         }
 
