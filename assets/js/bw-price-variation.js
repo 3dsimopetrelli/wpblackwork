@@ -734,57 +734,111 @@
         function initLicenseAccordion($widget) {
                 var $accordion = $widget.find('.bw-price-variation__license-accordion');
                 if (!$accordion.length) return;
+                if ($accordion.data('bwLicAcc')) return;
+                $accordion.data('bwLicAcc', true);
 
                 var hasMobile  = $accordion.hasClass('bw-license-accordion--mobile');
                 var hasDesktop = $accordion.hasClass('bw-license-accordion--desktop');
-                var $trigger   = $accordion.find('.bw-license-accordion__trigger');
-                var $body      = $accordion.find('.bw-license-accordion__body');
-                var mql        = window.matchMedia('(min-width: 1025px)');
 
-                function openAccordion() {
-                        $accordion.addClass('is-open');
-                        $trigger.attr('aria-expanded', 'true');
-                        $body.attr('aria-hidden', 'false');
-                        var targetH = $body[0].scrollHeight;
-                        $body.css({ maxHeight: targetH + 'px', opacity: '1' });
-                        $body.one('transitionend.bwAcc', function() {
-                                if ($accordion.hasClass('is-open')) {
-                                        $body.css('max-height', '9999px');
-                                }
-                        });
+                if (!hasMobile && !hasDesktop) {
+                        hasMobile  = true;
+                        hasDesktop = true;
                 }
 
-                function closeAccordion() {
-                        $accordion.removeClass('is-open');
-                        $trigger.attr('aria-expanded', 'false');
-                        $body.attr('aria-hidden', 'true');
-                        // Fix explicit height before animating to 0
-                        $body.css('max-height', $body[0].scrollHeight + 'px');
-                        requestAnimationFrame(function() {
-                                requestAnimationFrame(function() {
-                                        $body.css({ maxHeight: '0', opacity: '0' });
-                                });
-                        });
+                var $trigger = $accordion.find('> button.bw-license-accordion__trigger');
+                var $body    = $accordion.find('> .bw-license-accordion__body');
+                var bodyEl   = $body[0];
+                var mql      = window.matchMedia('(min-width: 1025px)');
+                var timer    = null;
+
+                var OPEN_MS      = 360;
+                var CLOSE_MS     = 280;
+                var OPEN_EASING  = 'cubic-bezier(0.16, 1, 0.3, 1)';
+                var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+                function setTrans(ms, easing, opMs) {
+                        bodyEl.style.transition = 'height ' + ms + 'ms ' + easing + ', opacity ' + opMs + 'ms ease';
                 }
+                function clearTrans() { bodyEl.style.transition = ''; }
 
                 function activate() {
-                        $accordion.addClass('bw-js-accordion-active');
-                        $body.css({ maxHeight: '0', opacity: '0' });
-                        $accordion.removeClass('is-open');
+                        clearTimeout(timer);
+                        clearTrans();
+                        bodyEl.style.height   = '0';
+                        bodyEl.style.overflow = 'hidden';
+                        bodyEl.style.opacity  = '0';
+                        $accordion.addClass('bw-js-accordion-active').removeClass('is-open');
                         $trigger.attr('aria-expanded', 'false');
                         $body.attr('aria-hidden', 'true');
                 }
 
                 function deactivate() {
+                        clearTimeout(timer);
+                        clearTrans();
                         $accordion.removeClass('bw-js-accordion-active is-open');
-                        $body.css({ maxHeight: '', opacity: '' });
+                        bodyEl.style.cssText = '';
                         $trigger.attr('aria-expanded', 'false');
                         $body.attr('aria-hidden', 'false');
                 }
 
+                function openAccordion() {
+                        if ($accordion.hasClass('is-open')) return;
+                        clearTimeout(timer);
+
+                        $accordion.addClass('is-open');
+                        $trigger.attr('aria-expanded', 'true');
+                        $body.attr('aria-hidden', 'false');
+
+                        clearTrans();
+                        bodyEl.style.height   = '0';
+                        bodyEl.style.overflow = 'hidden';
+                        bodyEl.style.opacity  = '0';
+
+                        var targetH = bodyEl.scrollHeight;
+                        // eslint-disable-next-line no-unused-expressions
+                        bodyEl.offsetHeight; // forced reflow
+
+                        setTrans(OPEN_MS, OPEN_EASING, Math.round(OPEN_MS * 0.75));
+                        bodyEl.style.height  = targetH + 'px';
+                        bodyEl.style.opacity = '1';
+
+                        timer = setTimeout(function() {
+                                if ($accordion.hasClass('is-open')) {
+                                        clearTrans();
+                                        bodyEl.style.height   = '';
+                                        bodyEl.style.overflow = '';
+                                }
+                        }, OPEN_MS + 80);
+                }
+
+                function closeAccordion() {
+                        if (!$accordion.hasClass('is-open')) return;
+                        clearTimeout(timer);
+
+                        var currentH = bodyEl.getBoundingClientRect().height;
+                        clearTrans();
+                        bodyEl.style.height   = currentH + 'px';
+                        bodyEl.style.overflow = 'hidden';
+
+                        // eslint-disable-next-line no-unused-expressions
+                        bodyEl.offsetHeight; // forced reflow
+
+                        $accordion.removeClass('is-open');
+                        $trigger.attr('aria-expanded', 'false');
+                        $body.attr('aria-hidden', 'true');
+
+                        // eslint-disable-next-line no-unused-expressions
+                        bodyEl.offsetHeight; // commit is-open removal
+
+                        setTrans(CLOSE_MS, CLOSE_EASING, Math.round(CLOSE_MS * 0.6));
+                        bodyEl.style.height  = '0';
+                        bodyEl.style.opacity = '0';
+
+                        timer = setTimeout(clearTrans, CLOSE_MS + 80);
+                }
+
                 function updateMode() {
-                        var isDesktop = mql.matches;
-                        if (isDesktop ? hasDesktop : hasMobile) {
+                        if (mql.matches ? hasDesktop : hasMobile) {
                                 activate();
                         } else {
                                 deactivate();
@@ -796,7 +850,7 @@
                 if (mql.addEventListener) {
                         mql.addEventListener('change', updateMode);
                 } else {
-                        mql.addListener(updateMode); // Safari < 14 fallback
+                        mql.addListener(updateMode);
                 }
 
                 $trigger.on('click.bwAccordion', function() {
