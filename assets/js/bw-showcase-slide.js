@@ -27,6 +27,7 @@
             this._cursorRafId = null;
             this._$horizontal = null;
             this._$images = null;
+            this._pressState = null;
             this.initialized = false;
 
             this.init();
@@ -105,6 +106,7 @@
             }
 
             this._attachWheelHandler();
+            this._attachCardNavigationHandler(viewport, api);
             this._updateImageHeightControls();
             this._updateEmblaBreakpointOptions();
 
@@ -213,6 +215,59 @@
             };
 
             window.addEventListener('wheel', this._wheelHandler, { passive: false });
+        }
+
+        _attachCardNavigationHandler(viewport, api) {
+            $(viewport).on(`pointerdown.bwss-nav-${this.widgetId}`, '.bw-showcase-slide-card', (e) => {
+                if ($(e.target).closest('a, button').length) {
+                    this._pressState = null;
+                    return;
+                }
+
+                this._pressState = {
+                    x: e.clientX,
+                    y: e.clientY,
+                    pointerId: e.pointerId,
+                    target: e.currentTarget,
+                };
+            });
+
+            $(viewport).on(`pointercancel.bwss-nav-${this.widgetId} pointerleave.bwss-nav-${this.widgetId}`, '.bw-showcase-slide-card', () => {
+                this._pressState = null;
+            });
+
+            $(viewport).on(`pointerup.bwss-nav-${this.widgetId}`, '.bw-showcase-slide-card', (e) => {
+                if ($(e.target).closest('a, button').length) {
+                    this._pressState = null;
+                    return;
+                }
+
+                if (
+                    !this._pressState ||
+                    this._pressState.pointerId !== e.pointerId ||
+                    this._pressState.target !== e.currentTarget
+                ) {
+                    this._pressState = null;
+                    return;
+                }
+
+                if (Math.abs(e.clientX - this._pressState.x) > 6 || Math.abs(e.clientY - this._pressState.y) > 6) {
+                    this._pressState = null;
+                    return;
+                }
+
+                this._pressState = null;
+
+                const $slide = $(e.currentTarget).closest('.bw-ss-slide');
+                const slideIndex = parseInt($slide.data('bw-index'), 10);
+                const activeIndex = this._getCenteredSlideIndex(viewport, api);
+
+                if (Number.isNaN(slideIndex) || slideIndex === activeIndex) {
+                    return;
+                }
+
+                api.scrollTo(slideIndex);
+            });
         }
 
         _getActiveBreakpointIndex() {
@@ -433,7 +488,8 @@
 
             $(window).off(`.bwss-${this.widgetId}`);
             this.$wrapper.off(`.bwss-cursor-${this.widgetId}`);
-            this.$wrapper.find('.bw-ss-embla-viewport').off(`.bwss-cursor-${this.widgetId}`);
+            this.$wrapper.find('.bw-ss-embla-viewport').off(`.bwss-cursor-${this.widgetId}`).off(`.bwss-nav-${this.widgetId}`);
+            this._pressState = null;
             this.initialized = false;
         }
     }
