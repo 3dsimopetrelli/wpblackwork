@@ -120,6 +120,7 @@ Widget-local runtime:
 - desktop mosaic height
 - horizontal gap
 - vertical gap
+- image border radius
 
 ## Caching
 The widget caches deterministic query result IDs using transients prefixed with `bw_ms_` when:

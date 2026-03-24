@@ -151,7 +151,7 @@
 .bw-ms-slot .bw-product-card .bw-slider-image-container {
     flex: 1 1 auto;
     min-height: 0;
-    border-radius: 18px;
+    border-radius: var(--bw-ms-image-radius, 18px);
 }
 
 .bw-ms-slot .bw-product-card .bw-wallpost-media,
@@ -181,7 +181,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    border-radius: 18px;
+    border-radius: var(--bw-ms-image-radius, 18px);
     background: #ececec;
 }
 
