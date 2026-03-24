@@ -1364,10 +1364,12 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 			<div class="<?php echo esc_attr( $accordion_cls ); ?>">
 				<button class="bw-license-accordion__trigger" type="button" aria-expanded="false">
 					<span class="bw-license-accordion__label"><?php echo esc_html( $accordion_label ); ?></span>
-					<span class="bw-license-accordion__arrow" aria-hidden="true"><svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+					<span class="bw-license-accordion__arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
 				</button>
 				<div class="bw-license-accordion__body" aria-hidden="true">
-					<div class="bw-price-variation__license-box"<?php echo $default_license_html ? '' : ' style="display: none;"'; ?>><?php echo $default_license_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already wp_kses_post'd in get_variations_data() ?></div>
+					<div class="bw-license-accordion__body-inner">
+						<div class="bw-price-variation__license-box"<?php echo $default_license_html ? '' : ' style="display: none;"'; ?>><?php echo $default_license_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already wp_kses_post'd in get_variations_data() ?></div>
+					</div>
 				</div>
 			</div>
 			<?php else : ?>
