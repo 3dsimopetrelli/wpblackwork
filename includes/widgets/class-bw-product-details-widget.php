@@ -354,6 +354,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			echo '<span class="bw-biblio-accordion__arrow">' . $arrow . '</span>';
 			echo '</button>';
 			echo '<div class="bw-biblio-accordion__body" aria-hidden="true">';
+			echo '<div class="bw-biblio-accordion__body-inner">';
 		} else {
 			echo '<div class="bw-biblio-title">' . esc_html( $title ) . '</div>';
 		}
@@ -365,6 +366,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		}
 
 		if ( $accordion_on ) {
+			echo '</div>'; // .bw-biblio-accordion__body-inner
 			echo '</div>'; // .bw-biblio-accordion__body
 		}
 
