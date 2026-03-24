@@ -24,6 +24,9 @@ The widget combines:
 ## Content Authority
 The widget reads from the existing product showcase metabox fields.
 
+Import reference:
+- `import-info/showcase-slide-metabox-import-map.md`
+
 Current content surfaces:
 - `Showcase Title`
 - `Showcase Description`

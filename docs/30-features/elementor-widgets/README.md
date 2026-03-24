@@ -36,6 +36,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
 - `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content
+- `import-info/showcase-slide-metabox-import-map.md`: importer mapping for the Showcase metabox (`product_type`, digital fields, physical fields, CTA, and shared meta keys)
 
 ## Confirmed decisions (current)
 - `bw-add-to-cart` -> DELETE (completed)
