@@ -261,8 +261,22 @@
                 const $slide = $(e.currentTarget).closest('.bw-ss-slide');
                 const slideIndex = parseInt($slide.data('bw-index'), 10);
                 const activeIndex = this._getCenteredSlideIndex(viewport, api);
+                const isMobileSlideLinkMode = window.innerWidth <= 800 && !$('body').hasClass('elementor-editor-active');
+                const slideUrl = $(e.currentTarget)
+                    .find('.bw-showcase-slide-button, .bw-showcase-slide-arrow')
+                    .first()
+                    .attr('href');
 
-                if (Number.isNaN(slideIndex) || slideIndex === activeIndex) {
+                if (Number.isNaN(slideIndex)) {
+                    return;
+                }
+
+                if (isMobileSlideLinkMode && slideUrl) {
+                    window.location.href = slideUrl;
+                    return;
+                }
+
+                if (slideIndex === activeIndex) {
                     return;
                 }
 

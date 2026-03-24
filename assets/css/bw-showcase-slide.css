@@ -401,6 +401,12 @@
     }
 }
 
+@media (max-width: 800px) {
+    .bw-showcase-slide-cta {
+        display: none !important;
+    }
+}
+
 @media (max-width: 767px) {
     .bw-ss-slide {
         padding: 6px;
