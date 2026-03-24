@@ -207,6 +207,12 @@
     padding-top: 14px;
 }
 
+.bw-ms-slot .bw-product-card .bw-ms-content--empty {
+    display: none;
+    padding: 0 !important;
+    gap: 0 !important;
+}
+
 .bw-ms-title {
     margin: 0;
     font-size: 17px;

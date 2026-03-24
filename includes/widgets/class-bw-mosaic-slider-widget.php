@@ -930,11 +930,19 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 	 */
 	private function render_item_card( WP_Post $post, array $settings, $post_type, $image_size, $image_loading, $fetchpriority, $is_featured, $context ) {
 		if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
-			$card_classes = array(
+			$has_product_content = ( $settings['show_title'] ?? 'yes' ) === 'yes'
+				|| ( $settings['show_description'] ?? '' ) === 'yes'
+				|| ( $settings['show_price'] ?? 'yes' ) === 'yes';
+			$card_classes        = array(
 				'bw-ms-card',
 				$is_featured ? 'bw-ms-card--featured' : 'bw-ms-card--support',
 				'bw-ms-card--' . $context,
 			);
+			$content_classes     = array( 'bw-ms-content', 'bw-slider-content' );
+
+			if ( ! $has_product_content ) {
+				$content_classes[] = 'bw-ms-content--empty';
+			}
 
 			return BW_Product_Card_Component::render(
 				$post->ID,
@@ -957,7 +965,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 					'media_classes'           => 'bw-ms-media',
 					'media_link_classes'      => 'bw-ms-media-link',
 					'image_wrapper_classes'   => 'bw-ms-image',
-					'content_classes'         => 'bw-ms-content bw-slider-content',
+					'content_classes'         => implode( ' ', $content_classes ),
 					'title_classes'           => 'bw-ms-title',
 					'description_classes'     => 'bw-ms-description',
 					'price_classes'           => 'bw-ms-price price',
@@ -1034,21 +1042,23 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 					<?php endif; ?>
 				</a>
 
-				<div class="bw-ms-content">
-					<?php if ( $show_title ) : ?>
-						<h3 class="bw-ms-title">
-							<a href="<?php echo esc_url( $permalink ); ?>">
-								<?php echo esc_html( $title ); ?>
-							</a>
-						</h3>
-					<?php endif; ?>
+				<?php if ( $show_title || ( $show_excerpt && '' !== $excerpt ) ) : ?>
+					<div class="bw-ms-content">
+						<?php if ( $show_title ) : ?>
+							<h3 class="bw-ms-title">
+								<a href="<?php echo esc_url( $permalink ); ?>">
+									<?php echo esc_html( $title ); ?>
+								</a>
+							</h3>
+						<?php endif; ?>
 
-					<?php if ( $show_excerpt && '' !== $excerpt ) : ?>
-						<div class="bw-ms-description">
-							<p><?php echo esc_html( $excerpt ); ?></p>
-						</div>
-					<?php endif; ?>
-				</div>
+						<?php if ( $show_excerpt && '' !== $excerpt ) : ?>
+							<div class="bw-ms-description">
+								<p><?php echo esc_html( $excerpt ); ?></p>
+							</div>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 		</article>
 		<?php
