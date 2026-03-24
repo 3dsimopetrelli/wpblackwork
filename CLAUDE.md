@@ -169,7 +169,6 @@ Located in `metabox/`:
 
 Located in `includes/dynamic-tags/`:
 - `class-bw-artist-name-tag.php` - Elementor dynamic tag for artist name
-- `class-bw-showcase-label-tag.php` - Elementor dynamic tag for showcase label
 
 ## Asset File Conventions
 

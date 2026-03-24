@@ -123,7 +123,6 @@ function bw_render_digital_products_metabox( $post ) {
 
     $showcase_title       = get_post_meta( $post->ID, '_bw_showcase_title', true );
     $showcase_description = get_post_meta( $post->ID, '_bw_showcase_description', true );
-    $showcase_label       = get_post_meta( $post->ID, '_bw_showcase_label', true );
     $product_type         = get_post_meta( $post->ID, '_bw_product_type', true );
     if ( ! in_array( $product_type, array( 'digital', 'physical' ), true ) ) {
         $product_type = 'digital';
@@ -308,11 +307,6 @@ function bw_render_digital_products_metabox( $post ) {
         <div class="bw-metabox-section">
             <h3><?php esc_html_e( 'Static Showcase', 'bw' ); ?></h3>
             <div class="bw-metabox-field-group">
-                <label for="bw_showcase_label"><?php esc_html_e( 'Showcase Label', 'bw' ); ?></label>
-                <input type="text" id="bw_showcase_label" name="bw_showcase_label" value="<?php echo esc_attr( $showcase_label ); ?>" style="width:100%;" />
-                <span class="bw-field-description"><?php esc_html_e( 'Usa questo testo come label suggerita per il widget BW Static Showcase.', 'bw' ); ?></span>
-            </div>
-            <div class="bw-metabox-field-group">
                 <label for="bw_showcase_linked_product"><strong><?php esc_html_e( 'Prodotto collegato per Showcase', 'bw' ); ?></strong></label><br>
                 <select name="bw_showcase_linked_product" id="bw_showcase_linked_product" class="bw-product-search-select" style="width:100%;">
                     <option value=""><?php esc_html_e( 'Nessun prodotto selezionato', 'bw' ); ?></option>
@@ -467,8 +461,6 @@ function bw_save_digital_products( $post_id ) {
 
     $showcase_title       = isset( $_POST['bw_showcase_title'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_title'] ) ) : '';
     $showcase_description = isset( $_POST['bw_showcase_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['bw_showcase_description'] ) ) : '';
-    $showcase_label       = isset( $_POST['bw_showcase_label'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_showcase_label'] ) ) : '';
-
     update_post_meta( $post_id, '_bw_product_type', $product_type );
     update_post_meta( $post_id, '_bw_file_size', $file_size );
     update_post_meta( $post_id, '_bw_assets_count', $assets_count );
@@ -481,7 +473,6 @@ function bw_save_digital_products( $post_id ) {
     update_post_meta( $post_id, '_bw_showcase_image', $showcase_image );
     update_post_meta( $post_id, '_bw_showcase_title', $showcase_title );
     update_post_meta( $post_id, '_bw_showcase_description', $showcase_description );
-    update_post_meta( $post_id, '_bw_showcase_label', $showcase_label );
 
     // Save showcase_linked_product only if present in $_POST to avoid overwriting with 0
     if ( isset( $_POST['bw_showcase_linked_product'] ) ) {

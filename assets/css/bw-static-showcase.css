@@ -12,13 +12,6 @@
     opacity: 1;
 }
 
-/* Showcase Label */
-.bw-showcase-label {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-}
-
 .bw-static-showcase-container {
     position: relative;
     width: 100%;
