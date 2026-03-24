@@ -436,9 +436,8 @@
 }
 
 /* =====================================================
-   Trigger reset
-   Specificity (0,0,2,1) beats Elementor Kit
-   ".elementor-kit-7 button" = (0,0,1,1).
+   Trigger — pill design
+   Specificity (0,0,2,1) beats Elementor Kit (0,0,1,1).
    ===================================================== */
 .bw-price-variation__license-accordion button.bw-license-accordion__trigger {
 	/* Layout */
@@ -447,19 +446,16 @@
 	justify-content: space-between;
 	gap: 10px;
 	width: 100%;
-	/* Reset all button chrome */
-	background: none;
-	background-color: transparent;
-	border: none;
-	border-width: 0;
-	border-style: none;
-	border-radius: 0;
+	/* Pill design */
+	background-color: #f5f5f5;
+	border: 1.5px solid #111111;
+	border-radius: 999px;
 	box-shadow: none;
 	outline: none;
-	/* Spacing */
-	padding: 0;
+	/* Spacing: left text indent, right smaller for the arrow pill */
+	padding: 10px 10px 10px 22px;
 	margin: 0;
-	/* Typography — fully inherit */
+	/* Typography — inherit from page, no Kit overrides */
 	font: inherit;
 	font-size: inherit;
 	font-weight: inherit;
@@ -472,15 +468,18 @@
 	text-decoration: none;
 	/* Interaction */
 	cursor: pointer;
-	/* Appearance */
 	-webkit-appearance: none;
 	appearance: none;
+	transition: background-color 0.18s ease;
+}
+
+.bw-price-variation__license-accordion button.bw-license-accordion__trigger:hover {
+	background-color: #ebebeb;
 }
 
 .bw-price-variation__license-accordion button.bw-license-accordion__trigger:focus-visible {
-	outline: 2px solid currentColor;
+	outline: 2px solid #111111;
 	outline-offset: 3px;
-	border-radius: 2px;
 }
 
 .bw-license-accordion__label {
@@ -488,18 +487,23 @@
 }
 
 /* =====================================================
-   Arrow
+   Arrow pill — small rounded container with chevron
    ===================================================== */
 .bw-price-variation__license-accordion .bw-license-accordion__arrow {
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
-	opacity: 0.6;
+	width: 38px;
+	height: 34px;
+	background-color: rgba(0, 0, 0, 0.07);
+	border-radius: 999px;
 	transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bw-price-variation__license-accordion .bw-license-accordion__arrow svg {
 	display: block;
+	opacity: 0.75;
 }
 
 .bw-price-variation__license-accordion.is-open .bw-license-accordion__arrow {
@@ -507,16 +511,12 @@
 }
 
 /* =====================================================
-   JS-active state — trigger visible, separator when open
-   Specificity (0,0,3,1) always wins over Kit.
+   JS-active state
+   Specificity (0,0,3,1) — always wins over Kit.
+   No open-state separator: trigger is a self-contained pill.
    ===================================================== */
 .bw-price-variation__license-accordion.bw-js-accordion-active button.bw-license-accordion__trigger {
 	display: flex;
-}
-
-.bw-price-variation__license-accordion.bw-js-accordion-active.is-open button.bw-license-accordion__trigger {
-	padding-bottom: 10px;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Height/overflow/opacity managed entirely by JS inline styles */
