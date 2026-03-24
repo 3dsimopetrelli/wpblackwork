@@ -465,6 +465,7 @@
                 $cursor.removeClass('view prev next active');
 
                 if (slideIndex === selected) {
+                    $cursor.addClass('view active');
                     return;
                 } else {
                     $cursor.addClass(slideIndex < selected ? 'prev' : 'next').addClass('active');

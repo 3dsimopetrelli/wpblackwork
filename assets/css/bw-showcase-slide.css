@@ -358,11 +358,12 @@
 }
 
 .bw-ss-custom-cursor.view::before {
-    content: '↗';
-    font-size: 22px;
-    font-weight: 300;
-    color: rgba(0, 0, 0, 0.7);
-    line-height: 1;
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.78);
+    display: block;
 }
 
 .bw-ss-hide-cursor,
