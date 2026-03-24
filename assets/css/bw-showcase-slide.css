@@ -359,8 +359,8 @@
 
 .bw-ss-custom-cursor.view::before {
     content: '';
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.78);
     display: block;

@@ -453,23 +453,29 @@
             });
 
             const $viewport = $wrapper.find('.bw-ss-embla-viewport');
-
-            $viewport.on(`mouseenter.bwss-cursor-${this.widgetId}`, '.bw-showcase-slide-card', (e) => {
+            const updateCursorForCard = (cardEl) => {
                 const emblaApi = this.emblaCore ? this.emblaCore.api() : null;
                 const viewport = $viewport.get(0);
                 const selected = emblaApi && viewport
                     ? this._getCenteredSlideIndex(viewport, emblaApi)
                     : 0;
-                const slideIndex = parseInt($(e.currentTarget).closest('.bw-ss-slide').data('bw-index'), 10);
+                const slideIndex = parseInt($(cardEl).closest('.bw-ss-slide').data('bw-index'), 10);
 
                 $cursor.removeClass('view prev next active');
 
+                if (Number.isNaN(slideIndex)) {
+                    return;
+                }
+
                 if (slideIndex === selected) {
                     $cursor.addClass('view active');
-                    return;
                 } else {
                     $cursor.addClass(slideIndex < selected ? 'prev' : 'next').addClass('active');
                 }
+            };
+
+            $viewport.on(`mouseenter.bwss-cursor-${this.widgetId}`, '.bw-showcase-slide-card', (e) => {
+                updateCursorForCard(e.currentTarget);
             });
 
             $viewport.on(`mouseleave.bwss-cursor-${this.widgetId}`, '.bw-showcase-slide-card', () => {
@@ -478,6 +484,13 @@
 
             $viewport.on(`mouseenter.bwss-cursor-${this.widgetId}`, 'a', () => {
                 $cursor.removeClass('active view prev next');
+            });
+
+            $viewport.on(`mouseleave.bwss-cursor-${this.widgetId}`, 'a', (e) => {
+                const $card = $(e.currentTarget).closest('.bw-showcase-slide-card');
+                if ($card.length) {
+                    updateCursorForCard($card[0]);
+                }
             });
         }
 
