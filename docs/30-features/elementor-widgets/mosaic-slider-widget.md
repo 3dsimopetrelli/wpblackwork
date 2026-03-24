@@ -16,7 +16,7 @@ Desktop uses a 5-item mosaic page:
 - 1 featured item
 - 4 supporting items
 
-Mobile below `1000px` abandons the mosaic and becomes a normal one-card draggable Embla slider.
+Mobile below `1000px` abandons the mosaic and becomes a normal draggable Embla slider with three visible cards per viewport.
 
 ## Layout Variants
 Desktop supports three fixed variants:
@@ -71,8 +71,9 @@ Rules:
 - `< 1000px`: mobile linear slider mode
 
 Mobile contract:
-- cards become equal-sized
-- one card per Embla slide
+- three cards remain visible per viewport
+- Embla alignment stays `start`
+- card height falls back to the natural shared component height
 - touch drag remains available unless disabled in widget controls
 
 ## Slider Runtime
