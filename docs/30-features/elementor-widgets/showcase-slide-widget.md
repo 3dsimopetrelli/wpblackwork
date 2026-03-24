@@ -30,10 +30,29 @@ Import reference:
 Current content surfaces:
 - `Showcase Title`
 - `Showcase Description`
-- digital/physical supporting labels
+- digital/physical supporting metadata
 - CTA text/link
 - showcase image
 - `Texts color`
+
+### Product Type Branching
+The widget reads `_bw_product_type` from the showcase metabox and renders the footer differently depending on that value.
+
+- `digital`
+  - uses the digital data fields
+  - renders footer metadata as pill badges
+  - badge sources:
+    - `_bw_assets_count`
+    - `_bw_file_size`
+    - `_bw_formats`
+- `physical`
+  - does not render badge pills
+  - renders two plain text lines in the footer area
+  - text sources:
+    - `_bw_info_1`
+    - `_bw_info_2`
+
+This is an explicit runtime branch, not just an admin-only metabox visibility rule.
 
 ### Text Color Rule
 `Texts color` from the metabox is the single authority for text and badge color inside the slide.
@@ -68,7 +87,7 @@ Current behavior:
   - `Drag Free`
   - `Touch Drag`
   - `Slide Alignment`
-- `Responsive Breakpoints`
+  - `Responsive Breakpoints`
   - breakpoint px
   - slides to show
   - slides to scroll
@@ -77,9 +96,22 @@ Current behavior:
   - center mode
   - variable width
   - slide width
-  - image height mode
-  - image height
-  - image width
+    - image height mode
+    - image height
+    - image width
+
+#### Breakpoint Width Contract
+`Image Width` is not a universal “media only” control. Its effect changes based on the breakpoint configuration:
+
+- when `Variable Width = Yes`
+- and `Image Height Mode = contain` or `cover`
+- and `Image Width` uses `%`
+
+the percentage is applied to the whole slide/card width, not only to the inner image.
+
+In all other combinations:
+- pixel-based values remain a concrete image-width control
+- percentage values should not be assumed to resize the slide unless the contract above is met
 
 ### Style
 - `Images`
@@ -136,6 +168,13 @@ Current structure:
 
 This layout is a visual contract and should be treated as high fidelity.
 
+### Mobile CTA Contract
+Below `800px` viewport width:
+- the green CTA controls are hidden
+- the slide itself becomes the tappable CTA surface
+- the destination uses the same URL as the CTA button
+- tap navigation is protected by anti-drag logic so Embla swipe interactions are preserved
+
 ## Relationship To Existing Widgets
 
 ### `BW Presentation Slide`
@@ -154,3 +193,11 @@ This layout is a visual contract and should be treated as high fidelity.
 - Asset registration is centralized in `blackwork-core-plugin.php`.
 - The widget title is `BW-UI Showcase Slide`, so it participates in the Elementor panel black BW-UI family styling.
 - The widget does not introduce popup, AJAX, or review dependencies.
+- The widget uses `BWEmblaCore` and does not own a popup runtime.
+- First render stability is partially handled server-side:
+  - breakpoint CSS is emitted from PHP before JS boot
+  - initial image height mode / image height / image width are seeded into CSS custom properties
+- The custom glass cursor is stateful:
+  - side slides show left/right navigation arrows
+  - the active center slide shows a neutral dot cursor, not a navigation arrow
+  - cursor direction is recalculated from live card position vs viewport center, not only from the slide index
