@@ -1295,7 +1295,7 @@ add_action('wp_enqueue_scripts', 'bw_localize_price_variation_widget_assets', 15
 
 function bw_register_product_details_widget_assets()
 {
-    bw_register_widget_assets( 'product-details', [], false );
+    bw_register_widget_assets( 'product-details', [ 'jquery' ] );
 }
 
 function bw_register_presentation_slide_widget_assets()

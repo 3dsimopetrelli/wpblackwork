@@ -139,3 +139,113 @@
         justify-content: flex-start;
     }
 }
+
+/* ========================================
+   INFO BOX CONTENT
+   ======================================== */
+.bw-biblio-info-content {
+    line-height: 1.65;
+}
+
+.bw-biblio-info-content > *:first-child { margin-top: 0; }
+.bw-biblio-info-content > *:last-child  { margin-bottom: 0; }
+
+/* ========================================
+   ACCORDION — base (progressive enhancement)
+   Before JS activates: trigger acts as a
+   plain non-interactive heading, body stays
+   fully visible. JS adds .bw-js-accordion-active
+   to switch into interactive mode.
+   ======================================== */
+
+/* Trigger resets — visible as a heading before JS */
+.bw-biblio-accordion__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: default;
+    pointer-events: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    -webkit-appearance: none;
+    appearance: none;
+    /* Carry the same bottom spacing as a static title */
+}
+
+/* Title inside trigger uses same spacing as static heading */
+.bw-biblio-accordion__trigger .bw-biblio-title {
+    margin: 0 0 16px;
+}
+
+/* Arrow hidden until JS activates */
+.bw-biblio-accordion__arrow {
+    display: none;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: 0.65;
+    /* Rotation transition — driven by CSS, triggered via .is-open */
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Keep the arrow aligned with mid-line of title text */
+    align-self: center;
+    margin-bottom: 16px; /* match title margin so it lines up vertically */
+}
+
+.bw-biblio-accordion__arrow svg {
+    display: block;
+}
+
+/* ========================================
+   ACCORDION — JS-active state
+   ======================================== */
+
+.bw-biblio-accordion.bw-js-accordion-active .bw-biblio-accordion__trigger {
+    cursor: pointer;
+    pointer-events: auto;
+    /* Comfortable click target */
+    padding: 2px 0;
+}
+
+.bw-biblio-accordion.bw-js-accordion-active .bw-biblio-accordion__trigger:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+/* Title inside active trigger: no bottom margin (trigger provides spacing) */
+.bw-biblio-accordion.bw-js-accordion-active .bw-biblio-accordion__trigger .bw-biblio-title {
+    margin: 0;
+}
+
+/* Arrow visible */
+.bw-biblio-accordion.bw-js-accordion-active .bw-biblio-accordion__arrow {
+    display: inline-flex;
+    margin-bottom: 0;
+}
+
+/* Open state: arrow points up */
+.bw-biblio-accordion.bw-js-accordion-active.is-open .bw-biblio-accordion__arrow {
+    transform: rotate(180deg);
+}
+
+/* Separator line between trigger and body — only when open */
+.bw-biblio-accordion.bw-js-accordion-active.is-open .bw-biblio-accordion__trigger {
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+}
+
+/* Body padding when open — space between separator and content */
+.bw-biblio-accordion.bw-js-accordion-active.is-open .bw-biblio-accordion__body {
+    padding-top: 16px;
+}
+
+/* Body height/opacity/overflow are managed entirely via JS inline styles
+   for precise, glitch-free animation. No height: 0 rule here — JS sets
+   it on activation so there is never a flash of content. */
