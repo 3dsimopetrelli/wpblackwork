@@ -1,5 +1,6 @@
 <?php
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
 use Elementor\Repeater;
 use Elementor\Widget_Base;
 
@@ -387,6 +388,84 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
     }
 
     private function register_style_controls() {
+        $this->start_controls_section(
+            'section_style_text',
+            [
+                'label' => __( 'Text', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'heading_title_typography',
+            [
+                'label'     => __( 'Title', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'none',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'title_typography',
+                'selector' => '{{WRAPPER}} .bw-showcase-slide-title',
+            ]
+        );
+
+        $this->add_control(
+            'heading_subtitle_typography',
+            [
+                'label'     => __( 'Subtitle', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'subtitle_typography',
+                'selector' => '{{WRAPPER}} .bw-showcase-slide-description',
+            ]
+        );
+
+        $this->add_control(
+            'heading_labels_typography',
+            [
+                'label'     => __( 'Labels', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'labels_typography',
+                'selector' => '{{WRAPPER}} .bw-showcase-slide-badge',
+            ]
+        );
+
+        $this->add_control(
+            'heading_physical_info_typography',
+            [
+                'label'     => __( 'Physical Info', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'physical_info_typography',
+                'selector' => '{{WRAPPER}} .bw-showcase-slide-physical-line',
+            ]
+        );
+
+        $this->end_controls_section();
+
         $this->start_controls_section(
             'section_style_images',
             [

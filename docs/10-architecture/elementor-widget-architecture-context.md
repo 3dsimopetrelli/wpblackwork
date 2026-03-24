@@ -38,7 +38,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Product Grid / Query Grid:
   - `bw-product-grid`, `bw-related-products`
 - Slider:
-  - `bw-product-slider`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
+  - `bw-product-slider`, `bw-mosaic-slider`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
   - `bw-price-variation`, `bw-product-details-table`, `bw-title-product`, `bw-product-description`, `bw-product-breadcrumbs`
 - Product Reviews / Trust:
@@ -81,6 +81,7 @@ Decisions already fixed:
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slider` -> canonical current product slider
+- `bw-mosaic-slider` -> mixed-content Embla slider with desktop mosaic pages and mobile linear fallback; product results still reuse `BW_Product_Card_Component`
 - `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
 - `bw-showcase-slide` -> current Embla-based showcase/content slider sourcing content from the product showcase metabox without popup complexity
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review

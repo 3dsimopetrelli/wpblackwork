@@ -35,6 +35,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
+- `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with desktop asymmetric 5-item mosaic pages and mobile linear fallback
 - `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching and mobile full-slide CTA behavior
 - `import-info/showcase-slide-metabox-import-map.md`: importer mapping for the Showcase metabox (`product_type`, digital fields, physical fields, CTA, and shared meta keys)
 
@@ -44,6 +45,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slider` -> canonical current product slider
+- `bw-mosaic-slider` -> implemented mixed-content Embla slider with desktop mosaic pages and mobile linear fallback
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
   - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget

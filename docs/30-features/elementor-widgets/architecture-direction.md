@@ -20,6 +20,11 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
   - `bw-related-products` as product-card reuse reference
 - `Product Slider Family`
   - `bw-product-slider` as canonical current product slider
+- `Editorial Slider Family`
+  - `bw-mosaic-slider` as a mixed-content asymmetric slider
+  - desktop uses 5-item mosaic pages
+  - mobile collapses to a linear Embla slider
+  - product rendering continues to delegate to `BW_Product_Card_Component`
 - `Presentation Slider Family`
   - `bw-presentation-slide` as specialized gallery/presentation runtime
   - audit status (2026-03-20): active implementation is widget-local Embla runtime for horizontal and responsive-vertical flows; desktop vertical remains a non-Embla elevator layout
