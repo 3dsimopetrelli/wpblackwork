@@ -443,10 +443,10 @@
                     : 0;
                 const slideIndex = parseInt($(e.currentTarget).closest('.bw-ss-slide').data('bw-index'), 10);
 
-                $cursor.removeClass('view prev next');
+                $cursor.removeClass('view prev next active');
 
                 if (slideIndex === selected) {
-                    $cursor.addClass('view active');
+                    return;
                 } else {
                     $cursor.addClass(slideIndex < selected ? 'prev' : 'next').addClass('active');
                 }
