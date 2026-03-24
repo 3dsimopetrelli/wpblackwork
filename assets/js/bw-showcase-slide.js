@@ -314,14 +314,16 @@
             const width = $(window).width();
             const $horizontal = this._$horizontal;
             const $images = this._$images;
+            const $slides = this.$wrapper.find('.bw-ss-slide');
 
-            if (!$horizontal || !$horizontal.length || !$images || !$images.length) {
+            if (!$horizontal || !$horizontal.length || !$images || !$images.length || !$slides.length) {
                 return;
             }
 
             let heightMode = 'auto';
             let imageHeight = null;
             let imageWidth = null;
+            let variableWidth = false;
 
             for (const bp of this._sortedBreakpoints) {
                 if (width <= bp.breakpoint) {
@@ -334,6 +336,7 @@
                     if (bp.imageWidth) {
                         imageWidth = bp.imageWidth;
                     }
+                    variableWidth = bp.variableWidth === true;
                     break;
                 }
             }
@@ -354,8 +357,24 @@
             }
 
             if (['contain', 'cover'].includes(heightMode) && imageWidth?.size != null && imageWidth?.unit) {
-                $images.css('width', `${imageWidth.size}${imageWidth.unit}`);
+                if (variableWidth && imageWidth.unit === '%') {
+                    $slides.css({
+                        flex: `0 0 ${imageWidth.size}${imageWidth.unit}`,
+                        maxWidth: `${imageWidth.size}${imageWidth.unit}`,
+                    });
+                    $images.css('width', '100%');
+                } else {
+                    $slides.css({
+                        flex: '',
+                        maxWidth: '',
+                    });
+                    $images.css('width', `${imageWidth.size}${imageWidth.unit}`);
+                }
             } else {
+                $slides.css({
+                    flex: '',
+                    maxWidth: '',
+                });
                 $images.css('width', '');
             }
         }

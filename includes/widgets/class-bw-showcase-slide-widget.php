@@ -1046,6 +1046,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         $sel_slide  = $el_prefix . ' .bw-ss-slide';
         $sel_arrows = $el_prefix . ' .bw-ss-arrows-container';
         $sel_dots   = $el_prefix . ' .bw-ss-dots-container';
+        $sel_horizontal = $el_prefix . ' .bw-showcase-slide-horizontal';
+        $sel_image = $el_prefix . ' .bw-showcase-slide-image-el';
+        $sel_image_wrap = $el_prefix . ' .bw-showcase-slide-image';
 
         $css = '<style>';
 
@@ -1056,6 +1059,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             $slide_width    = absint( $bp['slide_width'] ?? 0 );
             $show_arrows    = ( $bp['show_arrows'] ?? 'yes' ) === 'yes';
             $show_dots      = ( $bp['show_dots'] ?? '' ) === 'yes';
+            $height_mode    = sanitize_key( $bp['image_height_mode'] ?? 'auto' );
+            $image_height   = $bp['image_height'] ?? null;
+            $image_width    = $bp['image_width'] ?? null;
 
             if ( $bp_px <= 0 ) {
                 continue;
@@ -1075,6 +1081,47 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             $css .= $sel_slide . '{flex:0 0 ' . $slide_size . ';}';
             $css .= $sel_arrows . '{display:' . ( $show_arrows ? 'flex' : 'none' ) . ';}';
             $css .= $sel_dots . '{display:' . ( $show_dots ? 'flex' : 'none' ) . ';}';
+
+            if ( in_array( $height_mode, [ 'fixed', 'contain', 'cover' ], true ) ) {
+                $css .= $sel_horizontal . '{';
+                $css .= '--bw-ss-initial-image-height-mode:' . $height_mode . ';';
+
+                if ( ! empty( $image_height['size'] ) ) {
+                    $css .= '--bw-ss-initial-image-height:' . (float) $image_height['size'] . ( $image_height['unit'] ?? 'px' ) . ';';
+                }
+
+                if ( in_array( $height_mode, [ 'contain', 'cover' ], true ) && ! empty( $image_width['size'] ) ) {
+                    $css .= '--bw-ss-initial-image-width:' . (float) $image_width['size'] . ( $image_width['unit'] ?? 'px' ) . ';';
+                }
+
+                $css .= '}';
+            }
+
+            if ( ! empty( $image_height['size'] ) ) {
+                $css .= $sel_image . '{height:' . (float) $image_height['size'] . ( $image_height['unit'] ?? 'px' ) . ';}';
+            }
+
+            if ( in_array( $height_mode, [ 'contain', 'cover' ], true ) && ! empty( $image_width['size'] ) ) {
+                $image_width_value = (float) $image_width['size'] . ( $image_width['unit'] ?? 'px' );
+
+                if ( $variable_width && '%' === ( $image_width['unit'] ?? 'px' ) ) {
+                    $css .= $sel_slide . '{flex:0 0 ' . $image_width_value . ';max-width:' . $image_width_value . ';}';
+                    $css .= $sel_image . '{width:100%;}';
+                } else {
+                    $css .= $sel_image . '{width:' . $image_width_value . ';}';
+                }
+
+                $css .= $sel_image_wrap . '{display:flex;align-items:center;justify-content:center;}';
+            }
+
+            if ( 'contain' === $height_mode ) {
+                $css .= $sel_image . '{object-fit:contain;object-position:center;}';
+            } elseif ( 'cover' === $height_mode ) {
+                $css .= $sel_image . '{object-fit:cover;object-position:center;}';
+            } elseif ( 'fixed' === $height_mode ) {
+                $css .= $sel_image . '{width:auto;}';
+            }
+
             $css .= '}';
         }
 
