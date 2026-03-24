@@ -117,7 +117,9 @@ Widget-local runtime:
 - `Image Size`
 
 ### Style
-- tile gap
+- desktop mosaic height
+- horizontal gap
+- vertical gap
 - tile border radius
 
 ## Caching

@@ -500,9 +500,37 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
-			'tile_gap',
+			'desktop_mosaic_height',
 			array(
-				'label'      => __( 'Gap Between Tiles', 'bw-elementor-widgets' ),
+				'label'      => __( 'Desktop Mosaic Height', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px', 'vh' ),
+				'range'      => array(
+					'px' => array(
+						'min'  => 320,
+						'max'  => 1400,
+						'step' => 10,
+					),
+					'vh' => array(
+						'min'  => 30,
+						'max'  => 100,
+						'step' => 1,
+					),
+				),
+				'default'    => array(
+					'size' => 700,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}}' => '--bw-ms-desktop-height: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'horizontal_gap',
+			array(
+				'label'      => __( 'Horizontal Gap', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => array( 'px' ),
 				'range'      => array(
@@ -517,7 +545,30 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-ms-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}}' => '--bw-ms-column-gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'vertical_gap',
+			array(
+				'label'      => __( 'Vertical Gap', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min'  => 0,
+						'max'  => 60,
+						'step' => 1,
+					),
+				),
+				'default'    => array(
+					'size' => 18,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}}' => '--bw-ms-row-gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);

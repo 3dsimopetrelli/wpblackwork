@@ -5,7 +5,9 @@
  */
 
 .bw-mosaic-slider-wrapper {
-    --bw-ms-gap: 18px;
+    --bw-ms-desktop-height: 700px;
+    --bw-ms-column-gap: 18px;
+    --bw-ms-row-gap: 18px;
     --bw-ms-tile-radius: 18px;
     position: relative;
     width: 100%;
@@ -50,10 +52,11 @@
 
 .bw-ms-page {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.25fr) minmax(0, 1fr);
     grid-template-rows: repeat(2, minmax(0, 1fr));
-    gap: var(--bw-ms-gap);
-    min-height: clamp(520px, 58vw, 840px);
+    column-gap: var(--bw-ms-column-gap);
+    row-gap: var(--bw-ms-row-gap);
+    height: var(--bw-ms-desktop-height);
 }
 
 .bw-ms-page--center .bw-ms-slot--featured {
