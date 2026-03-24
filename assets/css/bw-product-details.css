@@ -159,9 +159,12 @@
    once it initialises.
    ======================================== */
 
-/* Mobile/tablet accordion: hide body on ≤1024px immediately */
+/* Mobile/tablet accordion: hide body on ≤1024px immediately.
+   :not(.is-open) ensures CSS does not fight the open state —
+   once JS adds .is-open the CSS rule no longer applies and
+   inline styles (set by JS) keep the body expanded. */
 @media (max-width: 1024px) {
-    .bw-biblio-accordion.bw-biblio-accordion--mobile .bw-biblio-accordion__body {
+    .bw-biblio-accordion.bw-biblio-accordion--mobile:not(.is-open) .bw-biblio-accordion__body {
         height: 0;
         overflow: hidden;
         opacity: 0;
@@ -170,18 +173,25 @@
 
 /* Desktop accordion: hide body on ≥1025px immediately */
 @media (min-width: 1025px) {
-    .bw-biblio-accordion.bw-biblio-accordion--desktop .bw-biblio-accordion__body {
+    .bw-biblio-accordion.bw-biblio-accordion--desktop:not(.is-open) .bw-biblio-accordion__body {
         height: 0;
         overflow: hidden;
         opacity: 0;
     }
 }
 
-/* Fallback: accordion enabled, no sub-class present → active everywhere */
-.bw-biblio-accordion:not(.bw-biblio-accordion--mobile):not(.bw-biblio-accordion--desktop) .bw-biblio-accordion__body {
+/* Fallback: no sub-class → active everywhere */
+.bw-biblio-accordion:not(.bw-biblio-accordion--mobile):not(.bw-biblio-accordion--desktop):not(.is-open) .bw-biblio-accordion__body {
     height: 0;
     overflow: hidden;
     opacity: 0;
+}
+
+/* Inner wrapper — provides top spacing that is properly clipped by
+   overflow:hidden on the outer body (unlike padding on the body itself,
+   which is NOT clipped and would show a visible gap when height:0). */
+.bw-biblio-accordion .bw-biblio-accordion__body-inner {
+    padding-top: 16px;
 }
 
 /* ========================================
@@ -290,10 +300,7 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Padding above content when open */
-.bw-biblio-accordion.bw-js-accordion-active.is-open .bw-biblio-accordion__body {
-    padding-top: 16px;
-}
-
 /* Height / overflow / opacity are managed exclusively via JS inline styles
-   for smooth, glitch-free animation. CSS only handles static states. */
+   for smooth, glitch-free animation. CSS only handles static states.
+   Spacing above content is handled by .bw-biblio-accordion__body-inner
+   padding-top, which is safely clipped by overflow:hidden on the body. */

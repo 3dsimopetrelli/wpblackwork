@@ -13,21 +13,20 @@
     'use strict';
 
     // ---------------------------------------------------------------------------
-    // Animation constants — tuned for a premium, settled feel.
-    // Opening uses an "expo out" curve: content snaps confidently into place.
-    // Closing uses a standard ease-in-out: controlled, not abrupt.
+    // Timing constants
+    // expo-out for open (content snaps confidently into place)
+    // standard ease for close (controlled, settled)
     // ---------------------------------------------------------------------------
-    var OPEN_MS        = 380;
-    var CLOSE_MS       = 300;
-    var OPEN_EASING    = 'cubic-bezier(0.16, 1, 0.3, 1)';   // expo-out / Shopify-style
-    var CLOSE_EASING   = 'cubic-bezier(0.4, 0, 0.2, 1)';    // standard material ease
-    var BREAKPOINT     = '(min-width: 1025px)';
+    var OPEN_MS      = 380;
+    var CLOSE_MS     = 300;
+    var OPEN_EASING  = 'cubic-bezier(0.16, 1, 0.3, 1)';
+    var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+    var BREAKPOINT   = '(min-width: 1025px)';
 
     // ---------------------------------------------------------------------------
     // initBiblioAccordion
     // ---------------------------------------------------------------------------
     function initBiblioAccordion($widget) {
-        // Guard: only accordions, only once.
         if (!$widget.hasClass('bw-biblio-accordion')) { return; }
         if ($widget.data('bwBiblioAcc'))              { return; }
         $widget.data('bwBiblioAcc', true);
@@ -35,7 +34,7 @@
         var hasMobile  = $widget.hasClass('bw-biblio-accordion--mobile');
         var hasDesktop = $widget.hasClass('bw-biblio-accordion--desktop');
 
-        // If neither sub-toggle is set, treat both as enabled.
+        // Neither sub-toggle → active on all breakpoints
         if (!hasMobile && !hasDesktop) {
             hasMobile  = true;
             hasDesktop = true;
@@ -51,106 +50,135 @@
         // Helpers
         // -----------------------------------------------------------------------
 
-        function clearTransition() {
-            bodyEl.style.transition = '';
-        }
-
-        function buildTransition(durationMs, easing, opacityMs) {
-            return [
+        function setTransition(durationMs, easing, opacityMs) {
+            bodyEl.style.transition = [
                 'height '  + durationMs + 'ms ' + easing,
                 'opacity ' + opacityMs  + 'ms ease'
             ].join(', ');
         }
 
+        function clearTransition() {
+            bodyEl.style.transition = '';
+        }
+
         // -----------------------------------------------------------------------
-        // State: activate / deactivate
+        // activate / deactivate
         // -----------------------------------------------------------------------
 
         function activate() {
             clearTimeout(timer);
             clearTransition();
-            $widget.addClass('bw-js-accordion-active').removeClass('is-open');
-            $trigger.attr('aria-expanded', 'false');
-            $body.attr('aria-hidden', 'true');
-            // Set initial closed state without any transition.
+            // Set closed state via inline styles (override CSS flash-prevention)
             bodyEl.style.height   = '0';
             bodyEl.style.overflow = 'hidden';
             bodyEl.style.opacity  = '0';
+            $widget.addClass('bw-js-accordion-active').removeClass('is-open');
+            $trigger.attr('aria-expanded', 'false');
+            $body.attr('aria-hidden', 'true');
         }
 
         function deactivate() {
             clearTimeout(timer);
             clearTransition();
             $widget.removeClass('bw-js-accordion-active is-open');
-            // Remove all inline styles → body flows naturally.
+            // Remove all inline constraints — body flows naturally
             bodyEl.style.cssText = '';
             $trigger.attr('aria-expanded', 'false');
             $body.attr('aria-hidden', 'false');
         }
 
         // -----------------------------------------------------------------------
-        // Animation: open / close
+        // open
         // -----------------------------------------------------------------------
 
         function open() {
+            if ($widget.hasClass('is-open')) { return; }
             clearTimeout(timer);
 
-            var targetH = bodyEl.scrollHeight;
-
-            // Mark open immediately so CSS selector .is-open can apply padding-top
-            // (which is included in scrollHeight measured above, so order matters).
+            // 1. Add .is-open so CSS padding-top on inner and border-bottom on
+            //    trigger are applied before we measure the target height.
             $widget.addClass('is-open');
             $trigger.attr('aria-expanded', 'true');
             $body.attr('aria-hidden', 'false');
 
-            // Measure again after .is-open padding-top is applied.
-            targetH = bodyEl.scrollHeight;
-
-            // Apply transition then set target values.
-            bodyEl.style.transition = buildTransition(OPEN_MS, OPEN_EASING, Math.round(OPEN_MS * 0.75));
-            bodyEl.style.height     = targetH + 'px';
-            bodyEl.style.opacity    = '1';
-
-            // After animation: release height constraint so dynamic content works.
-            timer = setTimeout(function () {
-                if ($widget.hasClass('is-open')) {
-                    bodyEl.style.height   = '';
-                    bodyEl.style.overflow = '';
-                    clearTransition();
-                }
-            }, OPEN_MS + 60);
-        }
-
-        function close() {
-            clearTimeout(timer);
-
-            // 1. Pin the current rendered height (avoid jumping from "auto").
-            bodyEl.style.height   = bodyEl.offsetHeight + 'px';
-            bodyEl.style.overflow = 'hidden';
+            // 2. Make sure we start from a known zero state, no transition yet.
             clearTransition();
+            bodyEl.style.height   = '0';
+            bodyEl.style.overflow = 'hidden';
+            bodyEl.style.opacity  = '0';
 
-            // 2. Force layout recalculation so the browser registers the pinned height.
+            // 3. Measure the full target height now that .is-open is active.
+            //    scrollHeight gives the true content height regardless of
+            //    the current height:0 clipping.
+            var targetH = bodyEl.scrollHeight;
+
+            // 4. Force a layout recalculation so the browser registers
+            //    height:0 as the definite FROM value before we set the
+            //    transition. Without this the browser can batch the
+            //    height change and skip the animation entirely.
             // eslint-disable-next-line no-unused-expressions
             bodyEl.offsetHeight;
 
-            // 3. Apply transition and animate to zero.
-            bodyEl.style.transition = buildTransition(CLOSE_MS, CLOSE_EASING, Math.round(CLOSE_MS * 0.6));
+            // 5. Apply transition, then set target values in the same tick.
+            //    The forced reflow in step 4 guarantees the animation fires.
+            setTransition(OPEN_MS, OPEN_EASING, Math.round(OPEN_MS * 0.75));
+            bodyEl.style.height  = targetH + 'px';
+            bodyEl.style.opacity = '1';
 
-            // rAF ensures the transition is registered before we change the values.
-            requestAnimationFrame(function () {
-                $widget.removeClass('is-open');
-                $trigger.attr('aria-expanded', 'false');
-                $body.attr('aria-hidden', 'true');
-                bodyEl.style.height  = '0';
-                bodyEl.style.opacity = '0';
-            });
-
-            // Clean up transition after animation ends.
-            timer = setTimeout(clearTransition, CLOSE_MS + 60);
+            // 6. After animation: release fixed height so content can reflow
+            //    freely (e.g. images lazy-loading, dynamic content).
+            timer = setTimeout(function () {
+                if ($widget.hasClass('is-open')) {
+                    clearTransition();
+                    bodyEl.style.height   = '';
+                    bodyEl.style.overflow = '';
+                }
+            }, OPEN_MS + 80);
         }
 
         // -----------------------------------------------------------------------
-        // Responsive: update accordion mode on breakpoint change
+        // close
+        // -----------------------------------------------------------------------
+
+        function close() {
+            if (!$widget.hasClass('is-open')) { return; }
+            clearTimeout(timer);
+
+            // 1. Pin the current rendered height as an explicit px value.
+            //    getBoundingClientRect().height is more reliable than
+            //    offsetHeight when fractional pixels are involved.
+            var currentH = bodyEl.getBoundingClientRect().height;
+            clearTransition();
+            bodyEl.style.height   = currentH + 'px';
+            bodyEl.style.overflow = 'hidden';
+
+            // 2. Force reflow so the browser registers currentH as FROM value.
+            // eslint-disable-next-line no-unused-expressions
+            bodyEl.offsetHeight;
+
+            // 3. Remove .is-open (arrow resets, separator disappears).
+            $widget.removeClass('is-open');
+            $trigger.attr('aria-expanded', 'false');
+            $body.attr('aria-hidden', 'true');
+
+            // 4. Another forced reflow to commit the is-open removal before
+            //    the transition starts — prevents any CSS-triggered height
+            //    change from interfering with the animation start.
+            // eslint-disable-next-line no-unused-expressions
+            bodyEl.offsetHeight;
+
+            // 5. Animate to zero.
+            setTransition(CLOSE_MS, CLOSE_EASING, Math.round(CLOSE_MS * 0.6));
+            bodyEl.style.height  = '0';
+            bodyEl.style.opacity = '0';
+
+            // 6. Clean up transition; leave height:0 and opacity:0 in place
+            //    so the CSS flash-prevention rule and the inline state agree.
+            timer = setTimeout(clearTransition, CLOSE_MS + 80);
+        }
+
+        // -----------------------------------------------------------------------
+        // Responsive
         // -----------------------------------------------------------------------
 
         function updateMode() {
@@ -163,11 +191,10 @@
 
         updateMode();
 
-        // matchMedia listener (with Safari < 14 fallback).
         if (mql.addEventListener) {
             mql.addEventListener('change', updateMode);
         } else {
-            mql.addListener(updateMode);
+            mql.addListener(updateMode); // Safari < 14 fallback
         }
 
         // -----------------------------------------------------------------------
@@ -182,12 +209,10 @@
                 open();
             }
         });
-
-        // Keyboard: space / enter already fire click on <button>, nothing extra needed.
     }
 
     // ---------------------------------------------------------------------------
-    // Initialisation
+    // Init
     // ---------------------------------------------------------------------------
 
     function initAll() {
@@ -198,7 +223,6 @@
 
     $(document).ready(initAll);
 
-    // Elementor live-preview re-init.
     $(window).on('elementor/frontend/init', function () {
         if (typeof elementorFrontend === 'undefined' || !elementorFrontend.hooks) { return; }
         elementorFrontend.hooks.addAction(
