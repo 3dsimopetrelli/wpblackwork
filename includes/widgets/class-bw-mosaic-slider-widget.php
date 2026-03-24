@@ -573,29 +573,6 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'tile_radius',
-			array(
-				'label'      => __( 'Tile Border Radius', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
-				'range'      => array(
-					'px' => array(
-						'min'  => 0,
-						'max'  => 48,
-						'step' => 1,
-					),
-				),
-				'default'    => array(
-					'size' => 18,
-					'unit' => 'px',
-				),
-				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-ms-tile-radius: {{SIZE}}{{UNIT}};',
-				),
-			)
-		);
-
 		$this->end_controls_section();
 	}
 

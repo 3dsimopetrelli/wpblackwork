@@ -5,10 +5,6 @@
  */
 
 .bw-mosaic-slider-wrapper {
-    --bw-ms-desktop-height: 700px;
-    --bw-ms-column-gap: 18px;
-    --bw-ms-row-gap: 18px;
-    --bw-ms-tile-radius: 18px;
     position: relative;
     width: 100%;
     transition: opacity 0.35s ease;
@@ -54,9 +50,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2.25fr) minmax(0, 1fr);
     grid-template-rows: repeat(2, minmax(0, 1fr));
-    column-gap: var(--bw-ms-column-gap);
-    row-gap: var(--bw-ms-row-gap);
-    height: var(--bw-ms-desktop-height);
+    column-gap: var(--bw-ms-column-gap, 18px);
+    row-gap: var(--bw-ms-row-gap, 18px);
+    height: var(--bw-ms-desktop-height, 700px);
 }
 
 .bw-ms-page--center .bw-ms-slot--featured {
@@ -155,7 +151,7 @@
 .bw-ms-slot .bw-product-card .bw-slider-image-container {
     flex: 1 1 auto;
     min-height: 0;
-    border-radius: var(--bw-ms-tile-radius);
+    border-radius: 18px;
 }
 
 .bw-ms-slot .bw-product-card .bw-wallpost-media,
@@ -185,7 +181,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    border-radius: var(--bw-ms-tile-radius);
+    border-radius: 18px;
     background: #ececec;
 }
 
