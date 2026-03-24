@@ -863,7 +863,15 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                     </div>
 
                     <div class="bw-showcase-slide-footer">
-                        <?php if ( ! empty( $slide['labels'] ) ) : ?>
+                        <?php if ( 'physical' === $slide['product_type'] ) : ?>
+                            <?php if ( ! empty( $slide['physical_info'] ) ) : ?>
+                                <div class="bw-showcase-slide-physical">
+                                    <?php foreach ( $slide['physical_info'] as $line ) : ?>
+                                        <p class="bw-showcase-slide-physical-line"><?php echo esc_html( $line ); ?></p>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php elseif ( ! empty( $slide['labels'] ) ) : ?>
                             <div class="bw-showcase-slide-labels">
                                 <?php foreach ( $slide['labels'] as $label ) : ?>
                                     <span class="bw-showcase-slide-badge"><?php echo esc_html( $label ); ?></span>
@@ -918,6 +926,11 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             }
         }
 
+        $product_type = sanitize_key( $get_meta( '_bw_product_type' ) );
+        if ( ! in_array( $product_type, [ 'digital', 'physical' ], true ) ) {
+            $product_type = 'digital';
+        }
+
         $showcase_title = trim( (string) $get_meta( '_bw_showcase_title' ) );
         if ( '' === $showcase_title ) {
             $showcase_title = $product_title;
@@ -929,15 +942,17 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         }
 
         return [
-            'id'          => $product_id,
-            'title'       => $showcase_title,
-            'description' => trim( (string) $get_meta( '_bw_showcase_description' ) ),
-            'labels'      => $this->build_labels_list( $all_meta ),
-            'button_text' => $this->resolve_button_text( $all_meta ),
-            'button_url'  => $this->resolve_button_url( $product_id, $all_meta ),
-            'text_color'  => $text_color,
-            'image_id'    => $image_id,
-            'image_url'   => $image_url,
+            'id'            => $product_id,
+            'product_type'  => $product_type,
+            'title'         => $showcase_title,
+            'description'   => trim( (string) $get_meta( '_bw_showcase_description' ) ),
+            'labels'        => $this->build_labels_list( $all_meta ),
+            'physical_info' => $this->build_physical_info_list( $all_meta ),
+            'button_text'   => $this->resolve_button_text( $all_meta ),
+            'button_url'    => $this->resolve_button_url( $product_id, $all_meta ),
+            'text_color'    => $text_color,
+            'image_id'      => $image_id,
+            'image_url'     => $image_url,
         ];
     }
 
@@ -987,16 +1002,31 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                     }
                 }
             }
-        } else {
-            foreach ( [ '_bw_info_1', '_bw_info_2' ] as $info_key ) {
-                $value = trim( wp_strip_all_tags( $get_meta( $info_key ) ) );
-                if ( '' !== $value ) {
-                    $labels[] = $value;
-                }
-            }
         }
 
         return $labels;
+    }
+
+    private function build_physical_info_list( $all_meta ) {
+        $get_meta = static function ( $key ) use ( $all_meta ) {
+            return isset( $all_meta[ $key ][0] ) ? $all_meta[ $key ][0] : '';
+        };
+
+        $product_type = sanitize_key( $get_meta( '_bw_product_type' ) );
+        if ( 'physical' !== $product_type ) {
+            return [];
+        }
+
+        $lines = [];
+
+        foreach ( [ '_bw_info_1', '_bw_info_2' ] as $info_key ) {
+            $value = trim( wp_strip_all_tags( $get_meta( $info_key ) ) );
+            if ( '' !== $value ) {
+                $lines[] = $value;
+            }
+        }
+
+        return $lines;
     }
 
     private function resolve_button_text( $all_meta ) {

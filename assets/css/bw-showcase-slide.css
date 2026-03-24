@@ -136,6 +136,22 @@
     flex-wrap: wrap;
 }
 
+.bw-showcase-slide-physical {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    max-width: 460px;
+}
+
+.bw-showcase-slide-physical-line {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.32;
+    font-weight: 400;
+    color: var(--bw-showcase-slide-text-color, #ffffff) !important;
+}
+
 .bw-showcase-slide-badge {
     display: inline-flex;
     align-items: center;
@@ -438,6 +454,11 @@
         min-height: 28px;
         padding: 4px 10px;
         font-size: 11px;
+    }
+
+    .bw-showcase-slide-physical-line {
+        font-size: 12px;
+        line-height: 1.35;
     }
 
     .bw-showcase-slide-button {
