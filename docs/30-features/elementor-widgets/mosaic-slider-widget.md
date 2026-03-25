@@ -30,6 +30,8 @@ Contract:
 - the first queried item in each 5-item batch is always the featured item
 - the next four items fill the supporting positions in order
 - `Big center split` alternates the split composition left/right across desktop pages
+- `Big post left` and `Big post right` use a 50/50 desktop split:
+  one half is a 2x2 grid of supporting cards and the other half is one featured card
 
 ## Content Sources
 Current source types:

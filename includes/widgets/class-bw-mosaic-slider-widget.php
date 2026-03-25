@@ -1174,7 +1174,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			return $variant;
 		}
 
-		return 0 === ( $page_index % 2 ) ? 'left' : 'right';
+		return 0 === ( $page_index % 2 ) ? 'split-left' : 'split-right';
 	}
 
 	/**
