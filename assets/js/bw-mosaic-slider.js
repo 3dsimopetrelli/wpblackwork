@@ -34,8 +34,8 @@
                 return;
             }
 
-            if (typeof BWEmblaCore === 'undefined') {
-                console.warn('BW Mosaic Slider: BWEmblaCore non disponibile.');
+            if (typeof BWEmblaCore === 'undefined' || typeof EmblaCarousel === 'undefined') {
+                console.warn('BW Mosaic Slider: BWEmblaCore o EmblaCarousel non disponibile.');
                 return;
             }
 
@@ -87,7 +87,7 @@
                 playOnInit: true,
                 stopOnInteraction: true,
                 stopOnMouseEnter: modeConfig.pauseOnHover !== false,
-                stopOnFocusIn: true,
+                stopOnFocusIn: !!modeConfig.stopOnFocusIn,
                 jump: false,
             } : false;
 
@@ -151,7 +151,7 @@
                 return (_emblaApi, event) => event.pointerType === 'mouse';
             }
 
-            return (_emblaApi, event) => event.pointerType !== 'mouse';
+            return (_emblaApi, event) => event.pointerType === 'touch' || event.pointerType === 'pen';
         }
 
         _attachWheelHandler() {

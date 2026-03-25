@@ -339,6 +339,21 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'autoplay_pause_on_focus',
+			array(
+				'label'        => __( 'Pause on Focus', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'autoplay' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
 			'drag_free',
 			array(
 				'label'        => __( 'Drag Free', 'bw-elementor-widgets' ),
@@ -395,6 +410,23 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'dots_position',
+			array(
+				'label'     => __( 'Dots Position', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'center',
+				'options'   => array(
+					'start'  => __( 'Left', 'bw-elementor-widgets' ),
+					'center' => __( 'Center', 'bw-elementor-widgets' ),
+					'end'    => __( 'Right', 'bw-elementor-widgets' ),
+				),
+				'condition' => array(
+					'show_dots' => 'yes',
+				),
 			)
 		);
 
@@ -802,7 +834,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 
 		if ( null === $posts ) {
 			$query = new WP_Query( $args );
-			$posts = $query->posts;
+			$posts = is_array( $query->posts ) ? $query->posts : array();
 			wp_reset_postdata();
 
 			if ( $cache_key && ! empty( $posts ) ) {
@@ -820,7 +852,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'widgetId'           => $widget_id,
 			'showArrows'         => ( $settings['show_arrows'] ?? 'yes' ) === 'yes',
 			'showDots'           => ( $settings['show_dots'] ?? 'yes' ) === 'yes',
-			'dotsPosition'       => 'center',
+			'dotsPosition'       => $settings['dots_position'] ?? 'center',
 			// Single source of truth: JS reads this instead of its own hardcoded constant.
 			'mobileBreakpoint'   => self::MOBILE_BREAKPOINT,
 			// Responsive overlay-button state mirrored to JS for future-proofing.
@@ -855,7 +887,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			array(
 				'class'          => implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ),
 				'data-widget-id' => esc_attr( $widget_id ),
-				'data-config'    => wp_json_encode( $config ),
+				'data-config'    => esc_attr( wp_json_encode( $config ) ),
 			)
 		);
 
@@ -983,6 +1015,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'autoplay'        => ( $settings['autoplay'] ?? '' ) === 'yes',
 			'autoplaySpeed'   => absint( $settings['autoplay_speed'] ?? 3500 ),
 			'pauseOnHover'    => true,
+			'stopOnFocusIn'   => ( $settings['autoplay_pause_on_focus'] ?? 'yes' ) === 'yes',
 			'dragFree'        => ( $settings['drag_free'] ?? '' ) === 'yes',
 			'enableTouchDrag' => $enable_touch_drag,
 			'enableMouseDrag' => ( $settings['mouse_drag'] ?? 'yes' ) === 'yes',
@@ -1137,7 +1170,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 	 * @return string
 	 */
 	private function render_item_card( WP_Post $post, array $settings, $post_type, $image_size, $image_loading, $fetchpriority, $is_featured, $context ) {
-		if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
+		if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && method_exists( 'BW_Product_Card_Component', 'render' ) && function_exists( 'wc_get_product' ) ) {
 			$has_product_content = ( $settings['show_title'] ?? 'yes' ) === 'yes'
 				|| ( $settings['show_description'] ?? '' ) === 'yes'
 				|| ( $settings['show_price'] ?? 'yes' ) === 'yes';
