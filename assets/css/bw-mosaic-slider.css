@@ -258,7 +258,11 @@
         #f1f1f1;
 }
 
-.bw-ms-content {
+.bw-ms-content,
+.bw-ms-slot .bw-product-card .bw-ms-content,
+.bw-ms-editorial-shell .bw-ms-content {
+    display: flex;
+    flex-direction: column;
     padding-top: 14px;
     gap: var(--bw-ms-text-gap, 12px);
 }
