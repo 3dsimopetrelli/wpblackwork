@@ -55,6 +55,11 @@
     height: var(--bw-ms-desktop-height, 700px);
 }
 
+.bw-mosaic-slider-wrapper.bw-ms-auto-scale .bw-ms-page {
+    aspect-ratio: 16 / 10;
+    height: auto;
+}
+
 .bw-ms-page--center .bw-ms-slot--featured {
     grid-column: 2;
     grid-row: 1 / span 2;

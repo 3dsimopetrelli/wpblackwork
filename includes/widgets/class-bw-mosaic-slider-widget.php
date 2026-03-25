@@ -275,6 +275,19 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'auto_scale_mosaic',
+			array(
+				'label'        => __( 'Auto Scale Mosaic', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'description'  => __( 'When enabled, the desktop mosaic scales proportionally as the available width shrinks. When disabled, use the manual Desktop Mosaic Height control.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
 			'mobile_breakpoint_note',
 			array(
 				'type'            => Controls_Manager::RAW_HTML,
@@ -539,6 +552,9 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				'default'    => array(
 					'size' => 700,
 					'unit' => 'px',
+				),
+				'condition'  => array(
+					'auto_scale_mosaic!' => 'yes',
 				),
 				'selectors'  => array(
 					'{{WRAPPER}}' => '--bw-ms-desktop-height: {{SIZE}}{{UNIT}};',
@@ -831,6 +847,9 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		}
 		if ( ( $settings['show_dots'] ?? 'yes' ) !== 'yes' ) {
 			$wrapper_classes[] = 'bw-ms-hide-dots';
+		}
+		if ( ( $settings['auto_scale_mosaic'] ?? '' ) === 'yes' ) {
+			$wrapper_classes[] = 'bw-ms-auto-scale';
 		}
 		if ( ( $settings['hide_overlay_buttons'] ?? '' ) === 'yes' ) {
 			$wrapper_classes[] = 'bw-ms-hide-overlay-buttons-desktop';
