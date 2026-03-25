@@ -1104,6 +1104,7 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			'em'     => array(),
 			'span'   => array(
 				'class' => true,
+				'style' => true,
 			),
 			'strong' => array(),
 			'u'      => array(),
