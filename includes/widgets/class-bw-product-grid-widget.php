@@ -82,6 +82,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'options' => [
                 '3' => '3',
                 '4' => '4',
+                '5' => '5',
+                '6' => '6',
             ],
         ] );
 
@@ -602,7 +604,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $pagination_per_page  = $infinite_enabled ? $load_batch_size : $initial_items;
 
         $desktop_columns = isset( $settings['desktop_columns'] ) ? absint( $settings['desktop_columns'] ) : 4;
-        if ( ! in_array( $desktop_columns, [ 3, 4 ], true ) ) {
+        if ( ! in_array( $desktop_columns, [ 3, 4, 5, 6 ], true ) ) {
             $desktop_columns = 4;
         }
         $gap_desktop_size = 10;
