@@ -266,8 +266,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'default'   => '#ffffff',
             'selectors' => [
-                '{{WRAPPER}} .bw-static-showcase-container' => '--bw-slide-showcase-text-color: {{VALUE}};',
-                '{{WRAPPER}} .bw-static-showcase-container' => '--bw-slide-showcase-badge-border-color: {{VALUE}};',
+                '{{WRAPPER}} .bw-static-showcase-container' => '--bw-slide-showcase-text-color: {{VALUE}}; --bw-slide-showcase-badge-border-color: {{VALUE}};',
             ],
         ] );
 
@@ -750,7 +749,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 <?php endif; ?>
 
                 <?php if ( $has_bottom_info || $has_cta ) : ?>
-                    <div class="bw-slide-showcase-bottom-section" style="color: <?php echo esc_attr( $meta_color ); ?>;">
+                    <div class="bw-slide-showcase-bottom-section">
                         <?php if ( $has_bottom_info ) : ?>
                             <div class="bw-slide-showcase-info">
                                 <?php if ( 'digital' === $product_type_value ) : ?>
@@ -836,8 +835,4 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         return 'height: 100%; width: 100%; object-fit: ' . $fit_value . ';';
     }
 
-    /**
-     * Method get_post_type_options() has been moved to BW_Widget_Helper class.
-     * Use BW_Widget_Helper::get_post_type_options() instead.
-     */
 }

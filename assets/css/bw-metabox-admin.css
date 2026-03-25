@@ -1,0 +1,61 @@
+/* BW Metabox Admin Styles */
+
+.bw-metabox-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bw-metabox-section {
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.bw-metabox-section h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #1d2327;
+}
+
+.bw-metabox-section p {
+    margin: 0 0 12px;
+}
+
+.bw-metabox-section label {
+    font-weight: 600;
+}
+
+.bw-metabox-field-group {
+    margin-bottom: 12px;
+}
+
+.bw-metabox-field-group:last-child {
+    margin-bottom: 0;
+}
+
+.bw-field-description {
+    display: block;
+    color: #50575e;
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.bw-digital-products-showcase-field {
+    margin-bottom: 8px;
+}
+
+.bw-metabox-section .select2-container {
+    min-width: 260px;
+}
+
+.bw-metabox-inline-info {
+    color: #50575e;
+    font-size: 12px;
+    margin: 0 0 12px;
+}
