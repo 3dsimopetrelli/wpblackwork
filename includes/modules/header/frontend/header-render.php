@@ -160,10 +160,15 @@ if (!function_exists('bw_header_render_frontend')) {
 
         $header_title = isset($settings['header_title']) ? sanitize_text_field($settings['header_title']) : 'Blackwork Header';
         $smart_scroll_enabled = !empty($settings['features']['smart_scroll']);
+        $hero_overlap_active = function_exists('bw_header_is_hero_overlap_active') ? bw_header_is_hero_overlap_active($settings) : false;
         $menu_blur_enabled = !empty($settings['smart_header']['menu_blur_enabled']);
+        $panel_blur_enabled = $menu_blur_enabled || $hero_overlap_active;
         $header_classes = 'bw-custom-header';
         if ($smart_scroll_enabled) {
             $header_classes .= ' bw-custom-header--smart bw-header-visible smart-header visible';
+        }
+        if ($hero_overlap_active) {
+            $header_classes .= ' bw-header--hero-overlap';
         }
 
         $search_desktop_markup = '';

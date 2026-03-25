@@ -304,8 +304,12 @@
        ======================================================================== */
 
     function initStickyHeader() {
-        var header = document.querySelector('.bw-custom-header[data-smart-scroll="yes"]');
+        var header = document.querySelector('.bw-custom-header');
         if (!header) return;
+
+        var smartScrollActive = header.getAttribute('data-smart-scroll') === 'yes';
+        var heroOverlapActive = header.getAttribute('data-hero-overlap') === 'yes';
+        if (!smartScrollActive && !heroOverlapActive) return;
 
         initDarkZoneDetection(header);
 
@@ -371,6 +375,11 @@
                 header.classList.remove('bw-header-scrolled');
             }
 
+            if (!smartScrollActive) {
+                lastScrollTop = st;
+                return;
+            }
+
             if (st <= 2) {
                 // At the very top: header is naturally visible.
                 resetHeader();
@@ -411,6 +420,7 @@
         });
 
         recalcOffsets();
+        onScroll();
     }
 
     function boot() {
@@ -422,7 +432,7 @@
         if (header) {
             // Smart scroll is inactive so dark zone detection was not initialised
             // inside initStickyHeader — activate it here with its own scroll listener.
-            if (header.getAttribute('data-smart-scroll') !== 'yes') {
+            if (header.getAttribute('data-smart-scroll') !== 'yes' && header.getAttribute('data-hero-overlap') !== 'yes') {
                 initDarkZoneDetection(header);
                 var nonStickyTicking = false;
                 window.addEventListener('scroll', function () {

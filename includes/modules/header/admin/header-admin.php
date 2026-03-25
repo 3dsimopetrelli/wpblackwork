@@ -58,6 +58,30 @@ if (!function_exists('bw_header_get_menu_options')) {
     }
 }
 
+if (!function_exists('bw_header_get_page_options')) {
+    function bw_header_get_page_options()
+    {
+        $pages = get_posts([
+            'post_type' => 'page',
+            'post_status' => ['publish', 'draft', 'private', 'pending', 'future'],
+            'posts_per_page' => -1,
+            'orderby' => 'menu_order title',
+            'order' => 'ASC',
+        ]);
+
+        if (empty($pages)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($pages as $page) {
+            $out[(int) $page->ID] = $page->post_title !== '' ? $page->post_title : sprintf(__('Page #%d', 'bw'), (int) $page->ID);
+        }
+
+        return $out;
+    }
+}
+
 if (!function_exists('bw_header_render_media_field')) {
     function bw_header_render_media_field($name, $attachment_id, $label)
     {
@@ -93,6 +117,8 @@ if (!function_exists('bw_header_render_admin_page')) {
 
         $settings = bw_header_get_settings();
         $menus = bw_header_get_menu_options();
+        $pages = bw_header_get_page_options();
+        $hero_overlap_page_ids = array_map('intval', isset($settings['hero_overlap']['page_ids']) ? (array) $settings['hero_overlap']['page_ids'] : []);
         $settings_updated = isset($_GET['settings-updated']) && '' !== sanitize_key(wp_unslash($_GET['settings-updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         ?>
         <div class="wrap bw-admin-root bw-admin-page bw-admin-page-header">
@@ -122,6 +148,7 @@ if (!function_exists('bw_header_render_admin_page')) {
                     <nav class="nav-tab-wrapper bw-admin-tabs" id="bw-header-tabs">
                         <a href="#bw-header-tab-general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'bw'); ?></a>
                         <a href="#bw-header-tab-scroll" class="nav-tab"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
+                        <a href="#bw-header-tab-hero-overlap" class="nav-tab"><?php esc_html_e('Hero Overlap', 'bw'); ?></a>
                     </nav>
                 </section>
                 <div id="bw-header-tab-general" class="bw-header-tab-panel is-active">
@@ -517,6 +544,46 @@ if (!function_exists('bw_header_render_admin_page')) {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                </div>
+                <div id="bw-header-tab-hero-overlap" class="bw-header-tab-panel" style="display:none;">
+                    <div class="bw-admin-card">
+                        <h2 class="bw-admin-card-title"><?php esc_html_e('Hero Overlap', 'bw'); ?></h2>
+                        <p class="bw-admin-card-helper"><?php esc_html_e('Let the first hero section sit under the header on selected pages while keeping the existing dark-zone detection logic.', 'bw'); ?></p>
+                        <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Enable Hero Overlap', 'bw'); ?></th>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[hero_overlap][enabled]" value="1" <?php checked(!empty($settings['hero_overlap']['enabled'])); ?> />
+                                            <?php esc_html_e('Overlay the header on top of the first section for selected pages.', 'bw'); ?>
+                                        </label>
+                                        <p class="description"><?php esc_html_e('The dark background recognition stays the same: automatic detection plus optional .smart-header-dark-zone on the Elementor hero section.', 'bw'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="bw-header-hero-overlap-pages"><?php esc_html_e('Selected Pages', 'bw'); ?></label></th>
+                                    <td>
+                                        <select
+                                            id="bw-header-hero-overlap-pages"
+                                            name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[hero_overlap][page_ids][]"
+                                            multiple="multiple"
+                                        size="12"
+                                            style="min-width: 340px; max-width: 100%;"
+                                        >
+                                            <?php foreach ($pages as $page_id => $page_title) : ?>
+                                                <option value="<?php echo esc_attr($page_id); ?>" <?php selected(in_array((int) $page_id, $hero_overlap_page_ids, true)); ?>>
+                                                    <?php echo esc_html(sprintf('%s (#%d)', $page_title, (int) $page_id)); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <p class="description"><?php esc_html_e('Use Cmd/Ctrl click to select multiple pages. Only these pages will start with the header above the hero content.', 'bw'); ?></p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="submit">
                     <?php submit_button(__('Save Settings', 'bw')); ?>

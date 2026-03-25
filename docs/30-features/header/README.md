@@ -2,6 +2,7 @@
 
 ## Files
 - [custom-header-architecture.md](custom-header-architecture.md): main custom header architecture and runtime contract.
+- `Hero Overlap` is the page-scoped mode that lets the header sit above the first hero section while reusing the same dark-zone detection already used by Smart Header.
 
 ## Settings Page UI Contract
 - `Blackwork Site > Header` adopts the shared Blackwork Admin UI Kit (`admin/css/bw-admin-ui-kit.css`).

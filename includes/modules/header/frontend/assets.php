@@ -23,6 +23,52 @@ if (!function_exists('bw_header_get_mobile_breakpoint')) {
     }
 }
 
+if (!function_exists('bw_header_is_hero_overlap_enabled')) {
+    function bw_header_is_hero_overlap_enabled($settings = null)
+    {
+        if (!is_array($settings)) {
+            $settings = bw_header_get_settings();
+        }
+
+        return !empty($settings['hero_overlap']['enabled']);
+    }
+}
+
+if (!function_exists('bw_header_get_hero_overlap_page_ids')) {
+    function bw_header_get_hero_overlap_page_ids($settings = null)
+    {
+        if (!is_array($settings)) {
+            $settings = bw_header_get_settings();
+        }
+
+        $page_ids = isset($settings['hero_overlap']['page_ids']) && is_array($settings['hero_overlap']['page_ids'])
+            ? $settings['hero_overlap']['page_ids']
+            : [];
+
+        return array_values(array_unique(array_filter(array_map('absint', $page_ids))));
+    }
+}
+
+if (!function_exists('bw_header_is_hero_overlap_active')) {
+    function bw_header_is_hero_overlap_active($settings = null)
+    {
+        if (!bw_header_is_hero_overlap_enabled($settings)) {
+            return false;
+        }
+
+        if (!is_singular('page')) {
+            return false;
+        }
+
+        $page_id = absint(get_queried_object_id());
+        if ($page_id <= 0) {
+            return false;
+        }
+
+        return in_array($page_id, bw_header_get_hero_overlap_page_ids($settings), true);
+    }
+}
+
 if (!function_exists('bw_header_hex_to_rgba')) {
     function bw_header_hex_to_rgba($hex, $opacity = 1)
     {
@@ -64,6 +110,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
 
         $settings = bw_header_get_settings();
         $breakpoint = bw_header_get_mobile_breakpoint($settings);
+        $hero_overlap_active = bw_header_is_hero_overlap_active($settings);
         $mobile_layout = isset($settings['mobile_layout']) && is_array($settings['mobile_layout']) ? $settings['mobile_layout'] : [];
         $inner_padding_unit = (isset($settings['inner_padding_unit']) && in_array($settings['inner_padding_unit'], ['px', '%'], true))
             ? $settings['inner_padding_unit']
@@ -92,6 +139,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $smart_header_scrolled_opacity = isset($smart_header['header_scrolled_bg_opacity']) ? max(0, min(1, (float) $smart_header['header_scrolled_bg_opacity'])) : 0.86;
 
         $menu_blur_enabled = !empty($smart_header['menu_blur_enabled']);
+        $panel_blur_enabled = $menu_blur_enabled || $hero_overlap_active;
         $menu_blur_amount = isset($smart_header['menu_blur_amount']) ? max(0, min(100, absint($smart_header['menu_blur_amount']))) : 20;
         $menu_blur_radius = isset($smart_header['menu_blur_radius']) ? max(0, min(200, absint($smart_header['menu_blur_radius']))) : 12;
         $menu_blur_tint_color = isset($smart_header['menu_blur_tint_color']) ? sanitize_hex_color($smart_header['menu_blur_tint_color']) : '#ffffff';
@@ -238,7 +286,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $blur_tint = bw_header_hex_to_rgba($menu_blur_tint_color, $menu_blur_tint_opacity);
         $blur_scrolled_tint = bw_header_hex_to_rgba($menu_blur_scrolled_tint_color, $menu_blur_scrolled_tint_opacity);
 
-        if ($menu_blur_enabled) {
+        if ($panel_blur_enabled) {
             // Desktop panel blur
             $inline_css .= ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
             $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
@@ -257,6 +305,15 @@ if (!function_exists('bw_header_enqueue_assets')) {
 
         // Disable legacy smart-header body offset when custom header is enabled.
         $inline_css .= "body:not(.elementor-editor-active){--smart-header-body-padding:0px !important;}\n";
+
+        if ($hero_overlap_active) {
+            $inline_css .= ".bw-custom-header.bw-header--hero-overlap{background-color:transparent !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-header--hero-overlap + .bw-header-spacer{height:0 !important;min-height:0 !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-header--hero-overlap.bw-header-on-dark .bw-navigation__link,.bw-custom-header.bw-header--hero-overlap.bw-header-on-dark .bw-navshop__item,.bw-custom-header.bw-header--hero-overlap.bw-header-on-dark .bw-navigation__toggle,.bw-custom-header.bw-header--hero-overlap.bw-header-on-dark .bw-navigation__close{color:#ffffff !important;}\n";
+            $inline_css .= ".bw-custom-header.bw-header--hero-overlap.bw-header-on-dark .bw-custom-header__logo-image{filter:brightness(0) invert(1);}\n";
+            $inline_css .= ".bw-custom-header.bw-header--hero-overlap.bw-header-on-dark .bw-custom-header__logo-fallback{color:#ffffff !important;}\n";
+            $inline_css .= "@media (max-width: {$breakpoint}px){.bw-custom-header.bw-header--hero-overlap,.bw-custom-header.bw-custom-header--smart.bw-header--hero-overlap,.bw-custom-header.bw-header--hero-overlap.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.bw-header--hero-overlap.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.bw-header-scrolled.bw-header--hero-overlap{background-color:transparent !important;}}\n";
+        }
 
         wp_add_inline_style('bw-header-layout', $inline_css);
 
@@ -315,6 +372,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
                 'breakpoint' => $breakpoint,
                 'title' => isset($settings['header_title']) ? (string) $settings['header_title'] : 'Blackwork Header',
                 'smartScroll' => !empty($settings['features']['smart_scroll']),
+                'heroOverlap' => $hero_overlap_active,
                 'smartHeader' => [
                     'scrollDownThreshold' => isset($settings['smart_header']['scroll_down_threshold']) ? absint($settings['smart_header']['scroll_down_threshold']) : 100,
                     'scrollUpThreshold' => isset($settings['smart_header']['scroll_up_threshold']) ? absint($settings['smart_header']['scroll_up_threshold']) : 0,
