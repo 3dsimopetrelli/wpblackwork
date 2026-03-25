@@ -35,6 +35,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
+- `big-text-widget.md`: `BW-UI Big Text` — premium editorial statement widget with controlled line length, fluid `clamp()` scaling, automatic balance mode, and optional manual editorial line grouping
 - `hero-slide-widget.md`: `BW-UI Hero Slide` — premium static hero widget with future-ready `Slide` mode surface, centered copy, background image, and glass CTA button grid
 - `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with 4 desktop mosaic variants, auto-scale/square modes, responsive partial-slide reveal, and shared product-card reuse
 - `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching and mobile full-slide CTA behavior
@@ -46,6 +47,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slider` -> canonical current product slider
+- `bw-big-text` -> implemented premium editorial statement widget with fluid size + controlled/manual composition modes
 - `bw-hero-slide` -> implemented static-first hero widget with future-ready slide mode surface
 - `bw-mosaic-slider` -> implemented mixed-content Embla slider with four desktop mosaic variants, auto-scale modes, and responsive partial-slide reveal
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget

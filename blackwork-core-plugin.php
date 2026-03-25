@@ -874,6 +874,11 @@ function bw_register_button_widget_assets()
     bw_register_widget_assets('button');
 }
 
+function bw_register_big_text_widget_assets()
+{
+    bw_register_widget_assets('big-text', [], false);
+}
+
 function bw_register_go_to_app_widget_assets()
 {
     bw_register_widget_assets('go-to-app', [], false);

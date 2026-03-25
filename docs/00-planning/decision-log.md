@@ -673,3 +673,15 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Keep the sticky target on the outer pricing/sidebar container as the default usage contract.
   - Keep `elementor-sticky-sidebar.js` as the sole authority for sticky behavior; do not mix with Elementor Pro sticky.
   - Keep closure trace in `docs/tasks/BW-TASK-20260319-02-closure.md`.
+
+### Entry 044
+- Date: 2026-03-25
+- Decision summary: Added `bw-big-text` as the canonical premium editorial statement widget for Elementor, using a constrained textarea content surface, width-led composition, optional fluid `clamp()` scaling, and newline-based manual line grouping as the exact-composition fallback.
+- Affected domain: Elementor Widgets / Editorial Typography / Responsive Composition
+- Rationale: Large display-text blocks need a governed composition model that goes beyond generic responsive text. Pure CSS can improve composition substantially through bounded line length and balanced wrapping, but it cannot guarantee identical line breaks across all viewport sizes. A hybrid model with automatic and manual composition modes provides the best real-world outcome without introducing a JS line-measurement engine.
+- Risk impact: Low-Medium — widget scope is local and presentational, but responsive composition quality depends on browser text-wrapping behavior; manual grouping provides a deterministic fail-soft fallback.
+- Follow-up actions:
+  - Keep the content surface constrained; do not expand this widget into a generic WYSIWYG block.
+  - Keep `max-inline-size` as the primary line-length authority.
+  - Keep `text-wrap: balance` as an enhancement, not as a guarantee.
+  - Keep newline-based manual grouping as the editorial fallback for high-composition layouts.

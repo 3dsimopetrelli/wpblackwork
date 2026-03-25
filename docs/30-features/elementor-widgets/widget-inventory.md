@@ -13,6 +13,7 @@ Canonical transition note:
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
+| `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
 | `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
@@ -37,6 +38,7 @@ Canonical transition note:
 
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
+- `bw-big-text` -> `BW-UI Big Text` (visible title)
 - `bw-product-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
@@ -61,6 +63,15 @@ Important runtime note:
   - canonical visible title: `BW Product Grid`
   - canonical slug: `bw-product-grid`
   - canonical class: `BW_Product_Grid_Widget`
+- `bw-big-text` controls (initial state):
+  - `text_content`: constrained textarea with limited inline HTML allowlist
+  - `composition_mode`: `auto_balance`, `controlled_width`, `editorial_lines`
+  - `max_text_width`: responsive; `ch`, `rem`, `%`, `vw`, `px`
+  - `text_align`: responsive left / center / right
+  - `font_size_mode`: `fluid`, `fixed`
+  - fluid controls: min/max font size + min/max viewport
+  - style controls: typography, text color, line height, letter spacing, section padding, editorial line gap
+  - editorial/manual mode maps each non-empty textarea newline to a dedicated line group
 - `bw-title-product` controls (final state):
   - `html_tag`: H1–H6, div, span, p (default: H1)
   - `title_source`: `product` (single-product title, context-resolved), `category` (product-category name), `page` (page title), `text` (arbitrary custom text)
