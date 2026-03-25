@@ -8,7 +8,6 @@
     // Dark Zone state
     var isOnDarkZone = false;
     var darkZoneRemoveTimer = null;
-    var lastDarkZoneSource = 'none';
 
     /**
      * Read admin-configured values from bwHeaderConfig (set via wp_localize_script).
@@ -82,30 +81,6 @@
         document.documentElement.style.setProperty('--animated-banner-height', height + 'px');
 
         return { height: height, inside: inside };
-    }
-
-    function getHeaderProbeRect(header, options) {
-        var rect = header.getBoundingClientRect();
-        var opts = options || {};
-
-        if (!opts.assumeVisible) {
-            return rect;
-        }
-
-        var computed = window.getComputedStyle(header);
-        var top = parseFloat(computed.top);
-        if (isNaN(top)) {
-            top = 0;
-        }
-
-        return {
-            top: top,
-            bottom: top + rect.height,
-            left: rect.left,
-            right: rect.right,
-            width: rect.width,
-            height: rect.height
-        };
     }
 
     /* ========================================================================
@@ -193,11 +168,9 @@
      *
      * Initial check: if the probed element itself is an <img>, sample it first.
      */
-    function getSectionDarkSignal(el) {
+    function isSectionDark(el) {
         // Direct img hit (e.g. elementFromPoint landed on an <img> element)
-        if (el.tagName === 'IMG' && isImgDark(el)) {
-            return { dark: true, source: 'image' };
-        }
+        if (el.tagName === 'IMG' && isImgDark(el)) return true;
 
         var current = el;
         var depth = 0;
@@ -209,9 +182,7 @@
 
             // 1. Solid dark background-color
             var bg = parseColor(st.backgroundColor);
-            if (bg && bg.a >= 0.5 && isColorDark(bg, 128)) {
-                return { dark: true, source: 'solid-background' };
-            }
+            if (bg && bg.a >= 0.5 && isColorDark(bg, 128)) return true;
 
             // 2. Slick carousel: sample the active (non-cloned) slide's image
             if (current.classList && current.classList.contains('slick-slider')) {
@@ -219,13 +190,9 @@
                                   current.querySelector('.slick-active');
                 if (activeSlide) {
                     var aImg = activeSlide.querySelector('img');
-                    if (aImg && isImgDark(aImg)) {
-                        return { dark: true, source: 'slick-slider' };
-                    }
+                    if (aImg && isImgDark(aImg)) return true;
                     var aSlideBg = parseColor(window.getComputedStyle(activeSlide).backgroundColor);
-                    if (aSlideBg && aSlideBg.a >= 0.5 && isColorDark(aSlideBg, 128)) {
-                        return { dark: true, source: 'slick-slider' };
-                    }
+                    if (aSlideBg && aSlideBg.a >= 0.5 && isColorDark(aSlideBg, 128)) return true;
                 }
             }
 
@@ -238,9 +205,7 @@
                     child.classList.contains('wp-block-cover__gradient-background')
                 ) {
                     var oBg = parseColor(window.getComputedStyle(child).backgroundColor);
-                    if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) {
-                        return { dark: true, source: 'overlay' };
-                    }
+                    if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) return true;
                     break;
                 }
                 child = child.nextElementSibling;
@@ -252,9 +217,7 @@
                 for (var i = 0; i < Math.min(headings.length, 3); i++) {
                     if (!headings[i].offsetParent) continue;
                     var tc = parseColor(window.getComputedStyle(headings[i]).color);
-                    if (tc && getColorBrightness(tc) > 180) {
-                        return { dark: true, source: 'background-image' };
-                    }
+                    if (tc && getColorBrightness(tc) > 180) return true;
                 }
             }
 
@@ -262,19 +225,17 @@
             depth++;
         }
 
-        return { dark: false, source: 'light' };
+        return false;
     }
 
     /**
      * Probe elements BEHIND the header (pointer-events:none at vertical centre).
      * Manual .smart-header-dark-zone elements always take priority.
      */
-    function checkDarkZoneOverlap(header, options) {
+    function checkDarkZoneOverlap(header) {
         if (!header) return;
-        var opts = options || {};
-        var headerRect = getHeaderProbeRect(header, opts);
+        var headerRect = header.getBoundingClientRect();
         var shouldBeOnDark = false;
-        var detectedDarkSource = 'light';
 
         // — Manual zones (always take priority) —
         var manualZones = document.querySelectorAll('.smart-header-dark-zone');
@@ -282,7 +243,6 @@
             var mRect = manualZones[m].getBoundingClientRect();
             if (mRect.top < headerRect.bottom && mRect.bottom > headerRect.top) {
                 shouldBeOnDark = true;
-                detectedDarkSource = 'manual-zone';
                 break;
             }
         }
@@ -302,13 +262,9 @@
                 var probeY = headerRect.top + headerRect.height * 0.5;
                 for (var i = 0; i < probeXs.length; i++) {
                     var el = document.elementFromPoint(probeXs[i], probeY);
-                    if (el && !el.closest('.bw-custom-header')) {
-                        var signal = getSectionDarkSignal(el);
-                        if (signal.dark) {
-                            shouldBeOnDark = true;
-                            detectedDarkSource = signal.source;
-                            break;
-                        }
+                    if (el && !el.closest('.bw-custom-header') && isSectionDark(el)) {
+                        shouldBeOnDark = true;
+                        break;
                     }
                 }
             } finally {
@@ -326,41 +282,21 @@
                 isOnDarkZone = true;
                 header.classList.add('bw-header-on-dark');
             }
-            lastDarkZoneSource = detectedDarkSource;
         } else {
             // Leaving dark zone: debounce the removal to absorb slider-transition
             // flicker (slides moving between frames for ~300 ms).
-            var shouldDebounceRemoval = typeof opts.debounceRemoval === 'boolean'
-                ? opts.debounceRemoval
-                : lastDarkZoneSource === 'slick-slider';
-
-            if (isOnDarkZone) {
-                if (opts.immediate || !shouldDebounceRemoval) {
-                    if (darkZoneRemoveTimer) {
-                        clearTimeout(darkZoneRemoveTimer);
-                        darkZoneRemoveTimer = null;
-                    }
+            if (isOnDarkZone && !darkZoneRemoveTimer) {
+                darkZoneRemoveTimer = setTimeout(function () {
+                    darkZoneRemoveTimer = null;
                     isOnDarkZone = false;
                     header.classList.remove('bw-header-on-dark');
-                    lastDarkZoneSource = 'light';
-                } else if (!darkZoneRemoveTimer) {
-                    darkZoneRemoveTimer = setTimeout(function () {
-                        darkZoneRemoveTimer = null;
-                        isOnDarkZone = false;
-                        header.classList.remove('bw-header-on-dark');
-                        lastDarkZoneSource = 'light';
-                    }, 150);
-                }
+                }, 150);
             }
         }
     }
 
     function initDarkZoneDetection(header) {
-        checkDarkZoneOverlap(header, {
-            assumeVisible: header.classList.contains('bw-header-hidden'),
-            debounceRemoval: !header.classList.contains('bw-header-hidden'),
-            immediate: header.classList.contains('bw-header-hidden')
-        });
+        checkDarkZoneOverlap(header);
     }
 
     function scheduleLayoutRechecks(header, callback) {
@@ -383,25 +319,6 @@
         if (document.fonts && typeof document.fonts.ready === 'object' && typeof document.fonts.ready.then === 'function') {
             document.fonts.ready.then(run).catch(function () {});
         }
-    }
-
-    function syncHeaderColorBeforeReveal(header) {
-        if (!header) {
-            return;
-        }
-
-        header.classList.add('bw-header-color-sync');
-        checkDarkZoneOverlap(header, {
-            assumeVisible: true,
-            debounceRemoval: false,
-            immediate: true
-        });
-
-        window.requestAnimationFrame(function () {
-            window.requestAnimationFrame(function () {
-                header.classList.remove('bw-header-color-sync');
-            });
-        });
     }
 
     /* ========================================================================
@@ -443,10 +360,6 @@
 
         function showHeader() {
             if (!isHidden) return;
-            syncHeaderColorBeforeReveal(header);
-            // Force style/layout commit so the resolved dark/light state lands
-            // before the header is visually revealed.
-            void header.offsetHeight;
             header.classList.remove('bw-header-hidden');
             header.classList.add('bw-header-visible');
             isHidden = false;
@@ -473,13 +386,7 @@
             var st = window.pageYOffset || 0;
             var headerHeight = header.offsetHeight || 0;
 
-            var headerIsHidden = isHidden || header.classList.contains('bw-header-hidden');
-
-            checkDarkZoneOverlap(header, {
-                assumeVisible: headerIsHidden,
-                debounceRemoval: !headerIsHidden,
-                immediate: headerIsHidden
-            });
+            checkDarkZoneOverlap(header);
 
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
 
@@ -531,12 +438,7 @@
         window.addEventListener('resize', function () {
             recalcOffsets();
             applyStateClass();
-            var headerHiddenOnResize = isHidden || header.classList.contains('bw-header-hidden');
-            checkDarkZoneOverlap(header, {
-                assumeVisible: headerHiddenOnResize,
-                debounceRemoval: !headerHiddenOnResize,
-                immediate: headerHiddenOnResize
-            });
+            checkDarkZoneOverlap(header);
             onScroll();
         });
 
@@ -546,12 +448,7 @@
         scheduleLayoutRechecks(header, function () {
             recalcOffsets();
             applyStateClass();
-            var headerHiddenOnRecheck = isHidden || header.classList.contains('bw-header-hidden');
-            checkDarkZoneOverlap(header, {
-                assumeVisible: headerHiddenOnRecheck,
-                debounceRemoval: !headerHiddenOnRecheck,
-                immediate: headerHiddenOnRecheck
-            });
+            checkDarkZoneOverlap(header);
             onScroll();
         });
     }
@@ -571,12 +468,7 @@
                 window.addEventListener('scroll', function () {
                     if (!nonStickyTicking) {
                         window.requestAnimationFrame(function () {
-                            var nonStickyHidden = header.classList.contains('bw-header-hidden');
-                            checkDarkZoneOverlap(header, {
-                                assumeVisible: nonStickyHidden,
-                                debounceRemoval: !nonStickyHidden,
-                                immediate: nonStickyHidden
-                            });
+                            checkDarkZoneOverlap(header);
                             nonStickyTicking = false;
                         });
                         nonStickyTicking = true;

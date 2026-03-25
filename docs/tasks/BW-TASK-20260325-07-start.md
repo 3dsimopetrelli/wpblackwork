@@ -51,5 +51,5 @@
 
 ## 5) Current Status
 - Status: OPEN
-- Implementation: IN PROGRESS
-- Closure: deferred until user validation confirms the glitch is resolved
+- Implementation: ROLLED BACK AFTER FAILED HARDENING ATTEMPTS
+- Closure: deferred; no successful runtime fix retained in code
