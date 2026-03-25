@@ -124,10 +124,9 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			'title',
 			array(
 				'label'       => __( 'Title', 'bw-elementor-widgets' ),
-				'type'        => Controls_Manager::TEXT,
-				'default'     => __( 'High-quality design resources, curated for creators.', 'bw-elementor-widgets' ),
-				'placeholder' => __( 'Enter the hero title', 'bw-elementor-widgets' ),
-				'label_block' => true,
+				'type'        => Controls_Manager::WYSIWYG,
+				'default'     => 'Explore <u>digital collections</u>,<br>buy <u>rare books and original prints</u>',
+				'placeholder' => __( 'Enter the hero title (HTML allowed)', 'bw-elementor-widgets' ),
 				'dynamic'     => array(
 					'active' => true,
 				),
@@ -304,9 +303,19 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Hero Height', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'vh' ),
+				'size_units' => array( 'px', 'vh', '%' ),
 				'range'      => array(
+					'px' => array(
+						'min'  => 240,
+						'max'  => 1600,
+						'step' => 10,
+					),
 					'vh' => array(
+						'min'  => 20,
+						'max'  => 100,
+						'step' => 1,
+					),
+					'%'  => array(
 						'min'  => 20,
 						'max'  => 100,
 						'step' => 1,
@@ -318,6 +327,7 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 				),
 				'selectors'  => array(
 					'{{WRAPPER}}' => '--bw-hs-height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-hero-slide, {{WRAPPER}} .bw-hero-slide__inner' => 'min-height: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -350,7 +360,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-hs-content-max-width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}}'                         => '--bw-hs-content-max-width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-hero-slide__content' => 'max-width: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -386,17 +397,12 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 						'title' => __( 'Center', 'bw-elementor-widgets' ),
 						'icon'  => 'eicon-text-align-center',
 					),
-					'right'  => array(
-						'title' => __( 'Right', 'bw-elementor-widgets' ),
-						'icon'  => 'eicon-text-align-right',
-					),
 				),
 				'default'              => 'center',
 				'toggle'               => false,
 				'selectors_dictionary' => array(
 					'left'   => '--bw-hs-items-align: flex-start; --bw-hs-text-align: left; --bw-hs-buttons-justify: flex-start;',
 					'center' => '--bw-hs-items-align: center; --bw-hs-text-align: center; --bw-hs-buttons-justify: center;',
-					'right'  => '--bw-hs-items-align: flex-end; --bw-hs-text-align: right; --bw-hs-buttons-justify: flex-end;',
 				),
 				'selectors'            => array(
 					'{{WRAPPER}}' => '{{VALUE}}',
@@ -458,7 +464,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 				'step'      => 0.01,
 				'default'   => 1,
 				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-hs-overlay-opacity: {{VALUE}};',
+					'{{WRAPPER}}'                         => '--bw-hs-overlay-opacity: {{VALUE}};',
+					'{{WRAPPER}} .bw-hero-slide__overlay' => 'opacity: {{VALUE}};',
 				),
 			)
 		);
@@ -596,7 +603,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-hs-button-border-width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}}'                        => '--bw-hs-button-border-width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-hero-slide__button' => 'border-width: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -619,7 +627,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-hs-button-radius: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}}'                        => '--bw-hs-button-radius: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-hero-slide__button' => 'border-radius: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -656,6 +665,7 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 				'default'   => '#FFFFFF',
 				'selectors' => array(
 					'{{WRAPPER}}' => '--bw-hs-button-fill-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-hero-slide__button::before' => 'background-color: {{VALUE}};',
 				),
 			)
 		);
@@ -667,7 +677,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'default'   => 'rgba(255, 255, 255, 0.16)',
 				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-hs-button-border-color: {{VALUE}};',
+					'{{WRAPPER}}'                        => '--bw-hs-button-border-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-hero-slide__button' => 'border-color: {{VALUE}};',
 				),
 			)
 		);
@@ -730,7 +741,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-hs-buttons-column-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}}'                         => '--bw-hs-buttons-column-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-hero-slide__buttons' => 'column-gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -753,7 +765,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-hs-buttons-row-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}}'                         => '--bw-hs-buttons-row-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-hero-slide__buttons' => 'row-gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -823,8 +836,8 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 				<div class="bw-hero-slide__inner">
 					<div class="bw-hero-slide__content">
 						<div class="bw-hero-slide__copy">
-							<?php if ( '' !== $title ) : ?>
-								<h1 class="bw-hero-slide__title"><?php echo esc_html( $title ); ?></h1>
+							<?php if ( '' !== trim( wp_strip_all_tags( $title ) ) ) : ?>
+								<h1 class="bw-hero-slide__title"><?php echo wp_kses( $this->normalize_title_markup( $title ), $this->get_allowed_title_html() ); ?></h1>
 							<?php endif; ?>
 
 							<?php if ( '' !== $subtitle ) : ?>
@@ -1068,5 +1081,40 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 		$link = get_post_type_archive_link( $post_type );
 
 		return $link ? $link : '';
+	}
+
+	/**
+	 * Allowed HTML for the hero title.
+	 *
+	 * @return array<string,array<string,bool>>
+	 */
+	private function get_allowed_title_html() {
+		return array(
+			'br'     => array(),
+			'em'     => array(),
+			'span'   => array(
+				'class' => true,
+			),
+			'strong' => array(),
+			'u'      => array(),
+		);
+	}
+
+	/**
+	 * Normalize title markup coming from the editor before sanitizing it.
+	 *
+	 * WYSIWYG content can wrap the string in paragraph tags, which would be invalid
+	 * inside the single H1 used by this widget.
+	 *
+	 * @param string $title Raw title content.
+	 * @return string
+	 */
+	private function normalize_title_markup( $title ) {
+		$markup = trim( (string) $title );
+
+		$markup = preg_replace( '#</p>\s*<p>#i', '<br>', $markup );
+		$markup = preg_replace( '#^<p>|</p>$#i', '', $markup );
+
+		return is_string( $markup ) ? trim( $markup ) : '';
 	}
 }

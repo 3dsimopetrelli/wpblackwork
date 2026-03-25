@@ -25,13 +25,14 @@
   - made `Slide` mode fail closed to the static hero output in V1
   - implemented:
     - large hero title
+    - safe inline HTML title support for underline/emphasis
     - subtitle
     - CTA buttons repeater
     - full-width background image
     - overlay/glow system
-    - responsive hero height in `vh`
+    - responsive hero height in `px / vh / %`
     - responsive content max width
-    - responsive section padding and alignment
+    - responsive section padding and left/center alignment
     - premium glass/fill CTA button styling
   - added link target support for:
     - manual URL
@@ -96,7 +97,10 @@
   - Verification performed: widget runtime remains PHP + CSS only; no slider/Embla runtime introduced
   - Result: PASS
 - Surface name: responsive controls
-  - Verification performed: hero height, content width, alignment, padding, and button gap surfaces are selector-driven and responsive-ready
+  - Verification performed: hero height, content width, overlay, padding, and button gap/border/fill surfaces are selector-driven and responsive-ready
+  - Result: PASS
+- Surface name: background and overlay layering
+  - Verification performed: background image media layer, overlay opacity/color, and glow rendering are stacked above media and below content
   - Result: PASS
 - Surface name: CTA link resolution
   - Verification performed: manual URL, category archive, and post type archive resolution paths are explicitly handled

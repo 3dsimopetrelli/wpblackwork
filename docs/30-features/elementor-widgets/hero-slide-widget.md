@@ -62,6 +62,8 @@ The look is owned by widget-local CSS, not by a shared slider skin.
   - `Static`
   - `Slide`
 - `Title`
+  - safe inline HTML supported for emphasis
+  - current allowlist: `u`, `strong`, `em`, `span`, `br`
 - `Subtitle`
 - `Background Image`
 
@@ -87,7 +89,7 @@ Each repeater item supports:
 ### Content > Layout
 - `Hero Height`
   - responsive
-  - `vh`
+  - `px / vh / %`
 - `Content Max Width`
   - responsive
   - `px / % / vw`
@@ -111,7 +113,7 @@ Manual URLs reuse Elementor-native link attribute handling through:
 ### Style > Layout
 - `Content Alignment`
   - responsive
-  - left / center / right
+  - left / center
 - `Section Padding`
   - responsive
 - `Overlay Color`
@@ -157,7 +159,7 @@ Manual URLs reuse Elementor-native link attribute handling through:
 - content remains centered by default unless alignment is changed
 - button row wraps into multiple lines
 - button spacing remains controlled independently in both axes
-- hero height remains device-specific through responsive `vh` controls
+- hero height remains device-specific through responsive `px / vh / %` controls
 
 ## Background Media Behavior
 - background image is rendered as a dedicated media layer
@@ -165,6 +167,7 @@ Manual URLs reuse Elementor-native link attribute handling through:
 - image does not distort
 - the overlay/glow system sits above the media and below the content
 - if no background image is selected, the widget falls back to a dark gradient background
+- title HTML is normalized before sanitization so editor paragraph wrappers do not break the single H1 contract
 
 ## Button Visual Contract
 The widget uses a local premium button treatment:
