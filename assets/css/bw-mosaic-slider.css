@@ -516,6 +516,12 @@
     color: rgba(0, 0, 0, 0.65);
 }
 
+/*
+ * Breakpoint note: 999px / 1000px below are tied to MOBILE_BREAKPOINT in
+ * class-bw-mosaic-slider-widget.php (PHP constant) and read by JS via data-config.
+ * CSS media queries cannot use custom properties, so this value is hardcoded here.
+ * If you change the PHP constant, update these two @media rules accordingly.
+ */
 @media (max-width: 999px) {
     .bw-ms-layout--desktop {
         display: none;
