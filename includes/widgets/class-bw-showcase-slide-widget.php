@@ -241,6 +241,27 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         );
 
         $repeater->add_control(
+            'start_offset_left',
+            [
+                'label'      => __( 'Start Offset Left', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 400,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 0,
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Adds left breathing room before the first visible slide without changing the card ratio.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
             'center_mode',
             [
                 'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
@@ -1248,6 +1269,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         $sel_slide      = $el_prefix . ' .bw-ss-slide';
         $sel_arrows     = $el_prefix . ' .bw-ss-arrows-container';
         $sel_dots       = $el_prefix . ' .bw-ss-dots-container';
+        $sel_viewport   = $el_prefix . ' .bw-ss-embla-viewport';
         $sel_horizontal = $el_prefix . ' .bw-showcase-slide-horizontal';
         $sel_media      = $el_prefix . ' .bw-showcase-slide-media';
         $sel_image      = $el_prefix . ' .bw-showcase-slide-image-el';
@@ -1268,6 +1290,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             $frame_ratio    = $this->get_frame_ratio_value( $bp['frame_ratio'] ?? 'none' );
             $frame_fit      = sanitize_key( $bp['frame_ratio_fit'] ?? 'cover' );
             $classic_photo_size = $this->get_classic_photo_size_value( $bp['classic_photo_size'] ?? 'balanced' );
+            $start_offset_left = $bp['start_offset_left'] ?? null;
 
             if ( $bp_px <= 0 ) {
                 continue;
@@ -1290,6 +1313,12 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
 
             if ( '3 / 2' === $frame_ratio ) {
                 $css .= $sel_slide . '{max-width:' . $slide_size . ';}';
+            }
+
+            if ( ! empty( $start_offset_left['size'] ) ) {
+                $css .= $sel_viewport . '{box-sizing:border-box;padding-left:' . (float) $start_offset_left['size'] . ( $start_offset_left['unit'] ?? 'px' ) . ';}';
+            } else {
+                $css .= $sel_viewport . '{box-sizing:border-box;padding-left:0;}';
             }
 
             $css .= $sel_arrows . '{display:' . ( $show_arrows ? 'flex' : 'none' ) . ';}';
