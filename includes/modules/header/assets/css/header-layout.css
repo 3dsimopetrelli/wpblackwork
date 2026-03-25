@@ -370,40 +370,70 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 }
 
 /* =============================================================
-   DARK ZONE – testi menu e logo diventano bianchi
-   Solo desktop: su mobile il background è sempre bianco
+   DARK ZONE – testi, logo e icone diventano bianchi
    ============================================================= */
 
-@media (min-width: 1025px) {
+/* Transizioni fluide per asset immagine che cambiano via filter */
+.bw-custom-header .bw-custom-header__logo-image,
+.bw-custom-header .bw-navigation__toggle-icon-image,
+.bw-custom-header .bw-search-button__icon-image,
+.bw-custom-header .bw-navshop__cart-icon-image {
+    transition: filter 0.25s ease;
+}
 
-    /* Transizioni fluide per gli elementi non già coperti dai loro CSS */
-    .bw-custom-header .bw-custom-header__logo-image {
-        transition: filter 0.25s ease;
-    }
+/* Menu links — color: inherit gia ha transition in bw-navigation.css */
+.bw-custom-header.bw-header-on-dark .bw-navigation__link,
+.bw-custom-header.bw-header-on-dark .bw-navigation__link:hover,
+.bw-custom-header.bw-header-on-dark .bw-navigation__link:focus-visible {
+    color: #ffffff !important;
+}
 
-    /* Menu links — color: inherit già ha transition in bw-navigation.css */
-    .bw-custom-header.bw-header-on-dark .bw-navigation__link,
-    .bw-custom-header.bw-header-on-dark .bw-navigation__link:hover,
-    .bw-custom-header.bw-header-on-dark .bw-navigation__link:focus-visible {
-        color: #ffffff !important;
-    }
+/* Account / cart text triggers */
+.bw-custom-header.bw-header-on-dark .bw-navshop__item,
+.bw-custom-header.bw-header-on-dark .bw-navshop__item:hover,
+.bw-custom-header.bw-header-on-dark .bw-navshop__item:focus-visible {
+    color: #ffffff !important;
+}
 
-    /* Account e Cart — bw-navshop__item ha già transition in bw-navshop.css */
-    .bw-custom-header.bw-header-on-dark .bw-navshop__item,
-    .bw-custom-header.bw-header-on-dark .bw-navshop__item:hover,
-    .bw-custom-header.bw-header-on-dark .bw-navshop__item:focus-visible {
-        color: #ffffff !important;
-    }
+/* Mobile icon triggers */
+.bw-custom-header.bw-header-on-dark .bw-navigation__toggle,
+.bw-custom-header.bw-header-on-dark .bw-navigation__toggle:hover,
+.bw-custom-header.bw-header-on-dark .bw-navigation__toggle:focus-visible,
+.bw-custom-header.bw-header-on-dark .bw-search-button,
+.bw-custom-header.bw-header-on-dark .bw-search-button:hover,
+.bw-custom-header.bw-header-on-dark .bw-search-button:focus,
+.bw-custom-header.bw-header-on-dark .bw-search-button:focus-visible,
+.bw-custom-header.bw-header-on-dark .bw-search-button:hover .bw-search-button__icon,
+.bw-custom-header.bw-header-on-dark .bw-search-button:focus .bw-search-button__icon,
+.bw-custom-header.bw-header-on-dark .bw-search-button:focus-visible .bw-search-button__icon,
+.bw-custom-header.bw-header-on-dark .bw-navshop__cart,
+.bw-custom-header.bw-header-on-dark .bw-navshop__cart:hover,
+.bw-custom-header.bw-header-on-dark .bw-navshop__cart:focus-visible {
+    color: #ffffff !important;
+}
 
-    /* Logo img: filter per forzare il bianco su qualsiasi immagine */
-    .bw-custom-header.bw-header-on-dark .bw-custom-header__logo-image {
-        filter: brightness(0) invert(1);
-    }
+/* Search label stays readable too when desktop search is visible on dark */
+.bw-custom-header.bw-header-on-dark .bw-search-button__label,
+.bw-custom-header.bw-header-on-dark .bw-search-button:hover .bw-search-button__label,
+.bw-custom-header.bw-header-on-dark .bw-search-button:focus .bw-search-button__label,
+.bw-custom-header.bw-header-on-dark .bw-search-button:focus-visible .bw-search-button__label {
+    color: #ffffff !important;
+}
 
-    /* Fallback SVG logo (usa currentColor) */
-    .bw-custom-header.bw-header-on-dark .bw-custom-header__logo-fallback {
-        color: #ffffff;
-    }
+/* Logo / uploaded icon images: filter to white */
+.bw-custom-header.bw-header-on-dark .bw-custom-header__logo-image,
+.bw-custom-header.bw-header-on-dark .bw-navigation__toggle-icon-image,
+.bw-custom-header.bw-header-on-dark .bw-search-button__icon-image,
+.bw-custom-header.bw-header-on-dark .bw-navshop__cart-icon-image {
+    filter: brightness(0) invert(1);
+}
+
+/* Fallback SVG assets (usa currentColor) */
+.bw-custom-header.bw-header-on-dark .bw-custom-header__logo-fallback,
+.bw-custom-header.bw-header-on-dark .bw-navigation__toggle-icon,
+.bw-custom-header.bw-header-on-dark .bw-search-button__icon,
+.bw-custom-header.bw-header-on-dark .bw-navshop__cart-icon {
+    color: #ffffff !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
