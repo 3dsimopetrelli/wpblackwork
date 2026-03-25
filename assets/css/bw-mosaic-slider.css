@@ -26,6 +26,7 @@
 .bw-ms-desktop-viewport,
 .bw-ms-mobile-viewport {
     width: 100%;
+    box-sizing: border-box;
 }
 
 .bw-mosaic-slider-wrapper .bw-embla-container {
