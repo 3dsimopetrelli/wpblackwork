@@ -737,7 +737,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'text_items_gap',
 			array(
 				'label'      => __( 'Text Items Gap', 'bw-elementor-widgets' ),
