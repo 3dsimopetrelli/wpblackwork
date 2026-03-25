@@ -28,6 +28,11 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
 - `Presentation Slider Family`
   - `bw-presentation-slide` as specialized gallery/presentation runtime
   - audit status (2026-03-20): active implementation is widget-local Embla runtime for horizontal and responsive-vertical flows; desktop vertical remains a non-Embla elevator layout
+- `Hero / Banner Family`
+  - `bw-hero-slide` as the static-first premium hero surface
+  - V1 intentionally avoids slider runtime
+  - mode contract is `Static now / Slide later`
+  - if slide mode becomes real, it should reuse existing Embla-family architecture rather than inventing a second hero-slider engine
 - `Showcase Slider Family`
   - current `bw-showcase-slide` as a curated showcase/content slider
   - reuses Embla-family slider controls and breakpoint direction without inheriting popup/gallery complexity

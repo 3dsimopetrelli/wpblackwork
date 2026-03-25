@@ -197,6 +197,29 @@ Wave-specific checks:
   - text spacing controls (`Title/Description/Price Padding`, `Text Items Gap`) respond correctly across desktop/tablet/mobile
   - responsive gutter and slide gap remain visually consistent when swiping between cards
 
+## BW Hero Slide
+- Scope:
+  - `includes/widgets/class-bw-hero-slide-widget.php`
+  - `assets/css/bw-hero-slide.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend and in Elementor editor
+  - `Static` mode renders the hero correctly with background image, title, subtitle, and CTA button list
+  - selecting `Slide` mode does not break rendering and still fails closed to static output in V1
+  - responsive `Hero Height` applies correctly on desktop/tablet/mobile
+  - responsive `Content Max Width` applies correctly on desktop/tablet/mobile
+  - content alignment control updates title/subtitle alignment and CTA row alignment consistently
+  - section padding adapts correctly across desktop/tablet/mobile
+  - title/subtitle typography and padding controls apply correctly
+  - CTA buttons wrap cleanly into multiple rows on smaller screens
+  - supported link target types resolve correctly:
+    - manual URL
+    - product category archive
+    - post category archive
+    - archive page / post type archive
+  - `Glass Effect` and `Fill Enabled` states produce valid visual combinations
+  - button border width, border radius, typography, padding, and gap controls apply correctly
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

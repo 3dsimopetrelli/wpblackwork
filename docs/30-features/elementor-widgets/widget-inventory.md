@@ -21,6 +21,7 @@ Canonical transition note:
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized presentation/gallery slider; horizontal and responsive-vertical runtime are Embla-based |
+| `bw-hero-slide` | `includes/widgets/class-bw-hero-slide-widget.php` | Hero / Banner | static-first hero widget; future-ready `Slide` mode surface; background image, centered copy, and responsive glass CTA grid |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget with current-product review summary and direct-checkout shortcut support |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |

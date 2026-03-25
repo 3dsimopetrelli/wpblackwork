@@ -44,7 +44,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Product Reviews / Trust:
   - `bw-reviews`
 - Content/UI utilities:
-  - about-menu, button, divider, animated-banner, tags, related-post, static-showcase
+  - about-menu, button, divider, animated-banner, hero-slide, tags, related-post, static-showcase
 - Marketing / Lead Capture:
   - `bw-newsletter-subscription`
 
@@ -81,6 +81,7 @@ Decisions already fixed:
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slider` -> canonical current product slider
+- `bw-hero-slide` -> static-first hero widget with future-ready `Static / Slide` mode surface; V1 intentionally avoids slider runtime
 - `bw-mosaic-slider` -> mixed-content Embla slider with desktop mosaic pages and mobile linear fallback; product results still reuse `BW_Product_Card_Component`
 - `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
 - `bw-showcase-slide` -> current Embla-based showcase/content slider sourcing content from the product showcase metabox without popup complexity
