@@ -124,6 +124,8 @@ Widget-local runtime:
 
 ### Style
 - auto scale mosaic
+- auto scale square format
+  - shown only when `Auto Scale Mosaic` is on
 - desktop mosaic height
   - shown only when `Auto Scale Mosaic` is off
 - horizontal gap

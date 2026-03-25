@@ -60,6 +60,10 @@
     height: auto;
 }
 
+.bw-mosaic-slider-wrapper.bw-ms-auto-scale.bw-ms-auto-scale-square .bw-ms-page {
+    aspect-ratio: 1 / 1;
+}
+
 .bw-ms-page--center .bw-ms-slot--featured {
     grid-column: 2;
     grid-row: 1 / span 2;

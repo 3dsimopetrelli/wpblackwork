@@ -532,6 +532,22 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'auto_scale_square',
+			array(
+				'label'        => __( 'Auto Scale Square Format', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => array(
+					'auto_scale_mosaic' => 'yes',
+				),
+				'description'  => __( 'Force the autoscaled desktop mosaic into a square canvas ratio.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
 			'desktop_mosaic_height',
 			array(
 				'label'      => __( 'Desktop Mosaic Height', 'bw-elementor-widgets' ),
@@ -850,6 +866,9 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		}
 		if ( ( $settings['auto_scale_mosaic'] ?? '' ) === 'yes' ) {
 			$wrapper_classes[] = 'bw-ms-auto-scale';
+		}
+		if ( ( $settings['auto_scale_square'] ?? '' ) === 'yes' ) {
+			$wrapper_classes[] = 'bw-ms-auto-scale-square';
 		}
 		if ( ( $settings['hide_overlay_buttons'] ?? '' ) === 'yes' ) {
 			$wrapper_classes[] = 'bw-ms-hide-overlay-buttons-desktop';
