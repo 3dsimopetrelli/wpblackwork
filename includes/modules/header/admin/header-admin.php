@@ -119,6 +119,15 @@ if (!function_exists('bw_header_render_admin_page')) {
         $menus = bw_header_get_menu_options();
         $pages = bw_header_get_page_options();
         $hero_overlap_page_ids = array_map('intval', isset($settings['hero_overlap']['page_ids']) ? (array) $settings['hero_overlap']['page_ids'] : []);
+        $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'general'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if (!in_array($active_tab, ['general', 'scroll', 'hero-overlap'], true)) {
+            $active_tab = 'general';
+        }
+        $tab_links = [
+            'general' => admin_url('admin.php?page=bw-header-settings&tab=general#bw-header-tab-general'),
+            'scroll' => admin_url('admin.php?page=bw-header-settings&tab=scroll#bw-header-tab-scroll'),
+            'hero-overlap' => admin_url('admin.php?page=bw-header-settings&tab=hero-overlap#bw-header-tab-hero-overlap'),
+        ];
         $settings_updated = isset($_GET['settings-updated']) && '' !== sanitize_key(wp_unslash($_GET['settings-updated'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         ?>
         <div class="wrap bw-admin-root bw-admin-page bw-admin-page-header">
@@ -146,12 +155,12 @@ if (!function_exists('bw_header_render_admin_page')) {
                     <h2 class="bw-admin-card-title"><?php esc_html_e('Sections', 'bw'); ?></h2>
                     <p class="bw-admin-card-helper"><?php esc_html_e('Switch between core header configuration and scroll behavior controls.', 'bw'); ?></p>
                     <nav class="nav-tab-wrapper bw-admin-tabs" id="bw-header-tabs">
-                        <a href="#bw-header-tab-general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'bw'); ?></a>
-                        <a href="#bw-header-tab-scroll" class="nav-tab"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
-                        <a href="#bw-header-tab-hero-overlap" class="nav-tab"><?php esc_html_e('Hero Overlap', 'bw'); ?></a>
+                        <a href="<?php echo esc_url($tab_links['general']); ?>" data-target="#bw-header-tab-general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('General', 'bw'); ?></a>
+                        <a href="<?php echo esc_url($tab_links['scroll']); ?>" data-target="#bw-header-tab-scroll" class="nav-tab <?php echo $active_tab === 'scroll' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Header Scroll', 'bw'); ?></a>
+                        <a href="<?php echo esc_url($tab_links['hero-overlap']); ?>" data-target="#bw-header-tab-hero-overlap" class="nav-tab <?php echo $active_tab === 'hero-overlap' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Hero Overlap', 'bw'); ?></a>
                     </nav>
                 </section>
-                <div id="bw-header-tab-general" class="bw-header-tab-panel is-active">
+                <div id="bw-header-tab-general" class="bw-header-tab-panel <?php echo $active_tab === 'general' ? 'is-active' : ''; ?>" style="<?php echo $active_tab === 'general' ? '' : 'display:none;'; ?>">
                     <div class="bw-admin-card">
                         <h2 class="bw-admin-card-title"><?php esc_html_e('Core Settings', 'bw'); ?></h2>
                         <p class="bw-admin-card-helper"><?php esc_html_e('Core header activation and base visual behavior.', 'bw'); ?></p>
@@ -416,7 +425,7 @@ if (!function_exists('bw_header_render_admin_page')) {
                     </table>
                 </div>
 
-                <div id="bw-header-tab-scroll" class="bw-header-tab-panel" style="display:none;">
+                <div id="bw-header-tab-scroll" class="bw-header-tab-panel <?php echo $active_tab === 'scroll' ? 'is-active' : ''; ?>" style="<?php echo $active_tab === 'scroll' ? '' : 'display:none;'; ?>">
                     <div class="bw-admin-card">
                         <h2 class="bw-admin-card-title"><?php esc_html_e('Scroll Behavior', 'bw'); ?></h2>
                         <p class="bw-admin-card-helper"><?php esc_html_e('Control smart scroll behavior and interaction thresholds.', 'bw'); ?></p>
@@ -546,7 +555,7 @@ if (!function_exists('bw_header_render_admin_page')) {
                     </table>
                 </div>
                 </div>
-                <div id="bw-header-tab-hero-overlap" class="bw-header-tab-panel" style="display:none;">
+                <div id="bw-header-tab-hero-overlap" class="bw-header-tab-panel <?php echo $active_tab === 'hero-overlap' ? 'is-active' : ''; ?>" style="<?php echo $active_tab === 'hero-overlap' ? '' : 'display:none;'; ?>">
                     <div class="bw-admin-card">
                         <h2 class="bw-admin-card-title"><?php esc_html_e('Hero Overlap', 'bw'); ?></h2>
                         <p class="bw-admin-card-helper"><?php esc_html_e('Let the first hero section sit under the header on selected pages while keeping the existing dark-zone detection logic.', 'bw'); ?></p>
