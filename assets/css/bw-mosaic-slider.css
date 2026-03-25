@@ -34,7 +34,7 @@
 
 .bw-ms-desktop-slide,
 .bw-ms-mobile-slide {
-    padding: 10px;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -526,7 +526,6 @@
     .bw-ms-mobile-slide {
         flex: 0 0 calc((100% - 16px) / 3);
         min-width: 0;
-        padding: 8px;
     }
 
     .bw-ms-mobile-card-shell,
