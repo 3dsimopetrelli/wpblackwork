@@ -131,6 +131,11 @@ Widget-local runtime:
   - title
   - description
   - price
+- text spacing
+  - title padding
+  - description padding
+  - price padding
+  - text items gap
 
 ## Caching
 The widget caches deterministic query result IDs using transients prefixed with `bw_ms_` when:

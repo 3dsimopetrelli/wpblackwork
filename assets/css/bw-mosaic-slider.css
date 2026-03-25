@@ -260,6 +260,7 @@
 
 .bw-ms-content {
     padding-top: 14px;
+    gap: var(--bw-ms-text-gap, 12px);
 }
 
 .bw-ms-slot .bw-product-card .bw-ms-content--empty {
@@ -325,7 +326,7 @@
 }
 
 .bw-ms-price {
-    margin-top: 10px;
+    margin-top: 0;
 }
 
 .bw-ms-arrows-container {

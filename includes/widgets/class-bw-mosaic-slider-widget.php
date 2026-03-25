@@ -652,6 +652,18 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_responsive_control(
+			'title_padding',
+			array(
+				'label'      => __( 'Title Padding', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%', 'em', 'rem' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-ms-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
 		$this->add_control(
 			'heading_description_typography',
 			array(
@@ -666,6 +678,18 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			array(
 				'name'     => 'description_typography',
 				'selector' => '{{WRAPPER}} .bw-ms-description',
+			)
+		);
+
+		$this->add_responsive_control(
+			'description_padding',
+			array(
+				'label'      => __( 'Description Padding', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%', 'em', 'rem' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-ms-description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
 			)
 		);
 
@@ -685,6 +709,53 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				'selector'  => '{{WRAPPER}} .bw-ms-price',
 				'condition' => array(
 					'post_type' => 'product',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'price_padding',
+			array(
+				'label'      => __( 'Price Padding', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%', 'em', 'rem' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-ms-price' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'post_type' => 'product',
+				),
+			)
+		);
+
+		$this->add_control(
+			'heading_text_spacing',
+			array(
+				'label'     => __( 'Spacing', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'text_items_gap',
+			array(
+				'label'      => __( 'Text Items Gap', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min'  => 0,
+						'max'  => 40,
+						'step' => 1,
+					),
+				),
+				'default'    => array(
+					'size' => 12,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}}' => '--bw-ms-text-gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
