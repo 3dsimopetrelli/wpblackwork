@@ -285,7 +285,7 @@
 }
 
 .bw-ms-description {
-    margin-top: 10px;
+    margin: 0;
     color: rgba(0, 0, 0, 0.72);
     font-size: 14px;
     line-height: 1.5;
@@ -330,7 +330,14 @@
 }
 
 .bw-ms-price {
+    margin: 0;
+}
+
+.bw-ms-content > .bw-ms-title,
+.bw-ms-content > .bw-ms-description,
+.bw-ms-content > .bw-ms-price {
     margin-top: 0;
+    margin-bottom: 0;
 }
 
 .bw-ms-arrows-container {

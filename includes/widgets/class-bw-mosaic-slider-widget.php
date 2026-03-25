@@ -755,7 +755,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 					'unit' => 'px',
 				),
 				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-ms-text-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-ms-content, {{WRAPPER}} .bw-ms-slot .bw-product-card .bw-ms-content, {{WRAPPER}} .bw-ms-editorial-shell .bw-ms-content' => 'gap: {{SIZE}}{{UNIT}};',
 				),
 			)
 		);
