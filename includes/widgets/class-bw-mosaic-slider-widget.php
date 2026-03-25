@@ -265,9 +265,10 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				'type'    => Controls_Manager::SELECT,
 				'default' => 'center',
 				'options' => array(
-					'center' => __( 'Big Post Center', 'bw-elementor-widgets' ),
-					'left'   => __( 'Big Post Left', 'bw-elementor-widgets' ),
-					'right'  => __( 'Big Post Right', 'bw-elementor-widgets' ),
+					'center'       => __( 'Big Post Center', 'bw-elementor-widgets' ),
+					'center_split' => __( 'Big Center Split', 'bw-elementor-widgets' ),
+					'left'         => __( 'Big Post Left', 'bw-elementor-widgets' ),
+					'right'        => __( 'Big Post Right', 'bw-elementor-widgets' ),
 				),
 			)
 		);
@@ -276,7 +277,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'mobile_breakpoint_note',
 			array(
 				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => esc_html__( 'Below 1000px the desktop mosaic is disabled and the widget switches to a standard one-card Embla slider with equalized cards.', 'bw-elementor-widgets' ),
+				'raw'             => esc_html__( 'Below 1000px the desktop mosaic is disabled and the widget switches to a standard 3-column Embla slider with natural card heights.', 'bw-elementor-widgets' ),
 				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
 			)
 		);
@@ -744,8 +745,9 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				<div class="bw-embla-viewport bw-ms-embla-viewport bw-ms-desktop-viewport">
 					<div class="bw-embla-container">
 						<?php foreach ( $desktop_pages as $page_index => $page_posts ) : ?>
+							<?php $page_variant = $this->resolve_page_layout_variant( $variant, $page_index ); ?>
 							<div class="bw-embla-slide bw-ms-desktop-slide">
-								<div class="bw-ms-page bw-ms-page--<?php echo esc_attr( $variant ); ?>">
+								<div class="bw-ms-page bw-ms-page--<?php echo esc_attr( $page_variant ); ?>">
 									<?php foreach ( $this->build_page_slots( $page_posts ) as $slot_name => $slot_post ) : ?>
 										<?php
 										$is_featured = 'featured' === $slot_name;
@@ -1150,11 +1152,29 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 	private function resolve_layout_variant( $variant ) {
 		$variant = sanitize_key( (string) $variant );
 
-		if ( ! in_array( $variant, array( 'center', 'left', 'right' ), true ) ) {
+		if ( ! in_array( $variant, array( 'center', 'center_split', 'left', 'right' ), true ) ) {
 			return 'center';
 		}
 
 		return $variant;
+	}
+
+	/**
+	 * Resolve the concrete page class for the current desktop page.
+	 *
+	 * Big Center Split alternates the split composition per page to keep the
+	 * featured rhythm balanced across the slider sequence.
+	 *
+	 * @param string $variant    Selected widget variant.
+	 * @param int    $page_index Zero-based page index.
+	 * @return string
+	 */
+	private function resolve_page_layout_variant( $variant, $page_index ) {
+		if ( 'center_split' !== $variant ) {
+			return $variant;
+		}
+
+		return 0 === ( $page_index % 2 ) ? 'left' : 'right';
 	}
 
 	/**

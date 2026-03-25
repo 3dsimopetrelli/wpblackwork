@@ -19,8 +19,9 @@ Desktop uses a 5-item mosaic page:
 Mobile below `1000px` abandons the mosaic and becomes a normal draggable Embla slider with three visible cards per viewport.
 
 ## Layout Variants
-Desktop supports three fixed variants:
+Desktop supports four variants:
 - `Big post center`
+- `Big center split`
 - `Big post left`
 - `Big post right`
 
@@ -28,6 +29,7 @@ Contract:
 - each desktop Embla slide is a full mosaic page
 - the first queried item in each 5-item batch is always the featured item
 - the next four items fill the supporting positions in order
+- `Big center split` alternates the split composition left/right across desktop pages
 
 ## Content Sources
 Current source types:
