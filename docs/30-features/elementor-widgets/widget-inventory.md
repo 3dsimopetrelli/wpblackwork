@@ -27,7 +27,7 @@ Canonical transition note:
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slider` | `includes/widgets/class-bw-product-slider-widget.php` | Product Slider | canonical current product slider; Embla-based; query-driven; shared product-card delegation |
-| `bw-mosaic-slider` | `includes/widgets/class-bw-mosaic-slider-widget.php` | Editorial Slider | Embla-based mixed-content slider; 4 desktop mosaic variants; auto-scale and square-tile modes; responsive partial-slide reveal; products reuse `BW_Product_Card_Component` |
+| `bw-mosaic-slider` | `includes/widgets/class-bw-mosaic-slider-widget.php` | Editorial Slider | Embla-based mixed-content slider; 4 desktop mosaic variants; auto-scale and square-tile modes; responsive partial-slide reveal; products reuse `BW_Product_Card_Component`; active viewport image loading is promoted client-side while hidden fallback markup is demoted to lazy |
 | `bw-showcase-slide` | `includes/widgets/class-bw-showcase-slide-widget.php` | Showcase Slider | Embla-based curated showcase slider driven by the product showcase metabox; no popup runtime; digital products render badge pills, physical products render footer text lines |
 | `bw-related-post` | `includes/widgets/class-bw-related-post-widget.php` | Query/List | non-product |
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |

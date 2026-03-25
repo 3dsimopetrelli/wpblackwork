@@ -200,6 +200,11 @@ Final responsive contract:
   - `img.bw-slider-main`
 - Initial reveal and replace-mode reveal are now sequenced behind grid-ready completion.
 - Stale stagger timers are cleared before new reveal cycles so replaced content cannot be affected by orphaned timeouts.
+- `BW-UI Mosaic Slider` now follows the same governed image-loading approach:
+  - server markup starts from `auto`/`lazy`, not duplicate eager defaults on both responsive branches
+  - JS promotes only the active viewport primary images
+  - the hidden inactive viewport is demoted to lazy
+  - wrapper reveal waits for the first active primary image instead of bare Embla init timing
 
 ## Deferred future work
 - slider-core convergence (`bw-slick-slider` + `bw-slide-showcase` rationalization)

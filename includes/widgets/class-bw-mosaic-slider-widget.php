@@ -1015,8 +1015,8 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 									<?php foreach ( $this->build_page_slots( $page_posts ) as $slot_name => $slot_post ) : ?>
 										<?php
 										$is_featured = 'featured' === $slot_name;
-										$loading     = 0 === $page_index ? 'eager' : 'lazy';
-										$priority    = ( 0 === $page_index && $is_featured ) ? 'high' : '';
+										$loading     = $this->get_desktop_image_loading_mode( $page_index );
+										$priority    = '';
 										?>
 										<div class="bw-ms-slot bw-ms-slot--<?php echo esc_attr( $slot_name ); ?>">
 											<?php
@@ -1059,8 +1059,8 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 					<div class="bw-embla-container">
 						<?php foreach ( $posts as $index => $post ) : ?>
 							<?php
-							$loading  = 0 === $index ? 'eager' : 'lazy';
-							$priority = 0 === $index ? 'high' : '';
+							$loading  = $this->get_mobile_image_loading_mode( $index );
+							$priority = '';
 							?>
 							<div class="bw-embla-slide bw-ms-mobile-slide">
 								<div class="bw-ms-mobile-card-shell">
@@ -1243,6 +1243,33 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		}
 
 		return $slots;
+	}
+
+	/**
+	 * Resolve image loading mode for desktop page tiles.
+	 *
+	 * The first desktop page stays browser-managed (`auto`) so the active layout
+	 * can be promoted client-side without forcing eager downloads for the hidden
+	 * mobile fallback markup.
+	 *
+	 * @param int $page_index Desktop page index.
+	 * @return string
+	 */
+	private function get_desktop_image_loading_mode( $page_index ) {
+		return 0 === (int) $page_index ? 'auto' : 'lazy';
+	}
+
+	/**
+	 * Resolve image loading mode for mobile cards.
+	 *
+	 * The first three cards use `auto` so the browser can opportunistically load
+	 * the initially visible responsive cards. Remaining cards stay lazy.
+	 *
+	 * @param int $index Card index in the linear mobile viewport.
+	 * @return string
+	 */
+	private function get_mobile_image_loading_mode( $index ) {
+		return (int) $index < 3 ? 'auto' : 'lazy';
 	}
 
 	/**

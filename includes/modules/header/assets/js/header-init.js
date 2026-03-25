@@ -83,6 +83,30 @@
         return { height: height, inside: inside };
     }
 
+    function getHeaderProbeRect(header, options) {
+        var rect = header.getBoundingClientRect();
+        var opts = options || {};
+
+        if (!opts.assumeVisible) {
+            return rect;
+        }
+
+        var computed = window.getComputedStyle(header);
+        var top = parseFloat(computed.top);
+        if (isNaN(top)) {
+            top = 0;
+        }
+
+        return {
+            top: top,
+            bottom: top + rect.height,
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        };
+    }
+
     /* ========================================================================
        DARK ZONE DETECTION
        ======================================================================== */
@@ -232,9 +256,10 @@
      * Probe elements BEHIND the header (pointer-events:none at vertical centre).
      * Manual .smart-header-dark-zone elements always take priority.
      */
-    function checkDarkZoneOverlap(header) {
+    function checkDarkZoneOverlap(header, options) {
         if (!header) return;
-        var headerRect = header.getBoundingClientRect();
+        var opts = options || {};
+        var headerRect = getHeaderProbeRect(header, opts);
         var shouldBeOnDark = false;
 
         // — Manual zones (always take priority) —
@@ -285,12 +310,21 @@
         } else {
             // Leaving dark zone: debounce the removal to absorb slider-transition
             // flicker (slides moving between frames for ~300 ms).
-            if (isOnDarkZone && !darkZoneRemoveTimer) {
-                darkZoneRemoveTimer = setTimeout(function () {
-                    darkZoneRemoveTimer = null;
+            if (isOnDarkZone) {
+                if (opts.immediate || opts.debounceRemoval === false) {
+                    if (darkZoneRemoveTimer) {
+                        clearTimeout(darkZoneRemoveTimer);
+                        darkZoneRemoveTimer = null;
+                    }
                     isOnDarkZone = false;
                     header.classList.remove('bw-header-on-dark');
-                }, 150);
+                } else if (!darkZoneRemoveTimer) {
+                    darkZoneRemoveTimer = setTimeout(function () {
+                        darkZoneRemoveTimer = null;
+                        isOnDarkZone = false;
+                        header.classList.remove('bw-header-on-dark');
+                    }, 150);
+                }
             }
         }
     }
@@ -319,6 +353,25 @@
         if (document.fonts && typeof document.fonts.ready === 'object' && typeof document.fonts.ready.then === 'function') {
             document.fonts.ready.then(run).catch(function () {});
         }
+    }
+
+    function syncHeaderColorBeforeReveal(header) {
+        if (!header) {
+            return;
+        }
+
+        header.classList.add('bw-header-color-sync');
+        checkDarkZoneOverlap(header, {
+            assumeVisible: true,
+            debounceRemoval: false,
+            immediate: true
+        });
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+                header.classList.remove('bw-header-color-sync');
+            });
+        });
     }
 
     /* ========================================================================
@@ -360,6 +413,7 @@
 
         function showHeader() {
             if (!isHidden) return;
+            syncHeaderColorBeforeReveal(header);
             header.classList.remove('bw-header-hidden');
             header.classList.add('bw-header-visible');
             isHidden = false;
