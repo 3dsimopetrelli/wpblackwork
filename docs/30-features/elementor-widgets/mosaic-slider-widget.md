@@ -109,7 +109,7 @@ Widget-local runtime:
 - `Autoplay`
 - `Autoplay Speed`
 - `Drag Free`
-- `Touch Drag`
+- `Touch Drag` (responsive mode only)
 - `Mouse / Trackpad Drag`
 - `Show Arrows`
 - `Show Dots`

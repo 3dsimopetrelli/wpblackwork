@@ -829,7 +829,10 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 	 * @return array
 	 */
 	private function build_slider_config( array $settings, $mode ) {
-		$align = 'desktop' === $mode ? 'start' : 'start';
+		$align             = 'desktop' === $mode ? 'start' : 'start';
+		$enable_touch_drag = 'mobile' === $mode
+			? ( ( $settings['touch_drag'] ?? 'yes' ) === 'yes' )
+			: false;
 
 		return array(
 			'infinite'        => ( $settings['infinite_loop'] ?? 'yes' ) === 'yes',
@@ -837,7 +840,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'autoplaySpeed'   => absint( $settings['autoplay_speed'] ?? 3500 ),
 			'pauseOnHover'    => true,
 			'dragFree'        => ( $settings['drag_free'] ?? '' ) === 'yes',
-			'enableTouchDrag' => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
+			'enableTouchDrag' => $enable_touch_drag,
 			'enableMouseDrag' => ( $settings['mouse_drag'] ?? 'yes' ) === 'yes',
 			'align'           => $align,
 		);
