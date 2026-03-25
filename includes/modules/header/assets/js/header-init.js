@@ -416,6 +416,9 @@
         function showHeader() {
             if (!isHidden) return;
             syncHeaderColorBeforeReveal(header);
+            // Force style/layout commit so the resolved dark/light state lands
+            // before the header is visually revealed.
+            void header.offsetHeight;
             header.classList.remove('bw-header-hidden');
             header.classList.add('bw-header-visible');
             isHidden = false;

@@ -218,7 +218,12 @@
                     return;
                 }
 
-                this.$wrapper.removeClass('loading');
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        this.$wrapper.removeClass('loading');
+                    });
+                });
+
                 if (this._revealTimer) {
                     clearTimeout(this._revealTimer);
                     this._revealTimer = null;
@@ -231,29 +236,55 @@
             }
 
             if (!firstImg) {
-                requestAnimationFrame(() => requestAnimationFrame(reveal));
+                reveal();
                 return;
             }
 
             if (firstImg.complete && firstImg.naturalWidth > 0) {
-                requestAnimationFrame(() => requestAnimationFrame(reveal));
+                this._revealWhenDecoded(firstImg, reveal);
                 return;
             }
 
             let revealed = false;
-            const done = () => {
+            const done = (waitForDecode = true) => {
                 if (revealed) {
                     return;
                 }
                 revealed = true;
-                firstImg.removeEventListener('load', done);
-                firstImg.removeEventListener('error', done);
+                firstImg.removeEventListener('load', handleLoad);
+                firstImg.removeEventListener('error', handleError);
+
+                if (waitForDecode && firstImg.naturalWidth > 0) {
+                    this._revealWhenDecoded(firstImg, reveal);
+                    return;
+                }
+
                 reveal();
             };
 
-            firstImg.addEventListener('load', done);
-            firstImg.addEventListener('error', done);
-            this._revealTimer = setTimeout(done, 2000);
+            const handleLoad = () => done(true);
+            const handleError = () => done(false);
+
+            firstImg.addEventListener('load', handleLoad);
+            firstImg.addEventListener('error', handleError);
+            this._revealTimer = setTimeout(() => done(false), 2000);
+        }
+
+        _revealWhenDecoded(img, reveal) {
+            const finalize = () => {
+                if (this.destroyed) {
+                    return;
+                }
+
+                reveal();
+            };
+
+            if (typeof img.decode !== 'function') {
+                finalize();
+                return;
+            }
+
+            img.decode().then(finalize).catch(finalize);
         }
 
         _attachWheelHandler() {

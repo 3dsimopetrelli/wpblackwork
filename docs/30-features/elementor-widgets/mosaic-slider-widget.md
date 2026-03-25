@@ -234,10 +234,12 @@ The widget uses a governed two-stage loading policy so hidden responsive fallbac
 - the inactive hidden viewport is explicitly demoted back to lazy loading
 
 ### Reveal timing
+- wrapper starts server-rendered in loading state to prevent a first-paint flash before JS hydration
 - widget wrapper `.loading` is not removed after bare Embla init anymore
 - reveal now waits for the first active primary image:
   - `.bw-slider-main`
   - `.bw-ms-editorial-image`
+- when supported, reveal waits for image decode completion instead of only the `load` event
 - a timeout fallback prevents permanent loading state if an image errors or stalls
 
 ## JS Runtime Behavior

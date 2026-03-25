@@ -7,11 +7,13 @@
 .bw-mosaic-slider-wrapper {
     position: relative;
     width: 100%;
-    transition: opacity 0.35s ease;
+    visibility: visible;
+    transition: opacity 0.18s ease, visibility 0s linear 0s;
 }
 
 .bw-mosaic-slider-wrapper.loading {
     opacity: 0;
+    visibility: hidden;
 }
 
 .bw-ms-layout--mobile {

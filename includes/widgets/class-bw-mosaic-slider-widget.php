@@ -939,7 +939,10 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'mobile'             => $this->build_slider_config( $settings, 'mobile' ),
 		);
 
-		$wrapper_classes = array( 'bw-mosaic-slider-wrapper' );
+		$wrapper_classes = array(
+			'bw-mosaic-slider-wrapper',
+			'loading',
+		);
 		if ( ( $settings['show_arrows'] ?? 'yes' ) !== 'yes' ) {
 			$wrapper_classes[] = 'bw-ms-hide-arrows';
 		}
