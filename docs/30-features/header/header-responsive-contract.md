@@ -31,6 +31,7 @@ Mobile-oriented sections:
 - Mobile left area (hamburger + off-canvas navigation entry)
 - Mobile center logo
 - Mobile right area (search + cart/account compact rendering)
+- Mobile glass panel in `Hero Overlap`
 
 Normative rules:
 - Dual-block structure MUST be treated as presentation duplication only.
@@ -139,6 +140,11 @@ Mid-scroll breakpoint transition:
 
 Mobile scrolled override:
 - Mobile scrolled background forced override is an implementation-faithful rule and MUST be treated as active behavior.
+
+Hero Overlap responsive rules:
+- On selected pages, mobile mode MUST start with the header already in overlay position.
+- Mobile overlay mode MUST keep the panel glass visible from startup.
+- Mobile hamburger, search, and cart icons MUST follow the same `bw-header-on-dark` state used by the logo.
 
 Off-canvas and scroll interaction:
 - Off-canvas open/close state MUST remain deterministic during scroll activity.

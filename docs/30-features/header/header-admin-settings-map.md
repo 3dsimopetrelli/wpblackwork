@@ -32,6 +32,8 @@ Authority boundary:
 |---|---:|---|---|---|---|---|
 | `enabled` | `0` | checkbox | General | `bw_header_is_enabled()`, `bw_header_render_frontend()`, `bw_header_enqueue_assets()`, legacy enqueue early-return | global header activation | Tier 0 switch. Enables custom mode and suppresses legacy mode. |
 | `header_title` | `Blackwork Header` | text | General | template `header.php` (`aria-label`), localized JS title | accessibility/title metadata | Presentation-only. |
+| `hero_overlap.enabled` | `0` | checkbox | Hero Overlap | `bw_header_is_hero_overlap_enabled()`, `bw_header_is_hero_overlap_active()`, `header-render.php`, `frontend/assets.php`, `header-init.js` | page-scoped overlay mode activation | V1 gate. Enables per-page overlap logic without changing dark-zone detector authority. |
+| `hero_overlap.page_ids` | `[]` | array<int> | Hero Overlap | `bw_header_get_hero_overlap_page_ids()`, `bw_header_is_hero_overlap_active()` | page targeting | Applied only on singular pages whose IDs are present in the saved list. |
 | `background_color` | `#efefef` | color | General | PHP inline CSS in `frontend/assets.php` | desktop/mobile base bg (when smart scroll off) | Overridden by smart settings when `features.smart_scroll=1`. |
 | `background_transparent` | `0` | checkbox | General | PHP inline CSS in `frontend/assets.php` | transparent base mode | Applies only when smart scroll off. |
 | `inner_padding_unit` | `px` | select (`px`/`%`) | General | PHP inline CSS in `frontend/assets.php` | header inner spacing | Affects `.bw-custom-header__inner`. |
@@ -118,6 +120,14 @@ Authority boundary:
 Smart Scroll precedence:
 - When `features.smart_scroll = 1`, `smart_header.*` visual values MUST override General background/transparency values for header smart/scrolled rendering.
 
+Hero Overlap precedence:
+- When `hero_overlap.enabled = 1` and current page ID is selected, runtime MUST:
+  - keep the header in overlay/fixed mode from first paint
+  - keep wrapper background transparent
+  - continue using the existing dark-zone detection as the only authority for `bw-header-on-dark`
+  - force panel blur availability even if the page is not using Smart Scroll
+- `Hero Overlap` MUST NOT introduce a second color-detection system.
+
 General fallback precedence:
 - When `features.smart_scroll = 0`, General visual values MUST apply:
   - `background_transparent = 1` => transparent base background
@@ -130,6 +140,7 @@ Mobile forced override:
 Menu blur gating:
 - `smart_header.menu_blur_*` visual values MUST apply only when `smart_header.menu_blur_enabled = 1`.
 - If blur is disabled, runtime MUST render non-blur panel fallback styles.
+- Exception: `Hero Overlap` forces panel blur availability for the header panel so the overlay starts with the intended glass treatment.
 
 Menu fallback:
 - `menus.mobile_menu_id` MUST fallback to `menus.desktop_menu_id` when empty.
@@ -168,6 +179,12 @@ Feature key exposure note:
 
 4. Scroll behavior validation
 - With smart scroll ON/OFF, verify precedence and state transitions match configuration.
+
+4b. Hero Overlap validation
+- Verify selected pages start directly in overlay mode.
+- Verify the first hero section loads under the header without a first-paint jump.
+- Verify manual `.smart-header-dark-zone` markers still drive the same dark detection path.
+- Verify mobile panel glass is visible from startup.
 
 5. Search overlay validation
 - Verify search open/close and live-search behavior remain functional.
