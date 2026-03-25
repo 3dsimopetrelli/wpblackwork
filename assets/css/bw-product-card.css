@@ -164,6 +164,8 @@
 .bw-product-card .bw-ss__buttons {
   display: flex;
   width: 100%;
+  max-width: var(--bw-card-overlay-group-max-width, none);
+  margin-inline: auto;
   gap: 0;
   pointer-events: auto;
   position: relative;

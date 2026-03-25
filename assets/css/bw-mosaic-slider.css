@@ -305,6 +305,10 @@
     border-radius: var(--bw-ms-image-radius, 18px);
 }
 
+.bw-ms-slot .bw-product-card {
+    --bw-card-overlay-group-max-width: 280px;
+}
+
 .bw-ms-slot .bw-product-card .bw-wallpost-media,
 .bw-ms-slot .bw-product-card .bw-ss__media,
 .bw-ms-slot .bw-product-card .bw-wallpost-image,
