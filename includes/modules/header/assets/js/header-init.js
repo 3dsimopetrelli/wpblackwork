@@ -299,6 +299,28 @@
         checkDarkZoneOverlap(header);
     }
 
+    function scheduleLayoutRechecks(header, callback) {
+        if (!header) {
+            return;
+        }
+
+        function run() {
+            callback();
+        }
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(run);
+        });
+
+        window.setTimeout(run, 120);
+
+        window.addEventListener('load', run, { once: true });
+
+        if (document.fonts && typeof document.fonts.ready === 'object' && typeof document.fonts.ready.then === 'function') {
+            document.fonts.ready.then(run).catch(function () {});
+        }
+    }
+
     /* ========================================================================
        STICKY HEADER LOGIC
        ======================================================================== */
@@ -417,10 +439,18 @@
             recalcOffsets();
             applyStateClass();
             checkDarkZoneOverlap(header);
+            onScroll();
         });
 
         recalcOffsets();
         onScroll();
+
+        scheduleLayoutRechecks(header, function () {
+            recalcOffsets();
+            applyStateClass();
+            checkDarkZoneOverlap(header);
+            onScroll();
+        });
     }
 
     function boot() {
@@ -446,9 +476,18 @@
                 }, { passive: true });
             }
 
-            header.classList.remove('bw-header-preload');
-            header.style.opacity = '1';
-            header.style.visibility = 'visible';
+            function revealHeader() {
+                header.classList.remove('bw-header-preload');
+                header.style.opacity = '1';
+                header.style.visibility = 'visible';
+            }
+
+            if (header.getAttribute('data-hero-overlap') === 'yes') {
+                scheduleLayoutRechecks(header, revealHeader);
+                return;
+            }
+
+            revealHeader();
         }
     }
 
