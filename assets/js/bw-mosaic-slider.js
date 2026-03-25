@@ -6,8 +6,6 @@
 (function ($) {
     'use strict';
 
-    const MOBILE_BREAKPOINT = 1000;
-
     const debounce = (fn, ms) => {
         let timer;
         return (...args) => {
@@ -25,6 +23,8 @@
             this._wheelHandler = null;
             this.activeMode = null;
             this.initialized = false;
+            // Guards against pending debounce callbacks firing after destroy().
+            this.destroyed = false;
 
             this.init();
         }
@@ -49,10 +49,17 @@
         }
 
         _getMode() {
-            return window.innerWidth < MOBILE_BREAKPOINT ? 'mobile' : 'desktop';
+            // mobileBreakpoint comes from PHP (MOBILE_BREAKPOINT constant) via data-config,
+            // making PHP the single source of truth instead of a separate JS constant.
+            const bp = this.config.mobileBreakpoint || 1000;
+            return window.innerWidth < bp ? 'mobile' : 'desktop';
         }
 
         _syncMode() {
+            if (this.destroyed) {
+                return;
+            }
+
             const nextMode = this._getMode();
 
             if (nextMode === this.activeMode && this.emblaCore) {
@@ -237,6 +244,8 @@
         }
 
         destroy() {
+            // Set destroyed first so any pending debounce callbacks bail immediately.
+            this.destroyed = true;
             this._destroyEmbla();
             $(window).off(`.bwms-${this.widgetId}`);
             this.activeMode = null;

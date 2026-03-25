@@ -817,12 +817,20 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 
 		$desktop_pages = array_chunk( $posts, self::ITEMS_PER_PAGE );
 		$config        = array(
-			'widgetId'     => $widget_id,
-			'showArrows'   => ( $settings['show_arrows'] ?? 'yes' ) === 'yes',
-			'showDots'     => ( $settings['show_dots'] ?? 'yes' ) === 'yes',
-			'dotsPosition' => 'center',
-			'desktop'      => $this->build_slider_config( $settings, 'desktop' ),
-			'mobile'       => $this->build_slider_config( $settings, 'mobile' ),
+			'widgetId'           => $widget_id,
+			'showArrows'         => ( $settings['show_arrows'] ?? 'yes' ) === 'yes',
+			'showDots'           => ( $settings['show_dots'] ?? 'yes' ) === 'yes',
+			'dotsPosition'       => 'center',
+			// Single source of truth: JS reads this instead of its own hardcoded constant.
+			'mobileBreakpoint'   => self::MOBILE_BREAKPOINT,
+			// Responsive overlay-button state mirrored to JS for future-proofing.
+			'hideOverlayButtons' => array(
+				'desktop' => ( $settings['hide_overlay_buttons'] ?? '' ) === 'yes',
+				'tablet'  => ( $settings['hide_overlay_buttons_tablet'] ?? '' ) === 'yes',
+				'mobile'  => ( $settings['hide_overlay_buttons_mobile'] ?? '' ) === 'yes',
+			),
+			'desktop'            => $this->build_slider_config( $settings, 'desktop' ),
+			'mobile'             => $this->build_slider_config( $settings, 'mobile' ),
 		);
 
 		$wrapper_classes = array( 'bw-mosaic-slider-wrapper' );
