@@ -2,6 +2,28 @@
  * BW Hero Slide Widget Styles
  */
 
+@keyframes bwHeroMediaIn {
+    from {
+        opacity: 0;
+        transform: scale(1.03);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1.01);
+    }
+}
+
+@keyframes bwHeroContentIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .bw-hero-slide-wrapper {
     --bw-hs-button-blur: 12px;
     --bw-hs-button-fill-opacity: 0.08;
@@ -45,10 +67,12 @@
 
 .bw-hero-slide__media {
     z-index: 0;
+    opacity: 0;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
     transform: scale(1.01);
+    animation: bwHeroMediaIn 0.32s ease-out forwards;
 }
 
 .bw-hero-slide__media--empty {
@@ -97,12 +121,14 @@
 }
 
 .bw-hero-slide__title {
+    opacity: 0;
     color: #ffffff;
     font-size: clamp(48px, 6vw, 86px);
     font-weight: 400;
     line-height: 1.02;
     letter-spacing: -0.04em;
     text-wrap: balance;
+    animation: bwHeroContentIn 0.24s ease-out 0.08s forwards;
 }
 
 .bw-hero-slide__title u {
@@ -112,11 +138,13 @@
 }
 
 .bw-hero-slide__subtitle {
+    opacity: 0;
     margin-top: 22px;
     color: rgba(255, 255, 255, 0.84);
     font-size: clamp(19px, 1.85vw, 33px);
     line-height: 1.35;
     text-wrap: balance;
+    animation: bwHeroContentIn 0.24s ease-out 0.13s forwards;
 }
 
 .bw-hero-slide__buttons {
@@ -126,6 +154,8 @@
     gap: var(--bw-hs-buttons-row-gap, 16px) var(--bw-hs-buttons-column-gap, 16px);
     width: 100%;
     margin-top: 38px;
+    opacity: 0;
+    animation: bwHeroContentIn 0.24s ease-out 0.18s forwards;
 }
 
 .bw-hero-slide__button {
@@ -223,5 +253,16 @@
 
     .bw-hero-slide__button-label {
         font-size: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bw-hero-slide__media,
+    .bw-hero-slide__title,
+    .bw-hero-slide__subtitle,
+    .bw-hero-slide__buttons {
+        opacity: 1;
+        animation: none;
+        transform: none;
     }
 }
