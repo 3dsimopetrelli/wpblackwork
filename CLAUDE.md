@@ -170,6 +170,59 @@ Located in `metabox/`:
 Located in `includes/dynamic-tags/`:
 - `class-bw-artist-name-tag.php` - Elementor dynamic tag for artist name
 
+## BW Static Showcase Widget
+
+### Overview
+
+`class-bw-static-showcase-widget.php` — Two-column product showcase: large main image on the left (75%), up to two gallery thumbnails on the right (25%). Product data comes from a dedicated metabox (`metabox/digital-products-metabox.php`).
+
+### Data Flow
+
+1. Editor fills in product data in **Metabox Slide Showcase** (admin, on the product edit page)
+2. Data is saved to post meta by `bw_save_digital_products()`
+3. Widget `render()` resolves the product ID, then fetches all meta in **one** batch call: `get_post_meta($product_id)` → closure `$get_meta($key)`
+4. Legacy meta keys are read as fallback for each field
+
+### Meta Keys
+
+| Meta key | Description | Legacy fallback |
+|---|---|---|
+| `_bw_showcase_image` | Main image (attachment ID or URL) | `_product_showcase_image` |
+| `_bw_showcase_title` | Headline text | — |
+| `_bw_showcase_description` | Subtitle text | — |
+| `_bw_texts_color` | CSS color for text/badges | `_product_color` |
+| `_bw_product_type` | `digital` or `physical` | — |
+| `_bw_file_size` | File size string (digital) | `_product_size_mb` |
+| `_bw_assets_count` | Number of assets (digital) | `_product_assets_count` |
+| `_bw_formats` | Comma-separated formats (digital) | `_product_formats` |
+| `_bw_info_1` | Info line 1 (physical) | — |
+| `_bw_info_2` | Info line 2 (physical) | — |
+| `_product_button_text` | CTA button label | — |
+| `_product_button_link` | CTA button URL | — |
+| `_bw_showcase_linked_product` | Product ID to show when "use metabox product" is on | — |
+
+### Product Resolution
+
+- **Manual mode** (`use_metabox_product = off`): uses `product_id` from the Elementor control
+- **Metabox mode** (`use_metabox_product = on`): resolves current post ID → reads `_bw_showcase_linked_product` → falls back to current post if no linked product is set
+
+### Showcase Label
+
+The label text displayed above the widget comes exclusively from the Elementor control `showcase_label_text` (supports Elementor dynamic tags). There is no separate metabox field for this — the widget reads it only from Elementor settings.
+
+### Metabox Admin Assets
+
+`bw_enqueue_digital_products_metabox_assets()` loads:
+- `assets/css/bw-metabox-admin.css` — metabox layout styles
+- `assets/js/bw-metabox-admin.js` — product type toggle, Select2 product search, media uploader
+- Uses `wp_localize_script('bw-metabox-admin-script', 'bwMetaboxData', [...])` to pass nonce and i18n strings
+
+Product search AJAX endpoint: `wp_ajax_bw_search_products` → `bw_search_products_ajax()` — accepts **POST** requests, requires `edit_products` capability + nonce.
+
+### Text Color
+
+The `text_color` Elementor control sets both `--bw-slide-showcase-text-color` and `--bw-slide-showcase-badge-border-color` CSS custom properties on the container in a single `selectors` declaration. Additionally, the metabox `_bw_texts_color` value is applied as the container's inline style, overriding the Elementor default while allowing the Elementor control to take precedence.
+
 ## Asset File Conventions
 
 **CSS Files:**
