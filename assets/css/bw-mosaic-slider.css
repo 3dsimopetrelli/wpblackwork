@@ -328,6 +328,11 @@
     display: none !important;
 }
 
+.bw-mosaic-slider-wrapper.bw-ms-hide-overlay-buttons-desktop .bw-ms-overlay,
+.bw-mosaic-slider-wrapper.bw-ms-hide-overlay-buttons-desktop .bw-ms-overlay-buttons {
+    display: none !important;
+}
+
 .bw-ms-mobile-card-shell .bw-ms-title {
     font-size: 20px;
     line-height: 1.12;
@@ -382,6 +387,20 @@
 
     .bw-ms-arrows-container--mobile {
         bottom: -42px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .bw-mosaic-slider-wrapper.bw-ms-hide-overlay-buttons-tablet .bw-ms-overlay,
+    .bw-mosaic-slider-wrapper.bw-ms-hide-overlay-buttons-tablet .bw-ms-overlay-buttons {
+        display: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .bw-mosaic-slider-wrapper.bw-ms-hide-overlay-buttons-mobile .bw-ms-overlay,
+    .bw-mosaic-slider-wrapper.bw-ms-hide-overlay-buttons-mobile .bw-ms-overlay-buttons {
+        display: none !important;
     }
 }
 

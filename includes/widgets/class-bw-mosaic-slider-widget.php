@@ -466,6 +466,23 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_responsive_control(
+			'hide_overlay_buttons',
+			array(
+				'label'        => __( 'Hide Overlay Buttons', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => array(
+					'post_type'    => 'product',
+					'show_buttons' => 'yes',
+				),
+				'description'  => __( 'Hide overlay buttons on the selected responsive breakpoints.', 'bw-elementor-widgets' ),
+			)
+		);
+
 		$this->add_control(
 			'image_size',
 			array(
@@ -677,6 +694,15 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		}
 		if ( ( $settings['show_dots'] ?? 'yes' ) !== 'yes' ) {
 			$wrapper_classes[] = 'bw-ms-hide-dots';
+		}
+		if ( ( $settings['hide_overlay_buttons'] ?? '' ) === 'yes' ) {
+			$wrapper_classes[] = 'bw-ms-hide-overlay-buttons-desktop';
+		}
+		if ( ( $settings['hide_overlay_buttons_tablet'] ?? '' ) === 'yes' ) {
+			$wrapper_classes[] = 'bw-ms-hide-overlay-buttons-tablet';
+		}
+		if ( ( $settings['hide_overlay_buttons_mobile'] ?? '' ) === 'yes' ) {
+			$wrapper_classes[] = 'bw-ms-hide-overlay-buttons-mobile';
 		}
 
 		$this->add_render_attribute(

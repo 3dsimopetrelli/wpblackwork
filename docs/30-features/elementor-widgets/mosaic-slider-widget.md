@@ -115,6 +115,7 @@ Widget-local runtime:
 - `Show Description`
 - `Show Price` (products only)
 - `Show Overlay Buttons` (products only)
+- `Hide Overlay Buttons` responsive control (products only)
 - `Image Size`
 
 ### Style
