@@ -330,7 +330,9 @@
     }
 
     function initDarkZoneDetection(header) {
-        checkDarkZoneOverlap(header);
+        checkDarkZoneOverlap(header, {
+            assumeVisible: header.classList.contains('bw-header-hidden')
+        });
     }
 
     function scheduleLayoutRechecks(header, callback) {
@@ -440,7 +442,9 @@
             var st = window.pageYOffset || 0;
             var headerHeight = header.offsetHeight || 0;
 
-            checkDarkZoneOverlap(header);
+            checkDarkZoneOverlap(header, {
+                assumeVisible: isHidden || header.classList.contains('bw-header-hidden')
+            });
 
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
 
@@ -492,7 +496,9 @@
         window.addEventListener('resize', function () {
             recalcOffsets();
             applyStateClass();
-            checkDarkZoneOverlap(header);
+            checkDarkZoneOverlap(header, {
+                assumeVisible: isHidden || header.classList.contains('bw-header-hidden')
+            });
             onScroll();
         });
 
@@ -502,7 +508,9 @@
         scheduleLayoutRechecks(header, function () {
             recalcOffsets();
             applyStateClass();
-            checkDarkZoneOverlap(header);
+            checkDarkZoneOverlap(header, {
+                assumeVisible: isHidden || header.classList.contains('bw-header-hidden')
+            });
             onScroll();
         });
     }
@@ -522,7 +530,9 @@
                 window.addEventListener('scroll', function () {
                     if (!nonStickyTicking) {
                         window.requestAnimationFrame(function () {
-                            checkDarkZoneOverlap(header);
+                            checkDarkZoneOverlap(header, {
+                                assumeVisible: header.classList.contains('bw-header-hidden')
+                            });
                             nonStickyTicking = false;
                         });
                         nonStickyTicking = true;
