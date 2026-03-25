@@ -164,6 +164,8 @@
 .bw-product-card .bw-ss__buttons {
   display: flex;
   width: 100%;
+  max-width: var(--bw-card-overlay-group-max-width, none);
+  margin-inline: auto;
   gap: 0;
   pointer-events: auto;
   position: relative;
@@ -194,7 +196,7 @@
   color: var(--bw-card-overlay-buttons-color, #000000);
   border: 1px solid #080808;
   border-radius: 0;
-  font-size: 14px;
+  font-size: var(--bw-card-overlay-buttons-font-size, 14px);
   font-weight: 500;
   text-decoration: none;
   overflow: visible;

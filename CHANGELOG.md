@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Hero Slide: added new `BW-UI Hero Slide` Elementor widget with static-first hero rendering, responsive height/max-width controls, background image layer, and future-ready `Slide` mode surface.
 - Mosaic Slider: added new `BW-UI Mosaic Slider` Elementor widget with desktop 5-item asymmetric mosaic pages, mobile linear Embla fallback, and shared `BW_Product_Card_Component` reuse for product results.
 - Price Variation: removed "Other Payment Methods" section entirely (controls, style section, render block, JS toggle handler, CSS).
 - Price Variation: removed "Open Cart Popup" control — cart popup always opens on add-to-cart via AJAX handler; control was unused.

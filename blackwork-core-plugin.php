@@ -628,6 +628,7 @@ add_action('init', 'bw_register_presentation_slide_widget_assets');
 add_action('init', 'bw_register_product_slider_widget_assets');
 add_action('init', 'bw_register_showcase_slide_widget_assets');
 add_action('init', 'bw_register_mosaic_slider_widget_assets');
+add_action('init', 'bw_register_hero_slide_widget_assets');
 add_action('init', 'bw_register_product_details_widget_assets');
 add_action('init', 'bw_register_reviews_widget_assets');
 add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
@@ -1402,6 +1403,11 @@ function bw_register_mosaic_slider_widget_assets()
         $js_version,
         true
     );
+}
+
+function bw_register_hero_slide_widget_assets()
+{
+    bw_register_widget_assets('hero-slide', ['jquery'], false);
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"

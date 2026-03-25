@@ -176,15 +176,49 @@ Wave-specific checks:
   - widget initializes without console errors on frontend
   - Elementor editor re-render destroys and rebuilds one instance cleanly
   - desktop `Big post center` renders the featured item in the center column spanning two rows
-  - desktop `Big post left` renders the featured item in the left column spanning two rows
-  - desktop `Big post right` renders the featured item in the right column spanning two rows
+  - desktop `Big center split` alternates the split composition left/right across desktop pages
+  - desktop `Big post left` renders the featured item as the left 50/50 half and supporting cards as a `2x2` right-side grid
+  - desktop `Big post right` renders the featured item as the right 50/50 half and supporting cards as a `2x2` left-side grid
   - desktop slide paging groups queried results into deterministic 5-item batches
+  - `Auto Scale Mosaic = off` honors the manual `Desktop Mosaic Height` control
+  - `Auto Scale Mosaic = on` removes manual height dependence and scales the page proportionally
+  - `Auto Scale Square Format = on` switches the autoscaled desktop layout to square-tile geometry rather than only forcing an outer canvas ratio
   - below `1000px` the widget switches to the mobile linear slider and desktop mosaic viewport is not initialized
-  - mobile cards render equal-sized and remain draggable via Embla
+  - tablet and mobile visible-slide settings accept decimals and reveal part of the next slide correctly
+  - responsive cards remain draggable via Embla with `align: start`
+  - `Touch Drag (Mobile & Tablet)` governs responsive touch drag only
+  - responsive horizontal wheel / two-finger trackpad scrolling works when the mobile runtime is active
   - manual IDs override taxonomy filters and keep exact order when randomize is off
   - randomize mode skips deterministic query-cache reuse and still renders valid results
   - `product` source continues to render via `BW_Product_Card_Component`
   - `post` source renders safely without depending on product-card authority
+  - overlay buttons remain capped to `280px` max width in the widget
+  - overlay button text remains fixed at `12px` on both featured and supporting cards
+  - text spacing controls (`Title/Description/Price Padding`, `Text Items Gap`) respond correctly across desktop/tablet/mobile
+  - responsive gutter and slide gap remain visually consistent when swiping between cards
+
+## BW Hero Slide
+- Scope:
+  - `includes/widgets/class-bw-hero-slide-widget.php`
+  - `assets/css/bw-hero-slide.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend and in Elementor editor
+  - `Static` mode renders the hero correctly with background image, title, subtitle, and CTA button list
+  - selecting `Slide` mode does not break rendering and still fails closed to static output in V1
+  - responsive `Hero Height` applies correctly on desktop/tablet/mobile
+  - responsive `Content Max Width` applies correctly on desktop/tablet/mobile
+  - content alignment control updates title/subtitle alignment and CTA row alignment consistently
+  - section padding adapts correctly across desktop/tablet/mobile
+  - title/subtitle typography and padding controls apply correctly
+  - CTA buttons wrap cleanly into multiple rows on smaller screens
+  - supported link target types resolve correctly:
+    - manual URL
+    - product category archive
+    - post category archive
+    - archive page / post type archive
+  - `Glass Effect` and `Fill Enabled` states produce valid visual combinations
+  - button border width, border radius, typography, padding, and gap controls apply correctly
 
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:

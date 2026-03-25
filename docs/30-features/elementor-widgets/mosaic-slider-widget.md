@@ -2,158 +2,259 @@
 
 ## Status
 - Status: Implemented
+- Visible editor title: `BW-UI Mosaic Slider`
 - Runtime slug: `bw-mosaic-slider`
 - Class: `BW_Mosaic_Slider_Widget`
 - Main class file: `includes/widgets/class-bw-mosaic-slider-widget.php`
 - Runtime assets:
   - `assets/js/bw-mosaic-slider.js`
   - `assets/css/bw-mosaic-slider.css`
+- Shared runtime dependencies:
+  - `assets/js/bw-embla-core.js`
+  - `assets/css/bw-embla-core.css`
+  - `assets/css/bw-product-card.css`
 
 ## Purpose
-`Mosaic Slider` is an Embla-based mixed-content widget for editorial asymmetric compositions.
+`Mosaic Slider` is a governed Embla-based mixed-content Elementor widget for editorial layouts built around one featured item plus four supporting items.
 
-Desktop uses a 5-item mosaic page:
-- 1 featured item
-- 4 supporting items
+The widget exists to cover a layout family that is intentionally different from the canonical `bw-product-slider`:
+- desktop uses an asymmetric 5-item mosaic page
+- tablet/mobile collapse to a linear Embla slider
+- `product` results must continue to reuse the shared product-card authority
+- non-product content can still be queried safely through a widget-local editorial card renderer
 
-Mobile below `1000px` abandons the mosaic and becomes a normal draggable Embla slider with three visible cards per viewport.
+## Runtime Contract
+### Desktop
+- Breakpoint: `>= 1000px`
+- Embla slide unit: one complete mosaic page
+- Page composition:
+  - 1 featured item
+  - 4 supporting items
+- Query results are chunked into deterministic batches of `5`
+- The first item in each batch is always the featured item
+- The next four items fill supporting slots in query order
 
-## Layout Variants
-Desktop supports four variants:
-- `Big post center`
-- `Big center split`
-- `Big post left`
-- `Big post right`
+### Responsive
+- Breakpoint: `< 1000px`
+- Desktop mosaic is disabled
+- The widget initializes a dedicated mobile/tablet Embla viewport
+- Cards return to natural component height
+- Alignment remains `start`
+- Visible-card count is configurable separately for tablet and mobile
+- Decimal values are supported to reveal part of the next slide
 
-Contract:
-- each desktop Embla slide is a full mosaic page
-- the first queried item in each 5-item batch is always the featured item
-- the next four items fill the supporting positions in order
-- `Big center split` alternates the split composition left/right across desktop pages
-- `Big post left` and `Big post right` use a 50/50 desktop split:
-  one half is a 2x2 grid of supporting cards and the other half is one featured card
+## Desktop Layout Variants
+The widget exposes four desktop variants:
 
-## Content Sources
-Current source types:
+### `Big Post Center`
+- Featured item is centered
+- Supporting cards render as two stacked cards on the left and two stacked cards on the right
+
+### `Big Center Split`
+- This is the split editorial composition
+- The underlying desktop page alternates internally between:
+  - `split-left`
+  - `split-right`
+- This preserves the “broken / split” rhythm while keeping the control surface simple in Elementor
+
+### `Big Post Left`
+- True 50/50 desktop split
+- Left half: one featured item spanning two rows
+- Right half: `2x2` supporting grid
+
+### `Big Post Right`
+- True 50/50 desktop split
+- Left half: `2x2` supporting grid
+- Right half: one featured item spanning two rows
+
+## Auto Scale Modes
+Style > Layout exposes two governed desktop scale modes:
+
+### `Auto Scale Mosaic`
+- When `Off`:
+  - desktop height is controlled manually through `Desktop Mosaic Height`
+- When `On`:
+  - the mosaic scales proportionally as width shrinks
+  - desktop height is no longer manually authored
+
+### `Auto Scale Square Format`
+- Visible only when `Auto Scale Mosaic` is enabled
+- Meaning:
+  - square tile system, not a square outer canvas
+- Runtime result:
+  - the autoscaled desktop page switches to a `4x2` square-tile composition
+  - the featured card occupies a `2x2` square area
+  - each supporting card occupies a `1x1` square area
+
+## Query Surface
+Supported source types:
 - `product`
 - `post`
 
-### Product Rendering Authority
-When `post_type = product`, card rendering is delegated to:
-- `BW_Product_Card_Component::render()`
-
-This preserves:
-- shared hover-image behavior
-- shared hover-video behavior
-- shared overlay buttons
-- shared title/price/image markup contracts
-
-### Editorial Rendering
-When `post_type = post`, the widget uses a local editorial card renderer owned by the widget class.
-
-This renderer is intentionally lighter than the product-card component and does not introduce a second shared product-card authority.
-
-## Query Model
 Supported query inputs:
-- source type (`product` / `post`)
-- category
-- sub-category
-- manual IDs
-- item count
-- order by
-- order
-- randomize on/off
-
-Rules:
-- manual IDs override taxonomy filters
-- if randomize is on and manual IDs are provided, only the selected ID set is shuffled
-- if randomize is on and manual IDs are not provided, query ordering becomes `rand`
-- deterministic transient caching is skipped whenever randomize is enabled
-
-## Responsive Contract
-- `>= 1000px`: desktop mosaic mode
-- `< 1000px`: mobile linear slider mode
-
-Mobile contract:
-- three cards remain visible per viewport
-- Embla alignment stays `start`
-- card height falls back to the natural shared component height
-- touch drag remains available unless disabled in widget controls
-
-## Slider Runtime
-Shared Embla authority:
-- `assets/js/bw-embla-core.js`
-- `assets/css/bw-embla-core.css`
-
-Widget-local runtime:
-- one active Embla instance per widget
-- JS switches between desktop and mobile viewports on breakpoint crossing
-- inactive mode is destroyed before the new mode is initialized
-
-## Current Controls
-### Query
 - `Source Type`
-- product category / sub-category
-- post category / sub-category
+- parent category
+- sub-category
 - `Manual IDs`
 - `Item Count`
 - `Order By`
 - `Order`
 - `Randomize Items`
 
-### Layout
-- `Desktop Mosaic Variant`
+Query rules:
+- manual IDs override taxonomy filters
+- if randomize is enabled and manual IDs are present, only the selected ID set is shuffled
+- if randomize is enabled and manual IDs are not present, the query uses randomized ordering
+- deterministic transient caching is skipped when randomize is enabled
 
-### Slider Settings
+## Rendering Authority
+### Product path
+When `post_type = product`, rendering authority remains:
+- `BW_Product_Card_Component::render()`
+
+This preserves:
+- shared hover-image logic
+- shared hover-video logic
+- shared price markup
+- shared overlay button system
+- shared add-to-cart state handling
+
+### Editorial path
+When `post_type = post`, the widget uses its own lighter editorial renderer.
+
+This path is intentionally local to the widget and does not create a second shared product-card system.
+
+## Slider Settings
+### Content > Layout
+- `Desktop Mosaic Variant`
+- informational breakpoint note for responsive behavior below `1000px`
+
+### Content > Slider Settings
 - `Infinite Loop`
 - `Autoplay`
 - `Autoplay Speed`
 - `Drag Free`
-- `Touch Drag` (responsive mode only)
-- `Mouse / Trackpad Drag`
+- `Touch Drag (Mobile & Tablet)`
+- `Mouse / Trackpad Drag (Desktop)`
 - `Show Arrows`
 - `Show Dots`
 
-### Card Settings
+Responsive drag note:
+- touch drag is only applied to the responsive/mobile runtime
+- desktop drag is governed separately by the mouse/trackpad setting
+- responsive wheel/two-finger horizontal scrolling is handled in the widget JS runtime
+
+### Content > Card Settings
 - `Show Title`
 - `Show Description`
-- `Show Price` (products only)
-- `Show Overlay Buttons` (products only)
-- `Hide Overlay Buttons` responsive control (products only)
+- `Show Price`
+  - products only
+- `Show Overlay Buttons`
+  - products only
+- `Hide Overlay Buttons`
+  - responsive control
+  - products only
 - `Image Size`
 
-### Style
-- desktop mosaic height
-- horizontal gap
-- vertical gap
-- image border radius
-- text typography
-  - title
-  - description
-  - price
-- text spacing
-  - title padding
-  - description padding
-  - price padding
-  - text items gap
+## Style Controls
+### Style > Layout
+- `Auto Scale Mosaic`
+- `Auto Scale Square Format`
+  - shown only when `Auto Scale Mosaic` is enabled
+- `Desktop Mosaic Height`
+  - shown only when `Auto Scale Mosaic` is disabled
+- `Horizontal Gap`
+- `Vertical Gap`
+- `Tablet Visible Slides`
+  - supports decimals like `3.2`
+- `Mobile Visible Slides`
+  - supports decimals like `2.2`
 
-## Caching
-The widget caches deterministic query result IDs using transients prefixed with `bw_ms_` when:
-- randomize is off
-- Elementor editor mode is not active
+Layout spacing note:
+- `Horizontal Gap` governs both the desktop internal column spacing and the slide-side desktop gutter
+- responsive visible-slide math and responsive guttering are both derived from the same width model
 
-Cache invalidation authority:
-- `blackwork-core-plugin.php`
-- callback: `bw_mosaic_slider_clear_query_cache()`
+### Style > Images
+- `Image Border Radius`
 
-## Asset Registration
-Registered centrally in `blackwork-core-plugin.php`:
-- `bw-mosaic-slider-style`
-- `bw-mosaic-slider-script`
-- shared Embla handles already used across the slider family
+### Style > Text
+- Title typography
+- Title padding
+- Description typography
+- Description padding
+- Price typography
+  - products only
+- Price padding
+  - products only
+- `Text Items Gap`
+  - responsive
+  - controls distance between title / description / price blocks
+
+Text spacing note:
+- widget CSS resets residual title/description/price margins so `Text Items Gap` remains the dominant spacing control
+
+## Overlay Button Contract
+The widget reuses the shared product-card overlay button authority and adds widget-local constraints:
+- overlay button group maximum width is capped at `280px`
+- overlay button text size is normalized to `12px`
+- button text remains fixed across large and small cards
+- the width cap applies both to:
+  - a single `View Product` button
+  - a combined `View Product + Add to Cart` group
+
+## Caching Contract
+Deterministic query caching uses transients prefixed with:
+- `bw_ms_`
+
+Caching rules:
+- active only when randomize is off
+- skipped in Elementor editor mode
+- cache payload stores queried post IDs
+- invalidation authority lives in:
+  - `blackwork-core-plugin.php`
+  - callback: `bw_mosaic_slider_clear_query_cache()`
+
+## JS Runtime Behavior
+Widget-local runtime authority:
+- `assets/js/bw-mosaic-slider.js`
+
+Behavior:
+- one active Embla instance per widget
+- mode detection switches between desktop and mobile viewports
+- previous mode is destroyed before the next is initialized
+- responsive mode attaches horizontal wheel handling for trackpad/two-finger scrolling
+- wrapper loading state is removed after the Embla instance stabilizes
+
+## CSS Runtime Notes
+Widget-local CSS authority:
+- `assets/css/bw-mosaic-slider.css`
+
+Important implementation details:
+- desktop slide width is full-page Embla
+- desktop gutter is applied through the desktop slide wrapper
+- viewport uses `box-sizing: border-box`
+  - this prevents width drift when `padding-inline` is used
+- responsive slide width is calculated from:
+  - visible-slide count
+  - shared gap variable
+- square autoscale mode changes the grid contract, not only the outer page ratio
+
+## Regression Checklist Summary
+Minimum runtime checks for this widget:
+- widget initializes without console errors
+- Elementor editor re-render destroys and rebuilds a single instance correctly
+- all four desktop layout variants render in their correct geometry
+- desktop paging stays in deterministic 5-item batches
+- product queries render through `BW_Product_Card_Component`
+- randomize bypasses deterministic cache reuse
+- responsive mode activates below `1000px`
+- responsive visible-slide decimals reveal the next slide correctly
+- responsive drag works for touch and horizontal wheel/trackpad gestures
+- overlay buttons respect the widget-local width cap and fixed `12px` typography
 
 ## Constraints
-- the widget does not replace `bw-product-slider`
-- the widget does not introduce popup behavior
-- product cards must continue to reuse `BW_Product_Card_Component`
-- mobile behavior must stay a real Embla slider, not a CSS-only approximation
+- `Mosaic Slider` does not replace `bw-product-slider`
+- it must not introduce a second product-card authority
+- it must remain a real Embla slider in responsive mode
+- desktop and responsive viewports must never be initialized at the same time
+- popup/modal behavior is out of scope
