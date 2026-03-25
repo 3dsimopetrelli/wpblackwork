@@ -35,7 +35,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
 
     protected function register_controls() {
         $this->register_query_controls();
-        $this->register_showcase_label_controls();
         $this->register_layout_controls();
         $this->register_image_controls();
         $this->register_style_controls();
@@ -89,28 +88,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 'default'      => '',
                 'description'  => __( 'Quando attivo, il widget userà il prodotto selezionato nel Metabox Slide Showcase del prodotto corrente.', 'bw-elementor-widgets' ),
                 'condition'    => [ 'post_type' => 'product' ],
-            ]
-        );
-
-        $this->end_controls_section();
-    }
-
-    private function register_showcase_label_controls() {
-        $this->start_controls_section( 'showcase_label_section', [
-            'label' => __( 'Showcase Label', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control(
-            'showcase_label_text',
-            [
-                'label'       => __( 'Label Text', 'bw-elementor-widgets' ),
-                'type'        => Controls_Manager::TEXT,
-                'default'     => '',
-                'placeholder' => __( 'Inserisci il testo della label...', 'bw-elementor-widgets' ),
-                'description' => __( 'Testo da visualizzare sopra l\'immagine principale. Lascia vuoto per non mostrare alcuna label.', 'bw-elementor-widgets' ),
-                'dynamic'     => [
-                    'active' => true,
-                ],
             ]
         );
 
@@ -477,50 +454,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
 
         $this->end_controls_section();
 
-        // Showcase Label Style
-        $this->start_controls_section( 'showcase_label_style_section', [
-            'label' => __( 'Showcase Label', 'bw-elementor-widgets' ),
-            'tab'   => Controls_Manager::TAB_STYLE,
-        ] );
-
-        $this->add_control( 'showcase_label_color', [
-            'label'     => __( 'Colore', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#000000',
-            'selectors' => [
-                '{{WRAPPER}} .bw-showcase-label' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'showcase_label_typography',
-            'label'    => __( 'Tipografia', 'bw-elementor-widgets' ),
-            'default'  => [
-                'typography' => 'custom',
-                'font_size'  => [ 'size' => 28, 'unit' => 'px' ],
-                'line_height'=> [ 'size' => 32, 'unit' => 'px' ],
-            ],
-            'selector' => '{{WRAPPER}} .bw-showcase-label',
-        ] );
-
-        $this->add_responsive_control( 'showcase_label_margin', [
-            'label'      => __( 'Margini', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'default'    => [
-                'top'    => 0,
-                'right'  => 0,
-                'bottom' => 30,
-                'left'   => 0,
-                'unit'   => 'px',
-                'isLinked' => false,
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-showcase-label' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->end_controls_section();
     }
 
     protected function render() {
@@ -612,8 +545,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $showcase_title_meta  = trim( (string) $get_meta( '_bw_showcase_title' ) );
         $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
         $showcase_description = trim( (string) $get_meta( '_bw_showcase_description' ) );
-        $showcase_label       = isset( $settings['showcase_label_text'] ) ? trim( (string) $settings['showcase_label_text'] ) : '';
-
         $meta_assets_count = $get_meta( '_bw_assets_count' );
         if ( '' === $meta_assets_count ) {
             $meta_assets_count = $get_meta( '_product_assets_count' );
@@ -710,12 +641,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $img_style = $this->build_image_style( $object_fit );
 
         ?>
-        <?php if ( '' !== $showcase_label ) : ?>
-            <div class="bw-showcase-label">
-                <?php echo esc_html( $showcase_label ); ?>
-            </div>
-        <?php endif; ?>
-
         <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>" style="<?php echo $container_style; ?>">
             <div class="bw-static-showcase-left">
                 <?php if ( $image_id || $image_url ) : ?>

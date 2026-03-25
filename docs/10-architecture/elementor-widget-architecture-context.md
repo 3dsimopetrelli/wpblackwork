@@ -38,7 +38,7 @@ Document the current real architecture of Blackwork Elementor widgets and define
 - Product Grid / Query Grid:
   - `bw-product-grid`, `bw-related-products`
 - Slider:
-  - `bw-product-slider`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
+  - `bw-product-slider`, `bw-mosaic-slider`, `bw-presentation-slide`, `bw-slick-slider`, `bw-slide-showcase`
 - Product Utility:
   - `bw-price-variation`, `bw-product-details-table`, `bw-title-product`, `bw-product-description`, `bw-product-breadcrumbs`
 - Product Reviews / Trust:
@@ -81,7 +81,9 @@ Decisions already fixed:
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-product-slider` -> canonical current product slider
+- `bw-mosaic-slider` -> mixed-content Embla slider with desktop mosaic pages and mobile linear fallback; product results still reuse `BW_Product_Card_Component`
 - `bw-presentation-slide` -> specialized presentation/gallery slider (current runtime uses Embla for horizontal and responsive-vertical flows; desktop vertical remains a custom elevator layout; popup remains widget-local and CSS-driven)
+- `bw-showcase-slide` -> current Embla-based showcase/content slider sourcing content from the product showcase metabox without popup complexity
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-reviews` -> canonical custom-review widget backed by the isolated Reviews module
@@ -116,6 +118,36 @@ Visible editor title alignment (current):
 - Scope note: title alignment affects editor labeling only; slug/runtime authority is unchanged.
 - Editor identity exception:
   - `bw-title-product` uses a slug-scoped panel-family mapping to receive the WooCommerce/BW-SP purple editor card without relying on a `BW-SP` title prefix.
+- Elementor panel family-color system (current):
+  - assets:
+    - `assets/js/bw-elementor-widget-panel.js`
+    - `assets/css/bw-elementor-widget-panel.css`
+  - enqueue authority:
+    - `blackwork-core-plugin.php`
+    - hook: `elementor/editor/after_enqueue_scripts`
+  - architecture:
+    - JS classifies widget cards into family classes
+    - CSS owns the visual palette for each family
+    - family assignment is slug-first, with title-prefix fallback
+  - current family classes:
+    - `bw-family-ui`
+    - `bw-family-ui-ps`
+    - `bw-family-sp`
+    - `bw-family-deprecated`
+  - explicit editor exceptions exist for:
+    - `BW Reviews`
+    - `BW Title Product`
+    because their visible titles intentionally do not depend on a `BW-SP` prefix
+  - removed widgets are hidden from the editor panel through the same runtime
+
+Current editor-color governance note:
+- panel colors should not be changed by editing CSS alone
+- the authority surface is the combination of:
+  - Blackwork recognition gate
+  - slug/title family mapping
+  - CSS family palette
+- this area is documented in:
+  - `docs/30-features/elementor-widgets/editor-panel-widget-families.md`
 - Mail Marketing widget note:
   - `bw-newsletter-subscription` intentionally stays as a neutral utility title because its authority surface is Mail Marketing, not a product/widget family namespace.
 
@@ -136,6 +168,7 @@ Visible editor title alignment (current):
 ## Related docs
 - `docs/30-features/elementor-widgets/README.md`
 - `docs/30-features/elementor-widgets/widget-inventory.md`
+- `docs/30-features/elementor-widgets/showcase-slide-widget.md`
 - `docs/30-features/elementor-widgets/architecture-direction.md`
 - `docs/30-features/elementor-widgets/rationalization-policy.md`
 - `docs/30-features/elementor-widgets/migration-sequence.md`

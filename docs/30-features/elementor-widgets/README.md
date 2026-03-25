@@ -30,10 +30,14 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `architecture-direction.md`: target architecture (shared product-card, slider-core, controls, asset authority)
 - `rationalization-policy.md`: keep/merge/rebuild/delete decisions and deprecation policy
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
+- `editor-panel-widget-families.md`: editor-only widget card family colors, slug/title mapping rules, and deprecated-card hiding behavior inside the Elementor panel
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
+- `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with desktop asymmetric 5-item mosaic pages and mobile linear fallback
+- `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching and mobile full-slide CTA behavior
+- `import-info/showcase-slide-metabox-import-map.md`: importer mapping for the Showcase metabox (`product_type`, digital fields, physical fields, CTA, and shared meta keys)
 
 ## Confirmed decisions (current)
 - `bw-add-to-cart` -> DELETE (completed)
@@ -41,11 +45,13 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-wallpost` -> DELETE (completed)
 - `bw-product-grid` -> canonical wall/query-grid widget
 - `bw-product-slider` -> canonical current product slider
+- `bw-mosaic-slider` -> implemented mixed-content Embla slider with desktop mosaic pages and mobile linear fallback
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
   - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget
 - `bw-title-product` -> canonical single-product title utility widget
 - `bw-presentation-slide` -> specialized presentation/gallery slider
+- `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
@@ -98,6 +104,11 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - Note: this is editor labeling only (`get_title()`); internal slugs/contracts remain unchanged.
 - WooCommerce editor identity note:
   - `bw-title-product` uses a slug-scoped panel mapping so it still receives the BW-SP purple widget card without requiring a `BW-SP` title prefix or a `BW-SP` visible title.
+- Elementor panel family-color note:
+  - editor panel colors are now governed by a slug-first family-class system, not by visible title prefixes alone
+  - `BW Reviews` and `BW Title Product` are explicit exceptions so they still receive the purple SP family treatment
+  - `BW Product Grid` is explicitly mapped to the black UI family
+  - the dedicated guide is `editor-panel-widget-families.md`
 
 ## Current implementation status (completed waves)
 - Widget panel naming applied:

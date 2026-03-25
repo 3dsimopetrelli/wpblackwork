@@ -25,6 +25,8 @@ Canonical transition note:
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slider` | `includes/widgets/class-bw-product-slider-widget.php` | Product Slider | canonical current product slider; Embla-based; query-driven; shared product-card delegation |
+| `bw-mosaic-slider` | `includes/widgets/class-bw-mosaic-slider-widget.php` | Editorial Slider | Embla-based mixed-content slider; desktop 5-item asymmetric mosaic pages; mobile linear fallback; products reuse `BW_Product_Card_Component` |
+| `bw-showcase-slide` | `includes/widgets/class-bw-showcase-slide-widget.php` | Showcase Slider | Embla-based curated showcase slider driven by the product showcase metabox; no popup runtime; digital products render badge pills, physical products render footer text lines |
 | `bw-related-post` | `includes/widgets/class-bw-related-post-widget.php` | Query/List | non-product |
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
 | `bw-slick-slider` | `includes/widgets/class-bw-slick-slider-widget.php` | Generic Slider | rationalize with slide-showcase |
@@ -39,6 +41,19 @@ Canonical transition note:
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
 - `bw-title-product` -> `BW Title Product` (visible title)
 - Internal slugs above remain the runtime authority.
+
+## Elementor panel family-color mapping (current)
+- `bw-product-grid` -> UI family (`bw-family-ui`)
+- `bw-presentation-slide` -> dedicated presentation-slide family (`bw-family-ui-ps`)
+- `bw-title-product` -> SP family (`bw-family-sp`) via explicit slug map/title exception
+- `bw-reviews` -> SP family (`bw-family-sp`) via explicit slug map/title exception
+- `bw-go-to-app` -> UI family (`bw-family-ui`)
+- `bw-newsletter-subscription` -> UI family (`bw-family-ui`)
+- `bw-showcase-slide` -> UI family (`bw-family-ui`) via the `BW-UI ...` visible title prefix
+
+Important runtime note:
+- the editor panel no longer relies only on visible title prefixes to decide colors
+- family assignment is now a separate mapping system documented in `editor-panel-widget-families.md`
 
 ## Current implementation deltas (status)
 - `BW Product Grid` naming convergence completed:

@@ -148,6 +148,44 @@ Wave-specific checks:
   - touch drag and mouse drag toggles behave as configured
   - transient query cache invalidates after product save
 
+## BW Showcase Slide
+- Scope:
+  - `includes/widgets/class-bw-showcase-slide-widget.php`
+  - `assets/js/bw-showcase-slide.js`
+  - `assets/css/bw-showcase-slide.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend
+  - Elementor editor re-render destroys and rebuilds one instance cleanly
+  - manual product IDs render in the exact provided order
+  - products without showcase image meta fall back to featured image safely
+  - `Texts color` from the showcase metabox propagates to title, description, and labels
+  - CTA renders as split-pill system (green arrow circle + detached green text pill)
+  - no popup settings or popup runtime are present
+  - breakpoint CSS correctly controls arrows, dots, and slide widths
+  - Embla `reInit()` updates `slidesToScroll` and align behavior at breakpoint transitions
+  - custom cursor can be enabled/disabled without leaving orphaned DOM nodes
+
+## BW Mosaic Slider
+- Scope:
+  - `includes/widgets/class-bw-mosaic-slider-widget.php`
+  - `assets/js/bw-mosaic-slider.js`
+  - `assets/css/bw-mosaic-slider.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend
+  - Elementor editor re-render destroys and rebuilds one instance cleanly
+  - desktop `Big post center` renders the featured item in the center column spanning two rows
+  - desktop `Big post left` renders the featured item in the left column spanning two rows
+  - desktop `Big post right` renders the featured item in the right column spanning two rows
+  - desktop slide paging groups queried results into deterministic 5-item batches
+  - below `1000px` the widget switches to the mobile linear slider and desktop mosaic viewport is not initialized
+  - mobile cards render equal-sized and remain draggable via Embla
+  - manual IDs override taxonomy filters and keep exact order when randomize is off
+  - randomize mode skips deterministic query-cache reuse and still renders valid results
+  - `product` source continues to render via `BW_Product_Card_Component`
+  - `post` source renders safely without depending on product-card authority
+
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:
   - `Theme Builder Lite > Settings > Core Settings > Hide Pro upgrade panels`

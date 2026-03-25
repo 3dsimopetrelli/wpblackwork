@@ -546,7 +546,6 @@ function bw_load_elementor_dynamic_tags()
     if (file_exists($artist_tag_file)) {
         require_once $artist_tag_file;
     }
-
 }
 add_action('elementor/init', 'bw_load_elementor_dynamic_tags');
 
@@ -627,6 +626,8 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_product
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
 add_action('init', 'bw_register_product_slider_widget_assets');
+add_action('init', 'bw_register_showcase_slide_widget_assets');
+add_action('init', 'bw_register_mosaic_slider_widget_assets');
 add_action('init', 'bw_register_product_details_widget_assets');
 add_action('init', 'bw_register_reviews_widget_assets');
 add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
@@ -1349,6 +1350,54 @@ function bw_register_product_slider_widget_assets()
     wp_register_script(
         'bw-product-slider-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-product-slider.js',
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
+        $js_version,
+        true
+    );
+}
+
+function bw_register_showcase_slide_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-showcase-slide.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-showcase-slide-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-showcase-slide.css',
+        ['bw-embla-core-css'],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-showcase-slide.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-showcase-slide-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-showcase-slide.js',
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
+        $js_version,
+        true
+    );
+}
+
+function bw_register_mosaic_slider_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-mosaic-slider.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-mosaic-slider-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-mosaic-slider.css',
+        ['bw-product-card-style', 'bw-embla-core-css'],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-mosaic-slider.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-mosaic-slider-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-mosaic-slider.js',
         ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
         $js_version,
         true
@@ -2426,3 +2475,22 @@ function bw_ps_clear_query_cache( $post_id ) {
 }
 add_action( 'save_post', 'bw_ps_clear_query_cache' );
 
+/**
+ * Delete all BW Mosaic Slider query transients when post content changes.
+ *
+ * @param int $post_id Post ID.
+ */
+function bw_mosaic_slider_clear_query_cache( $post_id ) {
+    if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+        return;
+    }
+
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_bw_ms_%'
+            OR option_name LIKE '_transient_timeout_bw_ms_%'"
+    );
+}
+add_action( 'save_post', 'bw_mosaic_slider_clear_query_cache' );

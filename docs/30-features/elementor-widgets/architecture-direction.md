@@ -20,9 +20,18 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
   - `bw-related-products` as product-card reuse reference
 - `Product Slider Family`
   - `bw-product-slider` as canonical current product slider
+- `Editorial Slider Family`
+  - `bw-mosaic-slider` as a mixed-content asymmetric slider
+  - desktop uses 5-item mosaic pages
+  - mobile collapses to a linear Embla slider
+  - product rendering continues to delegate to `BW_Product_Card_Component`
 - `Presentation Slider Family`
   - `bw-presentation-slide` as specialized gallery/presentation runtime
   - audit status (2026-03-20): active implementation is widget-local Embla runtime for horizontal and responsive-vertical flows; desktop vertical remains a non-Embla elevator layout
+- `Showcase Slider Family`
+  - current `bw-showcase-slide` as a curated showcase/content slider
+  - reuses Embla-family slider controls and breakpoint direction without inheriting popup/gallery complexity
+  - content authority comes from the showcase metabox, not from popup-oriented gallery logic
 - `Generic Showcase Family`
   - rationalized outcome of `bw-slick-slider` + `bw-slide-showcase` (single direction under review)
 - `Product Utility Family`
@@ -93,6 +102,12 @@ Current audit note for `bw-presentation-slide`:
   - viewport-bounded popup images
   - explicit interaction gating for popup opening
   - initial arrow visibility controlled defensively to avoid breakpoint flicker before JS init
+
+Implemented direction note for `bw-showcase-slide`:
+- built as a new widget, not as a popup-free fork hidden inside `bw-presentation-slide`
+- borrows slider settings and responsive breakpoint structure from the Embla slider family
+- keeps content authority aligned to the showcase metabox and CTA contract
+- excludes popup settings from day one so the widget surface stays focused
 
 Expected outcomes:
 - one core lifecycle (`init`, `reinit`, `destroy`) per scope
