@@ -331,7 +331,9 @@
 
     function initDarkZoneDetection(header) {
         checkDarkZoneOverlap(header, {
-            assumeVisible: header.classList.contains('bw-header-hidden')
+            assumeVisible: header.classList.contains('bw-header-hidden'),
+            debounceRemoval: !header.classList.contains('bw-header-hidden'),
+            immediate: header.classList.contains('bw-header-hidden')
         });
     }
 
@@ -445,8 +447,12 @@
             var st = window.pageYOffset || 0;
             var headerHeight = header.offsetHeight || 0;
 
+            var headerIsHidden = isHidden || header.classList.contains('bw-header-hidden');
+
             checkDarkZoneOverlap(header, {
-                assumeVisible: isHidden || header.classList.contains('bw-header-hidden')
+                assumeVisible: headerIsHidden,
+                debounceRemoval: !headerIsHidden,
+                immediate: headerIsHidden
             });
 
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
@@ -499,8 +505,11 @@
         window.addEventListener('resize', function () {
             recalcOffsets();
             applyStateClass();
+            var headerHiddenOnResize = isHidden || header.classList.contains('bw-header-hidden');
             checkDarkZoneOverlap(header, {
-                assumeVisible: isHidden || header.classList.contains('bw-header-hidden')
+                assumeVisible: headerHiddenOnResize,
+                debounceRemoval: !headerHiddenOnResize,
+                immediate: headerHiddenOnResize
             });
             onScroll();
         });
@@ -511,8 +520,11 @@
         scheduleLayoutRechecks(header, function () {
             recalcOffsets();
             applyStateClass();
+            var headerHiddenOnRecheck = isHidden || header.classList.contains('bw-header-hidden');
             checkDarkZoneOverlap(header, {
-                assumeVisible: isHidden || header.classList.contains('bw-header-hidden')
+                assumeVisible: headerHiddenOnRecheck,
+                debounceRemoval: !headerHiddenOnRecheck,
+                immediate: headerHiddenOnRecheck
             });
             onScroll();
         });
@@ -533,8 +545,11 @@
                 window.addEventListener('scroll', function () {
                     if (!nonStickyTicking) {
                         window.requestAnimationFrame(function () {
+                            var nonStickyHidden = header.classList.contains('bw-header-hidden');
                             checkDarkZoneOverlap(header, {
-                                assumeVisible: header.classList.contains('bw-header-hidden')
+                                assumeVisible: nonStickyHidden,
+                                debounceRemoval: !nonStickyHidden,
+                                immediate: nonStickyHidden
                             });
                             nonStickyTicking = false;
                         });

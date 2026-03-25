@@ -2,6 +2,8 @@
 
 ## Unreleased
 - Showcase Slide: added breakpoint-level fixed frame ratios (`3:2`, `4:3`, `1:1`, `16:9`), curated `Classic Photo (3:2)` size presets (`Balanced`, `Large`, `XL Peek`), and universal `Start Offset Left` viewport spacing for first-card breathing room.
+- Product Grid: `Desktop Columns` now supports `5` and `6`, and `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls.
+- Mosaic Slider: hardened image loading and first reveal by promoting only the active viewport primary images, demoting hidden fallback markup to lazy, and waiting for the first image decode-ready state before reveal.
 - Header: added `Hero Overlap` mode with page targeting, dedicated admin tab, fixed-overlay startup, transparent wrapper, and reuse of the existing dark-zone detection for white-on-dark hero starts.
 - Header: hardened `Hero Overlap` boot and visuals by fixing empty admin tabs, removing first-paint jump, enabling mobile glass from overlay start, syncing mobile icon dark-zone color behavior with the logo, keeping desktop `Search` text black on the green pill, and removing the temporary glass border.
 - Hero Slide: added new `BW-UI Hero Slide` Elementor widget with static-first hero rendering, responsive height/max-width controls, background image layer, and future-ready `Slide` mode surface.
