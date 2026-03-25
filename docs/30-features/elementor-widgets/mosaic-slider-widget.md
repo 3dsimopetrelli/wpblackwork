@@ -103,7 +103,6 @@ Widget-local runtime:
 
 ### Layout
 - `Desktop Mosaic Variant`
-- `Auto Scale Mosaic`
 
 ### Slider Settings
 - `Infinite Loop`
@@ -124,6 +123,7 @@ Widget-local runtime:
 - `Image Size`
 
 ### Style
+- auto scale mosaic
 - desktop mosaic height
   - shown only when `Auto Scale Mosaic` is off
 - horizontal gap
