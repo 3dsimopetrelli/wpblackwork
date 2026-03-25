@@ -278,7 +278,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'mobile_breakpoint_note',
 			array(
 				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => esc_html__( 'Below 1000px the desktop mosaic is disabled and the widget switches to a standard 3-column Embla slider with natural card heights.', 'bw-elementor-widgets' ),
+				'raw'             => esc_html__( 'Below 1000px the desktop mosaic is disabled and the widget switches to a responsive Embla slider. Use the Style > Layout controls to set how many cards remain visible on tablet and mobile, including partial next-slide visibility.', 'bw-elementor-widgets' ),
 				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
 			)
 		);
@@ -624,6 +624,32 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'tablet_visible_slides',
+			array(
+				'label'       => __( 'Tablet Visible Slides', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::NUMBER,
+				'default'     => 3.2,
+				'min'         => 1,
+				'max'         => 4.5,
+				'step'        => 0.1,
+				'description' => __( 'Use decimals like 3.2 to reveal a portion of the next slide.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'mobile_visible_slides',
+			array(
+				'label'       => __( 'Mobile Visible Slides', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::NUMBER,
+				'default'     => 2.2,
+				'min'         => 1,
+				'max'         => 3.5,
+				'step'        => 0.1,
+				'description' => __( 'Use decimals like 2.2 to reveal a portion of the next slide.', 'bw-elementor-widgets' ),
+			)
+		);
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
@@ -880,12 +906,20 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			$wrapper_classes[] = 'bw-ms-hide-overlay-buttons-mobile';
 		}
 
+		$inline_style_rules = array();
+		$tablet_visible     = $this->normalize_visible_slides_setting( $settings['tablet_visible_slides'] ?? 3.2, 3.2 );
+		$mobile_visible     = $this->normalize_visible_slides_setting( $settings['mobile_visible_slides'] ?? 2.2, 2.2 );
+
+		$inline_style_rules[] = '--bw-ms-tablet-visible-slides: ' . $tablet_visible . ';';
+		$inline_style_rules[] = '--bw-ms-mobile-visible-slides: ' . $mobile_visible . ';';
+
 		$this->add_render_attribute(
 			'wrapper',
 			array(
 				'class'          => implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ),
 				'data-widget-id' => esc_attr( $widget_id ),
 				'data-config'    => wp_json_encode( $config ),
+				'style'          => implode( ' ', $inline_style_rules ),
 			)
 		);
 
@@ -1352,6 +1386,20 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		}
 
 		return 0 === ( $page_index % 2 ) ? 'split-left' : 'split-right';
+	}
+
+	/**
+	 * Normalize the visible slide count for responsive mobile/tablet layouts.
+	 *
+	 * @param mixed $value    Raw control value.
+	 * @param float $fallback Fallback value.
+	 * @return string
+	 */
+	private function normalize_visible_slides_setting( $value, $fallback ) {
+		$value = is_numeric( $value ) ? (float) $value : (float) $fallback;
+		$value = max( 1, $value );
+
+		return rtrim( rtrim( sprintf( '%.2F', $value ), '0' ), '.' );
 	}
 
 	/**
