@@ -127,6 +127,10 @@ Widget-local runtime:
 - horizontal gap
 - vertical gap
 - image border radius
+- text typography
+  - title
+  - description
+  - price
 
 ## Caching
 The widget caches deterministic query result IDs using transients prefixed with `bw_ms_` when:

@@ -6,6 +6,7 @@
  */
 
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -620,6 +621,70 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				),
 				'selectors'  => array(
 					'{{WRAPPER}}' => '--bw-ms-image-radius: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_style_text',
+			array(
+				'label' => __( 'Text', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		$this->add_control(
+			'heading_title_typography',
+			array(
+				'label'     => __( 'Title', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'none',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'title_typography',
+				'selector' => '{{WRAPPER}} .bw-ms-title',
+			)
+		);
+
+		$this->add_control(
+			'heading_description_typography',
+			array(
+				'label'     => __( 'Description', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'description_typography',
+				'selector' => '{{WRAPPER}} .bw-ms-description',
+			)
+		);
+
+		$this->add_control(
+			'heading_price_typography',
+			array(
+				'label'     => __( 'Price', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'      => 'price_typography',
+				'selector'  => '{{WRAPPER}} .bw-ms-price',
+				'condition' => array(
+					'post_type' => 'product',
 				),
 			)
 		);
