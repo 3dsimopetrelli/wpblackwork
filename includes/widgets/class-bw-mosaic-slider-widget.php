@@ -278,7 +278,8 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'mobile_breakpoint_note',
 			array(
 				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => esc_html__( 'Below 1000px the desktop mosaic is disabled and the widget switches to a responsive Embla slider. Use the Style > Layout controls to set how many cards remain visible on tablet and mobile, including partial next-slide visibility.', 'bw-elementor-widgets' ),
+				/* translators: %d: pixel breakpoint value */
+				'raw'             => esc_html( sprintf( __( 'Below %dpx the desktop mosaic is disabled and the widget switches to a responsive Embla slider. Use the Style > Layout controls to set how many cards remain visible on tablet and mobile, including partial next-slide visibility.', 'bw-elementor-widgets' ), self::MOBILE_BREAKPOINT ) ),
 				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
 			)
 		);
@@ -342,6 +343,21 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'autoplay_pause_on_focus',
 			array(
 				'label'        => __( 'Pause on Focus', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'autoplay' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'pause_on_hover',
+			array(
+				'label'        => __( 'Pause on Hover', 'bw-elementor-widgets' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
 				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
@@ -730,7 +746,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Title', 'bw-elementor-widgets' ),
 				'type'      => Controls_Manager::HEADING,
-				'separator' => 'none',
+				'separator' => 'before',
 			)
 		);
 
@@ -1077,7 +1093,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 	 * @return array
 	 */
 	private function build_slider_config( array $settings, $mode ) {
-		$align             = 'desktop' === $mode ? 'start' : 'start';
+		// Desktop always disables touch drag; mobile reads from the Touch Drag control.
 		$enable_touch_drag = 'mobile' === $mode
 			? ( ( $settings['touch_drag'] ?? 'yes' ) === 'yes' )
 			: false;
@@ -1086,12 +1102,12 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'infinite'        => ( $settings['infinite_loop'] ?? 'yes' ) === 'yes',
 			'autoplay'        => ( $settings['autoplay'] ?? '' ) === 'yes',
 			'autoplaySpeed'   => absint( $settings['autoplay_speed'] ?? 3500 ),
-			'pauseOnHover'    => true,
+			'pauseOnHover'    => ( $settings['pause_on_hover'] ?? 'yes' ) === 'yes',
 			'stopOnFocusIn'   => ( $settings['autoplay_pause_on_focus'] ?? 'yes' ) === 'yes',
 			'dragFree'        => ( $settings['drag_free'] ?? '' ) === 'yes',
 			'enableTouchDrag' => $enable_touch_drag,
 			'enableMouseDrag' => ( $settings['mouse_drag'] ?? 'yes' ) === 'yes',
-			'align'           => $align,
+			'align'           => 'start',
 		);
 	}
 
@@ -1107,6 +1123,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			'post_type'      => $post_type,
 			'posts_per_page' => max( 1, absint( $settings['posts_per_page'] ?? 10 ) ),
 			'post_status'    => 'publish',
+			// Skips the SQL_CALC_FOUND_ROWS / COUNT(*) query — pagination is not used here.
 			'no_found_rows'  => true,
 		);
 
@@ -1135,8 +1152,8 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Taxonomy filtering is the declared query contract for this widget.
 		$tax_query = $this->build_tax_query( $settings, $post_type );
 		if ( ! empty( $tax_query ) ) {
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Taxonomy filtering is the declared query contract for this widget.
-				$args['tax_query'] = $tax_query;
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Taxonomy filtering is the declared query contract for this widget.
+			$args['tax_query'] = $tax_query;
 		}
 
 		return $args;
@@ -1440,7 +1457,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 		$value = is_numeric( $value ) ? (float) $value : (float) $fallback;
 		$value = max( 1, $value );
 
-		return rtrim( rtrim( sprintf( '%.2F', $value ), '0' ), '.' );
+		return rtrim( rtrim( sprintf( '%.2f', $value ), '0' ), '.' );
 	}
 
 	/**

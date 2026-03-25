@@ -443,8 +443,11 @@
     align-items: center;
 }
 
+/*
+ * !important overrides below are intentional: they reset aggressive button styles
+ * commonly applied by themes (background-color, border, box-shadow on button elements).
+ */
 .bw-ms-arrow {
-    background: none !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;

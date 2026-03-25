@@ -21,6 +21,7 @@
             this.config = this.$wrapper.data('config') || {};
             this.emblaCore = null;
             this._wheelHandler = null;
+            this._wheelEndTimer = null;
             this.activeMode = null;
             this.initialized = false;
             // Guards against pending debounce callbacks firing after destroy().
@@ -156,7 +157,6 @@
 
         _attachWheelHandler() {
             const wrapper = this.$wrapper[0];
-            let wheelEndTimer = null;
 
             this._wheelHandler = (evt) => {
                 if (this.activeMode !== 'mobile') {
@@ -201,8 +201,8 @@
                 );
                 engine.animation.start();
 
-                clearTimeout(wheelEndTimer);
-                wheelEndTimer = setTimeout(() => {
+                clearTimeout(this._wheelEndTimer);
+                this._wheelEndTimer = setTimeout(() => {
                     const api = this.emblaCore?.api();
                     if (!api) {
                         return;
@@ -230,6 +230,11 @@
         }
 
         _destroyEmbla() {
+            if (this._wheelEndTimer) {
+                clearTimeout(this._wheelEndTimer);
+                this._wheelEndTimer = null;
+            }
+
             if (this._wheelHandler) {
                 window.removeEventListener('wheel', this._wheelHandler, { passive: false });
                 this._wheelHandler = null;
@@ -300,7 +305,7 @@
     }
 
     function onElementorReady() {
-        initWidgets();
+        // initWidgets() is already called via $(document).ready — only register hooks here.
         registerElementorHooks();
     }
 
