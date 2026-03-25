@@ -22,6 +22,7 @@
             this.widgetId = this.$wrapper.data('widget-id');
             this.config = this.$wrapper.data('config') || {};
             this.emblaCore = null;
+            this._wheelHandler = null;
             this.activeMode = null;
             this.initialized = false;
 
@@ -121,6 +122,10 @@
             if (!api) {
                 return;
             }
+
+            if (nextMode === 'mobile') {
+                this._attachWheelHandler();
+            }
         }
 
         _buildWatchDrag(modeConfig) {
@@ -142,7 +147,87 @@
             return (_emblaApi, event) => event.pointerType !== 'mouse';
         }
 
+        _attachWheelHandler() {
+            const wrapper = this.$wrapper[0];
+            let wheelEndTimer = null;
+
+            this._wheelHandler = (evt) => {
+                if (this.activeMode !== 'mobile') {
+                    return;
+                }
+
+                if (!wrapper.contains(evt.target)) {
+                    return;
+                }
+
+                if (Math.abs(evt.deltaX) <= Math.abs(evt.deltaY)) {
+                    return;
+                }
+
+                const emblaApi = this.emblaCore?.api();
+                if (!emblaApi || emblaApi.isDragging?.()) {
+                    return;
+                }
+
+                evt.preventDefault();
+
+                let dx = evt.deltaX;
+                if (evt.deltaMode === 1) {
+                    dx *= 20;
+                }
+                if (evt.deltaMode === 2) {
+                    dx *= 200;
+                }
+                dx *= 3;
+
+                const engine = emblaApi.internalEngine();
+                const snaps = engine.scrollSnaps;
+                const newTarget = engine.target.get() - dx;
+
+                engine.target.set(
+                    engine.options.loop
+                        ? newTarget
+                        : Math.max(
+                            Math.min.apply(null, snaps),
+                            Math.min(Math.max.apply(null, snaps), newTarget)
+                        )
+                );
+                engine.animation.start();
+
+                clearTimeout(wheelEndTimer);
+                wheelEndTimer = setTimeout(() => {
+                    const api = this.emblaCore?.api();
+                    if (!api) {
+                        return;
+                    }
+
+                    const eng = api.internalEngine();
+                    const target = eng.target.get();
+                    const snapList = eng.scrollSnaps;
+                    let bestIndex = 0;
+                    let bestDistance = Infinity;
+
+                    for (let i = 0; i < snapList.length; i++) {
+                        const distance = Math.abs(snapList[i] - target);
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            bestIndex = i;
+                        }
+                    }
+
+                    api.scrollTo(bestIndex);
+                }, 300);
+            };
+
+            window.addEventListener('wheel', this._wheelHandler, { passive: false });
+        }
+
         _destroyEmbla() {
+            if (this._wheelHandler) {
+                window.removeEventListener('wheel', this._wheelHandler, { passive: false });
+                this._wheelHandler = null;
+            }
+
             if (!this.emblaCore) {
                 return;
             }
