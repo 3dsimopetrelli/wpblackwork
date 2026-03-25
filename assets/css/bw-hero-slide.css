@@ -2,28 +2,6 @@
  * BW Hero Slide Widget Styles
  */
 
-@keyframes bwHeroMediaIn {
-    from {
-        opacity: 0;
-        transform: scale(1.03);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1.01);
-    }
-}
-
-@keyframes bwHeroContentIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .bw-hero-slide-wrapper {
     --bw-hs-button-blur: 12px;
     --bw-hs-button-fill-opacity: 0.08;
@@ -72,7 +50,9 @@
     background-repeat: no-repeat;
     background-size: cover;
     transform: scale(1.01);
-    animation: bwHeroMediaIn 0.32s ease-out forwards;
+    transition:
+        opacity 0.34s ease-out,
+        transform 0.34s ease-out;
 }
 
 .bw-hero-slide__media--empty {
@@ -128,7 +108,10 @@
     line-height: 1.02;
     letter-spacing: -0.04em;
     text-wrap: balance;
-    animation: bwHeroContentIn 0.24s ease-out 0.08s forwards;
+    transform: translateY(10px);
+    transition:
+        opacity 0.24s ease-out 0.08s,
+        transform 0.24s ease-out 0.08s;
 }
 
 .bw-hero-slide__title u {
@@ -144,7 +127,10 @@
     font-size: clamp(19px, 1.85vw, 33px);
     line-height: 1.35;
     text-wrap: balance;
-    animation: bwHeroContentIn 0.24s ease-out 0.13s forwards;
+    transform: translateY(10px);
+    transition:
+        opacity 0.24s ease-out 0.13s,
+        transform 0.24s ease-out 0.13s;
 }
 
 .bw-hero-slide__buttons {
@@ -155,7 +141,10 @@
     width: 100%;
     margin-top: 38px;
     opacity: 0;
-    animation: bwHeroContentIn 0.24s ease-out 0.18s forwards;
+    transform: translateY(10px);
+    transition:
+        opacity 0.24s ease-out 0.18s,
+        transform 0.24s ease-out 0.18s;
 }
 
 .bw-hero-slide__button {
@@ -164,6 +153,7 @@
     align-items: center;
     justify-content: center;
     min-height: 0;
+    height: auto;
     padding: 16px 28px;
     border: var(--bw-hs-button-border-width, 1px) solid var(--bw-hs-button-border-color, rgba(255, 255, 255, 0.16));
     border-radius: var(--bw-hs-button-radius, 999px);
@@ -207,6 +197,18 @@
     font-size: 16px;
     line-height: 1;
     white-space: normal;
+}
+
+.bw-hero-slide-wrapper.bw-hs-is-ready .bw-hero-slide__media {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.bw-hero-slide-wrapper.bw-hs-is-ready .bw-hero-slide__title,
+.bw-hero-slide-wrapper.bw-hs-is-ready .bw-hero-slide__subtitle,
+.bw-hero-slide-wrapper.bw-hs-is-ready .bw-hero-slide__buttons {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 @media (max-width: 1024px) {
@@ -262,7 +264,7 @@
     .bw-hero-slide__subtitle,
     .bw-hero-slide__buttons {
         opacity: 1;
-        animation: none;
         transform: none;
+        transition: none;
     }
 }

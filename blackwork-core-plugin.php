@@ -1407,7 +1407,7 @@ function bw_register_mosaic_slider_widget_assets()
 
 function bw_register_hero_slide_widget_assets()
 {
-    bw_register_widget_assets('hero-slide', ['jquery'], false);
+    bw_register_widget_assets('hero-slide', ['jquery'], true);
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"

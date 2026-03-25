@@ -30,6 +30,7 @@
     - CTA buttons repeater
     - full-width background image
     - overlay/glow system
+    - lightweight image-ready fade orchestration for premium hero entrance
     - responsive hero height in `px / vh / %`
     - responsive content max width
     - responsive section padding and left/center alignment
@@ -63,8 +64,10 @@
     - `bw_register_hero_slide_widget_assets()`
   - new style handle:
     - `bw-hero-slide-style`
-  - no new AJAX endpoints
-  - no new database/data storage surfaces
+- no new AJAX endpoints
+- no new database/data storage surfaces
+- new widget-local JS runtime surface:
+  - `assets/js/bw-hero-slide.js`
 
 ## 3) Acceptance Criteria Verification
 - Criterion 1 -- repository widget architecture was inspected before implementation: PASS
