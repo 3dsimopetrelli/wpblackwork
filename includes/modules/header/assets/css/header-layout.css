@@ -417,7 +417,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 .bw-custom-header.bw-header-on-dark .bw-search-button:hover .bw-search-button__label,
 .bw-custom-header.bw-header-on-dark .bw-search-button:focus .bw-search-button__label,
 .bw-custom-header.bw-header-on-dark .bw-search-button:focus-visible .bw-search-button__label {
-    color: #ffffff !important;
+    color: #080808 !important;
 }
 
 /* Logo / uploaded icon images: filter to white */
