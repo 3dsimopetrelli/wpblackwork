@@ -150,6 +150,7 @@ Important runtime note:
     - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
   - `Desktop Columns` currently supports `3`, `4`, `5`, `6`
+  - `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls
 - `bw-newsletter-subscription`:
   - fixed-design widget
   - minimal editor controls only

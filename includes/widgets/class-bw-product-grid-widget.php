@@ -1,5 +1,6 @@
 <?php
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,6 +37,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $this->register_filter_controls();
         $this->register_query_controls();
         $this->register_rebuild_layout_controls();
+        $this->register_style_controls();
     }
 
     private function register_rebuild_layout_controls() {
@@ -131,6 +133,124 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'No', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
+        ] );
+
+        $this->end_controls_section();
+    }
+
+    private function register_style_controls() {
+        $this->start_controls_section( 'style_text_section', [
+            'label' => __( 'Text', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'content_gap_heading', [
+            'label' => __( 'Content Stack', 'bw-elementor-widgets' ),
+            'type'  => Controls_Manager::HEADING,
+        ] );
+
+        $this->add_responsive_control( 'content_gap', [
+            'label'      => __( 'Gap', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [
+                'px' => [
+                    'min'  => 0,
+                    'max'  => 60,
+                    'step' => 1,
+                ],
+            ],
+            'default'    => [
+                'size' => 12,
+                'unit' => 'px',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-content' => 'gap: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'title_style_heading', [
+            'label'     => __( 'Title', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_control( 'title_color', [
+            'label'     => __( 'Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-title, {{WRAPPER}} .bw-fpw-title a' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'title_typography',
+            'selector' => '{{WRAPPER}} .bw-fpw-title, {{WRAPPER}} .bw-fpw-title a',
+        ] );
+
+        $this->add_responsive_control( 'title_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'description_style_heading', [
+            'label'     => __( 'Description', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_control( 'description_color', [
+            'label'     => __( 'Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-description, {{WRAPPER}} .bw-fpw-description p' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'description_typography',
+            'selector' => '{{WRAPPER}} .bw-fpw-description, {{WRAPPER}} .bw-fpw-description p',
+        ] );
+
+        $this->add_responsive_control( 'description_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'price_style_heading', [
+            'label'     => __( 'Price', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ] );
+
+        $this->add_control( 'price_color', [
+            'label'     => __( 'Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-fpw-price, {{WRAPPER}} .bw-fpw-price .amount, {{WRAPPER}} .bw-fpw-price ins, {{WRAPPER}} .bw-fpw-price .price-sale, {{WRAPPER}} .bw-fpw-price .price-regular' => 'color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name'     => 'price_typography',
+            'selector' => '{{WRAPPER}} .bw-fpw-price, {{WRAPPER}} .bw-fpw-price .amount, {{WRAPPER}} .bw-fpw-price ins, {{WRAPPER}} .bw-fpw-price del',
+        ] );
+
+        $this->add_responsive_control( 'price_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-fpw-price' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
         ] );
 
         $this->end_controls_section();
