@@ -132,6 +132,22 @@ Important runtime note:
     - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
     - `bw-presentation-slide-script`
   - shared Embla base styles/classes in `bw-embla-core.css`; widget-local CSS owns popup, cursor, arrows, dots, elevator layout, responsive skin
+- `bw-showcase-slide` controls/runtime (audit state 2026-03-25):
+  - visible title: `BW-UI Showcase Slide`
+  - manual product ID composition sourced from the showcase metabox
+  - horizontal Embla-only runtime; no popup surface
+  - horizontal breakpoint repeater now supports:
+    - slides to scroll
+    - show arrows / show dots
+    - `Start Offset Left` for first-card breathing room at the viewport edge
+    - fixed `Frame Ratio` modes: `3:2`, `4:3`, `1:1`, `16:9`
+    - `Frame Fit` (`cover` / `contain`) when a ratio lock is active
+    - `Classic Photo Size` presets for `3:2` peek layouts: `Balanced`, `Large`, `XL Peek`
+    - legacy `variable width` / `slide width` / image-height controls remain available only in `Free / Existing Controls`
+  - current width authority depends on the selected mode:
+    - `Free / Existing Controls` -> legacy width/image-height contract
+    - fixed frame ratio -> ratio-locked card with fit-mode authority
+    - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
 - `bw-newsletter-subscription`:
   - fixed-design widget

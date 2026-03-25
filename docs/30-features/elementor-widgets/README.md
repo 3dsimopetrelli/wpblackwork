@@ -38,7 +38,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `big-text-widget.md`: `BW-UI Big Text` — premium editorial statement widget with controlled line length, fluid `clamp()` scaling, automatic balance mode, and optional manual editorial line grouping
 - `hero-slide-widget.md`: `BW-UI Hero Slide` — premium static hero widget with future-ready `Slide` mode surface, centered copy, background image, and glass CTA button grid
 - `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with 4 desktop mosaic variants, auto-scale/square modes, responsive partial-slide reveal, and shared product-card reuse
-- `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching and mobile full-slide CTA behavior
+- `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching, breakpoint-level fixed frame ratios, curated `Classic Photo (3:2)` peek presets, and mobile full-slide CTA behavior
 - `import-info/showcase-slide-metabox-import-map.md`: importer mapping for the Showcase metabox (`product_type`, digital fields, physical fields, CTA, and shared meta keys)
 
 ## Confirmed decisions (current)

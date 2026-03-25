@@ -93,12 +93,31 @@ Current behavior:
   - slides to scroll
   - show arrows
   - show dots
+  - start offset left
   - center mode
+  - frame ratio
+  - frame fit
+  - classic photo size
   - variable width
   - slide width
     - image height mode
     - image height
     - image width
+
+#### Breakpoint Layout Contract
+The breakpoint repeater now supports three different width-authority modes:
+
+- `Free / Existing Controls`
+  - keeps the legacy width contract
+  - width is driven by `slides to show`, `slide width`, or `variable width`
+- fixed ratio modes (`3:2`, `4:3`, `1:1`, `16:9`)
+  - lock the card/media frame with CSS `aspect-ratio`
+  - `frame fit` becomes the image-fit authority (`cover` or `contain`)
+  - legacy image height/width controls are hidden to avoid conflicting states
+- `Classic Photo (3:2)`
+  - exposes curated width presets through `Classic Photo Size`
+  - hides `slides to show`, `slide width`, and `variable width`
+  - is intended for “peek” compositions where the next card should remain partially visible
 
 #### Breakpoint Width Contract
 `Image Width` is not a universal “media only” control. Its effect changes based on the breakpoint configuration:
@@ -112,6 +131,26 @@ the percentage is applied to the whole slide/card width, not only to the inner i
 In all other combinations:
 - pixel-based values remain a concrete image-width control
 - percentage values should not be assumed to resize the slide unless the contract above is met
+
+#### Classic Photo Preset Contract
+When `Frame Ratio = Classic Photo (3:2)`:
+
+- `Classic Photo Size = Balanced`
+  - uses a moderate slide width intended for a clean 3:2 card with a subtle next-card reveal
+- `Classic Photo Size = Large`
+  - increases slide width while preserving the same 3:2 frame
+- `Classic Photo Size = XL Peek`
+  - pushes the slide wider so the following card reads as an editorial partial card at the edge of the viewport
+
+These presets change slide width only. They do not alter the 3:2 ratio.
+
+#### Start Offset Contract
+`Start Offset Left` is a per-breakpoint carousel viewport offset.
+
+- it adds left breathing room before the first visible slide
+- it does not change the card ratio
+- it applies regardless of `frame ratio`, `variable width`, or legacy width controls
+- it is implemented at the viewport layer rather than as image/card margin, so Embla snapping remains coherent
 
 ### Style
 - `Images`
@@ -147,6 +186,8 @@ The widget reuses the current Embla slider image-height contract:
 - `cover`
 
 Responsive image-height changes are managed in JavaScript based on the breakpoint repeater settings.
+
+When a fixed `frame ratio` is enabled, the ratio becomes the primary card-shape authority and the widget stops using the legacy image-height/image-width contract for that breakpoint.
 
 ### Navigation Arrows
 Arrows follow the same lightweight Embla-family pattern already used in `BW Product Slider` / `BW Presentation Slide`.
@@ -196,7 +237,8 @@ Below `800px` viewport width:
 - The widget uses `BWEmblaCore` and does not own a popup runtime.
 - First render stability is partially handled server-side:
   - breakpoint CSS is emitted from PHP before JS boot
-  - initial image height mode / image height / image width are seeded into CSS custom properties
+  - initial image height mode / image height / image width are seeded into CSS custom properties when legacy image controls are active
+  - fixed frame ratio and start-offset rules are emitted in breakpoint CSS so Elementor/frontend first paint matches the configured layout more closely
 - The custom glass cursor is stateful:
   - side slides show left/right navigation arrows
   - the active center slide shows a neutral dot cursor, not a navigation arrow
