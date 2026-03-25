@@ -307,6 +307,7 @@
 
 .bw-ms-slot .bw-product-card {
     --bw-card-overlay-group-max-width: 280px;
+    --bw-card-overlay-buttons-font-size: 12px;
 }
 
 .bw-ms-slot .bw-product-card .bw-wallpost-media,
@@ -417,16 +418,6 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     overflow: hidden;
-}
-
-.bw-ms-slot--featured .bw-ms-overlay-buttons,
-.bw-ms-slot--featured .bw-ms-overlay-button {
-    font-size: 14px;
-}
-
-.bw-ms-slot[class*="bw-ms-slot--support"] .bw-ms-overlay-buttons,
-.bw-ms-slot[class*="bw-ms-slot--support"] .bw-ms-overlay-button {
-    font-size: 12px;
 }
 
 .bw-ms-price {
