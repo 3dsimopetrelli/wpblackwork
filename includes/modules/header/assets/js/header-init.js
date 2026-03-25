@@ -8,6 +8,7 @@
     // Dark Zone state
     var isOnDarkZone = false;
     var darkZoneRemoveTimer = null;
+    var lastDarkZoneSource = 'none';
 
     /**
      * Read admin-configured values from bwHeaderConfig (set via wp_localize_script).
@@ -192,9 +193,11 @@
      *
      * Initial check: if the probed element itself is an <img>, sample it first.
      */
-    function isSectionDark(el) {
+    function getSectionDarkSignal(el) {
         // Direct img hit (e.g. elementFromPoint landed on an <img> element)
-        if (el.tagName === 'IMG' && isImgDark(el)) return true;
+        if (el.tagName === 'IMG' && isImgDark(el)) {
+            return { dark: true, source: 'image' };
+        }
 
         var current = el;
         var depth = 0;
@@ -206,7 +209,9 @@
 
             // 1. Solid dark background-color
             var bg = parseColor(st.backgroundColor);
-            if (bg && bg.a >= 0.5 && isColorDark(bg, 128)) return true;
+            if (bg && bg.a >= 0.5 && isColorDark(bg, 128)) {
+                return { dark: true, source: 'solid-background' };
+            }
 
             // 2. Slick carousel: sample the active (non-cloned) slide's image
             if (current.classList && current.classList.contains('slick-slider')) {
@@ -214,9 +219,13 @@
                                   current.querySelector('.slick-active');
                 if (activeSlide) {
                     var aImg = activeSlide.querySelector('img');
-                    if (aImg && isImgDark(aImg)) return true;
+                    if (aImg && isImgDark(aImg)) {
+                        return { dark: true, source: 'slick-slider' };
+                    }
                     var aSlideBg = parseColor(window.getComputedStyle(activeSlide).backgroundColor);
-                    if (aSlideBg && aSlideBg.a >= 0.5 && isColorDark(aSlideBg, 128)) return true;
+                    if (aSlideBg && aSlideBg.a >= 0.5 && isColorDark(aSlideBg, 128)) {
+                        return { dark: true, source: 'slick-slider' };
+                    }
                 }
             }
 
@@ -229,7 +238,9 @@
                     child.classList.contains('wp-block-cover__gradient-background')
                 ) {
                     var oBg = parseColor(window.getComputedStyle(child).backgroundColor);
-                    if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) return true;
+                    if (oBg && oBg.a > 0.25 && isColorDark(oBg, 128)) {
+                        return { dark: true, source: 'overlay' };
+                    }
                     break;
                 }
                 child = child.nextElementSibling;
@@ -241,7 +252,9 @@
                 for (var i = 0; i < Math.min(headings.length, 3); i++) {
                     if (!headings[i].offsetParent) continue;
                     var tc = parseColor(window.getComputedStyle(headings[i]).color);
-                    if (tc && getColorBrightness(tc) > 180) return true;
+                    if (tc && getColorBrightness(tc) > 180) {
+                        return { dark: true, source: 'background-image' };
+                    }
                 }
             }
 
@@ -249,7 +262,7 @@
             depth++;
         }
 
-        return false;
+        return { dark: false, source: 'light' };
     }
 
     /**
@@ -261,6 +274,7 @@
         var opts = options || {};
         var headerRect = getHeaderProbeRect(header, opts);
         var shouldBeOnDark = false;
+        var detectedDarkSource = 'light';
 
         // — Manual zones (always take priority) —
         var manualZones = document.querySelectorAll('.smart-header-dark-zone');
@@ -268,6 +282,7 @@
             var mRect = manualZones[m].getBoundingClientRect();
             if (mRect.top < headerRect.bottom && mRect.bottom > headerRect.top) {
                 shouldBeOnDark = true;
+                detectedDarkSource = 'manual-zone';
                 break;
             }
         }
@@ -287,9 +302,13 @@
                 var probeY = headerRect.top + headerRect.height * 0.5;
                 for (var i = 0; i < probeXs.length; i++) {
                     var el = document.elementFromPoint(probeXs[i], probeY);
-                    if (el && !el.closest('.bw-custom-header') && isSectionDark(el)) {
-                        shouldBeOnDark = true;
-                        break;
+                    if (el && !el.closest('.bw-custom-header')) {
+                        var signal = getSectionDarkSignal(el);
+                        if (signal.dark) {
+                            shouldBeOnDark = true;
+                            detectedDarkSource = signal.source;
+                            break;
+                        }
                     }
                 }
             } finally {
@@ -307,22 +326,29 @@
                 isOnDarkZone = true;
                 header.classList.add('bw-header-on-dark');
             }
+            lastDarkZoneSource = detectedDarkSource;
         } else {
             // Leaving dark zone: debounce the removal to absorb slider-transition
             // flicker (slides moving between frames for ~300 ms).
+            var shouldDebounceRemoval = typeof opts.debounceRemoval === 'boolean'
+                ? opts.debounceRemoval
+                : lastDarkZoneSource === 'slick-slider';
+
             if (isOnDarkZone) {
-                if (opts.immediate || opts.debounceRemoval === false) {
+                if (opts.immediate || !shouldDebounceRemoval) {
                     if (darkZoneRemoveTimer) {
                         clearTimeout(darkZoneRemoveTimer);
                         darkZoneRemoveTimer = null;
                     }
                     isOnDarkZone = false;
                     header.classList.remove('bw-header-on-dark');
+                    lastDarkZoneSource = 'light';
                 } else if (!darkZoneRemoveTimer) {
                     darkZoneRemoveTimer = setTimeout(function () {
                         darkZoneRemoveTimer = null;
                         isOnDarkZone = false;
                         header.classList.remove('bw-header-on-dark');
+                        lastDarkZoneSource = 'light';
                     }, 150);
                 }
             }
