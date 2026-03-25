@@ -424,6 +424,7 @@ if (!function_exists('bw_header_render_admin_page')) {
                         </tbody>
                     </table>
                 </div>
+                </div>
 
                 <div id="bw-header-tab-scroll" class="bw-header-tab-panel <?php echo $active_tab === 'scroll' ? 'is-active' : ''; ?>" style="<?php echo $active_tab === 'scroll' ? '' : 'display:none;'; ?>">
                     <div class="bw-admin-card">
