@@ -309,7 +309,7 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         [
                                 'label'       => __( 'FAQ Label', 'bw' ),
                                 'type'        => Controls_Manager::TEXT,
-                                'default'     => __( 'Read our FAQ', 'bw' ),
+                                'default'     => __( 'Frequently Asked Questions', 'bw' ),
                                 'label_block' => true,
                                 'condition'   => [
                                         'show_faq_button' => 'yes',
@@ -1598,7 +1598,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 $faq_button_enabled     = isset( $settings['show_faq_button'] ) && 'yes' === $settings['show_faq_button'];
                 $faq_button_label       = isset( $settings['faq_button_label'] ) && '' !== trim( (string) $settings['faq_button_label'] )
                         ? (string) $settings['faq_button_label']
-                        : __( 'Read our FAQ', 'bw' );
+                        : __( 'Frequently Asked Questions', 'bw' );
                 $faq_button_link        = isset( $settings['faq_button_link'] ) && is_array( $settings['faq_button_link'] )
                         ? $settings['faq_button_link']
                         : [];
@@ -1860,17 +1860,17 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                                 <div class="bw-price-variation__faq-wrapper">
                                                         <?php if ( '' !== $faq_button_url ) : ?>
                                                                 <a class="bw-price-variation__trust-card bw-price-variation__faq-button" href="<?php echo esc_url( $faq_button_url ); ?>"<?php echo $faq_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo ! empty( $faq_rel ) ? ' rel="' . esc_attr( implode( ' ', array_unique( $faq_rel ) ) ) . '"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-                                                                        <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
                                                                         <span class="bw-price-variation__faq-button-icon" aria-hidden="true">
-                                                                                <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7 5h6M7 10h6M7 15h4M4.5 3.5h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4.5 3v-3H4.5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                                                                         </span>
+                                                                        <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
                                                                 </a>
                                                         <?php else : ?>
                                                                 <div class="bw-price-variation__trust-card bw-price-variation__faq-button bw-price-variation__faq-button--preview" aria-disabled="true">
-                                                                        <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
                                                                         <span class="bw-price-variation__faq-button-icon" aria-hidden="true">
-                                                                                <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7 5h6M7 10h6M7 15h4M4.5 3.5h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4.5 3v-3H4.5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
                                                                         </span>
+                                                                        <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
                                                                 </div>
                                                         <?php endif; ?>
                                                 </div>

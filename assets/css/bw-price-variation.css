@@ -442,8 +442,8 @@
 .bw-price-variation__faq-button {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
+	justify-content: flex-start;
+	gap: 10px;
 	width: 100%;
 	padding: 18px 22px;
 	color: #000000;
@@ -477,8 +477,8 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 34px;
-	height: 34px;
+	width: 18px;
+	height: 18px;
 	flex-shrink: 0;
 }
 
