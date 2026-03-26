@@ -135,6 +135,16 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'default'      => 'yes',
         ] );
 
+        $this->add_control( 'disable_hover_on_touch', [
+            'label'        => __( 'Disable Hover Actions on Tablet & Mobile', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'description'  => __( 'Hide hover overlays and secondary hover media below desktop widths.', 'bw-elementor-widgets' ),
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -746,6 +756,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $masonry_effect = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
         $layout_mode    = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
+        $disable_hover_on_touch = isset( $settings['disable_hover_on_touch'] ) && 'yes' === $settings['disable_hover_on_touch'];
 
         // These are not yet exposed as Elementor controls; declared here so that
         // adding a control in the future only requires reading from $settings.
@@ -842,6 +853,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $wrapper_classes = [ 'bw-product-grid' ];
         $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
+        $wrapper_attributes = [
+            'class'                         => implode( ' ', $wrapper_classes ),
+            'style'                         => $wrapper_style,
+            'data-disable-hover-on-touch'   => $disable_hover_on_touch ? 'yes' : 'no',
+        ];
         $grid_attributes = [
             'class'                       => 'bw-fpw-grid',
             'data-layout-mode'            => $layout_mode,
@@ -896,8 +912,16 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $rendered_posts      = 0;
         $initial_eager_items = max( 1, min( $desktop_columns, $initial_items > 0 ? $initial_items : $desktop_columns ) );
+        $wrapper_attr_html = '';
+        foreach ( $wrapper_attributes as $attr => $value ) {
+            if ( '' === $value && 0 !== $value ) {
+                continue;
+            }
+
+            $wrapper_attr_html .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( (string) $value ) );
+        }
         ?>
-        <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>" style="<?php echo esc_attr( $wrapper_style ); ?>">
+        <div<?php echo $wrapper_attr_html; ?>>
             <div<?php echo $grid_attr_html; ?>>
                 <?php if ( $has_posts ) : ?>
                     <?php
