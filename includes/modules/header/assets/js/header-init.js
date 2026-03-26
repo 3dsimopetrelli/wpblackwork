@@ -24,10 +24,6 @@
         };
     }
 
-    function getBreakpoint() {
-        return getConfig().breakpoint;
-    }
-
     function ensureHeaderInBody() {
         var header = document.querySelector('.bw-custom-header');
         if (!header || !document.body) {
@@ -49,7 +45,7 @@
             return;
         }
 
-        var bp = getBreakpoint();
+        var bp = getConfig().breakpoint;
         if (window.matchMedia('(max-width: ' + bp + 'px)').matches) {
             root.classList.add('is-mobile');
             root.classList.remove('is-desktop');
@@ -232,9 +228,9 @@
      * Probe elements BEHIND the header (pointer-events:none at vertical centre).
      * Manual .smart-header-dark-zone elements always take priority.
      */
-    function checkDarkZoneOverlap(header) {
+    function checkDarkZoneOverlap(header, forcedRect) {
         if (!header) return;
-        var headerRect = header.getBoundingClientRect();
+        var headerRect = forcedRect || header.getBoundingClientRect();
         var shouldBeOnDark = false;
 
         // — Manual zones (always take priority) —
@@ -295,10 +291,6 @@
         }
     }
 
-    function initDarkZoneDetection(header) {
-        checkDarkZoneOverlap(header);
-    }
-
     function scheduleLayoutRechecks(header, callback) {
         if (!header) {
             return;
@@ -321,19 +313,19 @@
         }
     }
 
+
     /* ========================================================================
        STICKY HEADER LOGIC
        ======================================================================== */
 
-    function initStickyHeader() {
-        var header = document.querySelector('.bw-custom-header');
+    function initStickyHeader(header) {
         if (!header) return;
 
         var smartScrollActive = header.getAttribute('data-smart-scroll') === 'yes';
         var heroOverlapActive = header.getAttribute('data-hero-overlap') === 'yes';
         if (!smartScrollActive && !heroOverlapActive) return;
 
-        initDarkZoneDetection(header);
+        checkDarkZoneOverlap(header);
 
         var cfg = getConfig();
         var docEl = document.documentElement;
@@ -358,8 +350,19 @@
             docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
         }
 
+        function getRestingRect() {
+            var adminH = getAdminBarHeight();
+            var h = header.offsetHeight || 64;
+            return { top: adminH, bottom: adminH + h, left: 0, right: window.innerWidth, width: window.innerWidth, height: h };
+        }
+
         function showHeader() {
             if (!isHidden) return;
+            // Glitch fix: cancel stale dark-zone removal timer and probe at the
+            // resting position BEFORE the CSS transition starts, so text colour is
+            // correct from frame 0 instead of briefly flashing the wrong colour.
+            if (darkZoneRemoveTimer) { clearTimeout(darkZoneRemoveTimer); darkZoneRemoveTimer = null; }
+            checkDarkZoneOverlap(header, getRestingRect());
             header.classList.remove('bw-header-hidden');
             header.classList.add('bw-header-visible');
             isHidden = false;
@@ -456,14 +459,15 @@
     function boot() {
         ensureHeaderInBody();
         applyStateClass();
-        initStickyHeader();
 
         var header = document.querySelector('.bw-custom-header');
+        initStickyHeader(header);
+
         if (header) {
             // Smart scroll is inactive so dark zone detection was not initialised
             // inside initStickyHeader — activate it here with its own scroll listener.
             if (header.getAttribute('data-smart-scroll') !== 'yes' && header.getAttribute('data-hero-overlap') !== 'yes') {
-                initDarkZoneDetection(header);
+                checkDarkZoneOverlap(header);
                 var nonStickyTicking = false;
                 window.addEventListener('scroll', function () {
                     if (!nonStickyTicking) {
