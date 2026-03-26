@@ -260,17 +260,17 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                 'fields'      => $info_repeater->get_controls(),
                                 'default'     => [
                                         [
-                                                'info_icon'        => [ 'value' => 'fas fa-download', 'library' => 'fa-solid' ],
+                                                'info_icon'        => [ 'value' => 'bw-instant-download-file-down', 'library' => 'bw-custom' ],
                                                 'info_title'       => __( 'Instant Download', 'bw' ),
                                                 'info_description' => __( 'Get immediate access to your files after checkout.', 'bw' ),
                                         ],
                                         [
-                                                'info_icon'        => [ 'value' => 'fas fa-gem', 'library' => 'fa-solid' ],
+                                                'info_icon'        => [ 'value' => 'bw-premium-quality-gem', 'library' => 'bw-custom' ],
                                                 'info_title'       => __( 'Premium Quality', 'bw' ),
                                                 'info_description' => __( 'Professionally crafted assets built for production use.', 'bw' ),
                                         ],
                                         [
-                                                'info_icon'        => [ 'value' => 'fas fa-life-ring', 'library' => 'fa-solid' ],
+                                                'info_icon'        => [ 'value' => 'bw-lifetime-support-messages-square', 'library' => 'bw-custom' ],
                                                 'info_title'       => __( 'Lifetime Support', 'bw' ),
                                                 'info_description' => __( 'Keep a reliable reference point for using the product over time.', 'bw' ),
                                         ],
@@ -1472,6 +1472,38 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 return $items;
         }
 
+        /**
+         * Render widget info-card icon markup.
+         *
+         * @param array<string,mixed> $icon Icon control payload.
+         *
+         * @return string
+         */
+        private function render_digital_product_info_icon( $icon ) {
+                $icon_value = isset( $icon['value'] ) ? (string) $icon['value'] : '';
+
+                if ( 'bw-instant-download-file-down' === $icon_value ) {
+                        return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>';
+                }
+
+                if ( 'bw-premium-quality-gem' === $icon_value ) {
+                        return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3 8 9l4 13 4-13-2.5-6"/><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z"/><path d="M2 9h20"/></svg>';
+                }
+
+                if ( 'bw-lifetime-support-messages-square' === $icon_value ) {
+                        return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg>';
+                }
+
+                if ( empty( $icon_value ) ) {
+                        return '';
+                }
+
+                ob_start();
+                Icons_Manager::render_icon( $icon, [ 'aria-hidden' => 'true' ] );
+
+                return (string) ob_get_clean();
+        }
+
         protected function render() {
                 if ( ! class_exists( 'WooCommerce' ) ) {
                         return;
@@ -1783,7 +1815,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                                                 <article class="bw-price-variation__trust-card bw-price-variation__info-card">
                                                                         <?php if ( ! empty( $info_item['icon']['value'] ) ) : ?>
                                                                                 <div class="bw-price-variation__info-card-icon" aria-hidden="true">
-                                                                                        <?php Icons_Manager::render_icon( $info_item['icon'], [ 'aria-hidden' => 'true' ] ); ?>
+                                                                                        <?php echo $this->render_digital_product_info_icon( $info_item['icon'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                                                                 </div>
                                                                         <?php endif; ?>
                                                                         <?php if ( '' !== $info_item['title'] ) : ?>

@@ -515,9 +515,9 @@
                         prevBtn: prevBtn,
                         nextBtn: nextBtn,
                         autoplay: {
-                                delay: 4500,
+                                delay: 2000,
                                 playOnInit: true,
-                                stopOnInteraction: true,
+                                stopOnInteraction: false,
                                 stopOnMouseEnter: true,
                                 stopOnFocusIn: true,
                                 jump: false
