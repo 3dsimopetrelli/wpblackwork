@@ -228,7 +228,15 @@
      * Probe elements BEHIND the header (pointer-events:none at vertical centre).
      * Manual .smart-header-dark-zone elements always take priority.
      */
-    function checkDarkZoneOverlap(header, forcedRect) {
+    /**
+     * @param {Element}     header       - The header element.
+     * @param {DOMRect|Object} [forcedRect] - Override getBoundingClientRect() with a
+     *                                       pre-computed rect (used when header is off-screen).
+     * @param {boolean}     [forceImmediate] - Skip the debounce when leaving a dark zone;
+     *                                         removes bw-header-on-dark instantly. Use only
+     *                                         when the final position is known (e.g. on reveal).
+     */
+    function checkDarkZoneOverlap(header, forcedRect, forceImmediate) {
         if (!header) return;
         var headerRect = forcedRect || header.getBoundingClientRect();
         var shouldBeOnDark = false;
@@ -277,6 +285,14 @@
             if (!isOnDarkZone) {
                 isOnDarkZone = true;
                 header.classList.add('bw-header-on-dark');
+            }
+        } else if (forceImmediate) {
+            // Leaving dark zone with a known resting position: remove instantly,
+            // no debounce needed because we are not dealing with slider flicker.
+            if (darkZoneRemoveTimer) { clearTimeout(darkZoneRemoveTimer); darkZoneRemoveTimer = null; }
+            if (isOnDarkZone) {
+                isOnDarkZone = false;
+                header.classList.remove('bw-header-on-dark');
             }
         } else {
             // Leaving dark zone: debounce the removal to absorb slider-transition
@@ -358,14 +374,30 @@
 
         function showHeader() {
             if (!isHidden) return;
-            // Glitch fix: cancel stale dark-zone removal timer and probe at the
-            // resting position BEFORE the CSS transition starts, so text colour is
-            // correct from frame 0 instead of briefly flashing the wrong colour.
-            if (darkZoneRemoveTimer) { clearTimeout(darkZoneRemoveTimer); darkZoneRemoveTimer = null; }
-            checkDarkZoneOverlap(header, getRestingRect());
-            header.classList.remove('bw-header-hidden');
-            header.classList.add('bw-header-visible');
             isHidden = false;
+
+            // Snap the dark-zone class to the correct state for the resting
+            // position BEFORE the slide-in begins.
+            //
+            // Strategy:
+            //   1. Add bw-header-snap-color  → suppresses colour/filter transitions
+            //      on nav links for this frame (CSS rule in header-layout.css).
+            //   2. Probe with forcedRect + forceImmediate → class is set/removed
+            //      instantly without the 150 ms debounce.
+            //   3. requestAnimationFrame → browser paints one frame with the header
+            //      still off-screen but already at the correct colour.
+            //   4. In the rAF: remove snap-color + hidden, add visible.
+            //      Colour is already correct → no colour transition fires; only
+            //      the transform transition starts → clean, flash-free slide-in.
+            header.classList.add('bw-header-snap-color');
+            if (darkZoneRemoveTimer) { clearTimeout(darkZoneRemoveTimer); darkZoneRemoveTimer = null; }
+            checkDarkZoneOverlap(header, getRestingRect(), true);
+
+            window.requestAnimationFrame(function () {
+                header.classList.remove('bw-header-snap-color');
+                header.classList.remove('bw-header-hidden');
+                header.classList.add('bw-header-visible');
+            });
         }
 
         function hideHeader() {
