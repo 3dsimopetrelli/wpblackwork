@@ -159,9 +159,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
+  width: 0;
+  height: 43px;
+  flex: 0 0 45px;
   border-radius: 999px;
   background: #80fd03;
 }
@@ -304,6 +304,16 @@
 
 .bw-fpw-mobile-filters-enabled .bw-fpw-mobile-filter {
   display: block;
+}
+
+@media (max-width: 899px) {
+  .bw-product-grid-wrapper[data-filter-breakpoint="900"] .bw-fpw-filters {
+    display: none;
+  }
+
+  .bw-product-grid-wrapper[data-filter-breakpoint="900"] .bw-fpw-mobile-filter {
+    display: block;
+  }
 }
 
 @media (max-width: 767px) {
