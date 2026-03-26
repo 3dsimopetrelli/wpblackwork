@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Showcase Slide: CTA arrow now renders a dedicated chevron SVG, and `Style > Link Button` now exposes responsive typography for the green CTA text pill.
 - Showcase Slide: added breakpoint-level fixed frame ratios (`3:2`, `4:3`, `1:1`, `16:9`), curated `Classic Photo (3:2)` size presets (`Balanced`, `Large`, `XL Peek`), and universal `Start Offset Left` viewport spacing for first-card breathing room.
 - Product Grid: `Desktop Columns` now supports `5` and `6`, and `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls.
 - Mosaic Slider: hardened image loading and first reveal by promoting only the active viewport primary images, demoting hidden fallback markup to lazy, and waiting for the first image decode-ready state before reveal.

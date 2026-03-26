@@ -196,10 +196,10 @@
     flex-shrink: 0;
 }
 
-.bw-showcase-slide-arrow span {
+.bw-showcase-slide-arrow svg {
     display: block;
-    font-size: 28px;
-    line-height: 1;
+    width: 24px;
+    height: 24px;
     transform: translateX(1px);
 }
 

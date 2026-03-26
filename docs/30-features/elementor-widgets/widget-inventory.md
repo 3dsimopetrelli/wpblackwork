@@ -136,6 +136,7 @@ Important runtime note:
   - visible title: `BW-UI Showcase Slide`
   - manual product ID composition sourced from the showcase metabox
   - horizontal Embla-only runtime; no popup surface
+  - `Style > Link Button` now exposes responsive typography for the green CTA text pill only
   - horizontal breakpoint repeater now supports:
     - slides to scroll
     - show arrows / show dots

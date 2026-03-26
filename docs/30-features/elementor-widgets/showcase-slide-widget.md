@@ -153,6 +153,8 @@ These presets change slide width only. They do not alter the 3:2 ratio.
 - it is implemented at the viewport layer rather than as image/card margin, so Embla snapping remains coherent
 
 ### Style
+- `Link Button`
+  - CTA pill typography
 - `Images`
   - border radius
   - spacing between slides
@@ -206,6 +208,13 @@ Current structure:
 - one detached green circular arrow button beside it
 - both visually read as a single CTA system
 - both remain separate elements in markup/design logic
+- the circular arrow now renders an inline chevron SVG instead of a text glyph
+
+### Link Button Typography Contract
+- `Style > Link Button` controls only the green CTA text pill:
+  - `.bw-showcase-slide-button`
+- the control uses Elementor responsive typography, so desktop/tablet/mobile text sizing can diverge
+- the detached circular arrow remains outside this typography authority
 
 This layout is a visual contract and should be treated as high fidelity.
 
