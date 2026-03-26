@@ -24,10 +24,6 @@
         };
     }
 
-    function getBreakpoint() {
-        return getConfig().breakpoint;
-    }
-
     function ensureHeaderInBody() {
         var header = document.querySelector('.bw-custom-header');
         if (!header || !document.body) {
@@ -49,7 +45,7 @@
             return;
         }
 
-        var bp = getBreakpoint();
+        var bp = getConfig().breakpoint;
         if (window.matchMedia('(max-width: ' + bp + 'px)').matches) {
             root.classList.add('is-mobile');
             root.classList.remove('is-desktop');
@@ -295,19 +291,14 @@
         }
     }
 
-    function initDarkZoneDetection(header) {
-        checkDarkZoneOverlap(header);
-    }
-
     /* ========================================================================
        STICKY HEADER LOGIC
        ======================================================================== */
 
-    function initStickyHeader() {
-        var header = document.querySelector('.bw-custom-header[data-smart-scroll="yes"]');
-        if (!header) return;
+    function initStickyHeader(header) {
+        if (!header || header.getAttribute('data-smart-scroll') !== 'yes') return;
 
-        initDarkZoneDetection(header);
+        checkDarkZoneOverlap(header);
 
         var cfg = getConfig();
         var docEl = document.documentElement;
@@ -416,14 +407,15 @@
     function boot() {
         ensureHeaderInBody();
         applyStateClass();
-        initStickyHeader();
 
         var header = document.querySelector('.bw-custom-header');
+        initStickyHeader(header);
+
         if (header) {
             // Smart scroll is inactive so dark zone detection was not initialised
             // inside initStickyHeader — activate it here with its own scroll listener.
             if (header.getAttribute('data-smart-scroll') !== 'yes') {
-                initDarkZoneDetection(header);
+                checkDarkZoneOverlap(header);
                 var nonStickyTicking = false;
                 window.addEventListener('scroll', function () {
                     if (!nonStickyTicking) {
@@ -436,9 +428,8 @@
                 }, { passive: true });
             }
 
+            // Removing .bw-header-preload restores CSS visibility; no inline styles needed.
             header.classList.remove('bw-header-preload');
-            header.style.opacity = '1';
-            header.style.visibility = 'visible';
         }
     }
 

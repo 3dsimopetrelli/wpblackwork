@@ -82,11 +82,8 @@ if (!function_exists('bw_header_render_frontend')) {
             return;
         }
 
-        if (defined('ELEMENTOR_VERSION') && class_exists('\\Elementor\\Plugin')) {
-            $elementor = \Elementor\Plugin::$instance;
-            if ($elementor && isset($elementor->preview) && $elementor->preview->is_preview_mode()) {
-                return;
-            }
+        if (bw_header_is_elementor_preview()) {
+            return;
         }
 
         $settings = bw_header_get_settings();
@@ -211,21 +208,5 @@ if (!function_exists('bw_header_disable_theme_header')) {
 }
 add_action('wp', 'bw_header_disable_theme_header', 1);
 
-if (!function_exists('bw_header_theme_header_fallback_css')) {
-    function bw_header_theme_header_fallback_css()
-    {
-        if (is_admin() || !bw_header_is_enabled()) {
-            return;
-        }
-        ?>
-        <style id="bw-custom-header-theme-fallback">
-            header#site-header,
-            #site-header.site-header,
-            .site-header.dynamic-header {
-                display: none !important;
-            }
-        </style>
-        <?php
-    }
-}
-add_action('wp_head', 'bw_header_theme_header_fallback_css', 99);
+// Theme header suppression CSS is now output via wp_add_inline_style('bw-header-layout', ...)
+// inside bw_header_enqueue_assets() in assets.php, removing the need for a raw <style> tag here.

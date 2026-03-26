@@ -3,6 +3,17 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+if (!function_exists('bw_header_is_elementor_preview')) {
+    function bw_header_is_elementor_preview()
+    {
+        if (!defined('ELEMENTOR_VERSION') || !class_exists('\\Elementor\\Plugin')) {
+            return false;
+        }
+        $elementor = \Elementor\Plugin::$instance;
+        return $elementor && isset($elementor->preview) && $elementor->preview->is_preview_mode();
+    }
+}
+
 if (!function_exists('bw_header_is_enabled')) {
     function bw_header_is_enabled()
     {
@@ -55,11 +66,8 @@ if (!function_exists('bw_header_enqueue_assets')) {
             return;
         }
 
-        if (defined('ELEMENTOR_VERSION') && class_exists('\\Elementor\\Plugin')) {
-            $elementor = \Elementor\Plugin::$instance;
-            if ($elementor && isset($elementor->preview) && $elementor->preview->is_preview_mode()) {
-                return;
-            }
+        if (bw_header_is_elementor_preview()) {
+            return;
         }
 
         $settings = bw_header_get_settings();
@@ -163,108 +171,117 @@ if (!function_exists('bw_header_enqueue_assets')) {
             'bw-header-layout',
             $base_url . 'css/header-layout.css',
             [],
-            file_exists($base_path . 'css/header-layout.css') ? filemtime($base_path . 'css/header-layout.css') : '1.0.0'
+            filemtime($base_path . 'css/header-layout.css') ?: '1.0.0'
         );
 
         wp_enqueue_style(
             'bw-header-search-style',
             $base_url . 'css/bw-search.css',
             ['bw-header-layout'],
-            file_exists($base_path . 'css/bw-search.css') ? filemtime($base_path . 'css/bw-search.css') : '1.0.0'
+            filemtime($base_path . 'css/bw-search.css') ?: '1.0.0'
         );
 
         wp_enqueue_style(
             'bw-header-navshop-style',
             $base_url . 'css/bw-navshop.css',
             ['bw-header-layout'],
-            file_exists($base_path . 'css/bw-navshop.css') ? filemtime($base_path . 'css/bw-navshop.css') : '1.0.0'
+            filemtime($base_path . 'css/bw-navshop.css') ?: '1.0.0'
         );
 
         wp_enqueue_style(
             'bw-header-navigation-style',
             $base_url . 'css/bw-navigation.css',
             ['bw-header-layout'],
-            file_exists($base_path . 'css/bw-navigation.css') ? filemtime($base_path . 'css/bw-navigation.css') : '1.0.0'
+            filemtime($base_path . 'css/bw-navigation.css') ?: '1.0.0'
         );
 
         // Prevent legacy Elementor widget assets from overriding custom header styles/scripts.
+        // wp_dequeue_* is a no-op when the handle is not enqueued; no guard needed.
         $legacy_style_handles = ['bw-search-style', 'bw-navshop-style', 'bw-navigation-style', 'bw-smart-header-style'];
         foreach ($legacy_style_handles as $handle) {
-            if (wp_style_is($handle, 'enqueued')) {
-                wp_dequeue_style($handle);
-            }
+            wp_dequeue_style($handle);
         }
 
-        $inline_css = "\n@media (max-width: {$breakpoint}px) {\n"
-            . ".bw-custom-header{position:fixed !important;top:var(--bw-header-mobile-top-offset, 0px) !important;left:0 !important;right:0 !important;z-index:9998;width:auto !important;min-width:0 !important;max-width:none !important;margin:0 !important;box-sizing:border-box !important;transition: transform 0.3s ease-in-out, background-color 0.35s ease, opacity 0.35s ease;}\n"
-            . ".bw-custom-header.bw-mobile-scrolled{background-color:#ffffff !important;}\n"
-            . ".bw-custom-header .bw-custom-header__inner{padding: {$mobile_inner_padding_top}px {$mobile_inner_padding_right}px {$mobile_inner_padding_bottom}px {$mobile_inner_padding_left}px !important;width:100% !important;max-width:none !important;margin:0 !important;}\n"
-            . ".bw-custom-header__desktop{display:none;}\n"
-            . ".bw-custom-header__mobile{display:block;}\n"
-            . ".bw-custom-header .bw-navigation__toggle{display:inline-flex;}\n"
-            . ".bw-custom-header .bw-navigation__mobile-overlay{display:block;}\n"
-            . ".bw-custom-header .bw-navshop--hide-account-mobile .bw-navshop__account{display:none;}\n"
-            . ".bw-custom-header .bw-navshop__cart-label{display:none;}\n"
-            . ".bw-custom-header .bw-navshop__cart-icon{display:inline-flex;}\n"
-            . ".bw-custom-header .bw-search-button{display:inline-flex !important;background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important;min-width:auto !important;min-height:auto !important;}\n"
-            . ".bw-custom-header .bw-search-button__label{display:none;}\n"
-            . ".bw-custom-header .bw-search-button__icon{display:inline-flex;background:transparent !important;border:none !important;border-radius:0 !important;padding:0 !important;}\n"
-            . ".bw-custom-header__mobile-right{gap: {$mobile_right_icons_gap}px !important;}\n"
-            . ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}\n"
-            . ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}\n"
-            . ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}\n"
-            . ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;min-width: {$mobile_cart_badge_size}em !important;height: {$mobile_cart_badge_size}em !important;line-height: {$mobile_cart_badge_size}em !important;}\n"
-            . ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}\n"
-            . "}\n"
-            . "@media (min-width: " . ($breakpoint + 1) . "px) {\n"
-            . ".bw-custom-header__desktop{display:flex;}\n"
-            . ".bw-custom-header__mobile{display:none;}\n"
-            . ".bw-custom-header .bw-navigation__toggle,.bw-custom-header .bw-navigation__mobile-overlay{display:none !important;}\n"
-            . ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;min-width: {$desktop_cart_badge_size}em !important;height: {$desktop_cart_badge_size}em !important;line-height: {$desktop_cart_badge_size}em !important;}\n"
-            . "}\n";
+        // Build inline CSS as an array then implode — easier to add/remove rules.
+        $css_parts = [];
 
+        // — Mobile breakpoint rules —
+        $css_parts[] = "@media (max-width: {$breakpoint}px) {";
+        $css_parts[] = ".bw-custom-header{position:fixed !important;top:var(--bw-header-mobile-top-offset, 0px) !important;left:0 !important;right:0 !important;z-index:9998;width:auto !important;min-width:0 !important;max-width:none !important;margin:0 !important;box-sizing:border-box !important;transition: transform 0.3s ease-in-out, background-color 0.35s ease, opacity 0.35s ease;}";
+        $css_parts[] = ".bw-custom-header.bw-mobile-scrolled{background-color:#ffffff !important;}";
+        $css_parts[] = ".bw-custom-header .bw-custom-header__inner{padding: {$mobile_inner_padding_top}px {$mobile_inner_padding_right}px {$mobile_inner_padding_bottom}px {$mobile_inner_padding_left}px !important;width:100% !important;max-width:none !important;margin:0 !important;}";
+        $css_parts[] = ".bw-custom-header__desktop{display:none;}";
+        $css_parts[] = ".bw-custom-header__mobile{display:block;}";
+        $css_parts[] = ".bw-custom-header .bw-navigation__toggle{display:inline-flex;}";
+        $css_parts[] = ".bw-custom-header .bw-navigation__mobile-overlay{display:block;}";
+        $css_parts[] = ".bw-custom-header .bw-navshop--hide-account-mobile .bw-navshop__account{display:none;}";
+        $css_parts[] = ".bw-custom-header .bw-navshop__cart-label{display:none;}";
+        $css_parts[] = ".bw-custom-header .bw-navshop__cart-icon{display:inline-flex;}";
+        $css_parts[] = ".bw-custom-header .bw-search-button{display:inline-flex !important;background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important;min-width:auto !important;min-height:auto !important;}";
+        $css_parts[] = ".bw-custom-header .bw-search-button__label{display:none;}";
+        $css_parts[] = ".bw-custom-header .bw-search-button__icon{display:inline-flex;background:transparent !important;border:none !important;border-radius:0 !important;padding:0 !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right{gap: {$mobile_right_icons_gap}px !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;min-width: {$mobile_cart_badge_size}em !important;height: {$mobile_cart_badge_size}em !important;line-height: {$mobile_cart_badge_size}em !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}";
+        $css_parts[] = "}";
+
+        // — Desktop breakpoint rules —
+        $css_parts[] = "@media (min-width: " . ($breakpoint + 1) . "px) {";
+        $css_parts[] = ".bw-custom-header__desktop{display:flex;}";
+        $css_parts[] = ".bw-custom-header__mobile{display:none;}";
+        $css_parts[] = ".bw-custom-header .bw-navigation__toggle,.bw-custom-header .bw-navigation__mobile-overlay{display:none !important;}";
+        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;min-width: {$desktop_cart_badge_size}em !important;height: {$desktop_cart_badge_size}em !important;line-height: {$desktop_cart_badge_size}em !important;}";
+        $css_parts[] = "}";
+
+        // — Background color —
         if ($smart_scroll_enabled) {
-            $inline_css .= ".bw-custom-header{background-color: " . bw_header_hex_to_rgba($smart_header_bg, $smart_header_bg_opacity) . " !important;}\n";
-            $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: " . bw_header_hex_to_rgba($smart_header_scrolled_bg, $smart_header_scrolled_opacity) . " !important;}\n";
+            $css_parts[] = ".bw-custom-header{background-color: " . bw_header_hex_to_rgba($smart_header_bg, $smart_header_bg_opacity) . " !important;}";
+            $css_parts[] = ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: " . bw_header_hex_to_rgba($smart_header_scrolled_bg, $smart_header_scrolled_opacity) . " !important;}";
         } else {
-            if ($background_transparent) {
-                $inline_css .= ".bw-custom-header{background-color: transparent !important;}\n";
-            } else {
-                $inline_css .= ".bw-custom-header{background-color: {$header_bg} !important;}\n";
-            }
-            $inline_css .= ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: {$header_bg} !important;}\n";
+            $css_parts[] = $background_transparent
+                ? ".bw-custom-header{background-color: transparent !important;}"
+                : ".bw-custom-header{background-color: {$header_bg} !important;}";
+            $css_parts[] = ".bw-custom-header.bw-custom-header--smart.bw-header-scrolled{background-color: {$header_bg} !important;}";
         }
-        $inline_css .= ".bw-custom-header__inner{padding: {$inner_padding_top}{$inner_padding_unit} {$inner_padding_right}{$inner_padding_unit} {$inner_padding_bottom}{$inner_padding_unit} {$inner_padding_left}{$inner_padding_unit} !important;}\n";
-        $blur_tint = bw_header_hex_to_rgba($menu_blur_tint_color, $menu_blur_tint_opacity);
-        $blur_scrolled_tint = bw_header_hex_to_rgba($menu_blur_scrolled_tint_color, $menu_blur_scrolled_tint_opacity);
 
+        // — Desktop inner padding —
+        $css_parts[] = ".bw-custom-header__inner{padding: {$inner_padding_top}{$inner_padding_unit} {$inner_padding_right}{$inner_padding_unit} {$inner_padding_bottom}{$inner_padding_unit} {$inner_padding_left}{$inner_padding_unit} !important;}";
+
+        // — Panel blur (tint computed only when blur is actually enabled) —
         if ($menu_blur_enabled) {
-            // Desktop panel blur
-            $inline_css .= ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
-            $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
-            // Mobile panel blur (compact padding to avoid double-spacing with __inner)
+            $blur_tint = bw_header_hex_to_rgba($menu_blur_tint_color, $menu_blur_tint_opacity);
+            $blur_scrolled_tint = bw_header_hex_to_rgba($menu_blur_scrolled_tint_color, $menu_blur_scrolled_tint_opacity);
             $mobile_blur_v = max(2, min(15, intval($menu_blur_padding_top)));
             $mobile_blur_h = max(2, min(10, intval(round($menu_blur_padding_right * 0.5))));
-            $inline_css .= ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_v}px {$mobile_blur_h}px !important;border-radius: {$menu_blur_radius}px !important;}\n";
-            $inline_css .= ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}\n";
+            $css_parts[] = ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}";
+            $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
+            // Mobile panel blur (compact padding to avoid double-spacing with __inner)
+            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_v}px {$mobile_blur_h}px !important;border-radius: {$menu_blur_radius}px !important;}";
+            $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
         } else {
-            $inline_css .= ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}\n";
-            $inline_css .= ".bw-custom-header__mobile-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}\n";
+            $css_parts[] = ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";
+            $css_parts[] = ".bw-custom-header__mobile-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";
         }
 
         // Mobile scroll state must win over smart-header desktop rules.
-        $inline_css .= "@media (max-width: {$breakpoint}px){.bw-custom-header.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.bw-header-scrolled.is-mobile.bw-mobile-scrolled{background-color:#ffffff !important;}}\n";
+        $css_parts[] = "@media (max-width: {$breakpoint}px){.bw-custom-header.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.is-mobile.bw-mobile-scrolled,.bw-custom-header.bw-custom-header--smart.bw-header-scrolled.is-mobile.bw-mobile-scrolled{background-color:#ffffff !important;}}";
 
         // Disable legacy smart-header body offset when custom header is enabled.
-        $inline_css .= "body:not(.elementor-editor-active){--smart-header-body-padding:0px !important;}\n";
+        $css_parts[] = "body:not(.elementor-editor-active){--smart-header-body-padding:0px !important;}";
 
-        wp_add_inline_style('bw-header-layout', $inline_css);
+        // Suppress theme header elements (belt-and-suspenders alongside bw_header_disable_theme_header).
+        $css_parts[] = "header#site-header,#site-header.site-header,.site-header.dynamic-header{display:none !important;}";
+
+        wp_add_inline_style('bw-header-layout', implode("\n", $css_parts));
 
         wp_enqueue_script(
             'bw-header-search-script',
             $base_url . 'js/bw-search.js',
             ['jquery'],
-            file_exists($base_path . 'js/bw-search.js') ? filemtime($base_path . 'js/bw-search.js') : '1.0.0',
+            filemtime($base_path . 'js/bw-search.js') ?: '1.0.0',
             true
         );
 
@@ -272,7 +289,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
             'bw-header-navshop-script',
             $base_url . 'js/bw-navshop.js',
             ['jquery'],
-            file_exists($base_path . 'js/bw-navshop.js') ? filemtime($base_path . 'js/bw-navshop.js') : '1.0.0',
+            filemtime($base_path . 'js/bw-navshop.js') ?: '1.0.0',
             true
         );
 
@@ -280,7 +297,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
             'bw-header-navigation-script',
             $base_url . 'js/bw-navigation.js',
             [],
-            file_exists($base_path . 'js/bw-navigation.js') ? filemtime($base_path . 'js/bw-navigation.js') : '1.0.0',
+            filemtime($base_path . 'js/bw-navigation.js') ?: '1.0.0',
             true
         );
 
@@ -288,15 +305,13 @@ if (!function_exists('bw_header_enqueue_assets')) {
             'bw-header-init',
             $base_url . 'js/header-init.js',
             ['jquery', 'bw-header-search-script', 'bw-header-navshop-script', 'bw-header-navigation-script'],
-            file_exists($base_path . 'js/header-init.js') ? filemtime($base_path . 'js/header-init.js') : '1.0.0',
+            filemtime($base_path . 'js/header-init.js') ?: '1.0.0',
             true
         );
 
         $legacy_script_handles = ['bw-search-script', 'bw-navshop-script', 'bw-navigation-script', 'bw-smart-header-script'];
         foreach ($legacy_script_handles as $handle) {
-            if (wp_script_is($handle, 'enqueued')) {
-                wp_dequeue_script($handle);
-            }
+            wp_dequeue_script($handle);
         }
 
         wp_localize_script(
