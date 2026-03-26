@@ -194,8 +194,32 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         'trust_review_content_notice',
                         [
                                 'type'            => Controls_Manager::RAW_HTML,
-                                'raw'             => wp_kses_post( __( 'The review slider and fixed review box are managed globally in <strong>Blackwork Site -> Reviews Settings -> Trust Content</strong>. This widget section only documents that dependency and keeps the pricing column contract explicit.', 'bw' ) ),
+                                'raw'             => wp_kses_post( __( 'The review slider and fixed review box are managed globally in <strong>Blackwork Site -> Reviews Settings -> Trust Content</strong>. These toggles let you enable or disable those global trust blocks per widget instance when needed.', 'bw' ) ),
                                 'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
+                        ]
+                );
+
+                $this->add_control(
+                        'show_global_review_slider',
+                        [
+                                'label'        => __( 'Show Review Slider', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
+                        ]
+                );
+
+                $this->add_control(
+                        'show_global_review_box',
+                        [
+                                'label'        => __( 'Show Fixed Review Box', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => 'yes',
                         ]
                 );
 
@@ -1589,8 +1613,8 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 $trust_settings         = $this->get_reviews_trust_settings();
                 $review_slider_items    = $this->get_review_slider_items( $trust_settings );
                 $review_box_content     = $this->get_review_box_content( $trust_settings );
-                $show_review_slider     = ! empty( $trust_settings['enable_review_slider'] ) && ! empty( $review_slider_items );
-                $show_review_box        = ! empty( $trust_settings['enable_review_box'] ) && '' !== $review_box_content;
+                $show_review_slider     = ! empty( $trust_settings['enable_review_slider'] ) && ! empty( $review_slider_items ) && isset( $settings['show_global_review_slider'] ) && 'yes' === $settings['show_global_review_slider'];
+                $show_review_box        = ! empty( $trust_settings['enable_review_box'] ) && '' !== $review_box_content && isset( $settings['show_global_review_box'] ) && 'yes' === $settings['show_global_review_box'];
                 $info_box_items         = ( isset( $settings['show_digital_product_info'] ) && 'yes' === $settings['show_digital_product_info'] )
                         ? $this->get_digital_product_info_items( $settings )
                         : [];

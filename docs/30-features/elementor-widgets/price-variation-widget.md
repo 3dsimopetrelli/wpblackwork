@@ -92,6 +92,7 @@ Global trust surfaces:
 Widget-local trust surfaces:
 - digital product info cards
 - FAQ CTA box
+- per-instance visibility toggles for the global review slider and global fixed review box
 
 Governance rule:
 - global trust copy that should stay consistent across product pages belongs to Reviews Settings
@@ -103,6 +104,7 @@ Authority:
 
 Behavior:
 - renders only when `Enable review slider` is on in Reviews Settings
+- renders only when the widget-level `Review Trust -> Show Review Slider` toggle is on
 - renders only when at least one slide exists
 - uses the shared Embla runtime already present in the repository
 - shows one slide at a time
@@ -125,6 +127,7 @@ Authority:
 
 Behavior:
 - renders only when `Enable fixed review box` is on in Reviews Settings
+- renders only when the widget-level `Review Trust -> Show Fixed Review Box` toggle is on
 - renders only when the WYSIWYG/HTML content is not empty
 - supports links, bold text, and inline formatting
 - uses fixed 5-star visuals above the content

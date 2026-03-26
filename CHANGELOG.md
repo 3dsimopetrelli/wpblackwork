@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Price Variation: added widget-level `Review Trust` on/off toggles for the global review slider and fixed review box, so each widget instance can suppress those global trust blocks without changing Reviews Settings authority.
 - Price Variation: added a governed trust stack below the main pricing box with shared-Embla review slider support, global fixed review summary box support from `Reviews Settings -> Trust Content`, widget-level digital product info cards, and widget-level FAQ CTA controls.
 - Docs: aligned `BW-SP Price Variation` documentation with current runtime reality, clarifying compact reviews-as-trust usage, variation-bound license disclosure accordion behavior, single-axis selector constraints, and current `More payment options` render gating.
 - Product Grid: redesigned the mobile filter trigger as a bordered white pill with green icon shell, moved mobile first-paint filter visibility into CSS to prevent desktop-filter flash on reload, and added `Disable Hover Actions on Tablet & Mobile` in `Layout`.
