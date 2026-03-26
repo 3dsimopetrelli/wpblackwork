@@ -744,7 +744,6 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                                     <div class="bw-reviews-trust-repeater__row" data-row-index="<?php echo esc_attr( (string) $index ); ?>">
                                                         <div class="bw-reviews-trust-repeater__row-head">
                                                             <strong><?php echo esc_html( sprintf( __( 'Slide %d', 'bw' ), absint( $index ) + 1 ) ); ?></strong>
-                                                            <button type="button" class="button-link-delete" data-bw-trust-remove-row><?php esc_html_e( 'Remove', 'bw' ); ?></button>
                                                         </div>
                                                         <p>
                                                             <label>
@@ -769,6 +768,9 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                                                 />
                                                             </label>
                                                         </p>
+                                                        <div class="bw-reviews-trust-repeater__row-actions">
+                                                            <button type="button" class="button button-secondary" data-bw-trust-remove-row><?php esc_html_e( 'Remove slide', 'bw' ); ?></button>
+                                                        </div>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
@@ -779,7 +781,6 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                                 <div class="bw-reviews-trust-repeater__row" data-row-index="__INDEX__">
                                                     <div class="bw-reviews-trust-repeater__row-head">
                                                         <strong><?php echo esc_html__( 'New slide', 'bw' ); ?></strong>
-                                                        <button type="button" class="button-link-delete" data-bw-trust-remove-row><?php esc_html_e( 'Remove', 'bw' ); ?></button>
                                                     </div>
                                                     <p>
                                                         <label>
@@ -804,6 +805,9 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                                             />
                                                         </label>
                                                     </p>
+                                                    <div class="bw-reviews-trust-repeater__row-actions">
+                                                        <button type="button" class="button button-secondary" data-bw-trust-remove-row><?php esc_html_e( 'Remove slide', 'bw' ); ?></button>
+                                                    </div>
                                                 </div>
                                             </script>
                                         </div>
@@ -940,6 +944,62 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                 </form>
             </div>
             <?php if ( 'trust' === $active_tab ) : ?>
+                <style>
+                    .bw-reviews-trust-repeater {
+                        max-width: 1000px;
+                    }
+
+                    .bw-reviews-trust-repeater__rows {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 18px;
+                        margin-top: 12px;
+                    }
+
+                    .bw-reviews-trust-repeater__row {
+                        padding: 18px;
+                        border: 1px solid #dcdcde;
+                        border-radius: 10px;
+                        background: #ffffff;
+                    }
+
+                    .bw-reviews-trust-repeater__row-head {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 12px;
+                        margin-bottom: 12px;
+                    }
+
+                    .bw-reviews-trust-repeater__row-head strong {
+                        font-size: 16px;
+                        line-height: 1.3;
+                    }
+
+                    .bw-reviews-trust-repeater__row p {
+                        margin: 0 0 14px;
+                    }
+
+                    .bw-reviews-trust-repeater__row p:last-of-type {
+                        margin-bottom: 0;
+                    }
+
+                    .bw-reviews-trust-repeater__row textarea {
+                        min-height: 120px;
+                    }
+
+                    .bw-reviews-trust-repeater__row-actions {
+                        display: flex;
+                        justify-content: flex-end;
+                        margin-top: 14px;
+                        padding-top: 14px;
+                        border-top: 1px solid #f0f0f1;
+                    }
+
+                    .bw-reviews-trust-repeater__row-actions .button {
+                        min-width: 120px;
+                    }
+                </style>
                 <script>
                     jQuery(function ($) {
                         var $repeater = $('[data-bw-trust-repeater]');
