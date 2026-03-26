@@ -307,6 +307,9 @@
     flex: 1 1 auto;
     min-height: 0;
     border-radius: var(--bw-ms-image-radius, 18px);
+    /* Visible edge on every card regardless of image or page background color. */
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .bw-ms-slot .bw-product-card {
@@ -343,6 +346,9 @@
     overflow: hidden;
     border-radius: var(--bw-ms-image-radius, 18px);
     background: #ececec;
+    /* Visible edge on every card regardless of image or page background color. */
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .bw-ms-editorial-media img,
