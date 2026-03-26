@@ -436,6 +436,27 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     color: #ffffff !important;
 }
 
+/* ─── Dark-zone snap: suppress colour/filter transitions for one frame ───────
+   bw-header-snap-color is added by JS in showHeader() for a single rAF tick.
+   During that tick the browser paints the header (still off-screen) with the
+   correct dark-zone colour state.  When bw-header-snap-color is then removed
+   in the same rAF as bw-header-hidden, the colour has not changed, so no
+   colour transition fires — only the transform slide-in animates.           */
+.bw-custom-header.bw-header-snap-color .bw-navigation__link,
+.bw-custom-header.bw-header-snap-color .bw-navshop__item,
+.bw-custom-header.bw-header-snap-color .bw-navigation__toggle,
+.bw-custom-header.bw-header-snap-color .bw-search-button,
+.bw-custom-header.bw-header-snap-color .bw-custom-header__logo-image,
+.bw-custom-header.bw-header-snap-color .bw-navigation__toggle-icon-image,
+.bw-custom-header.bw-header-snap-color .bw-search-button__icon-image,
+.bw-custom-header.bw-header-snap-color .bw-navshop__cart-icon-image,
+.bw-custom-header.bw-header-snap-color .bw-custom-header__logo-fallback,
+.bw-custom-header.bw-header-snap-color .bw-navigation__toggle-icon,
+.bw-custom-header.bw-header-snap-color .bw-search-button__icon,
+.bw-custom-header.bw-header-snap-color .bw-navshop__cart-icon {
+    transition: color 0s !important, filter 0s !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
     .bw-custom-header {
