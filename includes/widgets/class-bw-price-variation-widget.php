@@ -1524,6 +1524,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 }
 
                 $settings = $this->get_settings_for_display();
+                $is_editor_mode = \Elementor\Plugin::$instance->editor->is_edit_mode();
 
                 // Get product ID from settings or current context
                 $product_resolution = $this->get_product_id_from_settings( $settings );
@@ -1602,6 +1603,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         ? $settings['faq_button_link']
                         : [];
                 $faq_button_url         = isset( $faq_button_link['url'] ) ? esc_url( $faq_button_link['url'] ) : '';
+                $show_faq_button_block  = ( $faq_button_enabled && '' !== $faq_button_url ) || ( $faq_button_enabled && '' === $faq_button_url && $is_editor_mode );
                 ?>
                 <div
                         class="bw-price-variation"
@@ -1782,7 +1784,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 				<?php endif; ?>
                         <?php endif; ?>
 
-                        <?php if ( $show_review_slider || $show_review_box || $show_info_box || ( $faq_button_enabled && '' !== $faq_button_url ) ) : ?>
+                        <?php if ( $show_review_slider || $show_review_box || $show_info_box || $show_faq_button_block ) : ?>
                                 <div class="bw-price-variation__trust-stack">
                                         <?php if ( $show_review_slider ) : ?>
                                                 <?php $is_single_review_slide = count( $review_slider_items ) < 2; ?>
@@ -1843,7 +1845,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                                 </section>
                                         <?php endif; ?>
 
-                                        <?php if ( $faq_button_enabled && '' !== $faq_button_url ) : ?>
+                                        <?php if ( $show_faq_button_block ) : ?>
                                                 <?php
                                                 $faq_target = ! empty( $faq_button_link['is_external'] ) ? ' target="_blank"' : '';
                                                 $faq_rel    = [];
@@ -1856,12 +1858,21 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                                 }
                                                 ?>
                                                 <div class="bw-price-variation__faq-wrapper">
-                                                        <a class="bw-price-variation__trust-card bw-price-variation__faq-button" href="<?php echo esc_url( $faq_button_url ); ?>"<?php echo $faq_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo ! empty( $faq_rel ) ? ' rel="' . esc_attr( implode( ' ', array_unique( $faq_rel ) ) ) . '"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-                                                                <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
-                                                                <span class="bw-price-variation__faq-button-icon" aria-hidden="true">
-                                                                        <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7 5h6M7 10h6M7 15h4M4.5 3.5h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4.5 3v-3H4.5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                                </span>
-                                                        </a>
+                                                        <?php if ( '' !== $faq_button_url ) : ?>
+                                                                <a class="bw-price-variation__trust-card bw-price-variation__faq-button" href="<?php echo esc_url( $faq_button_url ); ?>"<?php echo $faq_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo ! empty( $faq_rel ) ? ' rel="' . esc_attr( implode( ' ', array_unique( $faq_rel ) ) ) . '"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                                                                        <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
+                                                                        <span class="bw-price-variation__faq-button-icon" aria-hidden="true">
+                                                                                <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7 5h6M7 10h6M7 15h4M4.5 3.5h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4.5 3v-3H4.5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                        </span>
+                                                                </a>
+                                                        <?php else : ?>
+                                                                <div class="bw-price-variation__trust-card bw-price-variation__faq-button bw-price-variation__faq-button--preview" aria-disabled="true">
+                                                                        <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
+                                                                        <span class="bw-price-variation__faq-button-icon" aria-hidden="true">
+                                                                                <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7 5h6M7 10h6M7 15h4M4.5 3.5h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4.5 3v-3H4.5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                        </span>
+                                                                </div>
+                                                        <?php endif; ?>
                                                 </div>
                                         <?php endif; ?>
                                 </div>

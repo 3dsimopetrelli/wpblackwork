@@ -457,6 +457,11 @@
 	text-decoration: none;
 }
 
+.bw-price-variation__faq-button--preview {
+	opacity: 0.7;
+	cursor: default;
+}
+
 .bw-price-variation__faq-button:focus-visible {
 	outline: 2px solid #000000;
 	outline-offset: 3px;
