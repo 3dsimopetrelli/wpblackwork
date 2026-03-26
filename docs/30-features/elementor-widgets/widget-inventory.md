@@ -91,6 +91,19 @@ Important runtime note:
   - `description_source`: `description`, `short_description`, `both`
   - renders product long description, short description, or both with preserved HTML markup
   - Alignment (responsive), Typography group control (Elementor native), Text Color
+- `bw-product-grid` controls/runtime (current state):
+  - `Layout`:
+    - `Desktop Columns`: `3`, `4`, `5`, `6`
+    - `Disable Hover Actions on Tablet & Mobile`
+  - `Style > Text`:
+    - content gap
+    - title color / typography / padding
+    - description color / typography / padding
+    - price color / typography / padding
+  - filter runtime:
+    - desktop inline filter rows + mobile slide-out filter panel
+    - mobile trigger uses a white rounded pill with green icon shell
+    - mobile first paint is CSS-managed to avoid desktop-filter flash before JS init
 - `bw-product-breadcrumbs` controls (current state):
   - `product_id`: explicit product ID override for editor preview
   - deterministic breadcrumb chain for current Woo single product
@@ -171,8 +184,11 @@ Important runtime note:
 - `bw-price-variation`:
   - now supports a `Rates` content section for current-product BW Reviews summary
   - can show/hide review count in the inline summary
+  - reviews act as a compact trust summary only; they do not make this widget a review-authority surface
   - now supports a `More payment options` checkout shortcut under Add to Cart
   - checkout shortcut follows the currently selected variation, or the default variation at initial render
+  - current runtime may render a variation-bound license disclosure accordion between the variation buttons and Add to Cart
+  - current visible variation selector is effectively license-first and single-axis
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
   - AJAX response path (`bw_fpw_filter_posts`).

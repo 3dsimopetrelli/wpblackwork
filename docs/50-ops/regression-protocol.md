@@ -108,6 +108,10 @@ Wave-specific checks:
   - product review summary appears only when the current product has approved BW Reviews reviews
   - review summary stays hidden when the current product has no approved reviews
   - review count visibility follows the widget toggle
+  - review summary remains a compact trust surface and does not expand into list/sort/global-fallback behavior inside `bw-price-variation`
+  - active variation change updates price, license disclosure content, Add to Cart state, and checkout shortcut together
+  - license accordion acts only as disclosure for the active variation and does not alter the active variation by itself
+  - license accordion label/toggle behavior remains deterministic across mobile and desktop configuration
   - `More payment options` appears only when enabled
   - `More payment options` follows the currently selected variation/license
   - if the user does not change variation, `More payment options` uses the default variation

@@ -3,6 +3,11 @@
 Filterable masonry/CSS-grid widget for products and posts.
 Elementor widget slug: `bw-product-grid`.
 
+Current notable UI/runtime deltas:
+- mobile filter trigger uses the new bordered white pill + green icon treatment
+- mobile first paint is CSS-governed, so desktop filter labels do not flash before JS init
+- `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
+
 ## Documents
 
 - [Architecture Map](product-grid-architecture.md) — full PHP/JS/AJAX architecture reference

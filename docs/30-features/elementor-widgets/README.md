@@ -34,7 +34,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
-- `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with inline product review summary and direct-checkout shortcut
+- `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with compact inline trust summary, variation-bound license disclosure, and direct-checkout shortcut
 - `big-text-widget.md`: `BW-UI Big Text` — premium editorial statement widget with controlled line length, fluid `clamp()` scaling, automatic balance mode, and optional manual editorial line grouping
 - `hero-slide-widget.md`: `BW-UI Hero Slide` — premium static hero widget with future-ready `Slide` mode surface, centered copy, background image, and glass CTA button grid
 - `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with 4 desktop mosaic variants, auto-scale/square modes, responsive partial-slide reveal, and shared product-card reuse
@@ -59,7 +59,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
-- `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product
+- `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product and expose variation-bound license disclosure without becoming a second reviews authority
 
 ## BW-UI Presentation Slider
 - Widget slug: `bw-presentation-slide`
@@ -175,6 +175,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - `debounce()`
   - `debounceTimers`
   - `loadAndOpenTagsInMobile()`
+- Subsequent refinement wave added:
+  - mobile filter trigger redesign to a bordered white pill with a green icon shell
+  - CSS-first mobile filter visibility below the responsive breakpoint to prevent desktop-filter FOUC on reload
+  - `Layout > Disable Hover Actions on Tablet & Mobile` to suppress product-card hover overlays and hover media below desktop widths
 - Cleaned up unused PHP methods and dead branches.
 - Consolidated resize handling into a single dispatcher.
 - Aligned responsive breakpoint behavior across PHP, JS, and CSS.

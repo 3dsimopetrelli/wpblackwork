@@ -28,7 +28,7 @@ Controls are registered across three private methods:
 
 | Method | Controls |
 |--------|----------|
-| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle |
+| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
 | `register_filter_controls()` | Show filters, default category, show categories/subcategories/tags, filter bar titles |
 | `register_query_controls()` | Post type, parent category, subcategory (multi-select), specific IDs, order by, order direction |
@@ -43,7 +43,25 @@ render()
     └── render_post_item()   — delegates to BW_Product_Card_Component or generic fallback
 ```
 
-### 3.3 PHP → JS data contract (data-attributes on `.bw-fpw-grid`)
+### 3.3 Wrapper-level runtime attributes
+
+The outer `.bw-product-grid` wrapper is also part of the runtime contract.
+
+| Attribute | Source in PHP | Used by |
+|-----------|---------------|---------|
+| `data-disable-hover-on-touch` | `disable_hover_on_touch` control | scoped CSS below desktop widths |
+
+When `data-disable-hover-on-touch="yes"` the Product Grid locally disables:
+- overlay CTA actions (`View Product`, `Add to Cart`)
+- secondary hover image/video presentation
+
+This is intentionally scoped at wrapper level so the behavior applies to:
+- initial server-rendered cards
+- cards injected later by AJAX
+
+without changing the shared `BW_Product_Card_Component` authority for other widgets.
+
+### 3.4 PHP → JS data contract (data-attributes on `.bw-fpw-grid`)
 
 All values that the JS layer must know at runtime are serialised as
 `data-*` attributes on the `.bw-fpw-grid` element during `render_posts()`.
@@ -74,7 +92,7 @@ values in JS — always add a matching data-attribute in PHP first.
 > a `data-*` attribute to the grid, (3) read it in `filterPosts()` via
 > `$grid.attr()`.  Never add a new hardcoded default only in JS.
 
-### 3.4 render_post_item() signature
+### 3.5 render_post_item() signature
 
 ```php
 private function render_post_item(
@@ -91,6 +109,22 @@ private function render_post_item(
 initial server render always matches what the AJAX handler produces.
 
 ---
+
+### 3.6 Responsive filter first-paint contract
+
+The widget renders both filter surfaces in PHP:
+- desktop inline rows: `.bw-fpw-filters`
+- mobile trigger + slide-out panel: `.bw-fpw-mobile-filter`
+
+To avoid a mobile first-paint flash of desktop filter labels, visibility is now decided in two layers:
+- CSS first-paint authority:
+  - `@media (max-width: 899px)` immediately hides `.bw-fpw-filters`
+  - `@media (max-width: 899px)` immediately shows `.bw-fpw-mobile-filter`
+- JS runtime authority:
+  - `toggleResponsiveFilters()` still adds/removes `.bw-fpw-mobile-filters-enabled`
+  - JS remains responsible for panel open/close and resize cleanup
+
+This split is intentional: CSS prevents FOUC on reload, while JS retains behavior/state control.
 
 ## 4) JavaScript Architecture
 
@@ -192,6 +226,13 @@ on `window.innerWidth` vs. the grid's breakpoint data-attributes.
 `bw-fpw-mobile-filters-enabled` (set by `toggleResponsiveFilters()`).
 
 In mobile mode a slide-out panel replaces the inline filter bar.
+The visual trigger for that panel is a pill-style button with:
+- white background
+- black border
+- left-aligned `Filters` label
+- green circular icon shell on the right
+
+The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
 ---
 
