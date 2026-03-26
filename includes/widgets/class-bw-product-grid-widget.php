@@ -515,17 +515,17 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
         $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
-        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button' ];
-        $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-filter-button' ];
-        $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7H21M6 12H18M9 17H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
+        $apply_button_classes  = [ 'bw-fpw-mobile-apply' ];
+        $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
         ?>
 
         <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
             <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
-                <?php
-                echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                echo esc_html( $mobile_filters_title );
-                ?>
+                <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+                <span class="bw-fpw-mobile-filter-button-icon-shell">
+                    <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </span>
             </button>
 
             <div class="bw-fpw-mobile-filter-panel" aria-hidden="true">
