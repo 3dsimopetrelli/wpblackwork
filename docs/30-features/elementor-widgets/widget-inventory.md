@@ -79,7 +79,13 @@ Important runtime note:
   - `page_id`: explicit page ID override for editor preview (source: `page` only)
   - `term_id`: explicit category ID override for editor preview (source: `category` only)
   - `custom_text`: static text input (source: `text` only)
-  - Alignment (responsive), Typography group control (Elementor native)
+  - style controls:
+    - responsive `Max Text Width` (`ch`, `rem`, `%`, `vw`, `px`)
+    - `Font Size Mode`: `fluid`, `fixed`
+    - `Fixed Font Size`
+    - fluid controls: min/max font size + min/max viewport
+    - responsive alignment
+    - Typography group control (font family/weight/etc.; default weight `500`)
 - `bw-product-description` controls (initial state):
   - `product_id`: explicit product ID override for editor preview
   - `description_source`: `description`, `short_description`, `both`

@@ -53,7 +53,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
   - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget
-- `bw-title-product` -> canonical single-product title utility widget
+- `bw-title-product` -> canonical single-product title utility widget with fluid/fixed responsive title sizing and width-measure controls
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review

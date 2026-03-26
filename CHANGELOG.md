@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Title Product: added `Big Text`-style responsive title sizing controls (`Max Text Width`, `Fixed/Fluid` mode, fluid min/max sizes and viewport bounds) and changed the default title weight to `500`.
 - Product Card: aligned shared default typography baseline to title `14px`, description `14px`, and price `12px`, with Product Slider defaults realigned to the same contract when no Elementor typography override is present.
 - Showcase Slide: CTA arrow now renders a dedicated chevron SVG, and `Style > Link Button` now exposes responsive typography for the green CTA text pill.
 - Showcase Slide: added breakpoint-level fixed frame ratios (`3:2`, `4:3`, `1:1`, `16:9`), curated `Classic Photo (3:2)` size presets (`Balanced`, `Large`, `XL Peek`), and universal `Start Offset Left` viewport spacing for first-card breathing room.

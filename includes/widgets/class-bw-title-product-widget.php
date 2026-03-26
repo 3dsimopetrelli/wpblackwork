@@ -112,6 +112,126 @@ class Widget_Bw_Title_Product extends Widget_Base {
 
         /* ── Style ───────────────────────────────────────────────────────── */
 
+        $this->start_controls_section( 'section_style_responsive_title', [
+            'label' => __( 'Responsive Title', 'bw' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_responsive_control( 'max_text_width', [
+            'label'      => __( 'Max Text Width', 'bw' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'ch', 'rem', '%', 'vw', 'px' ],
+            'range'      => [
+                'ch'  => [ 'min' => 4, 'max' => 40, 'step' => 0.5 ],
+                'rem' => [ 'min' => 4, 'max' => 60, 'step' => 0.25 ],
+                '%'   => [ 'min' => 20, 'max' => 100, 'step' => 1 ],
+                'vw'  => [ 'min' => 20, 'max' => 100, 'step' => 1 ],
+                'px'  => [ 'min' => 160, 'max' => 2200, 'step' => 10 ],
+            ],
+            'default'    => [
+                'size' => 100,
+                'unit' => '%',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-title-product' => '--bw-title-product-max-width: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'font_size_mode', [
+            'label'   => __( 'Font Size Mode', 'bw' ),
+            'type'    => Controls_Manager::SELECT,
+            'default' => 'fluid',
+            'options' => [
+                'fluid' => __( 'Fluid', 'bw' ),
+                'fixed' => __( 'Fixed', 'bw' ),
+            ],
+        ] );
+
+        $this->add_responsive_control( 'fixed_font_size', [
+            'label'      => __( 'Fixed Font Size', 'bw' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [
+                'px' => [ 'min' => 12, 'max' => 220, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 100,
+                'unit' => 'px',
+            ],
+            'tablet_default' => [
+                'size' => 100,
+                'unit' => 'px',
+            ],
+            'mobile_default' => [
+                'size' => 100,
+                'unit' => 'px',
+            ],
+            'condition'  => [
+                'font_size_mode' => 'fixed',
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-title-product' => 'font-size: {{SIZE}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->add_control( 'fluid_font_size_min', [
+            'label'      => __( 'Fluid Min Font Size', 'bw' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [
+                'px' => [ 'min' => 12, 'max' => 180, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 36,
+                'unit' => 'px',
+            ],
+            'condition'  => [
+                'font_size_mode' => 'fluid',
+            ],
+        ] );
+
+        $this->add_control( 'fluid_font_size_max', [
+            'label'      => __( 'Fluid Max Font Size', 'bw' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [
+                'px' => [ 'min' => 12, 'max' => 260, 'step' => 1 ],
+            ],
+            'default'    => [
+                'size' => 100,
+                'unit' => 'px',
+            ],
+            'condition'  => [
+                'font_size_mode' => 'fluid',
+            ],
+        ] );
+
+        $this->add_control( 'fluid_viewport_min', [
+            'label'     => __( 'Fluid Min Viewport', 'bw' ),
+            'type'      => Controls_Manager::NUMBER,
+            'default'   => 480,
+            'min'       => 240,
+            'max'       => 4000,
+            'step'      => 1,
+            'condition' => [
+                'font_size_mode' => 'fluid',
+            ],
+        ] );
+
+        $this->add_control( 'fluid_viewport_max', [
+            'label'     => __( 'Fluid Max Viewport', 'bw' ),
+            'type'      => Controls_Manager::NUMBER,
+            'default'   => 1600,
+            'min'       => 320,
+            'max'       => 5000,
+            'step'      => 1,
+            'condition' => [
+                'font_size_mode' => 'fluid',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'section_style', [
             'label' => __( 'Style', 'bw' ),
             'tab'   => Controls_Manager::TAB_STYLE,
@@ -129,7 +249,12 @@ class Widget_Bw_Title_Product extends Widget_Base {
             'tablet_default' => 'left',
             'mobile_default' => 'left',
             'selectors' => [
-                '{{WRAPPER}} .bw-title-product' => 'text-align: {{VALUE}};',
+                '{{WRAPPER}} .bw-title-product' => '{{VALUE}};',
+            ],
+            'selectors_dictionary' => [
+                'left'   => 'text-align: left; margin-left: 0; margin-right: auto;',
+                'center' => 'text-align: center; margin-left: auto; margin-right: auto;',
+                'right'  => 'text-align: right; margin-left: auto; margin-right: 0;',
             ],
         ] );
 
@@ -144,14 +269,10 @@ class Widget_Bw_Title_Product extends Widget_Base {
         $this->add_group_control( Group_Control_Typography::get_type(), [
             'name'     => 'typography',
             'selector' => '{{WRAPPER}} .bw-title-product',
+            'exclude'  => [ 'font_size' ],
             'fields_options' => [
                 'typography'     => [ 'default' => 'yes' ],
-                'font_weight'    => [ 'default' => '700' ],
-                'font_size'      => [
-                    'default'        => [ 'size' => 100, 'unit' => 'px' ],
-                    'tablet_default' => [ 'size' => 100, 'unit' => 'px' ],
-                    'mobile_default' => [ 'size' => 100, 'unit' => 'px' ],
-                ],
+                'font_weight'    => [ 'default' => '500' ],
                 'letter_spacing' => [
                     'default'        => [ 'size' => -3,   'unit' => 'px' ],
                     'tablet_default' => [ 'size' => -2,   'unit' => 'px' ],
@@ -205,7 +326,12 @@ class Widget_Bw_Title_Product extends Widget_Base {
         }
 
         $this->add_render_attribute( 'title', 'class', 'bw-title-product' );
-        $this->add_render_attribute( 'title', 'style', 'margin:0;padding:0;' );
+        $this->add_render_attribute( 'title', 'style', 'margin:0;padding:0;display:block;inline-size:100%;max-inline-size:min(var(--bw-title-product-max-width, 100%), 100%);' );
+
+        $fluid_expression = $this->build_fluid_font_size_expression( $settings );
+        if ( '' !== $fluid_expression ) {
+            $this->add_render_attribute( 'title', 'style', '--bw-title-product-fluid-size:' . $fluid_expression . ';font-size:var(--bw-title-product-fluid-size);' );
+        }
 
         printf(
             '<%1$s %2$s>%3$s</%1$s>',
@@ -304,9 +430,66 @@ class Widget_Bw_Title_Product extends Widget_Base {
             label = 'Product Title';
         }
         view.addRenderAttribute( 'title', 'class', 'bw-title-product' );
-        view.addRenderAttribute( 'title', 'style', 'margin:0;padding:0;' );
+        var fontSizeMode = settings.font_size_mode || 'fluid';
+        var minSize = settings.fluid_font_size_min && settings.fluid_font_size_min.size ? parseFloat( settings.fluid_font_size_min.size ) : 36;
+        var maxSize = settings.fluid_font_size_max && settings.fluid_font_size_max.size ? parseFloat( settings.fluid_font_size_max.size ) : 100;
+        var minViewport = settings.fluid_viewport_min ? parseFloat( settings.fluid_viewport_min ) : 480;
+        var maxViewport = settings.fluid_viewport_max ? parseFloat( settings.fluid_viewport_max ) : 1600;
+        var titleStyle = 'margin:0;padding:0;display:block;inline-size:100%;max-inline-size:min(var(--bw-title-product-max-width, 100%), 100%);';
+
+        if ( fontSizeMode === 'fluid' ) {
+            minSize = Math.max( 1, minSize );
+            maxSize = Math.max( minSize, maxSize );
+            minViewport = Math.max( 1, minViewport );
+            maxViewport = Math.max( minViewport + 1, maxViewport );
+
+            var slope = ( maxSize - minSize ) / ( maxViewport - minViewport );
+            var preferred = minSize - ( slope * minViewport );
+            var slopeVw = slope * 100;
+            titleStyle += '--bw-title-product-fluid-size:clamp('
+                + minSize + 'px, calc(' + preferred + 'px + ' + slopeVw + 'vw), ' + maxSize + 'px);font-size:var(--bw-title-product-fluid-size);';
+        }
+
+        view.addRenderAttribute( 'title', 'style', titleStyle );
         print( '<' + tag + ' ' + view.getRenderAttributeString( 'title' ) + '>' + label + '</' + tag + '>' );
         #>
         <?php
+    }
+
+    private function build_fluid_font_size_expression( array $settings ): string {
+        $font_size_mode = isset( $settings['font_size_mode'] ) ? sanitize_key( $settings['font_size_mode'] ) : 'fluid';
+        if ( 'fluid' !== $font_size_mode ) {
+            return '';
+        }
+
+        $min_size = isset( $settings['fluid_font_size_min']['size'] ) ? (float) $settings['fluid_font_size_min']['size'] : 36;
+        $max_size = isset( $settings['fluid_font_size_max']['size'] ) ? (float) $settings['fluid_font_size_max']['size'] : 100;
+        $min_vw   = isset( $settings['fluid_viewport_min'] ) ? (float) $settings['fluid_viewport_min'] : 480;
+        $max_vw   = isset( $settings['fluid_viewport_max'] ) ? (float) $settings['fluid_viewport_max'] : 1600;
+
+        $min_size = max( 1, $min_size );
+        $max_size = max( $min_size, $max_size );
+        $min_vw   = max( 1, $min_vw );
+        $max_vw   = max( $min_vw + 1, $max_vw );
+
+        $slope     = ( $max_size - $min_size ) / ( $max_vw - $min_vw );
+        $preferred = round( $min_size - ( $slope * $min_vw ), 4 );
+        $slope_vw  = round( $slope * 100, 4 );
+        $min_size  = round( $min_size, 4 );
+        $max_size  = round( $max_size, 4 );
+
+        return sprintf(
+            'clamp(%1$spx, calc(%2$spx + %3$svw), %4$spx)',
+            $this->format_number( $min_size ),
+            $this->format_number( $preferred ),
+            $this->format_number( $slope_vw ),
+            $this->format_number( $max_size )
+        );
+    }
+
+    private function format_number( float $value ): string {
+        $formatted = rtrim( rtrim( number_format( $value, 4, '.', '' ), '0' ), '.' );
+
+        return '' !== $formatted ? $formatted : '0';
     }
 }
