@@ -124,25 +124,29 @@
   box-shadow: none;
 }
 
-.bw-fpw-mobile-filter-trigger {
+.elementor-widget-bw-product-grid .bw-product-grid-wrapper .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger {
   justify-content: space-between;
   gap: 16px;
-  min-height: 78px;
-  padding: 12px 16px 12px 26px;
+  min-height: 0;
+  padding: 5px 16px;
   border: 2px solid #111111;
   border-radius: 999px;
-  background: #ffffff;
-  color: #000000;
-  font-size: 18px;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-size: 20px;
   font-weight: 400;
   line-height: 1;
+  box-shadow: none !important;
 }
 
-.bw-fpw-mobile-filter-trigger:hover,
-.bw-fpw-mobile-filter-trigger:focus,
-.bw-fpw-mobile-filter-trigger:active {
-  color: #000000;
-  background: #ffffff;
+.elementor-widget-bw-product-grid .bw-product-grid-wrapper .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:hover,
+.elementor-widget-bw-product-grid .bw-product-grid-wrapper .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:focus,
+.elementor-widget-bw-product-grid .bw-product-grid-wrapper .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:active {
+  color: #000000 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
 }
 
 .bw-fpw-mobile-filter-button-label {
@@ -160,12 +164,11 @@
   flex: 0 0 56px;
   border-radius: 999px;
   background: #80fd03;
-  box-shadow: 0 0 0 10px rgba(0, 0, 0, 0.04);
 }
 
 .bw-fpw-mobile-filter-button-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   stroke: #000000;
   stroke-width: 2;
