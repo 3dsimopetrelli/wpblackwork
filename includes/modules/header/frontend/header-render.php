@@ -94,8 +94,9 @@ if (!function_exists('bw_header_render_frontend')) {
             return;
         }
 
-        $saved_settings = get_option(BW_HEADER_OPTION_KEY, []);
-        $saved_features = (is_array($saved_settings) && isset($saved_settings['features']) && is_array($saved_settings['features']))
+        // Use the cached raw option (same DB read shared with bw_header_get_settings).
+        $saved_settings = bw_header_get_raw_settings();
+        $saved_features = (isset($saved_settings['features']) && is_array($saved_settings['features']))
             ? $saved_settings['features']
             : [];
 

@@ -117,12 +117,14 @@ if (!function_exists('bw_header_live_search_products')) {
         $nonce_valid = check_ajax_referer('bw_search_nonce', 'nonce', false);
         if (false === $nonce_valid) {
             bw_header_live_search_safe_empty();
+            return;
         }
 
         $search_term = isset($_POST['search_term']) ? bw_header_live_search_normalize_term($_POST['search_term']) : '';
         $search_length = function_exists('mb_strlen') ? mb_strlen($search_term) : strlen($search_term);
         if ('' === $search_term || $search_length < 2) {
             bw_header_live_search_safe_empty();
+            return;
         }
 
         $categories = isset($_POST['categories']) ? bw_header_live_search_normalize_categories($_POST['categories']) : [];
@@ -130,11 +132,15 @@ if (!function_exists('bw_header_live_search_products')) {
         $product_type = '';
         if (isset($_POST['product_type'])) {
             $product_type_raw = bw_header_live_search_normalize_term($_POST['product_type']);
+            // Only standard WooCommerce types are accepted here. Custom plugin types
+            // (digitalassets, books, prints) are not exposed via the search UI and
+            // therefore intentionally excluded. To add them, extend this whitelist.
             if ('' !== $product_type_raw && in_array($product_type_raw, ['simple', 'variable', 'grouped', 'external'], true)) {
                 $product_type = $product_type_raw;
             } elseif ('' !== $product_type_raw) {
-                // Invalid filter parameter: fail-safe empty response.
+                // Unknown type passed from an untrusted caller — return empty, not an error.
                 bw_header_live_search_safe_empty();
+                return;
             }
         }
 

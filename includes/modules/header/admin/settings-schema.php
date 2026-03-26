@@ -127,15 +127,44 @@ if (!function_exists('bw_header_default_settings')) {
     }
 }
 
+if (!function_exists('bw_header_get_raw_settings')) {
+    /**
+     * Returns the raw (un-merged) saved option array.
+     * Cached statically so every call in the same request shares one DB read.
+     * Admin-side save callbacks (bw_header_sanitize_settings) read get_option()
+     * directly and are unaffected by this cache.
+     *
+     * @return array<string,mixed>
+     */
+    function bw_header_get_raw_settings()
+    {
+        static $raw = null;
+        if ($raw !== null) {
+            return $raw;
+        }
+        $raw = get_option(BW_HEADER_OPTION_KEY, []);
+        if (!is_array($raw)) {
+            $raw = [];
+        }
+        return $raw;
+    }
+}
+
 if (!function_exists('bw_header_get_settings')) {
+    /**
+     * Returns settings merged with defaults.
+     * Cached statically — one merge per request regardless of how many callers.
+     *
+     * @return array<string,mixed>
+     */
     function bw_header_get_settings()
     {
-        $saved = get_option(BW_HEADER_OPTION_KEY, []);
-        if (!is_array($saved)) {
-            $saved = [];
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
         }
-
-        return array_replace_recursive(bw_header_default_settings(), $saved);
+        $cache = array_replace_recursive(bw_header_default_settings(), bw_header_get_raw_settings());
+        return $cache;
     }
 }
 
