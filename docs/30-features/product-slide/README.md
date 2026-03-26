@@ -90,6 +90,10 @@ Because the widget delegates to `BW_Product_Card_Component`, it automatically in
 - shared hover video logic
 - overlay buttons
 - shared price/title/image rendering contracts
+- shared default text baseline when Elementor typography is not explicitly authored:
+  - title `14px`
+  - description `14px`
+  - price `12px`
 
 Current hover-media precedence inherited from the component:
 1. `_bw_slider_hover_video`

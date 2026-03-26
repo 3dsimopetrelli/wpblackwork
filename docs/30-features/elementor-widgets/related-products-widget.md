@@ -22,6 +22,11 @@ Asset CSS:
 - `assets/css/bw-product-card.css` (stile card — dichiarato via `get_style_depends`)
 - `assets/css/bw-related-products.css` (layout griglia — dichiarato via `get_style_depends`)
 
+Baseline typography inherited from the shared component when Elementor style controls are not explicitly set:
+- titolo `14px`
+- descrizione `14px`
+- prezzo `12px`
+
 ## Widget Contract
 
 Slug:

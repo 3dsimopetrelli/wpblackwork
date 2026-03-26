@@ -291,7 +291,7 @@
 .bw-product-card .bw-slick-title {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
   color: var(--bw-card-title-color, #080808);
@@ -316,7 +316,7 @@
 .bw-product-card .bw-slick-description {
   color: var(--bw-card-description-color, #080808);
   font-family: 'Inter', sans-serif;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.4;
 }
@@ -336,8 +336,9 @@
   align-items: center;
   gap: 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 400;
+  line-height: 1.4;
   color: var(--bw-card-price-color, #080808);
 }
 
