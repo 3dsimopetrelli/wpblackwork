@@ -160,7 +160,7 @@
     padding: 5px 12px;
     border: 1px solid var(--bw-showcase-slide-badge-border-color, currentColor);
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
     line-height: 1;
     color: var(--bw-showcase-slide-text-color, #ffffff) !important;
@@ -198,8 +198,8 @@
 
 .bw-showcase-slide-arrow svg {
     display: block;
-    width: 24px;
-    height: 24px;
+    width: 23px;
+    height: 23px;
     transform: translateX(1px);
 }
 
@@ -453,7 +453,7 @@
     .bw-showcase-slide-badge {
         min-height: 28px;
         padding: 4px 10px;
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .bw-showcase-slide-physical-line {
