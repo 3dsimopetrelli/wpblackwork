@@ -26,6 +26,8 @@
             this._cursor = null;
             this._cursorRafId = null;
             this._$horizontal = null;
+            this._$media = null;
+            this._$imageWraps = null;
             this._$images = null;
             this._pressState = null;
             this.initialized = false;
@@ -86,6 +88,8 @@
             };
 
             this._$horizontal = this.$wrapper.find('.bw-showcase-slide-horizontal');
+            this._$media = this.$wrapper.find('.bw-showcase-slide-media');
+            this._$imageWraps = this.$wrapper.find('.bw-showcase-slide-image');
             this._$images = this.$wrapper.find('.bw-showcase-slide-image-el');
 
             this.emblaCore = new BWEmblaCore(viewport, emblaOptions, {
@@ -327,13 +331,23 @@
         _updateImageHeightControls() {
             const width = $(window).width();
             const $horizontal = this._$horizontal;
+            const $media = this._$media;
+            const $imageWraps = this._$imageWraps;
             const $images = this._$images;
             const $slides = this.$wrapper.find('.bw-ss-slide');
 
-            if (!$horizontal || !$horizontal.length || !$images || !$images.length || !$slides.length) {
+            if (
+                !$horizontal || !$horizontal.length ||
+                !$media || !$media.length ||
+                !$imageWraps || !$imageWraps.length ||
+                !$images || !$images.length ||
+                !$slides.length
+            ) {
                 return;
             }
 
+            let frameRatio = '';
+            let frameRatioFit = 'cover';
             let heightMode = 'auto';
             let imageHeight = null;
             let imageWidth = null;
@@ -341,6 +355,12 @@
 
             for (const bp of this._sortedBreakpoints) {
                 if (width <= bp.breakpoint) {
+                    if (bp.frameRatio) {
+                        frameRatio = bp.frameRatio;
+                    }
+                    if (bp.frameRatioFit) {
+                        frameRatioFit = bp.frameRatioFit;
+                    }
                     if (bp.imageHeightMode) {
                         heightMode = bp.imageHeightMode;
                     }
@@ -363,6 +383,35 @@
             ];
 
             $horizontal.removeClass(heightClasses.join(' ')).addClass(`bw-ps-height-${heightMode}`);
+
+            if (frameRatio) {
+                $media.css('aspect-ratio', frameRatio);
+                $imageWraps.css({
+                    display: 'block',
+                    height: '100%',
+                });
+                $images.css({
+                    width: '100%',
+                    height: '100%',
+                    objectFit: frameRatioFit === 'contain' ? 'contain' : 'cover',
+                    objectPosition: 'center',
+                });
+                $slides.css({
+                    flex: '',
+                    maxWidth: '',
+                });
+                return;
+            }
+
+            $media.css('aspect-ratio', '');
+            $imageWraps.css({
+                display: '',
+                height: '',
+            });
+            $images.css({
+                objectFit: '',
+                objectPosition: '',
+            });
 
             if (heightMode !== 'auto' && imageHeight?.size != null && imageHeight?.unit) {
                 $images.css('height', `${imageHeight.size}${imageHeight.unit}`);
@@ -391,6 +440,7 @@
                 });
                 $images.css('width', '');
             }
+
         }
 
         _getCenteredSlideIndex(viewport, api) {

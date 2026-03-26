@@ -43,7 +43,7 @@ Current static render includes:
 - subtitle
 - flex-wrapping CTA button list
 
-No JS runtime is required in V1.
+V1 uses a very small widget-local JS runtime only for background-image ready-state handling, so the hero can fade in cleanly after the image has actually loaded.
 
 ## Visual Direction
 The current widget is designed to match the repository request references:
@@ -201,8 +201,9 @@ Asset registration authority remains centralized in:
 
 Current asset handle:
 - `bw-hero-slide-style`
+- `bw-hero-slide-script`
 
-V1 does not register a widget-local script because the current runtime is static.
+The widget-local script does not introduce slider behavior. It only coordinates the initial background-image reveal and the fast staggered content fade.
 
 ## Regression Checklist Summary
 Minimum validation for this widget:

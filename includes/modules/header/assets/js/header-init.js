@@ -228,9 +228,9 @@
      * Probe elements BEHIND the header (pointer-events:none at vertical centre).
      * Manual .smart-header-dark-zone elements always take priority.
      */
-    function checkDarkZoneOverlap(header) {
+    function checkDarkZoneOverlap(header, forcedRect) {
         if (!header) return;
-        var headerRect = header.getBoundingClientRect();
+        var headerRect = forcedRect || header.getBoundingClientRect();
         var shouldBeOnDark = false;
 
         // — Manual zones (always take priority) —
@@ -291,12 +291,39 @@
         }
     }
 
+    function scheduleLayoutRechecks(header, callback) {
+        if (!header) {
+            return;
+        }
+
+        function run() {
+            callback();
+        }
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(run);
+        });
+
+        window.setTimeout(run, 120);
+
+        window.addEventListener('load', run, { once: true });
+
+        if (document.fonts && typeof document.fonts.ready === 'object' && typeof document.fonts.ready.then === 'function') {
+            document.fonts.ready.then(run).catch(function () {});
+        }
+    }
+
+
     /* ========================================================================
        STICKY HEADER LOGIC
        ======================================================================== */
 
     function initStickyHeader(header) {
-        if (!header || header.getAttribute('data-smart-scroll') !== 'yes') return;
+        if (!header) return;
+
+        var smartScrollActive = header.getAttribute('data-smart-scroll') === 'yes';
+        var heroOverlapActive = header.getAttribute('data-hero-overlap') === 'yes';
+        if (!smartScrollActive && !heroOverlapActive) return;
 
         checkDarkZoneOverlap(header);
 
@@ -323,8 +350,19 @@
             docEl.style.setProperty('--bw-header-body-padding', headerHeight + 'px');
         }
 
+        function getRestingRect() {
+            var adminH = getAdminBarHeight();
+            var h = header.offsetHeight || 64;
+            return { top: adminH, bottom: adminH + h, left: 0, right: window.innerWidth, width: window.innerWidth, height: h };
+        }
+
         function showHeader() {
             if (!isHidden) return;
+            // Glitch fix: cancel stale dark-zone removal timer and probe at the
+            // resting position BEFORE the CSS transition starts, so text colour is
+            // correct from frame 0 instead of briefly flashing the wrong colour.
+            if (darkZoneRemoveTimer) { clearTimeout(darkZoneRemoveTimer); darkZoneRemoveTimer = null; }
+            checkDarkZoneOverlap(header, getRestingRect());
             header.classList.remove('bw-header-hidden');
             header.classList.add('bw-header-visible');
             isHidden = false;
@@ -360,6 +398,11 @@
                 header.classList.add('bw-header-scrolled');
             } else {
                 header.classList.remove('bw-header-scrolled');
+            }
+
+            if (!smartScrollActive) {
+                lastScrollTop = st;
+                return;
             }
 
             if (st <= 2) {
@@ -399,9 +442,18 @@
             recalcOffsets();
             applyStateClass();
             checkDarkZoneOverlap(header);
+            onScroll();
         });
 
         recalcOffsets();
+        onScroll();
+
+        scheduleLayoutRechecks(header, function () {
+            recalcOffsets();
+            applyStateClass();
+            checkDarkZoneOverlap(header);
+            onScroll();
+        });
     }
 
     function boot() {
@@ -414,7 +466,7 @@
         if (header) {
             // Smart scroll is inactive so dark zone detection was not initialised
             // inside initStickyHeader — activate it here with its own scroll listener.
-            if (header.getAttribute('data-smart-scroll') !== 'yes') {
+            if (header.getAttribute('data-smart-scroll') !== 'yes' && header.getAttribute('data-hero-overlap') !== 'yes') {
                 checkDarkZoneOverlap(header);
                 var nonStickyTicking = false;
                 window.addEventListener('scroll', function () {
@@ -428,8 +480,18 @@
                 }, { passive: true });
             }
 
-            // Removing .bw-header-preload restores CSS visibility; no inline styles needed.
-            header.classList.remove('bw-header-preload');
+            function revealHeader() {
+                header.classList.remove('bw-header-preload');
+                header.style.opacity = '1';
+                header.style.visibility = 'visible';
+            }
+
+            if (header.getAttribute('data-hero-overlap') === 'yes') {
+                scheduleLayoutRechecks(header, revealHeader);
+                return;
+            }
+
+            revealHeader();
         }
     }
 

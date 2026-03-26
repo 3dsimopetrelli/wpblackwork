@@ -38,17 +38,28 @@
     });
 
     $(document).on('click', '#bw-header-tabs .nav-tab', function (e) {
-        e.preventDefault();
-
-        const target = $(this).attr('href');
+        const target = $(this).data('target') || $(this).attr('href');
         if (!target) {
             return;
         }
+
+        if (typeof target !== 'string' || target.charAt(0) !== '#') {
+            return;
+        }
+
+        e.preventDefault();
 
         $('#bw-header-tabs .nav-tab').removeClass('nav-tab-active');
         $(this).addClass('nav-tab-active');
 
         $('.bw-header-tab-panel').hide().removeClass('is-active');
         $(target).show().addClass('is-active');
+
+        if (window.history && typeof window.history.replaceState === 'function') {
+            const href = $(this).attr('href');
+            if (href) {
+                window.history.replaceState(null, document.title, href);
+            }
+        }
     });
 })(jQuery);

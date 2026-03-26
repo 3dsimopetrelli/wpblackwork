@@ -103,6 +103,10 @@ if (!function_exists('bw_header_default_settings')) {
                 'navshop' => 1,
                 'smart_scroll' => 0,
             ],
+            'hero_overlap' => [
+                'enabled' => 0,
+                'page_ids' => [],
+            ],
             'smart_header' => [
                 'scroll_down_threshold' => 100,
                 'scroll_up_threshold' => 0,
@@ -264,6 +268,12 @@ if (!function_exists('bw_header_sanitize_settings')) {
             ? (!empty($features['navshop']) ? 1 : 0)
             : (isset($saved_features['navshop']) ? (int) !empty($saved_features['navshop']) : $defaults['features']['navshop']);
         $out['features']['smart_scroll'] = !empty($features['smart_scroll']) ? 1 : 0;
+
+        $hero_overlap = isset($input['hero_overlap']) && is_array($input['hero_overlap']) ? $input['hero_overlap'] : [];
+        $hero_overlap_page_ids = isset($hero_overlap['page_ids']) && is_array($hero_overlap['page_ids']) ? $hero_overlap['page_ids'] : [];
+        $hero_overlap_page_ids = array_values(array_unique(array_filter(array_map('absint', $hero_overlap_page_ids))));
+        $out['hero_overlap']['enabled'] = !empty($hero_overlap['enabled']) ? 1 : 0;
+        $out['hero_overlap']['page_ids'] = $hero_overlap_page_ids;
 
         $smart_header = isset($input['smart_header']) && is_array($input['smart_header']) ? $input['smart_header'] : [];
         $out['smart_header']['scroll_down_threshold'] = isset($smart_header['scroll_down_threshold'])

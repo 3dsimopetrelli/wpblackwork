@@ -218,7 +218,23 @@ Wave-specific checks:
     - post category archive
     - archive page / post type archive
   - `Glass Effect` and `Fill Enabled` states produce valid visual combinations
-  - button border width, border radius, typography, padding, and gap controls apply correctly
+
+## BW Big Text
+- Scope:
+  - `includes/widgets/class-bw-big-text-widget.php`
+  - `assets/css/bw-big-text.css`
+  - `blackwork-core-plugin.php`
+- Required checks:
+  - widget initializes without console errors on frontend and in Elementor editor
+  - default statement renders in the intended editorial line groups
+  - `Auto Balance`, `Controlled Width`, and `Editorial Lines` all render safely
+  - `Max Text Width` applies correctly on desktop/tablet/mobile
+  - alignment control keeps auto and manual composition modes visually coherent
+  - `Font Size Mode = Fluid` stays bounded between authored min/max values across viewport widths
+  - `Font Size Mode = Fixed` falls back to standard Elementor typography behavior without fluid override leakage
+  - text color, line height, letter spacing, section padding, and editorial line gap controls apply correctly
+  - unsupported HTML is stripped while allowed inline markup (`strong`, `em`, `a`, `br`) remains safe
+  - manual editorial line groups fail soft on narrow screens without horizontal overflow
 
 ## Theme Builder Lite Editor UX Cleanup Regression
 - Scope:

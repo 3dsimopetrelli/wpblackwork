@@ -26,6 +26,7 @@
             this.initialized = false;
             // Guards against pending debounce callbacks firing after destroy().
             this.destroyed = false;
+            this._revealTimer = null;
 
             this.init();
         }
@@ -82,6 +83,7 @@
             }
 
             this.$wrapper.addClass('loading');
+            this._applyImageLoadingHints(nextMode);
 
             const autoplayOpts = modeConfig.autoplay ? {
                 delay: modeConfig.autoplaySpeed || 3500,
@@ -120,12 +122,7 @@
             });
 
             const api = this.emblaCore.init();
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    this.$wrapper.removeClass('loading');
-                });
-            });
+            this._revealAfterPrimaryImage(viewport);
 
             if (!api) {
                 return;
@@ -153,6 +150,141 @@
             }
 
             return (_emblaApi, event) => event.pointerType === 'touch' || event.pointerType === 'pen';
+        }
+
+        _applyImageLoadingHints(mode) {
+            const primarySelector = '.bw-slider-main, .bw-ms-editorial-image';
+            const activeViewport = this.$wrapper.find(
+                mode === 'mobile' ? '.bw-ms-mobile-viewport' : '.bw-ms-desktop-viewport'
+            )[0];
+            const inactiveViewport = this.$wrapper.find(
+                mode === 'mobile' ? '.bw-ms-desktop-viewport' : '.bw-ms-mobile-viewport'
+            )[0];
+
+            const promoteImages = (viewport, count) => {
+                if (!viewport) {
+                    return;
+                }
+
+                const images = Array.from(viewport.querySelectorAll(primarySelector));
+                images.forEach((img, index) => {
+                    if (index < count) {
+                        img.loading = 'eager';
+                        img.setAttribute('loading', 'eager');
+
+                        if (index === 0) {
+                            img.setAttribute('fetchpriority', 'high');
+                        } else if (img.getAttribute('fetchpriority') === 'high') {
+                            img.setAttribute('fetchpriority', 'auto');
+                        }
+                    } else {
+                        if (img.loading !== 'lazy') {
+                            img.loading = 'lazy';
+                        }
+                        img.setAttribute('loading', 'lazy');
+
+                        if (img.getAttribute('fetchpriority') === 'high') {
+                            img.setAttribute('fetchpriority', 'auto');
+                        }
+                    }
+                });
+            };
+
+            const demoteImages = (viewport) => {
+                if (!viewport) {
+                    return;
+                }
+
+                Array.from(viewport.querySelectorAll(primarySelector)).forEach((img) => {
+                    if (img.loading !== 'lazy') {
+                        img.loading = 'lazy';
+                    }
+                    img.setAttribute('loading', 'lazy');
+
+                    if (img.getAttribute('fetchpriority') === 'high') {
+                        img.setAttribute('fetchpriority', 'auto');
+                    }
+                });
+            };
+
+            demoteImages(inactiveViewport);
+            promoteImages(activeViewport, mode === 'desktop' ? 5 : 3);
+        }
+
+        _revealAfterPrimaryImage(viewport) {
+            const firstImg = viewport ? viewport.querySelector('.bw-slider-main, .bw-ms-editorial-image') : null;
+            const reveal = () => {
+                if (this.destroyed) {
+                    return;
+                }
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        this.$wrapper.removeClass('loading');
+                    });
+                });
+
+                if (this._revealTimer) {
+                    clearTimeout(this._revealTimer);
+                    this._revealTimer = null;
+                }
+            };
+
+            if (this._revealTimer) {
+                clearTimeout(this._revealTimer);
+                this._revealTimer = null;
+            }
+
+            if (!firstImg) {
+                reveal();
+                return;
+            }
+
+            if (firstImg.complete && firstImg.naturalWidth > 0) {
+                this._revealWhenDecoded(firstImg, reveal);
+                return;
+            }
+
+            let revealed = false;
+            const done = (waitForDecode = true) => {
+                if (revealed) {
+                    return;
+                }
+                revealed = true;
+                firstImg.removeEventListener('load', handleLoad);
+                firstImg.removeEventListener('error', handleError);
+
+                if (waitForDecode && firstImg.naturalWidth > 0) {
+                    this._revealWhenDecoded(firstImg, reveal);
+                    return;
+                }
+
+                reveal();
+            };
+
+            const handleLoad = () => done(true);
+            const handleError = () => done(false);
+
+            firstImg.addEventListener('load', handleLoad);
+            firstImg.addEventListener('error', handleError);
+            this._revealTimer = setTimeout(() => done(false), 2000);
+        }
+
+        _revealWhenDecoded(img, reveal) {
+            const finalize = () => {
+                if (this.destroyed) {
+                    return;
+                }
+
+                reveal();
+            };
+
+            if (typeof img.decode !== 'function') {
+                finalize();
+                return;
+            }
+
+            img.decode().then(finalize).catch(finalize);
         }
 
         _attachWheelHandler() {
@@ -230,6 +362,11 @@
         }
 
         _destroyEmbla() {
+            if (this._revealTimer) {
+                clearTimeout(this._revealTimer);
+                this._revealTimer = null;
+            }
+
             if (this._wheelEndTimer) {
                 clearTimeout(this._wheelEndTimer);
                 this._wheelEndTimer = null;

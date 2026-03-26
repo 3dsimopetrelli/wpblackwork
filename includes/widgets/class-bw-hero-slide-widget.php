@@ -67,6 +67,15 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 	}
 
 	/**
+	 * Get script dependencies.
+	 *
+	 * @return array<int,string>
+	 */
+	public function get_script_depends() {
+		return array( 'bw-hero-slide-script' );
+	}
+
+	/**
 	 * Register all controls.
 	 *
 	 * @return void
@@ -812,8 +821,9 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			$this->add_render_attribute(
 				'media',
 				array(
-					'class' => 'bw-hero-slide__media',
-					'style' => sprintf( 'background-image: url(%s);', esc_url( $background_image ) ),
+					'class'                 => 'bw-hero-slide__media',
+					'style'                 => sprintf( 'background-image: url(%s);', esc_url( $background_image ) ),
+					'data-background-image' => esc_url( $background_image ),
 				)
 			);
 		} else {
@@ -1094,6 +1104,7 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			'em'     => array(),
 			'span'   => array(
 				'class' => true,
+				'style' => true,
 			),
 			'strong' => array(),
 			'u'      => array(),

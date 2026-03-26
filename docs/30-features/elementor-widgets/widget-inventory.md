@@ -13,6 +13,7 @@ Canonical transition note:
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
+| `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
 | `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
@@ -26,7 +27,7 @@ Canonical transition note:
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slider` | `includes/widgets/class-bw-product-slider-widget.php` | Product Slider | canonical current product slider; Embla-based; query-driven; shared product-card delegation |
-| `bw-mosaic-slider` | `includes/widgets/class-bw-mosaic-slider-widget.php` | Editorial Slider | Embla-based mixed-content slider; 4 desktop mosaic variants; auto-scale and square-tile modes; responsive partial-slide reveal; products reuse `BW_Product_Card_Component` |
+| `bw-mosaic-slider` | `includes/widgets/class-bw-mosaic-slider-widget.php` | Editorial Slider | Embla-based mixed-content slider; 4 desktop mosaic variants; auto-scale and square-tile modes; responsive partial-slide reveal; products reuse `BW_Product_Card_Component`; active viewport image loading is promoted client-side while hidden fallback markup is demoted to lazy |
 | `bw-showcase-slide` | `includes/widgets/class-bw-showcase-slide-widget.php` | Showcase Slider | Embla-based curated showcase slider driven by the product showcase metabox; no popup runtime; digital products render badge pills, physical products render footer text lines |
 | `bw-related-post` | `includes/widgets/class-bw-related-post-widget.php` | Query/List | non-product |
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
@@ -37,6 +38,7 @@ Canonical transition note:
 
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
+- `bw-big-text` -> `BW-UI Big Text` (visible title)
 - `bw-product-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
@@ -61,6 +63,15 @@ Important runtime note:
   - canonical visible title: `BW Product Grid`
   - canonical slug: `bw-product-grid`
   - canonical class: `BW_Product_Grid_Widget`
+- `bw-big-text` controls (initial state):
+  - `text_content`: constrained textarea with limited inline HTML allowlist
+  - `composition_mode`: `auto_balance`, `controlled_width`, `editorial_lines`
+  - `max_text_width`: responsive; `ch`, `rem`, `%`, `vw`, `px`
+  - `text_align`: responsive left / center / right
+  - `font_size_mode`: `fluid`, `fixed`
+  - fluid controls: min/max font size + min/max viewport
+  - style controls: typography, text color, line height, letter spacing, section padding, editorial line gap
+  - editorial/manual mode maps each non-empty textarea newline to a dedicated line group
 - `bw-title-product` controls (final state):
   - `html_tag`: H1–H6, div, span, p (default: H1)
   - `title_source`: `product` (single-product title, context-resolved), `category` (product-category name), `page` (page title), `text` (arbitrary custom text)
@@ -121,7 +132,26 @@ Important runtime note:
     - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
     - `bw-presentation-slide-script`
   - shared Embla base styles/classes in `bw-embla-core.css`; widget-local CSS owns popup, cursor, arrows, dots, elevator layout, responsive skin
+- `bw-showcase-slide` controls/runtime (audit state 2026-03-25):
+  - visible title: `BW-UI Showcase Slide`
+  - manual product ID composition sourced from the showcase metabox
+  - horizontal Embla-only runtime; no popup surface
+  - `Style > Link Button` now exposes responsive typography for the green CTA text pill only
+  - horizontal breakpoint repeater now supports:
+    - slides to scroll
+    - show arrows / show dots
+    - `Start Offset Left` for first-card breathing room at the viewport edge
+    - fixed `Frame Ratio` modes: `3:2`, `4:3`, `1:1`, `16:9`
+    - `Frame Fit` (`cover` / `contain`) when a ratio lock is active
+    - `Classic Photo Size` presets for `3:2` peek layouts: `Balanced`, `Large`, `XL Peek`
+    - legacy `variable width` / `slide width` / image-height controls remain available only in `Free / Existing Controls`
+  - current width authority depends on the selected mode:
+    - `Free / Existing Controls` -> legacy width/image-height contract
+    - fixed frame ratio -> ratio-locked card with fit-mode authority
+    - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
 - `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
+  - `Desktop Columns` currently supports `3`, `4`, `5`, `6`
+  - `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls
 - `bw-newsletter-subscription`:
   - fixed-design widget
   - minimal editor controls only

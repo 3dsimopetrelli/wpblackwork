@@ -20,10 +20,11 @@ if (!defined('ABSPATH')) {
     role="banner"
     aria-label="<?php echo esc_attr($header_title); ?>"
     data-smart-scroll="<?php echo !empty($smart_scroll_enabled) ? 'yes' : 'no'; ?>"
+    data-hero-overlap="<?php echo !empty($hero_overlap_active) ? 'yes' : 'no'; ?>"
 >
     <div class="bw-custom-header__inner">
         <div class="bw-custom-header__desktop">
-            <div class="bw-custom-header__desktop-panel<?php echo !empty($menu_blur_enabled) ? ' is-blur-enabled' : ''; ?>">
+            <div class="bw-custom-header__desktop-panel<?php echo !empty($panel_blur_enabled) ? ' is-blur-enabled' : ''; ?>">
                 <div class="bw-custom-header__desktop-logo">
                     <a class="bw-custom-header__logo-link" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php esc_attr_e('Home', 'bw'); ?>">
                         <?php echo $logo_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -58,7 +59,7 @@ if (!defined('ABSPATH')) {
         </div>
 
         <div class="bw-custom-header__mobile">
-            <div class="bw-custom-header__mobile-panel<?php echo !empty($menu_blur_enabled) ? ' is-blur-enabled' : ''; ?>">
+            <div class="bw-custom-header__mobile-panel<?php echo !empty($panel_blur_enabled) ? ' is-blur-enabled' : ''; ?>">
                 <div class="bw-custom-header__mobile-left bw-header-navigation">
                     <?php if (!empty($feature_navigation)) : ?>
                         <div class="bw-navigation">
@@ -97,6 +98,6 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </header>
-<?php if (!empty($smart_scroll_enabled)) : ?>
+<?php if (!empty($smart_scroll_enabled) || !empty($hero_overlap_active)) : ?>
 <div class="bw-header-spacer" aria-hidden="true"></div>
 <?php endif; ?>

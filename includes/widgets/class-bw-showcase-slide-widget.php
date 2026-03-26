@@ -199,6 +199,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'default' => 1,
                 'min'     => 1,
                 'max'     => 10,
+                'condition' => [
+                    'frame_ratio!' => '3_2',
+                ],
             ]
         );
 
@@ -238,6 +241,27 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         );
 
         $repeater->add_control(
+            'start_offset_left',
+            [
+                'label'      => __( 'Start Offset Left', 'bw-elementor-widgets' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 400,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 0,
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Adds left breathing room before the first visible slide without changing the card ratio.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
             'center_mode',
             [
                 'label'        => __( 'Center Mode', 'bw-elementor-widgets' ),
@@ -246,6 +270,57 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => '',
+            ]
+        );
+
+        $repeater->add_control(
+            'frame_ratio',
+            [
+                'label'       => __( 'Frame Ratio', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT,
+                'default'     => 'none',
+                'options'     => [
+                    'none' => __( 'Free / Existing Controls', 'bw-elementor-widgets' ),
+                    '3_2'  => __( 'Classic Photo (3:2)', 'bw-elementor-widgets' ),
+                    '4_3'  => __( 'Standard (4:3)', 'bw-elementor-widgets' ),
+                    '1_1'  => __( 'Square (1:1)', 'bw-elementor-widgets' ),
+                    '16_9' => __( 'Widescreen (16:9)', 'bw-elementor-widgets' ),
+                ],
+                'description' => __( 'Locks the slide frame to a fixed ratio. When enabled, image height/width controls are replaced by a dedicated fit mode.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $repeater->add_control(
+            'frame_ratio_fit',
+            [
+                'label'     => __( 'Frame Fit', 'bw-elementor-widgets' ),
+                'type'      => Controls_Manager::SELECT,
+                'default'   => 'cover',
+                'options'   => [
+                    'cover'   => __( 'Cover', 'bw-elementor-widgets' ),
+                    'contain' => __( 'Contain', 'bw-elementor-widgets' ),
+                ],
+                'condition' => [
+                    'frame_ratio!' => 'none',
+                ],
+            ]
+        );
+
+        $repeater->add_control(
+            'classic_photo_size',
+            [
+                'label'       => __( 'Classic Photo Size', 'bw-elementor-widgets' ),
+                'type'        => Controls_Manager::SELECT,
+                'default'     => 'balanced',
+                'options'     => [
+                    'balanced' => __( 'Balanced', 'bw-elementor-widgets' ),
+                    'large'    => __( 'Large', 'bw-elementor-widgets' ),
+                    'peek'     => __( 'XL Peek', 'bw-elementor-widgets' ),
+                ],
+                'description' => __( 'Keeps the 3:2 ratio but increases slide width to reveal the next card at the edge of the viewport.', 'bw-elementor-widgets' ),
+                'condition'   => [
+                    'frame_ratio' => '3_2',
+                ],
             ]
         );
 
@@ -259,6 +334,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'return_value' => 'yes',
                 'default'      => '',
                 'description'  => __( 'Use slide natural width instead of a calculated fraction.', 'bw-elementor-widgets' ),
+                'condition'    => [
+                    'frame_ratio' => 'none',
+                ],
             ]
         );
 
@@ -273,6 +351,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'step'        => 10,
                 'placeholder' => __( 'Auto', 'bw-elementor-widgets' ),
                 'condition'   => [
+                    'frame_ratio!'    => '3_2',
                     'variable_width!' => 'yes',
                 ],
             ]
@@ -284,6 +363,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'label'     => __( 'Image Height Settings', 'bw-elementor-widgets' ),
                 'type'      => Controls_Manager::HEADING,
                 'separator' => 'before',
+                'condition' => [
+                    'frame_ratio' => 'none',
+                ],
             ]
         );
 
@@ -298,6 +380,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                     'fixed'   => __( 'Fixed Height (Width Auto)', 'bw-elementor-widgets' ),
                     'contain' => __( 'Contain (Fixed Dimensions)', 'bw-elementor-widgets' ),
                     'cover'   => __( 'Cover (Fixed Dimensions)', 'bw-elementor-widgets' ),
+                ],
+                'condition' => [
+                    'frame_ratio' => 'none',
                 ],
             ]
         );
@@ -325,6 +410,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'condition'  => [
+                    'frame_ratio'       => 'none',
                     'image_height_mode!' => 'auto',
                 ],
             ]
@@ -353,6 +439,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                     'unit' => '%',
                 ],
                 'condition'  => [
+                    'frame_ratio'       => 'none',
                     'image_height_mode' => [ 'contain', 'cover' ],
                 ],
             ]
@@ -461,6 +548,24 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             [
                 'name'     => 'physical_info_typography',
                 'selector' => '{{WRAPPER}} .bw-showcase-slide-physical-line',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
+            'section_style_link_button',
+            [
+                'label' => __( 'Link Button', 'bw-elementor-widgets' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'link_button_typography',
+                'selector' => '{{WRAPPER}} .bw-showcase-slide-button',
             ]
         );
 
@@ -961,7 +1066,9 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                         <?php if ( $slide['button_url'] && $slide['button_text'] ) : ?>
                             <div class="bw-showcase-slide-cta">
                                 <a href="<?php echo esc_url( $slide['button_url'] ); ?>" class="bw-showcase-slide-arrow" aria-label="<?php echo esc_attr( $slide['button_text'] ); ?>">
-                                    <span aria-hidden="true">&rsaquo;</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                        <path d="m9 18 6-6-6-6"/>
+                                    </svg>
                                 </a>
                                 <a href="<?php echo esc_url( $slide['button_url'] ); ?>" class="bw-showcase-slide-button">
                                     <?php echo esc_html( $slide['button_text'] ); ?>
@@ -1137,6 +1244,33 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         }
     }
 
+    private function get_frame_ratio_value( $ratio_key ) {
+        switch ( $ratio_key ) {
+            case '3_2':
+                return '3 / 2';
+            case '4_3':
+                return '4 / 3';
+            case '1_1':
+                return '1 / 1';
+            case '16_9':
+                return '16 / 9';
+            default:
+                return '';
+        }
+    }
+
+    private function get_classic_photo_size_value( $size_key ) {
+        switch ( $size_key ) {
+            case 'large':
+                return '66%';
+            case 'peek':
+                return '74%';
+            case 'balanced':
+            default:
+                return '58%';
+        }
+    }
+
     protected function render_breakpoint_css( $settings ) {
         $breakpoints = ! empty( $settings['breakpoints'] ) ? $settings['breakpoints'] : [];
         if ( empty( $breakpoints ) ) {
@@ -1150,13 +1284,15 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             }
         );
 
-        $widget_id  = $this->get_id();
-        $el_prefix  = '.elementor-element-' . esc_attr( $widget_id );
-        $sel_slide  = $el_prefix . ' .bw-ss-slide';
-        $sel_arrows = $el_prefix . ' .bw-ss-arrows-container';
-        $sel_dots   = $el_prefix . ' .bw-ss-dots-container';
+        $widget_id      = $this->get_id();
+        $el_prefix      = '.elementor-element-' . esc_attr( $widget_id );
+        $sel_slide      = $el_prefix . ' .bw-ss-slide';
+        $sel_arrows     = $el_prefix . ' .bw-ss-arrows-container';
+        $sel_dots       = $el_prefix . ' .bw-ss-dots-container';
+        $sel_viewport   = $el_prefix . ' .bw-ss-embla-viewport';
         $sel_horizontal = $el_prefix . ' .bw-showcase-slide-horizontal';
-        $sel_image = $el_prefix . ' .bw-showcase-slide-image-el';
+        $sel_media      = $el_prefix . ' .bw-showcase-slide-media';
+        $sel_image      = $el_prefix . ' .bw-showcase-slide-image-el';
         $sel_image_wrap = $el_prefix . ' .bw-showcase-slide-image';
 
         $css = '<style>';
@@ -1171,12 +1307,18 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             $height_mode    = sanitize_key( $bp['image_height_mode'] ?? 'auto' );
             $image_height   = $bp['image_height'] ?? null;
             $image_width    = $bp['image_width'] ?? null;
+            $frame_ratio    = $this->get_frame_ratio_value( $bp['frame_ratio'] ?? 'none' );
+            $frame_fit      = sanitize_key( $bp['frame_ratio_fit'] ?? 'cover' );
+            $classic_photo_size = $this->get_classic_photo_size_value( $bp['classic_photo_size'] ?? 'balanced' );
+            $start_offset_left = $bp['start_offset_left'] ?? null;
 
             if ( $bp_px <= 0 ) {
                 continue;
             }
 
-            if ( $variable_width ) {
+            if ( '3 / 2' === $frame_ratio ) {
+                $slide_size = $classic_photo_size;
+            } elseif ( $variable_width ) {
                 $slide_size = 'auto';
             } elseif ( $slide_width > 0 ) {
                 $slide_size = $slide_width . 'px';
@@ -1188,10 +1330,25 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
 
             $css .= '@media (max-width:' . $bp_px . 'px){';
             $css .= $sel_slide . '{flex:0 0 ' . $slide_size . ';}';
+
+            if ( '3 / 2' === $frame_ratio ) {
+                $css .= $sel_slide . '{max-width:' . $slide_size . ';}';
+            }
+
+            if ( ! empty( $start_offset_left['size'] ) ) {
+                $css .= $sel_viewport . '{box-sizing:border-box;padding-left:' . (float) $start_offset_left['size'] . ( $start_offset_left['unit'] ?? 'px' ) . ';}';
+            } else {
+                $css .= $sel_viewport . '{box-sizing:border-box;padding-left:0;}';
+            }
+
             $css .= $sel_arrows . '{display:' . ( $show_arrows ? 'flex' : 'none' ) . ';}';
             $css .= $sel_dots . '{display:' . ( $show_dots ? 'flex' : 'none' ) . ';}';
 
-            if ( in_array( $height_mode, [ 'fixed', 'contain', 'cover' ], true ) ) {
+            if ( $frame_ratio ) {
+                $css .= $sel_media . '{aspect-ratio:' . $frame_ratio . ';}';
+                $css .= $sel_image_wrap . '{display:block;height:100%;}';
+                $css .= $sel_image . '{width:100%;height:100%;object-fit:' . ( 'contain' === $frame_fit ? 'contain' : 'cover' ) . ';object-position:center;}';
+            } elseif ( in_array( $height_mode, [ 'fixed', 'contain', 'cover' ], true ) ) {
                 $css .= $sel_horizontal . '{';
                 $css .= '--bw-ss-initial-image-height-mode:' . $height_mode . ';';
 
@@ -1206,11 +1363,11 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 $css .= '}';
             }
 
-            if ( ! empty( $image_height['size'] ) ) {
+            if ( ! $frame_ratio && ! empty( $image_height['size'] ) ) {
                 $css .= $sel_image . '{height:' . (float) $image_height['size'] . ( $image_height['unit'] ?? 'px' ) . ';}';
             }
 
-            if ( in_array( $height_mode, [ 'contain', 'cover' ], true ) && ! empty( $image_width['size'] ) ) {
+            if ( ! $frame_ratio && in_array( $height_mode, [ 'contain', 'cover' ], true ) && ! empty( $image_width['size'] ) ) {
                 $image_width_value = (float) $image_width['size'] . ( $image_width['unit'] ?? 'px' );
 
                 if ( $variable_width && '%' === ( $image_width['unit'] ?? 'px' ) ) {
@@ -1223,11 +1380,11 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 $css .= $sel_image_wrap . '{display:flex;align-items:center;justify-content:center;}';
             }
 
-            if ( 'contain' === $height_mode ) {
+            if ( ! $frame_ratio && 'contain' === $height_mode ) {
                 $css .= $sel_image . '{object-fit:contain;object-position:center;}';
-            } elseif ( 'cover' === $height_mode ) {
+            } elseif ( ! $frame_ratio && 'cover' === $height_mode ) {
                 $css .= $sel_image . '{object-fit:cover;object-position:center;}';
-            } elseif ( 'fixed' === $height_mode ) {
+            } elseif ( ! $frame_ratio && 'fixed' === $height_mode ) {
                 $css .= $sel_image . '{width:auto;}';
             }
 
@@ -1263,6 +1420,8 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
 
                 $responsive[] = [
                     'breakpoint'      => absint( $breakpoint['breakpoint'] ),
+                    'frameRatio'      => $this->get_frame_ratio_value( $breakpoint['frame_ratio'] ?? 'none' ),
+                    'frameRatioFit'   => $breakpoint['frame_ratio_fit'] ?? 'cover',
                     'imageHeightMode' => $breakpoint['image_height_mode'] ?? 'auto',
                     'imageHeight'     => $image_height,
                     'imageWidth'      => $image_width,

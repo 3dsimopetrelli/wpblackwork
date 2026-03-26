@@ -57,6 +57,10 @@ Configuration groups:
   - Smart background color/opacity
   - Scrolled background color/opacity
   - Blur panel controls (enable, amount, radius, tint, scrolled tint, padding)
+- Hero Overlap (`hero_overlap`):
+  - Page-scoped enablement
+  - Selected page IDs
+  - Overlay startup that reuses the existing dark-zone detector
 - Responsive and breakpoints:
   - Mobile breakpoint
   - Mobile layout paddings/margins
@@ -83,6 +87,12 @@ Template contract:
 - Main template: `includes/modules/header/templates/header.php`
 - Mobile nav part: `includes/modules/header/templates/parts/mobile-nav.php`
 - Search overlay part: `includes/modules/header/templates/parts/search-overlay.php`
+
+Hero Overlap runtime contract:
+- Runtime MAY append `bw-header--hero-overlap` and `data-hero-overlap="yes"` on selected pages.
+- `Hero Overlap` MUST remain presentation-only.
+- `Hero Overlap` MUST reuse the same dark-zone detection path already used by the header runtime.
+- `Hero Overlap` MUST NOT introduce a second manual color authority.
 
 Render suppression conditions:
 - Header MUST NOT render in admin context.

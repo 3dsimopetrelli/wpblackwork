@@ -874,6 +874,11 @@ function bw_register_button_widget_assets()
     bw_register_widget_assets('button');
 }
 
+function bw_register_big_text_widget_assets()
+{
+    bw_register_widget_assets('big-text', [], false);
+}
+
 function bw_register_go_to_app_widget_assets()
 {
     bw_register_widget_assets('go-to-app', [], false);
@@ -1407,7 +1412,7 @@ function bw_register_mosaic_slider_widget_assets()
 
 function bw_register_hero_slide_widget_assets()
 {
-    bw_register_widget_assets('hero-slide', ['jquery'], false);
+    bw_register_widget_assets('hero-slide', ['jquery'], true);
 }
 
 // Aggiungi categoria personalizzata "Black Work Widgets"

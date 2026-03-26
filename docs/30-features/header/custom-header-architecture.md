@@ -39,6 +39,8 @@ Menu in WP Admin:
 Option unica: `bw_header_settings`
 - `enabled`
 - `header_title`
+- `hero_overlap.enabled`
+- `hero_overlap.page_ids`
 - `logo_attachment_id`
 - `logo_width`
 - `logo_height`
@@ -53,6 +55,14 @@ Option unica: `bw_header_settings`
 - `labels.cart`
 - `links.account`
 - `links.cart`
+
+Tab reali in `Blackwork Site > Header`:
+- `General`
+- `Header Scroll`
+- `Hero Overlap`
+
+Nota di robustezza UI:
+- Il cambio tab ha fallback server-side via query arg `tab`, quindi i pannelli restano navigabili anche se il JS admin non si inizializza.
 
 ## Frontend contract
 Classi principali preservate:
@@ -70,9 +80,17 @@ Hook frontend:
 Layout default:
 - Desktop: logo sinistra, nav + search al centro, account + cart a destra.
 - Mobile: hamburger sinistra, logo centro, search + cart a destra.
+- `Hero Overlap`: l'header vive sopra la prima sezione, mantiene il wrapper trasparente e usa lo stesso rilevamento dark-zone esistente per attivare lo stato bianco su hero scure.
 
 Breakpoint unificato:
 - `breakpoints.mobile` (gestito con inline CSS generato in `frontend/assets.php`).
+
+Contract runtime recente:
+- Il template espone `data-hero-overlap="yes|no"` per il boot JS.
+- `header-init.js` tratta `Hero Overlap` come variante sticky/fixed anche senza Smart Scroll attivo.
+- L'header overlay viene nascosto durante il preload e rivelato dopo i recheck di layout (`requestAnimationFrame`, `window.load`, `document.fonts.ready`) per evitare il flash iniziale con header bianco e hero non ancora assestata.
+- In `Hero Overlap`, il panel blur viene forzato anche in mobile; il bordo aggiunto durante il tuning iniziale e' stato rimosso, resta solo il glass.
+- Le icone mobile (hamburger, search, cart) condividono la stessa logica dark-zone del logo.
 
 ## JS behavior
 - `bw-navshop.js`: click cart -> `BW_CartPopup.openPanel()` se disponibile, fallback `window.location.href`.
@@ -107,3 +125,13 @@ Parita funzionale verificata sui blocchi principali:
 - Search overlay fullscreen + live results.
 - NavShop account/cart con badge Woo fragments.
 - Navigation desktop + drawer mobile.
+
+## 2026-03 Hardening Notes
+
+Task closeout `Hero Overlap` V1:
+- selezione pagine dal pannello Header
+- startup overlay stabile senza jump iniziale
+- rilevazione dark-zone riusata, non duplicata
+- glass presente anche in mobile overlay
+- icone mobile allineate al cambio colore del logo
+- `Search` desktop mantenuto nero sul bottone verde

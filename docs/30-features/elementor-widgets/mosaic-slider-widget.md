@@ -115,6 +115,7 @@ When `post_type = product`, rendering authority remains:
 This preserves:
 - shared hover-image logic
 - shared hover-video logic
+- shared explicit image-loading inputs
 - shared price markup
 - shared overlay button system
 - shared add-to-cart state handling
@@ -214,6 +215,33 @@ Caching rules:
   - `blackwork-core-plugin.php`
   - callback: `bw_mosaic_slider_clear_query_cache()`
 
+## Image Loading Contract
+The widget uses a governed two-stage loading policy so hidden responsive fallback markup does not consume high-priority image bandwidth by accident.
+
+### Server-side defaults
+- desktop first page primary images start as `loading="auto"`
+- later desktop pages stay `loading="lazy"`
+- first three mobile cards start as `loading="auto"`
+- later mobile cards stay `loading="lazy"`
+- `fetchpriority` is not hard-coded server-side for Mosaic tiles
+- product hover images remain lazy through `BW_Product_Card_Component`
+
+### Client-side promotion
+- after mode detection, JS promotes only the active viewport primary images
+- desktop promotes the first `5` primary images of the active mosaic page to eager loading
+- mobile promotes the first `3` primary images to eager loading
+- only the first promoted active image receives `fetchpriority="high"`
+- the inactive hidden viewport is explicitly demoted back to lazy loading
+
+### Reveal timing
+- wrapper starts server-rendered in loading state to prevent a first-paint flash before JS hydration
+- widget wrapper `.loading` is not removed after bare Embla init anymore
+- reveal now waits for the first active primary image:
+  - `.bw-slider-main`
+  - `.bw-ms-editorial-image`
+- when supported, reveal waits for image decode completion instead of only the `load` event
+- a timeout fallback prevents permanent loading state if an image errors or stalls
+
 ## JS Runtime Behavior
 Widget-local runtime authority:
 - `assets/js/bw-mosaic-slider.js`
@@ -222,8 +250,10 @@ Behavior:
 - one active Embla instance per widget
 - mode detection switches between desktop and mobile viewports
 - previous mode is destroyed before the next is initialized
+- active viewport primary images are promoted to eager/high-priority only after mode resolution
+- hidden inactive viewport primary images are demoted to lazy
 - responsive mode attaches horizontal wheel handling for trackpad/two-finger scrolling
-- wrapper loading state is removed after the Embla instance stabilizes
+- wrapper loading state is removed after the first active primary image is ready, with a bounded timeout fallback
 
 ## CSS Runtime Notes
 Widget-local CSS authority:

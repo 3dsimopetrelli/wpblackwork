@@ -28,7 +28,8 @@ Controls are registered across three private methods:
 
 | Method | Controls |
 |--------|----------|
-| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns, max-width, masonry toggle |
+| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle |
+| `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
 | `register_filter_controls()` | Show filters, default category, show categories/subcategories/tags, filter bar titles |
 | `register_query_controls()` | Post type, parent category, subcategory (multi-select), specific IDs, order by, order direction |
 
