@@ -213,5 +213,17 @@ if (!function_exists('bw_header_disable_theme_header')) {
 }
 add_action('wp', 'bw_header_disable_theme_header', 1);
 
-// Theme header suppression CSS is now output via wp_add_inline_style('bw-header-layout', ...)
-// inside bw_header_enqueue_assets() in assets.php, removing the need for a raw <style> tag here.
+// Theme header suppression CSS is also output via wp_add_inline_style() in assets.php for the
+// normal frontend path.  The dedicated wp_head hook below ensures it also fires in Elementor
+// editor/preview context, where bw_header_enqueue_assets() returns early and the inline style
+// is never attached to the enqueued stylesheet handle.
+if (!function_exists('bw_header_suppress_theme_header_css')) {
+    function bw_header_suppress_theme_header_css()
+    {
+        if (is_admin() || !bw_header_is_enabled()) {
+            return;
+        }
+        echo '<style id="bw-header-theme-suppress">header#site-header,#site-header.site-header,.site-header.dynamic-header{display:none!important;}</style>';
+    }
+}
+add_action('wp_head', 'bw_header_suppress_theme_header_css', 99);
