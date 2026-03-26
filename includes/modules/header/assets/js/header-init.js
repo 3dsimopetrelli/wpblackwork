@@ -227,14 +227,13 @@
     /**
      * Probe elements BEHIND the header (pointer-events:none at vertical centre).
      * Manual .smart-header-dark-zone elements always take priority.
-     */
-    /**
-     * @param {Element}     header       - The header element.
-     * @param {DOMRect|Object} [forcedRect] - Override getBoundingClientRect() with a
-     *                                       pre-computed rect (used when header is off-screen).
-     * @param {boolean}     [forceImmediate] - Skip the debounce when leaving a dark zone;
-     *                                         removes bw-header-on-dark instantly. Use only
-     *                                         when the final position is known (e.g. on reveal).
+     *
+     * @param {Element}        header          - The header element.
+     * @param {DOMRect|Object} [forcedRect]    - Override getBoundingClientRect() with a
+     *                                          pre-computed rect (used when header is off-screen).
+     * @param {boolean}        [forceImmediate]- Skip the debounce when leaving a dark zone;
+     *                                          removes bw-header-on-dark instantly. Use only
+     *                                          when the final position is known (e.g. on reveal).
      */
     function checkDarkZoneOverlap(header, forcedRect, forceImmediate) {
         if (!header) return;
@@ -421,7 +420,12 @@
             var st = window.pageYOffset || 0;
             var headerHeight = header.offsetHeight || 0;
 
-            checkDarkZoneOverlap(header);
+            // Skip dark-zone probe when the header is off-screen: getBoundingClientRect()
+            // returns off-screen values that produce false negatives and re-queue the
+            // removal timer, undoing the correction made in showHeader().
+            if (!header.classList.contains('bw-header-hidden')) {
+                checkDarkZoneOverlap(header);
+            }
 
             var activationPoint = Math.max(headerHeight, scrollDownThreshold);
 
@@ -473,7 +477,9 @@
         window.addEventListener('resize', function () {
             recalcOffsets();
             applyStateClass();
-            checkDarkZoneOverlap(header);
+            if (!header.classList.contains('bw-header-hidden')) {
+                checkDarkZoneOverlap(header);
+            }
             onScroll();
         });
 
@@ -483,7 +489,9 @@
         scheduleLayoutRechecks(header, function () {
             recalcOffsets();
             applyStateClass();
-            checkDarkZoneOverlap(header);
+            if (!header.classList.contains('bw-header-hidden')) {
+                checkDarkZoneOverlap(header);
+            }
             onScroll();
         });
     }
