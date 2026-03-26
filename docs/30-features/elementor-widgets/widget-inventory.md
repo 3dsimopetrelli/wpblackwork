@@ -188,6 +188,12 @@ Important runtime note:
   - now supports a `More payment options` checkout shortcut under Add to Cart
   - checkout shortcut follows the currently selected variation, or the default variation at initial render
   - current runtime may render a variation-bound license disclosure accordion between the variation buttons and Add to Cart
+  - may render a subordinate trust stack below the main box:
+    - global review slider
+    - global fixed review summary box
+    - widget-level digital product info cards
+    - widget-level FAQ CTA
+  - global review slider/review box content is delegated to `Blackwork Site -> Reviews Settings -> Trust Content`
   - current visible variation selector is effectively license-first and single-axis
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path

@@ -116,6 +116,14 @@ Wave-specific checks:
   - `More payment options` follows the currently selected variation/license
   - if the user does not change variation, `More payment options` uses the default variation
   - checkout shortcut stays aligned with Add to Cart selected-variation state
+  - `Blackwork Site -> Reviews Settings -> Trust Content` saves slider toggle, box toggle, slide rows, and WYSIWYG content correctly
+  - review slider renders only when the global toggle is on and at least one valid slide exists
+  - review slider initializes through shared Embla dependencies without console errors
+  - review slider arrows appear only when more than one slide exists
+  - fixed review box renders only when the global toggle is on and HTML content exists
+  - digital product info cards render only when the widget toggle is on and repeater items exist
+  - FAQ CTA renders only when the widget toggle is on and a URL exists
+  - new trust-stack blocks remain visually subordinate to the main pricing/license/add-to-cart surface
 
 ## Shared Product Card Hover Media
 - Scope:

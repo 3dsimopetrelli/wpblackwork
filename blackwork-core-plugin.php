@@ -1227,7 +1227,7 @@ function bw_register_price_variation_widget_assets()
     wp_register_style(
         'bw-price-variation-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-price-variation.css',
-        [],
+        ['bw-embla-core-css'],
         $css_version
     );
 
@@ -1237,7 +1237,7 @@ function bw_register_price_variation_widget_assets()
     wp_register_script(
         'bw-price-variation-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-price-variation.js',
-        ['jquery'],
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
         $js_version,
         true
     );

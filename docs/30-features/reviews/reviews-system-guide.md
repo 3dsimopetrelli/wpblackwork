@@ -83,6 +83,7 @@ Primary settings class:
 Option keys:
 - `bw_reviews_general_settings`
 - `bw_reviews_display_settings`
+- `bw_reviews_trust_settings`
 - `bw_reviews_submission_settings`
 - `bw_reviews_moderation_settings`
 - `bw_reviews_email_settings`
@@ -97,6 +98,17 @@ Implemented display controls include:
 - show dates
 - show verified badge
 - use global reviews when empty
+
+### Trust Content settings
+Implemented trust-content controls include:
+- enable review slider
+- enable fixed review box
+- curated review slider items (up to 6)
+- fixed review box WYSIWYG content
+
+Governance note:
+- this tab is the global authority for curated trust/review marketing content consumed by `bw-price-variation`
+- it does not replace the canonical `bw-reviews` widget for real review browsing
 
 ### Global reviews fallback
 When `Use global reviews when empty` is enabled:
@@ -122,6 +134,18 @@ Slugs:
 
 Capability:
 - `manage_options`
+
+### Reviews Settings tabs
+Current tabs include:
+- General
+- Display
+- Trust Content
+- Submission
+- Moderation
+- Emails
+- Brevo
+
+`Trust Content` is the current global admin surface for the curated review slider and fixed review trust box used below `BW-SP Price Variation`.
 
 ### Reviews list screen
 Authority:

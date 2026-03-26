@@ -17,6 +17,7 @@ if ( ! class_exists( 'BW_Reviews_Settings' ) ) {
         const MODERATION_OPTION = 'bw_reviews_moderation_settings';
         const EMAIL_OPTION      = 'bw_reviews_email_settings';
         const BREVO_OPTION      = 'bw_reviews_brevo_settings';
+        const TRUST_OPTION      = 'bw_reviews_trust_settings';
         const SCHEMA_OPTION     = 'bw_reviews_schema_version';
         const TAB_PAGE_SLUG     = 'bw-reviews-settings';
         const LIST_PAGE_SLUG    = 'bw-reviews';
@@ -47,6 +48,7 @@ if ( ! class_exists( 'BW_Reviews_Settings' ) ) {
             return [
                 'general'    => __( 'General', 'bw' ),
                 'display'    => __( 'Display', 'bw' ),
+                'trust'      => __( 'Trust Content', 'bw' ),
                 'submission' => __( 'Submission', 'bw' ),
                 'moderation' => __( 'Moderation', 'bw' ),
                 'emails'     => __( 'Emails', 'bw' ),
@@ -107,6 +109,35 @@ if ( ! class_exists( 'BW_Reviews_Settings' ) ) {
                 'logged_in_only'           => 0,
                 'verified_buyers_only'     => 0,
                 'require_email_confirmation' => 1,
+            ];
+        }
+
+        /**
+         * Defaults for Trust Content settings.
+         *
+         * @return array<string,mixed>
+         */
+        public static function get_trust_defaults() {
+            return [
+                'enable_review_slider' => 0,
+                'enable_review_box'    => 0,
+                'slider_reviews'       => [
+                    [
+                        'text'   => __( 'Love all the assets and the Photoshop actions you guys provide. Great pack, well-organised folder structure and hi-res files. Definitely speeded up my workflow.', 'bw' ),
+                        'author' => 'Darren D.',
+                    ],
+                    [
+                        'text'   => __( 'Couldn\'t ask for more. The quality feels premium and the files are easy to use right away. A solid resource for fast client work.', 'bw' ),
+                        'author' => 'Marcus M.',
+                    ],
+                    [
+                        'text'   => __( 'Everything feels polished and production-ready. The pack helped me move faster without sacrificing quality.', 'bw' ),
+                        'author' => 'Anna R.',
+                    ],
+                ],
+                'review_box_content'   => wp_kses_post(
+                    __( 'Trusted by over <strong>150,000+</strong> creatives, and rated <strong>4.7/5</strong> from <strong>850+</strong> verified reviews. Explore why we\'re a top choice with designers worldwide. <a href="#reviews">See full reviews</a>', 'bw' )
+                ),
             ];
         }
 
@@ -184,6 +215,15 @@ if ( ! class_exists( 'BW_Reviews_Settings' ) ) {
          */
         public static function get_submission_settings() {
             return self::merge_option( self::SUBMISSION_OPTION, self::get_submission_defaults() );
+        }
+
+        /**
+         * Get Trust Content settings.
+         *
+         * @return array<string,mixed>
+         */
+        public static function get_trust_settings() {
+            return self::merge_option( self::TRUST_OPTION, self::get_trust_defaults() );
         }
 
         /**

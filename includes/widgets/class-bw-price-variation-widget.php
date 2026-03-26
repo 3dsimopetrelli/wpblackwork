@@ -2,6 +2,8 @@
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Border;
+use Elementor\Icons_Manager;
+use Elementor\Repeater;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -33,11 +35,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [ 'bw-price-variation-style' ];
+		return [ 'bw-embla-core-css', 'bw-price-variation-style' ];
 	}
 
 	public function get_script_depends() {
-		return [ 'bw-price-variation-script' ];
+		return [ 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js', 'bw-price-variation-script' ];
 	}
 
 	protected function register_controls() {
@@ -177,6 +179,161 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				],
 			]
 		);
+
+                $this->end_controls_section();
+
+                $this->start_controls_section(
+                        'section_trust_review_content',
+                        [
+                                'label' => __( 'Review Trust', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_CONTENT,
+                        ]
+                );
+
+                $this->add_control(
+                        'trust_review_content_notice',
+                        [
+                                'type'            => Controls_Manager::RAW_HTML,
+                                'raw'             => wp_kses_post( __( 'The review slider and fixed review box are managed globally in <strong>Blackwork Site -> Reviews Settings -> Trust Content</strong>. This widget section only documents that dependency and keeps the pricing column contract explicit.', 'bw' ) ),
+                                'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
+                        ]
+                );
+
+                $this->end_controls_section();
+
+                $this->start_controls_section(
+                        'section_digital_product_info_content',
+                        [
+                                'label' => __( 'Digital Product Info', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_CONTENT,
+                        ]
+                );
+
+                $this->add_control(
+                        'show_digital_product_info',
+                        [
+                                'label'        => __( 'Enable Information Box', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => '',
+                        ]
+                );
+
+                $info_repeater = new Repeater();
+
+                $info_repeater->add_control(
+                        'info_icon',
+                        [
+                                'label' => __( 'Icon', 'bw' ),
+                                'type'  => Controls_Manager::ICONS,
+                        ]
+                );
+
+                $info_repeater->add_control(
+                        'info_title',
+                        [
+                                'label'       => __( 'Title', 'bw' ),
+                                'type'        => Controls_Manager::TEXT,
+                                'default'     => __( 'Instant Download', 'bw' ),
+                                'label_block' => true,
+                        ]
+                );
+
+                $info_repeater->add_control(
+                        'info_description',
+                        [
+                                'label'       => __( 'Description', 'bw' ),
+                                'type'        => Controls_Manager::TEXTAREA,
+                                'default'     => '',
+                                'rows'        => 3,
+                                'placeholder' => __( 'Optional short description', 'bw' ),
+                        ]
+                );
+
+                $this->add_control(
+                        'digital_product_info_items',
+                        [
+                                'label'       => __( 'Information Items', 'bw' ),
+                                'type'        => Controls_Manager::REPEATER,
+                                'fields'      => $info_repeater->get_controls(),
+                                'default'     => [
+                                        [
+                                                'info_icon'        => [ 'value' => 'fas fa-download', 'library' => 'fa-solid' ],
+                                                'info_title'       => __( 'Instant Download', 'bw' ),
+                                                'info_description' => __( 'Get immediate access to your files after checkout.', 'bw' ),
+                                        ],
+                                        [
+                                                'info_icon'        => [ 'value' => 'fas fa-gem', 'library' => 'fa-solid' ],
+                                                'info_title'       => __( 'Premium Quality', 'bw' ),
+                                                'info_description' => __( 'Professionally crafted assets built for production use.', 'bw' ),
+                                        ],
+                                        [
+                                                'info_icon'        => [ 'value' => 'fas fa-life-ring', 'library' => 'fa-solid' ],
+                                                'info_title'       => __( 'Lifetime Support', 'bw' ),
+                                                'info_description' => __( 'Keep a reliable reference point for using the product over time.', 'bw' ),
+                                        ],
+                                ],
+                                'title_field' => '{{{ info_title }}}',
+                                'condition'   => [
+                                        'show_digital_product_info' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->end_controls_section();
+
+                $this->start_controls_section(
+                        'section_faq_button_content',
+                        [
+                                'label' => __( 'FAQ Button', 'bw' ),
+                                'tab'   => Controls_Manager::TAB_CONTENT,
+                        ]
+                );
+
+                $this->add_control(
+                        'show_faq_button',
+                        [
+                                'label'        => __( 'Enable FAQ Button', 'bw' ),
+                                'type'         => Controls_Manager::SWITCHER,
+                                'label_on'     => __( 'On', 'bw' ),
+                                'label_off'    => __( 'Off', 'bw' ),
+                                'return_value' => 'yes',
+                                'default'      => '',
+                        ]
+                );
+
+                $this->add_control(
+                        'faq_button_label',
+                        [
+                                'label'       => __( 'FAQ Label', 'bw' ),
+                                'type'        => Controls_Manager::TEXT,
+                                'default'     => __( 'Read our FAQ', 'bw' ),
+                                'label_block' => true,
+                                'condition'   => [
+                                        'show_faq_button' => 'yes',
+                                ],
+                        ]
+                );
+
+                $this->add_control(
+                        'faq_button_link',
+                        [
+                                'label'         => __( 'FAQ Link', 'bw' ),
+                                'type'          => Controls_Manager::URL,
+                                'placeholder'   => __( 'https://your-site.com/faq', 'bw' ),
+                                'show_external' => true,
+                                'default'       => [
+                                        'url'         => '',
+                                        'is_external' => false,
+                                        'nofollow'    => false,
+                                ],
+                                'condition'     => [
+                                        'show_faq_button' => 'yes',
+                                ],
+                        ]
+                );
 
                 $this->end_controls_section();
         }
@@ -1213,6 +1370,108 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 return (string) ob_get_clean();
         }
 
+        /**
+         * Get global trust-content settings from Reviews Settings.
+         *
+         * @return array<string,mixed>
+         */
+        private function get_reviews_trust_settings() {
+                if ( ! class_exists( 'BW_Reviews_Settings' ) || ! method_exists( 'BW_Reviews_Settings', 'get_trust_settings' ) ) {
+                        return [];
+                }
+
+                $settings = BW_Reviews_Settings::get_trust_settings();
+
+                return is_array( $settings ) ? $settings : [];
+        }
+
+        /**
+         * Normalize global review-slider items.
+         *
+         * @param array<string,mixed> $trust_settings Trust settings.
+         *
+         * @return array<int,array<string,string>>
+         */
+        private function get_review_slider_items( $trust_settings ) {
+                $items = [];
+                $rows  = isset( $trust_settings['slider_reviews'] ) && is_array( $trust_settings['slider_reviews'] )
+                        ? $trust_settings['slider_reviews']
+                        : [];
+
+                foreach ( $rows as $row ) {
+                        if ( ! is_array( $row ) ) {
+                                continue;
+                        }
+
+                        $text   = isset( $row['text'] ) ? trim( sanitize_textarea_field( (string) $row['text'] ) ) : '';
+                        $author = isset( $row['author'] ) ? trim( sanitize_text_field( (string) $row['author'] ) ) : '';
+
+                        if ( '' === $text || '' === $author ) {
+                                continue;
+                        }
+
+                        $items[] = [
+                                'text'   => $text,
+                                'author' => $author,
+                        ];
+
+                        if ( count( $items ) >= 6 ) {
+                                break;
+                        }
+                }
+
+                return $items;
+        }
+
+        /**
+         * Resolve fixed review-box content.
+         *
+         * @param array<string,mixed> $trust_settings Trust settings.
+         *
+         * @return string
+         */
+        private function get_review_box_content( $trust_settings ) {
+                $content = isset( $trust_settings['review_box_content'] ) ? (string) $trust_settings['review_box_content'] : '';
+
+                return '' !== trim( wp_strip_all_tags( $content ) ) ? wp_kses_post( $content ) : '';
+        }
+
+        /**
+         * Normalize widget-level information-box items.
+         *
+         * @param array<string,mixed> $settings Widget settings.
+         *
+         * @return array<int,array<string,mixed>>
+         */
+        private function get_digital_product_info_items( $settings ) {
+                $items = [];
+                $rows  = isset( $settings['digital_product_info_items'] ) && is_array( $settings['digital_product_info_items'] )
+                        ? $settings['digital_product_info_items']
+                        : [];
+
+                foreach ( $rows as $row ) {
+                        if ( ! is_array( $row ) ) {
+                                continue;
+                        }
+
+                        $title       = isset( $row['info_title'] ) ? trim( sanitize_text_field( (string) $row['info_title'] ) ) : '';
+                        $description = isset( $row['info_description'] ) ? trim( sanitize_textarea_field( (string) $row['info_description'] ) ) : '';
+                        $icon        = isset( $row['info_icon'] ) && is_array( $row['info_icon'] ) ? $row['info_icon'] : [];
+
+                        if ( '' === $title && '' === $description && empty( $icon['value'] ) ) {
+                                continue;
+                        }
+
+                        $items[] = [
+                                'title'       => $title,
+                                'description' => $description,
+                                'icon'        => $icon,
+                        ];
+                }
+
+                return $items;
+        }
+
         protected function render() {
                 if ( ! class_exists( 'WooCommerce' ) ) {
                         return;
@@ -1280,6 +1539,23 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 $reviews_summary_html   = $reviews_summary
                         ? $this->render_product_reviews_summary( $reviews_summary, isset( $settings['show_product_reviews_count'] ) && 'yes' === $settings['show_product_reviews_count'] )
                         : '';
+                $trust_settings         = $this->get_reviews_trust_settings();
+                $review_slider_items    = $this->get_review_slider_items( $trust_settings );
+                $review_box_content     = $this->get_review_box_content( $trust_settings );
+                $show_review_slider     = ! empty( $trust_settings['enable_review_slider'] ) && ! empty( $review_slider_items );
+                $show_review_box        = ! empty( $trust_settings['enable_review_box'] ) && '' !== $review_box_content;
+                $info_box_items         = ( isset( $settings['show_digital_product_info'] ) && 'yes' === $settings['show_digital_product_info'] )
+                        ? $this->get_digital_product_info_items( $settings )
+                        : [];
+                $show_info_box          = ! empty( $info_box_items );
+                $faq_button_enabled     = isset( $settings['show_faq_button'] ) && 'yes' === $settings['show_faq_button'];
+                $faq_button_label       = isset( $settings['faq_button_label'] ) && '' !== trim( (string) $settings['faq_button_label'] )
+                        ? (string) $settings['faq_button_label']
+                        : __( 'Read our FAQ', 'bw' );
+                $faq_button_link        = isset( $settings['faq_button_link'] ) && is_array( $settings['faq_button_link'] )
+                        ? $settings['faq_button_link']
+                        : [];
+                $faq_button_url         = isset( $faq_button_link['url'] ) ? esc_url( $faq_button_link['url'] ) : '';
                 ?>
                 <div
                         class="bw-price-variation"
@@ -1458,6 +1734,91 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 						</a>
 					</div>
 				<?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php if ( $show_review_slider || $show_review_box || $show_info_box || ( $faq_button_enabled && '' !== $faq_button_url ) ) : ?>
+                                <div class="bw-price-variation__trust-stack">
+                                        <?php if ( $show_review_slider ) : ?>
+                                                <?php $is_single_review_slide = count( $review_slider_items ) < 2; ?>
+                                                <section
+                                                        class="bw-price-variation__trust-card bw-price-variation__review-slider<?php echo $is_single_review_slide ? ' is-single-slide' : ''; ?>"
+                                                        data-bw-price-review-slider
+                                                >
+                                                        <?php if ( ! $is_single_review_slide ) : ?>
+                                                                <button class="bw-price-variation__review-slider-arrow bw-price-variation__review-slider-arrow--prev" type="button" aria-label="<?php esc_attr_e( 'Previous review', 'bw' ); ?>">
+                                                                        <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                </button>
+                                                        <?php endif; ?>
+
+                                                        <div class="bw-embla-viewport bw-price-variation__review-slider-viewport">
+                                                                <div class="bw-embla-container bw-price-variation__review-slider-container">
+                                                                        <?php foreach ( $review_slider_items as $index => $review_item ) : ?>
+                                                                                <article class="bw-embla-slide bw-price-variation__review-slide<?php echo 0 === $index ? ' is-active' : ''; ?>">
+                                                                                        <div class="bw-price-variation__review-slide-stars" aria-hidden="true">★★★★★</div>
+                                                                                        <blockquote class="bw-price-variation__review-slide-text">"<?php echo esc_html( $review_item['text'] ); ?>"</blockquote>
+                                                                                        <div class="bw-price-variation__review-slide-author"><?php echo esc_html( $review_item['author'] ); ?></div>
+                                                                                </article>
+                                                                        <?php endforeach; ?>
+                                                                </div>
+                                                        </div>
+
+                                                        <?php if ( ! $is_single_review_slide ) : ?>
+                                                                <button class="bw-price-variation__review-slider-arrow bw-price-variation__review-slider-arrow--next" type="button" aria-label="<?php esc_attr_e( 'Next review', 'bw' ); ?>">
+                                                                        <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                </button>
+                                                        <?php endif; ?>
+                                                </section>
+                                        <?php endif; ?>
+
+                                        <?php if ( $show_review_box ) : ?>
+                                                <section class="bw-price-variation__trust-card bw-price-variation__review-box">
+                                                        <div class="bw-price-variation__review-box-stars" aria-hidden="true">★★★★★</div>
+                                                        <div class="bw-price-variation__review-box-content"><?php echo $review_box_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sanitized via wp_kses_post ?></div>
+                                                </section>
+                                        <?php endif; ?>
+
+                                        <?php if ( $show_info_box ) : ?>
+                                                <section class="bw-price-variation__info-grid">
+                                                        <?php foreach ( $info_box_items as $info_item ) : ?>
+                                                                <article class="bw-price-variation__trust-card bw-price-variation__info-card">
+                                                                        <?php if ( ! empty( $info_item['icon']['value'] ) ) : ?>
+                                                                                <div class="bw-price-variation__info-card-icon" aria-hidden="true">
+                                                                                        <?php Icons_Manager::render_icon( $info_item['icon'], [ 'aria-hidden' => 'true' ] ); ?>
+                                                                                </div>
+                                                                        <?php endif; ?>
+                                                                        <?php if ( '' !== $info_item['title'] ) : ?>
+                                                                                <h3 class="bw-price-variation__info-card-title"><?php echo esc_html( $info_item['title'] ); ?></h3>
+                                                                        <?php endif; ?>
+                                                                        <?php if ( '' !== $info_item['description'] ) : ?>
+                                                                                <p class="bw-price-variation__info-card-description"><?php echo esc_html( $info_item['description'] ); ?></p>
+                                                                        <?php endif; ?>
+                                                                </article>
+                                                        <?php endforeach; ?>
+                                                </section>
+                                        <?php endif; ?>
+
+                                        <?php if ( $faq_button_enabled && '' !== $faq_button_url ) : ?>
+                                                <?php
+                                                $faq_target = ! empty( $faq_button_link['is_external'] ) ? ' target="_blank"' : '';
+                                                $faq_rel    = [];
+                                                if ( ! empty( $faq_button_link['is_external'] ) ) {
+                                                        $faq_rel[] = 'noopener';
+                                                        $faq_rel[] = 'noreferrer';
+                                                }
+                                                if ( ! empty( $faq_button_link['nofollow'] ) ) {
+                                                        $faq_rel[] = 'nofollow';
+                                                }
+                                                ?>
+                                                <div class="bw-price-variation__faq-wrapper">
+                                                        <a class="bw-price-variation__trust-card bw-price-variation__faq-button" href="<?php echo esc_url( $faq_button_url ); ?>"<?php echo $faq_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php echo ! empty( $faq_rel ) ? ' rel="' . esc_attr( implode( ' ', array_unique( $faq_rel ) ) ) . '"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                                                                <span class="bw-price-variation__faq-button-label"><?php echo esc_html( $faq_button_label ); ?></span>
+                                                                <span class="bw-price-variation__faq-button-icon" aria-hidden="true">
+                                                                        <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M7 5h6M7 10h6M7 15h4M4.5 3.5h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-4.5 3v-3H4.5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                                </span>
+                                                        </a>
+                                                </div>
+                                        <?php endif; ?>
+                                </div>
                         <?php endif; ?>
                 </div>
                 <?php

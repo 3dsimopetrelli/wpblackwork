@@ -465,6 +465,78 @@
         }
 
         /**
+         * Initialize the optional global review slider.
+         * @param {jQuery} $widget
+         */
+        function initReviewTrustSlider($widget) {
+                const $slider = $widget.find('[data-bw-price-review-slider]').first();
+                if (!$slider.length || $slider.data('bwReviewSliderInit')) {
+                        return;
+                }
+
+                $slider.data('bwReviewSliderInit', true);
+
+                const viewport = $slider.find('.bw-price-variation__review-slider-viewport')[0];
+                const prevBtn = $slider.find('.bw-price-variation__review-slider-arrow--prev')[0];
+                const nextBtn = $slider.find('.bw-price-variation__review-slider-arrow--next')[0];
+                const $slides = $slider.find('.bw-price-variation__review-slide');
+
+                if (!viewport || !$slides.length) {
+                        return;
+                }
+
+                const setActiveSlide = function(index) {
+                        $slides.removeClass('is-active');
+                        const $activeSlide = $slides.eq(index);
+                        if ($activeSlide.length) {
+                                $activeSlide.addClass('is-active');
+                        }
+                };
+
+                setActiveSlide(0);
+
+                if ($slides.length < 2) {
+                        return;
+                }
+
+                if (typeof BWEmblaCore === 'undefined') {
+                        console.warn('BW Price Variation: BWEmblaCore not available for trust review slider');
+                        return;
+                }
+
+                const emblaCore = new BWEmblaCore(viewport, {
+                        loop: true,
+                        align: 'start',
+                        containScroll: 'trimSnaps',
+                        slidesToScroll: 1,
+                        dragFree: false,
+                        watchResize: true
+                }, {
+                        prevBtn: prevBtn,
+                        nextBtn: nextBtn,
+                        autoplay: {
+                                delay: 4500,
+                                playOnInit: true,
+                                stopOnInteraction: true,
+                                stopOnMouseEnter: true,
+                                stopOnFocusIn: true,
+                                jump: false
+                        },
+                        onSelect: setActiveSlide
+                });
+
+                const api = emblaCore.init();
+                if (!api) {
+                        return;
+                }
+
+                $slider.data('bwReviewSliderInstance', emblaCore);
+                requestAnimationFrame(function() {
+                        setActiveSlide(api.selectedScrollSnap());
+                });
+        }
+
+        /**
          * Initialize a single widget instance.
          * @param {jQuery} $widget
          */
@@ -724,6 +796,8 @@
 
                         floatObserver.observe($addToCartWrapper[0]);
                 })();
+
+                initReviewTrustSlider($widget);
 
         }
 

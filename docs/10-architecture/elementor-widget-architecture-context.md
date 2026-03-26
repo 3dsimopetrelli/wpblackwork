@@ -93,9 +93,16 @@ Decisions already fixed:
 Current product-widget integration note:
 - `bw-price-variation` remains a pricing/license authority widget.
 - It can consume a compact read-only review summary from the Reviews module for the current product only.
+- It can also consume curated global trust content from `Reviews Settings -> Trust Content`.
+- Its lower trust stack can combine:
+  - global review slider
+  - global fixed review box
+  - widget-local digital product info cards
+  - widget-local FAQ CTA
 - It must not become a second review-authority surface.
 - The license box/accordion is a disclosure surface for the active variation, not a second configurator.
 - Future trust additions inside the same pricing column must remain subordinate to the active variation state and must not create separate product-truth sources.
+- Shared slider runtime reuse applies here too: the review slider is implemented through the existing Embla core rather than a widget-specific carousel stack.
 
 Current shared media note:
 - the WooCommerce product admin metabox labeled `Hover Media` is the current editor authority for product-card hover media

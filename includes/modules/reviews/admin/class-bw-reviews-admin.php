@@ -135,6 +135,18 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                     'fallback_to_global_reviews_when_empty' => ! empty( $_POST['bw_reviews_display_fallback_to_global_reviews_when_empty'] ) ? 1 : 0,
                 ];
                 update_option( BW_Reviews_Settings::DISPLAY_OPTION, $settings );
+            } elseif ( 'trust' === $tab ) {
+                $settings = [
+                    'enable_review_slider' => ! empty( $_POST['bw_reviews_trust_enable_review_slider'] ) ? 1 : 0,
+                    'enable_review_box'    => ! empty( $_POST['bw_reviews_trust_enable_review_box'] ) ? 1 : 0,
+                    'slider_reviews'       => $this->sanitize_trust_slider_reviews(
+                        isset( $_POST['bw_reviews_trust_slider_reviews'] ) ? wp_unslash( $_POST['bw_reviews_trust_slider_reviews'] ) : []
+                    ),
+                    'review_box_content'   => isset( $_POST['bw_reviews_trust_review_box_content'] )
+                        ? wp_kses_post( wp_unslash( $_POST['bw_reviews_trust_review_box_content'] ) )
+                        : '',
+                ];
+                update_option( BW_Reviews_Settings::TRUST_OPTION, $settings );
             } elseif ( 'submission' === $tab ) {
                 $settings = [
                     'allow_guests'               => ! empty( $_POST['bw_reviews_submission_allow_guests'] ) ? 1 : 0,
@@ -188,6 +200,45 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                 )
             );
             exit;
+        }
+
+        /**
+         * Sanitize trust slider review rows.
+         *
+         * @param mixed $rows Raw rows.
+         *
+         * @return array<int,array<string,string>>
+         */
+        private function sanitize_trust_slider_reviews( $rows ) {
+            if ( ! is_array( $rows ) ) {
+                return [];
+            }
+
+            $sanitized = [];
+
+            foreach ( $rows as $row ) {
+                if ( ! is_array( $row ) ) {
+                    continue;
+                }
+
+                $text   = isset( $row['text'] ) ? sanitize_textarea_field( (string) $row['text'] ) : '';
+                $author = isset( $row['author'] ) ? sanitize_text_field( (string) $row['author'] ) : '';
+
+                if ( '' === trim( $text ) && '' === trim( $author ) ) {
+                    continue;
+                }
+
+                $sanitized[] = [
+                    'text'   => $text,
+                    'author' => $author,
+                ];
+
+                if ( count( $sanitized ) >= 6 ) {
+                    break;
+                }
+            }
+
+            return $sanitized;
         }
 
         /**
@@ -571,6 +622,7 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
             $tabs         = BW_Reviews_Settings::get_tabs();
             $general      = BW_Reviews_Settings::get_general_settings();
             $display      = BW_Reviews_Settings::get_display_settings();
+            $trust        = BW_Reviews_Settings::get_trust_settings();
             $submission   = BW_Reviews_Settings::get_submission_settings();
             $moderation   = BW_Reviews_Settings::get_moderation_settings();
             $emails       = BW_Reviews_Settings::get_email_settings();
@@ -651,6 +703,129 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                                             <?php esc_html_e( 'When a product has no approved reviews, show the site-wide reviews summary and review list instead.', 'bw' ); ?>
                                         </label>
                                         <p class="description"><?php esc_html_e( 'This helps avoid empty product pages. In this global mode, each review card also shows the reviewed product image and product name so visitors can understand which item the review belongs to.', 'bw' ); ?></p>
+                                    </td>
+                                </tr>
+                            <?php elseif ( 'trust' === $active_tab ) : ?>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e( 'Enable review slider', 'bw' ); ?></th>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" name="bw_reviews_trust_enable_review_slider" value="1" <?php checked( ! empty( $trust['enable_review_slider'] ), true ); ?> />
+                                            <?php esc_html_e( 'Show the global review slider below Price Variation when review slides exist.', 'bw' ); ?>
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e( 'Enable fixed review box', 'bw' ); ?></th>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" name="bw_reviews_trust_enable_review_box" value="1" <?php checked( ! empty( $trust['enable_review_box'] ), true ); ?> />
+                                            <?php esc_html_e( 'Show the global trust/review summary box below the review slider when content exists.', 'bw' ); ?>
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e( 'Review slider items', 'bw' ); ?></th>
+                                    <td>
+                                        <p class="description"><?php esc_html_e( 'Up to 6 review slides. Each slide always renders 5 stars on the frontend; only review text and author are configurable here.', 'bw' ); ?></p>
+                                        <div class="bw-reviews-trust-repeater" data-bw-trust-repeater data-max-items="6">
+                                            <div class="bw-reviews-trust-repeater__rows">
+                                                <?php
+                                                $slider_reviews = ! empty( $trust['slider_reviews'] ) && is_array( $trust['slider_reviews'] )
+                                                    ? $trust['slider_reviews']
+                                                    : [];
+                                                if ( empty( $slider_reviews ) ) {
+                                                    $slider_reviews = BW_Reviews_Settings::get_trust_defaults()['slider_reviews'];
+                                                }
+                                                foreach ( $slider_reviews as $index => $item ) :
+                                                    $review_text   = isset( $item['text'] ) ? (string) $item['text'] : '';
+                                                    $review_author = isset( $item['author'] ) ? (string) $item['author'] : '';
+                                                    ?>
+                                                    <div class="bw-reviews-trust-repeater__row" data-row-index="<?php echo esc_attr( (string) $index ); ?>">
+                                                        <div class="bw-reviews-trust-repeater__row-head">
+                                                            <strong><?php echo esc_html( sprintf( __( 'Slide %d', 'bw' ), absint( $index ) + 1 ) ); ?></strong>
+                                                            <button type="button" class="button-link-delete" data-bw-trust-remove-row><?php esc_html_e( 'Remove', 'bw' ); ?></button>
+                                                        </div>
+                                                        <p>
+                                                            <label>
+                                                                <span class="screen-reader-text"><?php esc_html_e( 'Review text', 'bw' ); ?></span>
+                                                                <textarea
+                                                                    name="bw_reviews_trust_slider_reviews[<?php echo esc_attr( (string) $index ); ?>][text]"
+                                                                    rows="4"
+                                                                    class="large-text"
+                                                                    placeholder="<?php esc_attr_e( 'Review text', 'bw' ); ?>"
+                                                                ><?php echo esc_textarea( $review_text ); ?></textarea>
+                                                            </label>
+                                                        </p>
+                                                        <p>
+                                                            <label>
+                                                                <span class="screen-reader-text"><?php esc_html_e( 'Author name', 'bw' ); ?></span>
+                                                                <input
+                                                                    type="text"
+                                                                    name="bw_reviews_trust_slider_reviews[<?php echo esc_attr( (string) $index ); ?>][author]"
+                                                                    value="<?php echo esc_attr( $review_author ); ?>"
+                                                                    class="regular-text"
+                                                                    placeholder="<?php esc_attr_e( 'Author name', 'bw' ); ?>"
+                                                                />
+                                                            </label>
+                                                        </p>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <p>
+                                                <button type="button" class="button" data-bw-trust-add-row><?php esc_html_e( 'Add review slide', 'bw' ); ?></button>
+                                            </p>
+                                            <script type="text/template" data-bw-trust-row-template>
+                                                <div class="bw-reviews-trust-repeater__row" data-row-index="__INDEX__">
+                                                    <div class="bw-reviews-trust-repeater__row-head">
+                                                        <strong><?php echo esc_html__( 'New slide', 'bw' ); ?></strong>
+                                                        <button type="button" class="button-link-delete" data-bw-trust-remove-row><?php esc_html_e( 'Remove', 'bw' ); ?></button>
+                                                    </div>
+                                                    <p>
+                                                        <label>
+                                                            <span class="screen-reader-text"><?php esc_html_e( 'Review text', 'bw' ); ?></span>
+                                                            <textarea
+                                                                name="bw_reviews_trust_slider_reviews[__INDEX__][text]"
+                                                                rows="4"
+                                                                class="large-text"
+                                                                placeholder="<?php esc_attr_e( 'Review text', 'bw' ); ?>"
+                                                            ></textarea>
+                                                        </label>
+                                                    </p>
+                                                    <p>
+                                                        <label>
+                                                            <span class="screen-reader-text"><?php esc_html_e( 'Author name', 'bw' ); ?></span>
+                                                            <input
+                                                                type="text"
+                                                                name="bw_reviews_trust_slider_reviews[__INDEX__][author]"
+                                                                value=""
+                                                                class="regular-text"
+                                                                placeholder="<?php esc_attr_e( 'Author name', 'bw' ); ?>"
+                                                            />
+                                                        </label>
+                                                    </p>
+                                                </div>
+                                            </script>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="bw_reviews_trust_review_box_content"><?php esc_html_e( 'Fixed review box content', 'bw' ); ?></label></th>
+                                    <td>
+                                        <?php
+                                        wp_editor(
+                                            isset( $trust['review_box_content'] ) ? (string) $trust['review_box_content'] : '',
+                                            'bw_reviews_trust_review_box_content',
+                                            [
+                                                'textarea_name' => 'bw_reviews_trust_review_box_content',
+                                                'media_buttons' => true,
+                                                'textarea_rows' => 8,
+                                                'teeny'         => false,
+                                                'quicktags'     => true,
+                                            ]
+                                        );
+                                        ?>
+                                        <p class="description"><?php esc_html_e( 'This HTML/WYSIWYG block is rendered inside the fixed trust box. Add inline bold text and links directly here.', 'bw' ); ?></p>
                                     </td>
                                 </tr>
                             <?php elseif ( 'submission' === $active_tab ) : ?>
@@ -764,6 +939,44 @@ if ( ! class_exists( 'BW_Reviews_Admin' ) ) {
                     </section>
                 </form>
             </div>
+            <?php if ( 'trust' === $active_tab ) : ?>
+                <script>
+                    jQuery(function ($) {
+                        var $repeater = $('[data-bw-trust-repeater]');
+                        if (!$repeater.length) {
+                            return;
+                        }
+
+                        var maxItems = parseInt($repeater.attr('data-max-items'), 10) || 6;
+                        var $rowsWrap = $repeater.find('.bw-reviews-trust-repeater__rows');
+                        var template = $repeater.find('[data-bw-trust-row-template]').html() || '';
+
+                        function updateState() {
+                            var count = $rowsWrap.children('.bw-reviews-trust-repeater__row').length;
+                            $repeater.find('[data-bw-trust-add-row]').prop('disabled', count >= maxItems);
+                        }
+
+                        $repeater.on('click', '[data-bw-trust-add-row]', function () {
+                            var count = $rowsWrap.children('.bw-reviews-trust-repeater__row').length;
+                            if (count >= maxItems || !template) {
+                                updateState();
+                                return;
+                            }
+
+                            var html = template.replace(/__INDEX__/g, String(count));
+                            $rowsWrap.append(html);
+                            updateState();
+                        });
+
+                        $repeater.on('click', '[data-bw-trust-remove-row]', function () {
+                            $(this).closest('.bw-reviews-trust-repeater__row').remove();
+                            updateState();
+                        });
+
+                        updateState();
+                    });
+                </script>
+            <?php endif; ?>
             <?php
         }
 

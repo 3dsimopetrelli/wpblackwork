@@ -10,9 +10,13 @@ It owns:
 - Add to Cart CTA
 - license-information disclosure box
 
-It now also includes two review/payment-adjacent integrations:
+It now also includes governed trust/payment-adjacent integrations:
 - compact product review trust summary under the price
 - `More payment options` direct-checkout link under Add to Cart
+- optional global review slider under the main pricing box
+- optional global fixed review summary box under the slider
+- optional widget-level digital product information cards
+- optional widget-level FAQ CTA box
 
 ## Widget Contract
 
@@ -43,8 +47,10 @@ Current governed boundaries:
 - owns the active variation state for the widget column
 - owns price, selected license state, Add to Cart state, and license disclosure content
 - may consume compact read-only trust signals for the current product
+- may render additional subordinate trust/supporting content below the main pricing box
 - must not become a second reviews authority
 - must not introduce a second product configurator inside the license box
+- global review marketing/trust copy remains owned by Reviews Settings, not by widget-local controls
 
 ## Current Runtime Reality
 
@@ -54,6 +60,11 @@ Validated against the current widget render and current repository state:
 - the customer selects between license-oriented variation buttons
 - a license disclosure accordion may appear between the variation buttons and Add to Cart
 - the open accordion body renders the variation-specific license table
+- below the main price/license/CTA box, the widget may render an additional trust stack:
+  - review slider
+  - fixed review summary box
+  - digital product info cards
+  - FAQ CTA box
 
 In current storefront usage, the accordion label can be configured per widget instance and may be rendered simply as:
 
@@ -63,6 +74,108 @@ License
 
 The accordion itself is not the selector. The selector remains the variation button group.
 The accordion is a disclosure surface that explains the currently active license.
+
+## Trust Stack Extensions
+
+### Positioning
+The trust stack renders below the existing pricing/license/Add to Cart block.
+
+It is intentionally subordinate to the main commerce decision surface:
+- the upper block remains the canonical pricing/license selector
+- the lower block provides supporting trust and informational content only
+
+### Global vs widget-local ownership
+Global trust surfaces:
+- review slider
+- fixed review summary box
+
+Widget-local trust surfaces:
+- digital product info cards
+- FAQ CTA box
+
+Governance rule:
+- global trust copy that should stay consistent across product pages belongs to Reviews Settings
+- per-instance informational/supporting cards belong to the widget
+
+### Review slider
+Authority:
+- `Blackwork Site -> Reviews Settings -> Trust Content`
+
+Behavior:
+- renders only when `Enable review slider` is on in Reviews Settings
+- renders only when at least one slide exists
+- uses the shared Embla runtime already present in the repository
+- shows one slide at a time
+- supports autoplay and manual arrow navigation
+- uses fixed 5-star visuals in V1
+- supports up to 6 slides
+
+Slide content:
+- fixed 5 stars
+- review text
+- author name
+
+Governance rule:
+- this slider is a curated trust surface, not a live review-query surface
+- it does not derive its stars or content from per-review product rating data in V1
+
+### Fixed review summary box
+Authority:
+- `Blackwork Site -> Reviews Settings -> Trust Content`
+
+Behavior:
+- renders only when `Enable fixed review box` is on in Reviews Settings
+- renders only when the WYSIWYG/HTML content is not empty
+- supports links, bold text, and inline formatting
+- uses fixed 5-star visuals above the content
+
+Governance rule:
+- this block is global trust/marketing copy
+- it must not become a second detailed review browser inside `bw-price-variation`
+
+### Digital product info cards
+Authority:
+- widget content controls
+
+Section:
+
+```text
+Content -> Digital Product Info
+```
+
+Controls:
+- `Enable Information Box`
+- `Information Items` repeater
+
+Per-item content:
+- icon
+- title
+- optional description
+
+Behavior:
+- renders only when enabled
+- renders only when the repeater has at least one non-empty item
+- is intended for stable digital-product trust/support statements such as download quality/support
+
+### FAQ CTA box
+Authority:
+- widget content controls
+
+Section:
+
+```text
+Content -> FAQ Button
+```
+
+Controls:
+- `Enable FAQ Button`
+- `FAQ Label`
+- `FAQ Link`
+
+Behavior:
+- renders only when enabled
+- renders only when a URL exists
+- acts as a single supporting navigation CTA below the trust stack
 
 ## Rates Section
 
@@ -211,6 +324,27 @@ The widget JS keeps a single active variation state and updates all dependent su
 - More payment options checkout URL
 
 This keeps the widget deterministic and prevents the checkout shortcut from drifting away from the selected license.
+
+The lower trust stack remains subordinate to that same deterministic commerce state:
+- it must not mutate the active variation
+- it must not create an alternate add-to-cart path
+- it may support trust/comprehension but not reconfigure the product
+
+## Reviews Settings Integration
+
+Reviews Settings now exposes a dedicated tab:
+
+```text
+Blackwork Site -> Reviews Settings -> Trust Content
+```
+
+This tab owns:
+- `Enable review slider`
+- `Enable fixed review box`
+- up to 6 curated review slides
+- fixed review box WYSIWYG content
+
+This keeps global trust copy centralized instead of duplicating the same review marketing copy across widget instances.
 
 ## Default Variation Note
 
