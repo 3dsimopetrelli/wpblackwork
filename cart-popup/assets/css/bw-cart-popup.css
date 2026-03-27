@@ -24,7 +24,7 @@
 
 /* Design tokens */
 :root {
-    --bw-cart-bg:          rgba(15, 15, 15, 0.91);
+    --bw-cart-bg:          rgba(15, 15, 15, 0.72);
     --bw-cart-surface:     #1c1c1e;
     --bw-cart-surface-2:   #242426;
     --bw-cart-border:      rgba(255, 255, 255, 0.08);
@@ -416,7 +416,6 @@
     justify-content: space-between;
     padding: 18px 20px 16px 20px;
     border-bottom: 1px solid var(--bw-cart-border);
-    background-color: var(--bw-cart-bg);
     flex-shrink: 0;
 }
 
@@ -519,7 +518,6 @@
     overscroll-behavior: contain;
     touch-action: pan-y;
     padding: 16px 16px 0 16px;
-    background-color: var(--bw-cart-bg);
 }
 
 .bw-cart-popup-content::-webkit-scrollbar {
@@ -914,7 +912,6 @@
     justify-content: center;
     padding: 60px 32px;
     text-align: center;
-    background-color: var(--bw-cart-bg);
 }
 
 .bw-cart-empty-icon {
@@ -1183,7 +1180,6 @@
 .bw-cart-popup-footer {
     padding: 16px;
     border-top: 1px solid var(--bw-cart-border);
-    background-color: var(--bw-cart-bg);
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -1278,7 +1274,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bw-cart-bg);
 }
 
 .bw-cart-popup-custom-svg svg {
