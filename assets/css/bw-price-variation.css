@@ -222,7 +222,7 @@
 .bw-price-variation__trust-card {
 	background: transparent;
 	border: 1px solid #000000;
-	border-radius: 24px;
+	border-radius: 8px;
 	box-shadow: none;
 }
 
@@ -620,7 +620,7 @@
 	}
 
 	.bw-price-variation__trust-card {
-		border-radius: 22px;
+		border-radius: 8px;
 	}
 
 	.bw-price-variation__review-slide {
