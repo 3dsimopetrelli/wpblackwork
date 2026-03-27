@@ -294,16 +294,32 @@
 
 .elementor-widget-bw-reviews .bw-reviews-sort__check,
 .bw-reviews-sort__check {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 24px !important;
+    height: 24px !important;
     opacity: 0 !important;
     transform: scale(0.8) !important;
-    color: var(--bw-reviews-accent) !important;
+    color: #ff7848 !important;
+    -webkit-text-fill-color: #ff7848 !important;
+    text-shadow: none !important;
     transition: opacity var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-sort__check svg,
+.bw-reviews-sort__check svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-sort__option.is-selected .bw-reviews-sort__check,
 .bw-reviews-sort__option.is-selected .bw-reviews-sort__check {
     opacity: 1 !important;
     transform: scale(1) !important;
+    color: #ff7848 !important;
+    -webkit-text-fill-color: #ff7848 !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown,

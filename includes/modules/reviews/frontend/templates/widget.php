@@ -93,7 +93,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 data-sort-value="<?php echo esc_attr( (string) $option['value'] ); ?>"
                             >
                                 <span><?php echo esc_html( (string) $option['label'] ); ?></span>
-                                <span class="bw-reviews-sort__check" aria-hidden="true">✓</span>
+                                <span class="bw-reviews-sort__check" aria-hidden="true">
+                                    <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+                                        <path d="M4.5 10.5 8.25 14.25 15.5 5.75" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
                             </button>
                         <?php endforeach; ?>
                     </div>
