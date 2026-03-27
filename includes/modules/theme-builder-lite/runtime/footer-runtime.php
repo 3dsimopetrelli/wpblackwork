@@ -310,8 +310,19 @@ if (!function_exists('bw_tbl_render_footer_template')) {
             return;
         }
 
+        $wrap_in_layout_shell = function_exists('bw_site_layout_is_enabled')
+            && bw_site_layout_is_enabled()
+            && function_exists('bw_site_layout_get_settings')
+            && !empty(bw_site_layout_get_settings()['apply_to_footer']);
+
         echo '<div class="bw-tbl-footer-template" data-bw-tbl-footer-template="1">';
+        if ($wrap_in_layout_shell) {
+            echo '<div class="bw-site-layout-footer-shell" data-bw-site-layout-footer-shell="1">';
+        }
         echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        if ($wrap_in_layout_shell) {
+            echo '</div>';
+        }
         echo '</div>';
     }
 }

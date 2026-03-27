@@ -1,10 +1,11 @@
 
 /* ==========================================================
-   BW FULL SECTION
+   BW FULL SECTION / FULL BLEED
    Sezione edge-to-edge a larghezza piena compatibile con Elementor
    ========================================================== */
-   
- .bw-full-section {
+
+.bw-full-section,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed {
   position: relative !important;
   width: 100vw !important;
   left: 50% !important;
@@ -22,7 +23,11 @@
 .bw-full-section > .elementor-container,
 .bw-full-section > .e-con,
 .bw-full-section .elementor-container,
-.bw-full-section .e-con {
+.bw-full-section .e-con,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed > .elementor-container,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed > .e-con,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed .elementor-container,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed .e-con {
   max-width: none !important;
   width: 100% !important;
   margin: 0 !important;
@@ -33,7 +38,10 @@
 /* In caso tema imponga wrapper più esterno */
 .bw-full-section .site-content,
 .bw-full-section #content,
-.bw-full-section .elementor-inner {
+.bw-full-section .elementor-inner,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed .site-content,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed #content,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed .elementor-inner {
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -41,20 +49,49 @@
 
 /* Supporto per sezioni con contenuti video o immagini di sfondo */
 .bw-full-section::before,
-.bw-full-section::after {
+.bw-full-section::after,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed::before,
+body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed::after {
   content: "";
   display: block;
 }
 
 /* Variante opzionale: se vuoi forzare anche la rimozione del padding globale Elementor */
-.elementor .bw-full-section.elementor-section {
+.elementor .bw-full-section.elementor-section,
+body.bw-site-layout-allow-full-bleed .elementor .bw-layout-full-bleed.elementor-section {
   --padding-left: 0 !important;
   --padding-right: 0 !important;
 }
 
+/* ==========================================================
+   BW LAYOUT BREAKOUT
+   Allarga un container oltre il layout shell, senza andare full viewport
+   ========================================================== */
+
+body.bw-site-layout-allow-full-bleed .bw-layout-breakout {
+  position: relative !important;
+  width: min(calc(100vw - (var(--bw-site-shell-padding, 0px) * 2)), calc(var(--bw-site-max-width, 1400px) + var(--bw-site-breakout-extra, 320px))) !important;
+  max-width: none !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+body.bw-site-layout-allow-full-bleed .bw-layout-breakout > .elementor-container,
+body.bw-site-layout-allow-full-bleed .bw-layout-breakout > .e-con,
+body.bw-site-layout-allow-full-bleed .bw-layout-breakout .elementor-container,
+body.bw-site-layout-allow-full-bleed .bw-layout-breakout .e-con {
+  max-width: none !important;
+  width: 100% !important;
+}
+
 /* Responsive check */
 @media (max-width: 768px) {
-  .bw-full-section {
+  .bw-full-section,
+  body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed {
     width: 100vw !important;
     left: 50% !important;
     transform: translateX(-50%) !important;

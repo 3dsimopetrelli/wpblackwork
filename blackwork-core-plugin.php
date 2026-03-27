@@ -609,9 +609,10 @@ add_action('init', 'bw_register_about_menu_widget_assets');
 add_action('init', 'bw_register_wallpost_widget_assets');
 // about-menu: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_about_menu_widget_assets');
-// bw-custom-class.css (full-section Elementor utility) only needed on Elementor pages
+// bw-custom-class.css (full-section + layout utility classes)
 add_action('elementor/frontend/after_enqueue_styles', 'bw_enqueue_custom_class_assets');
 add_action('elementor/editor/after_enqueue_styles', 'bw_enqueue_custom_class_assets');
+add_action('wp_enqueue_scripts', 'bw_enqueue_custom_class_assets', 35);
 add_action('init', 'bw_register_product_grid_widget_assets');
 // product-grid: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');

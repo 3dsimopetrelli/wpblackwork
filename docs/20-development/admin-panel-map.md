@@ -231,9 +231,38 @@ Current adoption:
   - explain where the class must be inserted (`Elementor -> Advanced -> CSS Classes`)
 - Current informational contract:
   - `bw-hover-underline-ltr`
+  - `bw-layout-breakout`
+  - `bw-layout-full-bleed`
 - Notes:
   - this tab is the first Site Settings tab
   - it is intentionally informational and does not own frontend runtime behavior
+
+## Layout
+- Renderer: `bw_site_render_layout_tab()`
+- Save model: custom POST in `admin/class-blackwork-site-settings.php`
+- Nonce: `bw_layout_settings_save`
+- Option key:
+  - `bw_site_layout_settings_v1`
+- Purpose:
+  - define a global inner-shell width lock for wide screens
+  - expose responsive shell paddings and application toggles for main content, header, and footer
+  - allow explicit breakout / full-bleed exceptions through utility classes
+- Frontend contract:
+  - runtime CSS variables injected via the shared frontend utility stylesheet handle `bw-fullbleed-style`
+  - body classes:
+    - `bw-site-layout-active`
+    - `bw-site-layout-main-enabled`
+    - `bw-site-layout-header-enabled`
+    - `bw-site-layout-footer-enabled`
+    - `bw-site-layout-allow-full-bleed`
+  - main content shell:
+    - singular content wrapped through `the_content`
+    - WooCommerce main content wrapped through `woocommerce_before_main_content` / `woocommerce_after_main_content`
+    - Theme Builder Lite runtime template content constrained via `.bw-tbl-runtime-template-content`
+  - header shell:
+    - applies to `.bw-custom-header__inner`
+  - footer shell:
+    - applies to `.bw-site-layout-footer-shell` inside Theme Builder Lite footer runtime output
 
 ## Cart Pop-up
 - Renderer: `bw_site_render_cart_popup_tab()`
