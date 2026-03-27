@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- Price Variation / Sticky Sidebar: hardened sticky behavior for dynamic license-accordion height changes by refreshing sticky geometry and placeholder sizing during accordion transitions and ResizeObserver updates.
+- Price Variation / Sticky Sidebar: hardened sticky behavior for dynamic license-accordion height changes, popup/body-lock layout shifts, and viewport restore events by refreshing sticky geometry, placeholder sizing, and layout context during accordion transitions, ResizeObserver updates, body/html mutations, and visual viewport changes.
 - Product Details: extended the existing widget and Product Details metabox with a new `Compatibility` content type powered by product-level checkbox selections, with default-all behavior for untouched products and no parallel data system.
 - Price Variation: added widget-level `Review Trust` on/off toggles for the global review slider and fixed review box, so each widget instance can suppress those global trust blocks without changing Reviews Settings authority.
 - Price Variation: added a governed trust stack below the main pricing box with shared-Embla review slider support, global fixed review summary box support from `Reviews Settings -> Trust Content`, widget-level digital product info cards, and widget-level FAQ CTA controls.

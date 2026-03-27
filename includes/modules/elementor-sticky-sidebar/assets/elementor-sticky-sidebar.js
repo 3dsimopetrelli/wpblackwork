@@ -36,12 +36,17 @@
 
         this._uid = 'bwsticky_' + Math.random().toString(36).slice(2);
         this._resizeObserver = null;
+        this._bodyObserver = null;
+        this._rootObserver = null;
         this._syncRaf = 0;
+        this._layoutRaf = 0;
 
         this._scrollHandler = this._onScroll.bind(this);
         this._resizeHandler = this._debounce(this._onResize.bind(this), 150);
         this._loadHandler   = this._onLoad.bind(this);
         this._refreshHandler = this._requestDynamicSync.bind(this);
+        this._layoutRefreshHandler = this._requestLayoutRefresh.bind(this);
+        this._visibilityHandler = this._onVisibilityChange.bind(this);
 
         this._init();
     }
@@ -62,7 +67,18 @@
                 .on('scroll.' + this._uid, this._scrollHandler)
                 .on('resize.' + this._uid, this._resizeHandler)
                 .on('load.' + this._uid, this._loadHandler)
+                .on('pageshow.' + this._uid, this._layoutRefreshHandler)
+                .on('focus.' + this._uid, this._layoutRefreshHandler)
+                .on('orientationchange.' + this._uid, this._layoutRefreshHandler)
                 .on('bw:sticky-sidebar:refresh.' + this._uid, this._refreshHandler);
+
+            $(document).on('visibilitychange.' + this._uid, this._visibilityHandler);
+
+            if (window.visualViewport) {
+                $(window.visualViewport)
+                    .on('resize.' + this._uid, this._layoutRefreshHandler)
+                    .on('scroll.' + this._uid, this._layoutRefreshHandler);
+            }
 
             this._initObservers();
             this._onScroll();
@@ -79,8 +95,8 @@
             if (this.stuck) { return; }
             var rect           = this.el.getBoundingClientRect();
             var scrollTop      = window.pageYOffset || 0;
-            var scrollLeft     = window.pageXOffset || 0;
             this.naturalTop    = rect.top  + scrollTop;
+            this.naturalLeft   = rect.left + (window.pageXOffset || 0);
             this.naturalWidth  = rect.width;
             this.naturalHeight = rect.height;
         },
@@ -97,6 +113,43 @@
             });
 
             this._resizeObserver.observe(this.el);
+
+            if (typeof MutationObserver !== 'undefined' && document.body) {
+                this._bodyObserver = new MutationObserver(function (mutations) {
+                    if (self._hasRelevantAttributeMutation(mutations)) {
+                        self._requestLayoutRefresh();
+                    }
+                });
+
+                this._bodyObserver.observe(document.body, {
+                    attributes: true,
+                    attributeFilter: ['class', 'style'],
+                });
+            }
+
+            if (typeof MutationObserver !== 'undefined' && document.documentElement) {
+                this._rootObserver = new MutationObserver(function (mutations) {
+                    if (self._hasRelevantAttributeMutation(mutations)) {
+                        self._requestLayoutRefresh();
+                    }
+                });
+
+                this._rootObserver.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['class', 'style'],
+                });
+            }
+        },
+
+        _hasRelevantAttributeMutation: function (mutations) {
+            return mutations.some(function (mutation) {
+                if (!mutation || mutation.type !== 'attributes') {
+                    return false;
+                }
+
+                var attrName = mutation.attributeName || '';
+                return attrName === 'class' || attrName === 'style';
+            });
         },
 
         _requestDynamicSync: function () {
@@ -112,19 +165,52 @@
             });
         },
 
+        _requestLayoutRefresh: function () {
+            var self = this;
+
+            if (this._layoutRaf) {
+                return;
+            }
+
+            this._layoutRaf = window.requestAnimationFrame(function () {
+                self._layoutRaf = 0;
+                self._refreshLayoutContext();
+            });
+        },
+
+        _refreshLayoutContext: function () {
+            if (!this._isActiveDevice()) {
+                this._unstick();
+                return;
+            }
+
+            var wasStuck = this.stuck;
+
+            if (wasStuck) {
+                this._unstick();
+            }
+
+            this._measure();
+            this._onScroll();
+        },
+
         _syncDynamicGeometry: function () {
             if (!this._isActiveDevice()) {
                 return;
             }
 
-            var rect      = this.el.getBoundingClientRect();
-            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollTop  = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            var sourceEl   = this.stuck && this.$placeholder ? this.$placeholder[0] : this.el;
+            var rect       = sourceEl.getBoundingClientRect();
+            var stickyRect = this.el.getBoundingClientRect();
 
+            this.naturalTop    = rect.top + scrollTop;
+            this.naturalLeft   = rect.left + scrollLeft;
             this.naturalWidth  = rect.width;
-            this.naturalHeight = rect.height;
+            this.naturalHeight = this.stuck ? stickyRect.height : rect.height;
 
             if (!this.stuck) {
-                this.naturalTop = rect.top + scrollTop;
                 return;
             }
 
@@ -137,6 +223,7 @@
             }
 
             this.$el.css({
+                left:  rect.left + 'px',
                 width: this.naturalWidth + 'px',
             });
 
@@ -163,8 +250,22 @@
             if (this.bound && this.$parent) {
                 var parentBottom = this.$parent.offset().top + this.$parent.outerHeight();
                 var maxTop       = parentBottom - this.naturalHeight - scrollTop;
-                this.$el.css('top', (maxTop < this.offset ? maxTop : this.offset) + 'px');
+                this.$el.css({
+                    top:  (maxTop < this.offset ? maxTop : this.offset) + 'px',
+                    left: this._getCurrentLeft() + 'px',
+                });
+                return;
             }
+
+            this.$el.css('left', this._getCurrentLeft() + 'px');
+        },
+
+        _getCurrentLeft: function () {
+            if (this.$placeholder && this.$placeholder.length) {
+                return this.$placeholder[0].getBoundingClientRect().left;
+            }
+
+            return this.el.getBoundingClientRect().left;
         },
 
         _stick: function () {
@@ -238,7 +339,10 @@
             if (!this.stuck) {
                 this._measure();
                 this._onScroll();
+                return;
             }
+
+            this._requestLayoutRefresh();
         },
 
         _onResize: function () {
@@ -249,6 +353,12 @@
             }
             this._measure();
             this._onScroll();
+        },
+
+        _onVisibilityChange: function () {
+            if (document.visibilityState === 'visible') {
+                this._requestLayoutRefresh();
+            }
         },
 
         _debounce: function (fn, wait) {
@@ -265,9 +375,21 @@
                 this._resizeObserver.disconnect();
                 this._resizeObserver = null;
             }
+            if (this._bodyObserver) {
+                this._bodyObserver.disconnect();
+                this._bodyObserver = null;
+            }
+            if (this._rootObserver) {
+                this._rootObserver.disconnect();
+                this._rootObserver = null;
+            }
             if (this._syncRaf) {
                 window.cancelAnimationFrame(this._syncRaf);
                 this._syncRaf = 0;
+            }
+            if (this._layoutRaf) {
+                window.cancelAnimationFrame(this._layoutRaf);
+                this._layoutRaf = 0;
             }
             this._unstick();
         },
