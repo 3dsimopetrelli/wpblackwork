@@ -55,7 +55,8 @@
     transition: opacity 240ms ease, visibility 0s linear 0s !important;
 }
 
-body.bw-reviews-focus-active .bw-reviews.has-focus-panel {
+.bw-reviews-summary.has-focus-panel,
+.bw-reviews-sort.has-focus-panel {
     position: relative !important;
     z-index: 10000 !important;
 }

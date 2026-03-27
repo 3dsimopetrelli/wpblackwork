@@ -1089,11 +1089,13 @@
         this.registry.forEach((controller) => {
             const hasOpenSort = !!(controller.$sortMenu && controller.$sortMenu.length && controller.$sortMenu.hasClass('is-open'));
             const hasOpenBreakdown = !!(controller.$breakdown && controller.$breakdown.length && controller.$breakdown.hasClass('is-open'));
-            const isActive = hasOpenSort || hasOpenBreakdown;
+            const $summary = controller.$root.find('.bw-reviews-summary').first();
+            const $sort = controller.$root.find('.bw-reviews-sort').first();
 
-            controller.$root.toggleClass('has-focus-panel', isActive);
+            $summary.toggleClass('has-focus-panel', hasOpenBreakdown);
+            $sort.toggleClass('has-focus-panel', hasOpenSort);
 
-            if (isActive) {
+            if (hasOpenSort || hasOpenBreakdown) {
                 hasActivePanel = true;
             }
         });
