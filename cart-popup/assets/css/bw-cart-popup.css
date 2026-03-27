@@ -435,7 +435,7 @@
 .bw-cart-badge {
     background-color: var(--bw-cart-accent) !important;
     color: #000000 !important;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     width: 20px;
     height: 20px;
