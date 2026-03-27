@@ -32,6 +32,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
 - `editor-panel-widget-families.md`: editor-only widget card family colors, slug/title mapping rules, and deprecated-card hiding behavior inside the Elementor panel
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
+- `product-details-widget.md`: `BW-SP Product Details` — single-product details/compatibility/info-box widget backed by the existing WooCommerce Product Details metabox
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with compact inline trust summary, variation-bound license disclosure, direct-checkout shortcut, and governed trust stack extensions below the main CTA box
@@ -53,6 +54,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-product-breadcrumbs` -> canonical single-product breadcrumb utility widget
   - current content surface supports per-instance toggles for `Home`, `Shop`, and category path, plus word-limit truncation on the current product title crumb
 - `bw-product-description` -> canonical single-product description utility widget
+- `bw-product-details-table` -> canonical single-product details utility widget with Product Details / Compatibility / Info Box content branching
 - `bw-title-product` -> canonical single-product title utility widget with fluid/fixed responsive title sizing and width-measure controls
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content

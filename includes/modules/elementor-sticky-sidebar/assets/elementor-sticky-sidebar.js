@@ -35,10 +35,13 @@
         this.naturalHeight = 0;
 
         this._uid = 'bwsticky_' + Math.random().toString(36).slice(2);
+        this._resizeObserver = null;
+        this._syncRaf = 0;
 
         this._scrollHandler = this._onScroll.bind(this);
         this._resizeHandler = this._debounce(this._onResize.bind(this), 150);
         this._loadHandler   = this._onLoad.bind(this);
+        this._refreshHandler = this._requestDynamicSync.bind(this);
 
         this._init();
     }
@@ -58,7 +61,10 @@
             $(window)
                 .on('scroll.' + this._uid, this._scrollHandler)
                 .on('resize.' + this._uid, this._resizeHandler)
-                .on('load.' + this._uid, this._loadHandler);
+                .on('load.' + this._uid, this._loadHandler)
+                .on('bw:sticky-sidebar:refresh.' + this._uid, this._refreshHandler);
+
+            this._initObservers();
             this._onScroll();
         },
 
@@ -77,6 +83,64 @@
             this.naturalTop    = rect.top  + scrollTop;
             this.naturalWidth  = rect.width;
             this.naturalHeight = rect.height;
+        },
+
+        _initObservers: function () {
+            var self = this;
+
+            if (typeof ResizeObserver === 'undefined') {
+                return;
+            }
+
+            this._resizeObserver = new ResizeObserver(function () {
+                self._requestDynamicSync();
+            });
+
+            this._resizeObserver.observe(this.el);
+        },
+
+        _requestDynamicSync: function () {
+            var self = this;
+
+            if (this._syncRaf) {
+                return;
+            }
+
+            this._syncRaf = window.requestAnimationFrame(function () {
+                self._syncRaf = 0;
+                self._syncDynamicGeometry();
+            });
+        },
+
+        _syncDynamicGeometry: function () {
+            if (!this._isActiveDevice()) {
+                return;
+            }
+
+            var rect      = this.el.getBoundingClientRect();
+            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            this.naturalWidth  = rect.width;
+            this.naturalHeight = rect.height;
+
+            if (!this.stuck) {
+                this.naturalTop = rect.top + scrollTop;
+                return;
+            }
+
+            if (this.$placeholder) {
+                this.$placeholder.css({
+                    flexBasis: this.naturalWidth + 'px',
+                    width:     this.naturalWidth + 'px',
+                    height:    this.naturalHeight + 'px',
+                });
+            }
+
+            this.$el.css({
+                width: this.naturalWidth + 'px',
+            });
+
+            this._onScroll();
         },
 
         _onScroll: function () {
@@ -197,6 +261,14 @@
 
         destroy: function () {
             $(window).off('.' + this._uid);
+            if (this._resizeObserver) {
+                this._resizeObserver.disconnect();
+                this._resizeObserver = null;
+            }
+            if (this._syncRaf) {
+                window.cancelAnimationFrame(this._syncRaf);
+                this._syncRaf = 0;
+            }
             this._unstick();
         },
     };

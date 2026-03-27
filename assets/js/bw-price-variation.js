@@ -830,6 +830,10 @@
                 var OPEN_EASING  = 'cubic-bezier(0.16, 1, 0.3, 1)';
                 var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
+                function requestStickyRefresh() {
+                        $(window).trigger('bw:sticky-sidebar:refresh');
+                }
+
                 function setTrans(ms, easing, opMs) {
                         bodyEl.style.transition = 'height ' + ms + 'ms ' + easing + ', opacity ' + opMs + 'ms ease';
                 }
@@ -844,6 +848,7 @@
                         $accordion.addClass('bw-js-accordion-active').removeClass('is-open');
                         $trigger.attr('aria-expanded', 'false');
                         $body.attr('aria-hidden', 'true');
+                        requestStickyRefresh();
                 }
 
                 function deactivate() {
@@ -853,6 +858,7 @@
                         bodyEl.style.cssText = '';
                         $trigger.attr('aria-expanded', 'false');
                         $body.attr('aria-hidden', 'false');
+                        requestStickyRefresh();
                 }
 
                 function openAccordion() {
@@ -867,6 +873,7 @@
                         bodyEl.style.height   = '0';
                         bodyEl.style.overflow = 'hidden';
                         bodyEl.style.opacity  = '0';
+                        requestStickyRefresh();
 
                         var targetH = bodyEl.scrollHeight;
                         // eslint-disable-next-line no-unused-expressions
@@ -881,6 +888,7 @@
                                         clearTrans();
                                         bodyEl.style.height   = '';
                                         bodyEl.style.overflow = '';
+                                        requestStickyRefresh();
                                 }
                         }, OPEN_MS + 80);
                 }
@@ -900,6 +908,7 @@
                         $accordion.removeClass('is-open');
                         $trigger.attr('aria-expanded', 'false');
                         $body.attr('aria-hidden', 'true');
+                        requestStickyRefresh();
 
                         // eslint-disable-next-line no-unused-expressions
                         bodyEl.offsetHeight; // commit is-open removal
@@ -908,7 +917,10 @@
                         bodyEl.style.height  = '0';
                         bodyEl.style.opacity = '0';
 
-                        timer = setTimeout(clearTrans, CLOSE_MS + 80);
+                        timer = setTimeout(function() {
+                                clearTrans();
+                                requestStickyRefresh();
+                        }, CLOSE_MS + 80);
                 }
 
                 function updateMode() {

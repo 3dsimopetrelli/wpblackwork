@@ -91,6 +91,16 @@ Important runtime note:
   - `description_source`: `description`, `short_description`, `both`
   - renders product long description, short description, or both with preserved HTML markup
   - Alignment (responsive), Typography group control (Elementor native), Text Color
+- `bw-product-details-table` controls/runtime (current state):
+  - content types:
+    - `Product Details`
+    - `Compatibility`
+    - `Info Box`
+  - reuses the same accordion shell across the supported content types
+  - product-data authority remains the existing WooCommerce `Product Details` metabox in `metabox/bibliographic-details-metabox.php`
+  - compatibility rows are edited in that same metabox via checkbox fields
+  - untouched products default compatibility to all enabled
+  - explicitly saved empty compatibility renders no frontend block
 - `bw-product-grid` controls/runtime (current state):
   - `Layout`:
     - `Desktop Columns`: `3`, `4`, `5`, `6`

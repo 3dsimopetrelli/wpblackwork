@@ -65,6 +65,73 @@ function bw_get_digital_product_fields() {
 }
 
 /**
+ * List of compatibility rows.
+ *
+ * @return array<string, string> Key is the meta key, value is the frontend label.
+ */
+function bw_get_product_compatibility_fields() {
+    return [
+        '_bw_compatibility_adobe_illustrator_photoshop' => __( 'Adobe Illustrator, Photoshop', 'bw' ),
+        '_bw_compatibility_figma_sketch_adobe_xd'       => __( 'Figma, Sketch, Adobe XD', 'bw' ),
+        '_bw_compatibility_affinity_designer_photo'     => __( 'Affinity Designer & Photo', 'bw' ),
+        '_bw_compatibility_coreldraw_inkscape'          => __( 'CorelDRAW, Inkscape', 'bw' ),
+        '_bw_compatibility_canva_powerpoint'            => __( 'Canva, PowerPoint', 'bw' ),
+        '_bw_compatibility_cricut_silhouette'           => __( 'Cricut, Silhouette', 'bw' ),
+        '_bw_compatibility_blender_cinema4d'            => __( 'Blender, Cinema 4D', 'bw' ),
+    ];
+}
+
+/**
+ * Whether compatibility settings were explicitly saved for a product.
+ *
+ * @param int $post_id Product ID.
+ * @return bool
+ */
+function bw_product_compatibility_is_configured( $post_id ) {
+    return '1' === (string) get_post_meta( $post_id, '_bw_compatibility_configured', true );
+}
+
+/**
+ * Determine if a compatibility option is enabled for a product.
+ *
+ * Default behavior for untouched products is "enabled".
+ *
+ * @param int    $post_id  Product ID.
+ * @param string $meta_key Meta key.
+ * @return bool
+ */
+function bw_is_product_compatibility_field_enabled( $post_id, $meta_key ) {
+    if ( ! bw_product_compatibility_is_configured( $post_id ) ) {
+        return true;
+    }
+
+    return '1' === (string) get_post_meta( $post_id, $meta_key, true );
+}
+
+/**
+ * Get enabled compatibility rows for frontend rendering.
+ *
+ * @param int $post_id Product ID.
+ * @return array<int, array<string, string>>
+ */
+function bw_get_enabled_product_compatibility_rows( $post_id ) {
+    $rows = [];
+
+    foreach ( bw_get_product_compatibility_fields() as $meta_key => $label ) {
+        if ( ! bw_is_product_compatibility_field_enabled( $post_id, $meta_key ) ) {
+            continue;
+        }
+
+        $rows[] = [
+            'meta'  => $meta_key,
+            'label' => $label,
+        ];
+    }
+
+    return $rows;
+}
+
+/**
  * Register the Product Details metabox.
  */
 function bw_add_bibliographic_details_metabox() {
@@ -172,6 +239,31 @@ function bw_render_bibliographic_details_metabox( $post ) {
         </table>
     </div>
 
+    <div class="bw-biblio-section bw-biblio-section-compatibility">
+        <h4 class="bw-biblio-section-title"><?php esc_html_e( 'Compatibility', 'bw' ); ?></h4>
+        <table class="bw-biblio-metabox-table">
+            <tbody>
+            <?php foreach ( bw_get_product_compatibility_fields() as $meta_key => $label ) : ?>
+                <tr>
+                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <td>
+                        <label>
+                            <input
+                                type="checkbox"
+                                id="<?php echo esc_attr( $meta_key ); ?>"
+                                name="<?php echo esc_attr( $meta_key ); ?>"
+                                value="1"
+                                <?php checked( bw_is_product_compatibility_field_enabled( $post->ID, $meta_key ) ); ?>
+                            />
+                            <?php esc_html_e( 'Show on frontend', 'bw' ); ?>
+                        </label>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
     <div class="bw-biblio-section bw-biblio-section-books">
         <h4 class="bw-biblio-section-title"><?php esc_html_e( 'Books – Bibliographic details', 'bw' ); ?></h4>
         <table class="bw-biblio-metabox-table">
@@ -245,6 +337,7 @@ function bw_save_bibliographic_details_metabox( $post_id ) {
     }
 
     $fields = array_merge( bw_get_bibliographic_fields(), bw_get_prints_bibliographic_fields(), bw_get_digital_product_fields() );
+    $compatibility_fields = bw_get_product_compatibility_fields();
 
     foreach ( $fields as $meta_key => $label ) {
         $raw_value = isset( $_POST[ $meta_key ] ) ? wp_unslash( $_POST[ $meta_key ] ) : '';
@@ -252,6 +345,16 @@ function bw_save_bibliographic_details_metabox( $post_id ) {
 
         if ( '' !== $value ) {
             update_post_meta( $post_id, $meta_key, $value );
+        } else {
+            delete_post_meta( $post_id, $meta_key );
+        }
+    }
+
+    update_post_meta( $post_id, '_bw_compatibility_configured', '1' );
+
+    foreach ( $compatibility_fields as $meta_key => $label ) {
+        if ( isset( $_POST[ $meta_key ] ) ) {
+            update_post_meta( $post_id, $meta_key, '1' );
         } else {
             delete_post_meta( $post_id, $meta_key );
         }

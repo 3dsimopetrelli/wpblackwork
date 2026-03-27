@@ -54,6 +54,11 @@
     border-bottom: 1px solid #000;
 }
 
+.bw-biblio-table--compatibility .bw-biblio-row--compatibility {
+    grid-template-columns: 1fr;
+    gap: 0;
+}
+
 /* ========================================
    LABELS & VALUES
    ======================================== */
@@ -63,6 +68,10 @@
 
 .bw-biblio-value {
     text-align: right;
+}
+
+.bw-biblio-value--compatibility {
+    text-align: left;
 }
 
 /* ========================================

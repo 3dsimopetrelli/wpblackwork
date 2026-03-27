@@ -48,6 +48,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			'default' => 'product_details',
 			'options' => [
 				'product_details' => __( 'Product Details', 'bw' ),
+				'compatibility'  => __( 'Compatibility', 'bw' ),
 				'info_box'        => __( 'Info Box', 'bw' ),
 			],
 		] );
@@ -310,12 +311,20 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		$settings     = $this->get_settings_for_display();
 		$content_type = isset( $settings['content_type'] ) ? $settings['content_type'] : 'product_details';
 
-		// For product_details: resolve product before building DOM (bail early on failure).
+		// For product-driven content types: resolve product before building DOM (bail early on failure).
 		$product = null;
-		if ( 'product_details' === $content_type ) {
+		$compatibility_rows = [];
+		if ( in_array( $content_type, [ 'product_details', 'compatibility' ], true ) ) {
 			$product = $this->resolve_product();
 			if ( null === $product ) {
 				return;
+			}
+
+			if ( 'compatibility' === $content_type ) {
+				$compatibility_rows = $this->get_compatibility_rows( $product->get_id() );
+				if ( empty( $compatibility_rows ) ) {
+					return;
+				}
 			}
 		}
 
@@ -327,6 +336,8 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		// Title.
 		if ( 'info_box' === $content_type ) {
 			$title = isset( $settings['info_box_title'] ) ? $settings['info_box_title'] : '';
+		} elseif ( 'compatibility' === $content_type ) {
+			$title = __( 'Compatibility', 'bw' );
 		} else {
 			$title = isset( $settings['table_title'] ) && '' !== trim( $settings['table_title'] )
 				? $settings['table_title']
@@ -361,6 +372,8 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
 		if ( 'info_box' === $content_type ) {
 			$this->render_info_box( $settings );
+		} elseif ( 'compatibility' === $content_type ) {
+			$this->render_compatibility( $compatibility_rows );
 		} else {
 			$this->render_product_details( $product );
 		}
@@ -536,6 +549,49 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			echo '</div>'; // .bw-biblio-table
 			echo '</div>'; // .bw-biblio-section
 		}
+	}
+
+	/**
+	 * Render the compatibility block.
+	 *
+	 * @param array<int, array<string, string>> $rows Enabled compatibility rows.
+	 */
+	private function render_compatibility( $rows ) {
+		if ( empty( $rows ) ) {
+			return;
+		}
+
+		echo '<div class="bw-biblio-table bw-biblio-table--compatibility">';
+
+		foreach ( $rows as $row ) {
+			echo '<div class="bw-biblio-row bw-biblio-row--compatibility">';
+			echo '<div class="bw-biblio-value bw-biblio-value--compatibility">' . esc_html( $row['label'] ) . '</div>';
+			echo '</div>';
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * Resolve compatibility rows for a product.
+	 *
+	 * @param int $product_id Product ID.
+	 * @return array<int, array<string, string>>
+	 */
+	private function get_compatibility_rows( $product_id ) {
+		if ( function_exists( 'bw_get_enabled_product_compatibility_rows' ) ) {
+			return bw_get_enabled_product_compatibility_rows( $product_id );
+		}
+
+		return [
+			[ 'meta' => '_bw_compatibility_adobe_illustrator_photoshop', 'label' => __( 'Adobe Illustrator, Photoshop', 'bw' ) ],
+			[ 'meta' => '_bw_compatibility_figma_sketch_adobe_xd', 'label' => __( 'Figma, Sketch, Adobe XD', 'bw' ) ],
+			[ 'meta' => '_bw_compatibility_affinity_designer_photo', 'label' => __( 'Affinity Designer & Photo', 'bw' ) ],
+			[ 'meta' => '_bw_compatibility_coreldraw_inkscape', 'label' => __( 'CorelDRAW, Inkscape', 'bw' ) ],
+			[ 'meta' => '_bw_compatibility_canva_powerpoint', 'label' => __( 'Canva, PowerPoint', 'bw' ) ],
+			[ 'meta' => '_bw_compatibility_cricut_silhouette', 'label' => __( 'Cricut, Silhouette', 'bw' ) ],
+			[ 'meta' => '_bw_compatibility_blender_cinema4d', 'label' => __( 'Blender, Cinema 4D', 'bw' ) ],
+		];
 	}
 
 	private function get_section_rows( $product_id, $fields ) {
