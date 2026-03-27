@@ -60,6 +60,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
+  - current widget-local extension also supports mobile-only suppression of overlay CTA actions without mutating the shared component globally
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
 - `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product, expose variation-bound license disclosure, and host a subordinate trust stack (global review slider/box plus widget-level info/FAQ) without becoming a second reviews authority
 

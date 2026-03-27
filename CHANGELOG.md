@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Related Products: added `Layout > Show Overlay Actions on Mobile` with default mobile state off, implemented as a widget-local overlay suppression below `767px` without changing the shared product-card contract.
 - Cart Popup: fixed discount rows going stale after quantity change when a percentage coupon is applied — `update_quantity` and `remove_item` responses now include full coupon data via shared `bw_cart_popup_build_totals_data()` helper; `_patchTotals()` now delegates to `updateTotals()` which rebuilds coupon rows.
 - Cart Popup: apply coupon error now returns the real WooCommerce reason (minimum spend, usage limit, product restriction) instead of always showing "Coupon code invalid or expired."
 - Cart Popup: item removed from DOM immediately when quantity reaches 0 and cart is not empty — animated collapse without waiting for next panel open.

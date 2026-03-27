@@ -170,6 +170,19 @@ class BW_Related_Products_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'show_mobile_overlay_actions',
+			[
+				'label'        => __( 'Show Overlay Actions on Mobile', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'description'  => __( 'Controls the mobile visibility of the View Product / Add to Cart overlay only below 767px.', 'bw-elementor-widgets' ),
+			]
+		);
+
 		$this->end_controls_section();
 	}
 
@@ -529,6 +542,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 		$show_title       = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
 		$show_description = isset( $settings['show_description'] ) && 'yes' === $settings['show_description'];
 		$show_price       = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
+		$show_mobile_overlay_actions = isset( $settings['show_mobile_overlay_actions'] ) && 'yes' === $settings['show_mobile_overlay_actions'];
 
 		$product   = $this->get_current_product();
 		$is_editor = class_exists( '\\Elementor\\Plugin' ) && \Elementor\Plugin::$instance->editor->is_edit_mode();
@@ -568,8 +582,13 @@ class BW_Related_Products_Widget extends Widget_Base {
 			'open_cart_popup'  => false,
 		];
 
+		$wrapper_classes = [ 'bw-related-products-widget' ];
+		if ( ! $show_mobile_overlay_actions ) {
+			$wrapper_classes[] = 'bw-related-products-widget--mobile-overlay-off';
+		}
+
 		?>
-		<div class="bw-related-products-widget">
+		<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $wrapper_classes ) ) ); ?>">
 			<div class="bw-related-products-grid">
 				<?php
 				foreach ( $related_product_ids as $related_product_id ) {

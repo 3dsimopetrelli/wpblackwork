@@ -33,6 +33,15 @@
   .bw-related-products-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .bw-related-products-widget--mobile-overlay-off .bw-product-card .bw-wallpost-overlay,
+  .bw-related-products-widget--mobile-overlay-off .bw-product-card .overlay-buttons,
+  .bw-related-products-widget--mobile-overlay-off .bw-product-card .bw-ss__overlay {
+    display: none !important;
+    opacity: 0 !important;
+    transform: none !important;
+    pointer-events: none !important;
+  }
 }
 
 /* Empty state */

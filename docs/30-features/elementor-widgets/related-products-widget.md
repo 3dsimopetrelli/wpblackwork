@@ -65,6 +65,7 @@ blackwork
 |---|---|---|---|
 | `columns` | SELECT | `4` | Colonne desktop (1–6). Tablet e mobile: sempre 2 (CSS hardcodato). Live preview reattivo via `selectors`. |
 | `gap` | SLIDER (responsive) | `24px` | Gap tra le card. |
+| `show_mobile_overlay_actions` | SWITCHER | off | Mostra/nasconde solo su mobile (`<767px`) l'overlay `View Product / Add to Cart`. Desktop e tablet restano invariati. |
 
 ### Sezione Style > Typography
 
@@ -122,6 +123,19 @@ Ogni card è renderizzata da `BW_Product_Card_Component::render()` con questi se
 ```
 
 I campi `show_title`, `show_description`, `show_price` vengono passati dinamicamente dai settings dell'editor.
+
+### Overlay mobile
+
+Il widget non modifica globalmente il `BW_Product_Card_Component`.
+
+Il controllo `show_mobile_overlay_actions` agisce localmente così:
+- il wrapper emette la classe `bw-related-products-widget--mobile-overlay-off` quando il toggle è spento
+- `assets/css/bw-related-products.css` nasconde l'overlay CTA solo sotto `767px`
+
+Questo mantiene:
+- desktop invariato
+- tablet invariato
+- nessun effetto collaterale sugli altri widget che riusano il component
 
 ## Griglia CSS
 
