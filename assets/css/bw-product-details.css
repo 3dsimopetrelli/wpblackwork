@@ -59,6 +59,25 @@
     gap: 0;
 }
 
+.bw-biblio-table--compatibility {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+}
+
+.bw-biblio-table--compatibility .bw-biblio-row--compatibility {
+    min-height: 100%;
+    padding: 18px 0;
+}
+
+.bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(odd) {
+    padding-right: 12px;
+}
+
+.bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(even) {
+    padding-left: 12px;
+}
+
 /* ========================================
    LABELS & VALUES
    ======================================== */
@@ -146,6 +165,17 @@
 
     .bw-biblio-pills {
         justify-content: flex-start;
+    }
+
+    .bw-biblio-table--compatibility {
+        grid-template-columns: 1fr;
+        column-gap: 0;
+    }
+
+    .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(odd),
+    .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(even) {
+        padding-left: 0;
+        padding-right: 0;
     }
 }
 
