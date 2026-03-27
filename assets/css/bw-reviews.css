@@ -296,7 +296,7 @@
 .bw-reviews-sort__check {
     opacity: 0 !important;
     transform: scale(0.8) !important;
-    color: var(--bw-reviews-glass-accent) !important;
+    color: var(--bw-reviews-accent) !important;
     transition: opacity var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
 }
 
