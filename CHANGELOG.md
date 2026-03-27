@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- Cart Popup: fixed discount rows going stale after quantity change when a percentage coupon is applied — `update_quantity` and `remove_item` responses now include full coupon data via shared `bw_cart_popup_build_totals_data()` helper; `_patchTotals()` now delegates to `updateTotals()` which rebuilds coupon rows.
+- Cart Popup: apply coupon error now returns the real WooCommerce reason (minimum spend, usage limit, product restriction) instead of always showing "Coupon code invalid or expired."
+- Cart Popup: item removed from DOM immediately when quantity reaches 0 and cart is not empty — animated collapse without waiting for next panel open.
+- Cart Popup: `variation_id` now included in item data, fixing `hasCartVariation()` and `markButtonsAlreadyInCart()` for variable products.
+- Cart Popup: eliminated double AJAX on page load when floating trigger is enabled — single `loadCartContents()` call feeds new `_markButtonsFromCache()` method.
+- Cart Popup: `showErrorModal()` sets message via `.text()` instead of HTML template literal interpolation (XSS hardening).
+- Cart Popup: removed dead `.bw-cart-popup-vat` selector; `updateTotals()` now syncs `this.appliedCoupons` from server response.
+- Cart Popup: `bw_cart_popup_get_cart_contents` enforces POST method, consistent with all other handlers.
 - Price Variation / Sticky Sidebar: hardened sticky behavior for dynamic license-accordion height changes, popup/body-lock layout shifts, and viewport restore events by refreshing sticky geometry, placeholder sizing, and layout context during accordion transitions, ResizeObserver updates, body/html mutations, and visual viewport changes.
 - Product Details: extended the existing widget and Product Details metabox with a new `Compatibility` content type powered by product-level checkbox selections, with default-all behavior for untouched products and no parallel data system.
 - Price Variation: added widget-level `Review Trust` on/off toggles for the global review slider and fixed review box, so each widget instance can suppress those global trust blocks without changing Reviews Settings authority.
