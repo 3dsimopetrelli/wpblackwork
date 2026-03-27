@@ -74,7 +74,6 @@
     outline: none !important;
 
     color: #000;
-    font-size: 24px;
     cursor: pointer;
     padding: 10px;
     transition: opacity 0.3s ease;
@@ -84,6 +83,19 @@
     font-weight: normal;
     line-height: 1;
     text-decoration: none;
+    /* Allinea l'SVG al centro del bottone */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-ps-arrow svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    /* Ereditano color dal bottone per il controllo colore di Elementor */
+    stroke: currentColor;
 }
 
 .bw-ps-arrow:hover,
@@ -503,8 +515,12 @@
     }
 
     .bw-ps-arrow {
-        font-size: 20px;
         padding: 8px;
+    }
+
+    .bw-ps-arrow svg {
+        width: 20px;
+        height: 20px;
     }
 
     .bw-ps-popup-image {

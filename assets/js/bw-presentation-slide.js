@@ -646,10 +646,9 @@
                            }
                        });
 
-            $(window).off(`resize.bwps-${this.widgetId}`)
-                     .on(`resize.bwps-${this.widgetId}`, debounce(() => {
-                         this._syncPopupViewportMetrics();
-                     }, 100));
+            $(window).on(`resize.bwps-popup-${this.widgetId}`, debounce(() => {
+                this._syncPopupViewportMetrics();
+            }, 100));
         }
 
         _syncPopupViewportMetrics() {
@@ -782,16 +781,25 @@
             if (this.layoutMode === 'horizontal') {
                 const emblaApi  = this.emblaCore ? this.emblaCore.api() : null;
                 const $viewport = $wrapper.find('.bw-ps-embla-viewport');
+                const viewport  = $viewport[0];
 
                 $viewport.on(`mouseenter.bwps-cursor-${this.widgetId}`, '.bw-ps-image-clickable', (e) => {
-                    const $slide     = $(e.currentTarget).closest('.bw-ps-slide');
-                    const slideIndex = parseInt($slide.data('bw-index'), 10);
-                    const selected   = emblaApi ? emblaApi.selectedScrollSnap() : 0;
+                    const $slide      = $(e.currentTarget).closest('.bw-ps-slide');
+                    const slideIndex  = parseInt($slide.data('bw-index'), 10);
+                    // Use geometry-based active index: in loop+center mode the last slide
+                    // sits visually LEFT of slide 0 but has a higher data-bw-index.
+                    // Index comparison (slideIndex < selected) would show the wrong arrow;
+                    // comparing visual slide center vs viewport center is always correct.
+                    const activeIndex = this._getCenteredHorizontalSlideIndex(viewport, emblaApi);
                     $cursor.removeClass('zoom prev next');
-                    if (slideIndex === selected) {
+                    if (slideIndex === activeIndex) {
                         $cursor.addClass('zoom active');
                     } else {
-                        $cursor.addClass(slideIndex < selected ? 'prev' : 'next').addClass('active');
+                        const viewportRect   = viewport.getBoundingClientRect();
+                        const viewportCenter = viewportRect.left + viewportRect.width / 2;
+                        const slideRect      = $slide[0].getBoundingClientRect();
+                        const slideCenter    = slideRect.left + slideRect.width / 2;
+                        $cursor.addClass(slideCenter < viewportCenter ? 'prev' : 'next').addClass('active');
                     }
                 });
 
@@ -866,7 +874,7 @@
 
             // Event listeners namespaced
             $(document).off(`.bwps-${this.widgetId}`);
-            $(window).off(`.bwps-${this.widgetId}`).off(`.bwps-vertical-${this.widgetId}`);
+            $(window).off(`.bwps-${this.widgetId}`).off(`.bwps-vertical-${this.widgetId}`).off(`.bwps-popup-${this.widgetId}`);
             this.$wrapper.off(`.bwps-${this.widgetId}`).off(`.bwps-cursor-${this.widgetId}`);
             this.$wrapper.find('.bw-ps-embla-viewport').off(`.bwps-${this.widgetId}`).off(`.bwps-cursor-${this.widgetId}`);
             this.$wrapper.find('.bw-ps-main-viewport').off(`.bwps-vertical-${this.widgetId}`);
