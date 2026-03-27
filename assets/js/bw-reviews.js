@@ -623,6 +623,7 @@
             this.modalController = modalController;
             this.pendingListRequest = null;
             this.lastRequestToken = 0;
+            this.programmaticScrollLockUntil = 0;
             this.state = {
                 productId: Number(this.config.productId || 0),
                 reviewSource: this.config.reviewSource || 'product',
@@ -802,10 +803,13 @@
             let settledFrames = 0;
             let frameId = 0;
             const startTime = Date.now();
+            this.programmaticScrollLockUntil = startTime + 1200;
             const finish = () => {
                 if (frameId) {
                     window.cancelAnimationFrame(frameId);
                 }
+
+                this.programmaticScrollLockUntil = 0;
 
                 if (typeof onComplete === 'function') {
                     onComplete();
@@ -1230,6 +1234,38 @@
         });
 
         $(window).on('scroll.bwReviewsGlobal', () => {
+            const now = Date.now();
+            let hasActivePanel = false;
+            let hasUnlockedActivePanel = false;
+
+            this.registry.forEach((controller) => {
+                const hasOpenSort = !!(controller.$sortMenu && controller.$sortMenu.length && controller.$sortMenu.hasClass('is-open'));
+                const hasOpenBreakdown = !!(controller.$breakdown && controller.$breakdown.length && controller.$breakdown.hasClass('is-open'));
+
+                if (!hasOpenSort && !hasOpenBreakdown) {
+                    return;
+                }
+
+                hasActivePanel = true;
+
+                if (!controller.programmaticScrollLockUntil || now > controller.programmaticScrollLockUntil) {
+                    hasUnlockedActivePanel = true;
+                }
+            });
+
+            if (!hasActivePanel || !hasUnlockedActivePanel) {
+                return;
+            }
+
+            this.closeAllSortMenus();
+            this.closeAllBreakdowns();
+        });
+
+        $(document).on('keydown.bwReviewsGlobal', (event) => {
+            if ('Escape' !== event.key) {
+                return;
+            }
+
             this.closeAllSortMenus();
             this.closeAllBreakdowns();
         });
