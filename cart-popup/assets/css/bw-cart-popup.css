@@ -24,7 +24,7 @@
 
 /* Design tokens */
 :root {
-    --bw-cart-bg:          #111111;
+    --bw-cart-bg:          rgba(15, 15, 15, 0.91);
     --bw-cart-surface:     #1c1c1e;
     --bw-cart-surface-2:   #242426;
     --bw-cart-border:      rgba(255, 255, 255, 0.08);
@@ -359,9 +359,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.35s ease, visibility 0.35s ease;
@@ -387,6 +387,8 @@
     max-width: calc(100vw - 24px);
     height: auto;
     background-color: var(--bw-cart-bg) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-radius: var(--bw-cart-radius);
     box-shadow: none;
     transform: translateX(calc(100% + 28px));
@@ -764,7 +766,6 @@
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
-    margin-top: 6px;
 }
 
 /* Reset Elementor overrides */

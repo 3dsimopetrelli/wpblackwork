@@ -395,3 +395,59 @@ Commit: `cc90dcee`.
 - `getCheckoutUrl()` — helper non più usato (URL checkout è hardcoded nel JS localizzato); rimosso.
 - `bw_cart_popup_hex_to_rgb()` — helper per conversione hex → RGB usato solo dalla generazione CSS dinamica rimossa nella fase 2; rimosso.
 - `bw_cart_popup_dynamic_css` filter in `cart-popup/frontend/cart-popup-frontend.php` rimosso.
+
+## 16) Hardening batch 2026-03-27
+
+Task: `BW-TASK-20260327-02`
+Commit: `37b8921`
+File modificati: `cart-popup/frontend/cart-popup-frontend.php`, `cart-popup/assets/js/bw-cart-popup.js`
+
+### 16.1 Bug B1 — Discount row stale dopo cambio quantità (coupon percentuale)
+
+**Root cause:** `update_quantity` e `remove_item` restituivano solo `subtotal/discount/tax/total` senza `coupons`/`applied_coupons`. Il JS chiamava `_patchTotals()` che aggiornava i numeri ma non ricostruiva le righe coupon dinamiche. Con coupon percentuale il totale era corretto ma la riga "Discount" mostrava l'importo calcolato per la quantità precedente.
+
+**Fix PHP:** aggiunta `bw_cart_popup_build_totals_data($cart)` — helper condiviso da tutti e 4 gli handler di mutazione (`remove_item`, `update_quantity`, `apply_coupon`, `remove_coupon`). Ogni handler ora restituisce il payload completo: `item_count`, `empty`, `subtotal*`, `discount*`, `tax*`, `total*`, `applied_coupons`, `coupons[]`. Elimina ~60 righe duplicate e garantisce coerenza del contratto.
+
+**Fix JS:** `_patchTotals()` ora delega integralmente a `updateTotals()`. `updateQuantity()` success handler chiama `updateTotals(response.data)` + `updateCouponDisplay(response.data.applied_coupons)` invece di `_patchTotals()`.
+
+**Invariante:** il formato `applied_coupons` (array di stringhe) e `coupons` (array di oggetti `{code, amount, amount_raw}`) sono preservati in tutti i response.
+
+### 16.2 Bug B2 — Messaggio errore coupon sempre generico
+
+**Root cause:** `bw_cart_popup_apply_coupon()` restituiva sempre `'Coupon code invalid or expired.'` ignorando le WC notices impostate da `$cart->add_discount()`.
+
+**Fix:** path di errore ora chiama `bw_cart_popup_get_first_error_notice()` (già usato da `bw_cart_popup_ajax_add_to_cart`) e poi `wc_clear_notices()`. Il messaggio reale di WooCommerce (spesa minima non raggiunta, limite utilizzi superato, prodotti non idonei, ecc.) viene ora restituito all'utente.
+
+### 16.3 Bug B3 — Item a qty=0 rimane nel DOM se il carrello non è svuotato
+
+**Root cause:** quando si premeva `-` su un prodotto a qty=1, il JS calcolava `newQty=0` e chiamava `updateQuantity(key, 0)`. Il PHP rimuoveva l'item. Il JS success handler per `empty === false` chiamava solo `_patchTotals` + `updateBadge`, lasciando l'elemento nel DOM a qty=0 fino alla prossima apertura del pannello.
+
+**Fix:** nel branch `empty === false` il JS detecta `parseInt(quantity, 10) === 0`, applica la classe `bw-cart-item--removing` per l'animazione di collapse (identica a `removeItem()`), rimuove l'elemento dal DOM dopo 300ms, e aggiorna `this.cartItems` rimuovendo l'item dalla cache locale.
+
+### 16.4 Bug B4 — `variation_id` mancante nei dati item
+
+**Root cause:** `bw_cart_popup_build_cart_data()` non includeva `variation_id` per i prodotti variabili. Il JS `hasCartVariation()` leggeva `item.variation_id || 0` trovando sempre 0, rendendo impossibile distinguere varianti diverse dello stesso prodotto in `markButtonsAlreadyInCart()`.
+
+**Fix:** aggiunto `'variation_id' => isset($cart_item['variation_id']) ? (int) $cart_item['variation_id'] : 0` nell'array item di `bw_cart_popup_build_cart_data()`.
+
+### 16.5 Performance B5 — Doppia AJAX al caricamento pagina
+
+**Root cause:** `init()` chiamava sia `markButtonsAlreadyInCart()` che `loadCartContents(true)` quando `show_floating_trigger` era attivo, eseguendo due AJAX identiche verso `bw_cart_popup_get_contents`.
+
+**Fix:** `init()` ora esegue una sola chiamata. Quando `show_floating_trigger` è attivo: `loadCartContents(true)` + callback `.always(() => _markButtonsFromCache())`. Quando non è attivo: solo `markButtonsAlreadyInCart()`.
+
+Aggiunto metodo `_markButtonsFromCache()` che esegue la marcatura DOM dai `this.cartItems` già in memoria, senza AJAX aggiuntivo. `markButtonsAlreadyInCart()` semplificato per delegare la logica DOM a `_markButtonsFromCache()` dopo il fetch.
+
+### 16.6 Security B6 — XSS hardening in `showErrorModal`
+
+**Root cause:** `showErrorModal()` interpolava `${errorMessage}` direttamente nella template literal HTML, a differenza di `showAlreadyInCartModal()` che usava `.text()`.
+
+**Fix:** `errorMessage` rimosso dalla template literal; impostato via `$modal.find('.bw-cart-error-modal__message').text(errorMessage)` dopo l'append al DOM. Coerente con il comportamento di `showAlreadyInCartModal`.
+
+### 16.7 Fix B7 — Selector `.bw-cart-popup-vat` rimosso
+
+Il selector `.bw-cart-popup-vat .value` in `updateTotals()` e `_patchTotals()` non corrispondeva ad alcun elemento nel markup HTML del pannello. Rimosso. In `updateTotals()` è stata aggiunta la sincronizzazione di `this.appliedCoupons` da `data.applied_coupons` per tenere coerente il link legacy "Remove coupon".
+
+### 16.8 Fix B8 — `bw_cart_popup_get_cart_contents` POST-only
+
+Aggiunto check `$_SERVER['REQUEST_METHOD'] === 'POST'` come primo guard in `bw_cart_popup_get_cart_contents()`, coerente con tutti gli altri handler del modulo.
