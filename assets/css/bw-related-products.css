@@ -28,12 +28,8 @@
   }
 }
 
-/* Mobile: always 2 columns */
-@media (max-width: 767px) {
-  .bw-related-products-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+/* Tablet + mobile overlay override */
+@media (max-width: 1024px) {
   .bw-related-products-widget--mobile-overlay-off .bw-product-card .bw-wallpost-overlay,
   .bw-related-products-widget--mobile-overlay-off .bw-product-card .overlay-buttons,
   .bw-related-products-widget--mobile-overlay-off .bw-product-card .bw-ss__overlay {
@@ -41,6 +37,13 @@
     opacity: 0 !important;
     transform: none !important;
     pointer-events: none !important;
+  }
+}
+
+/* Mobile: always 2 columns */
+@media (max-width: 767px) {
+  .bw-related-products-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

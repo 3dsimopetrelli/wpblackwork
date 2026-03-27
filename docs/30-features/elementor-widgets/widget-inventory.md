@@ -103,8 +103,8 @@ Important runtime note:
   - explicitly saved empty compatibility renders no frontend block
 - `bw-related-products` controls/runtime (current state):
   - desktop columns configurable; tablet/mobile remain fixed at 2 columns
-  - `Layout > Show Overlay Actions on Mobile` controls only the mobile (`<767px`) visibility of `View Product / Add to Cart`
-  - default mobile state is off
+  - `Layout > Show Overlay Actions on Tablet & Mobile` controls the `<1025px` visibility of `View Product / Add to Cart`
+  - default tablet/mobile state is off
   - the behavior is wrapper-scoped and does not change the shared product-card contract for other widgets
 - `bw-product-grid` controls/runtime (current state):
   - `Layout`:

@@ -173,13 +173,13 @@ class BW_Related_Products_Widget extends Widget_Base {
 		$this->add_control(
 			'show_mobile_overlay_actions',
 			[
-				'label'        => __( 'Show Overlay Actions on Mobile', 'bw-elementor-widgets' ),
+				'label'        => __( 'Show Overlay Actions on Tablet & Mobile', 'bw-elementor-widgets' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
 				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
 				'return_value' => 'yes',
 				'default'      => '',
-				'description'  => __( 'Controls the mobile visibility of the View Product / Add to Cart overlay only below 767px.', 'bw-elementor-widgets' ),
+				'description'  => __( 'Controls the tablet/mobile visibility of the View Product / Add to Cart overlay below 1025px.', 'bw-elementor-widgets' ),
 			]
 		);
 
