@@ -99,17 +99,14 @@
     display: inline-flex !important;
     align-items: center !important;
     gap: 14px !important;
-    min-height: 58px !important;
-    padding: 0 20px !important;
-    border: 1px solid var(--bw-reviews-glass-border) !important;
+    min-height: 48px !important;
+    padding: 0 14px !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
     border-radius: 999px !important;
-    background: var(--bw-reviews-glass-bg) !important;
-    color: var(--bw-reviews-glass-text) !important;
-    backdrop-filter: blur(24px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-    box-shadow: var(--bw-reviews-glass-shadow) !important;
+    background: transparent !important;
+    color: #111111 !important;
     cursor: pointer !important;
-    transition: border-color var(--bw-reviews-transition), background-color var(--bw-reviews-transition), transform var(--bw-reviews-transition), box-shadow var(--bw-reviews-transition) !important;
+    transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-summary__trigger.is-static,
@@ -122,11 +119,11 @@
 
 .elementor-widget-bw-reviews .bw-reviews-summary__count,
 .bw-reviews-summary__count {
-    font-size: clamp(19px, 2vw, 24px) !important;
+    font-size: clamp(22px, 2.1vw, 28px) !important;
     line-height: 1.1 !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.02em !important;
-    color: var(--bw-reviews-glass-text) !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.03em !important;
+    color: #111111 !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-summary__chevron,
@@ -134,7 +131,7 @@
     display: inline-flex !important;
     width: 20px !important;
     height: 20px !important;
-    color: var(--bw-reviews-glass-text) !important;
+    color: #111111 !important;
     transition: transform var(--bw-reviews-transition) !important;
 }
 
@@ -164,16 +161,13 @@
     justify-content: center !important;
     min-height: 58px !important;
     padding: 0 28px !important;
-    border: 1px solid var(--bw-reviews-glass-border) !important;
-    border-radius: 999px !important;
-    background: var(--bw-reviews-glass-bg) !important;
-    color: var(--bw-reviews-glass-text) !important;
-    font-size: 18px !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
+    border-radius: 18px !important;
+    background: transparent !important;
+    color: #111111 !important;
+    font-size: 20px !important;
     line-height: 1 !important;
-    font-weight: 600 !important;
-    backdrop-filter: blur(24px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-    box-shadow: var(--bw-reviews-glass-shadow) !important;
+    font-weight: 500 !important;
     cursor: pointer !important;
     transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
 }
@@ -182,9 +176,7 @@
 .bw-reviews__write:hover,
 .elementor-widget-bw-reviews .bw-reviews-sort__trigger:hover,
 .bw-reviews-sort__trigger:hover {
-    background: linear-gradient(180deg, rgba(64, 64, 64, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%) !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
-    transform: translateY(-1px) !important;
+    background: rgba(17, 17, 17, 0.04) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-sort,
@@ -200,13 +192,9 @@
     width: 58px !important;
     min-width: 58px !important;
     height: 58px !important;
-    border: 1px solid var(--bw-reviews-glass-border) !important;
-    border-radius: 999px !important;
-    background: var(--bw-reviews-glass-bg) !important;
-    color: var(--bw-reviews-glass-text) !important;
-    backdrop-filter: blur(24px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-    box-shadow: var(--bw-reviews-glass-shadow) !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
+    border-radius: 18px !important;
+    color: #111111 !important;
     cursor: pointer !important;
     transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), opacity var(--bw-reviews-transition) !important;
 }
@@ -230,8 +218,10 @@
     right: 0 !important;
     z-index: 20 !important;
     display: grid !important;
-    min-width: 340px !important;
-    padding: 22px 18px !important;
+    gap: 8px !important;
+    width: min(420px, calc(100vw - 32px)) !important;
+    min-width: 0 !important;
+    padding: 24px 18px 18px !important;
     border: 1px solid var(--bw-reviews-glass-border) !important;
     border-radius: 30px !important;
     background: var(--bw-reviews-glass-bg) !important;
@@ -242,7 +232,7 @@
 
 .elementor-widget-bw-reviews .bw-reviews-sort__title,
 .bw-reviews-sort__title {
-    margin: 0 0 10px !important;
+    margin: 0 0 12px !important;
     padding: 0 10px !important;
     color: var(--bw-reviews-glass-text) !important;
     font-size: 18px !important;
@@ -257,10 +247,10 @@
     justify-content: space-between !important;
     gap: 18px !important;
     width: 100% !important;
-    min-height: 58px !important;
+    min-height: 54px !important;
     padding: 0 14px !important;
     border: 1px solid transparent !important;
-    border-radius: 18px !important;
+    border-radius: 24px !important;
     color: var(--bw-reviews-glass-text) !important;
     font-size: 18px !important;
     line-height: 1.3 !important;
@@ -271,14 +261,14 @@
 
 .elementor-widget-bw-reviews .bw-reviews-sort__option:hover,
 .bw-reviews-sort__option:hover {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-sort__option.is-selected,
 .bw-reviews-sort__option.is-selected {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-sort__check,
@@ -301,6 +291,7 @@
     gap: 18px !important;
     margin: 0 0 28px !important;
     padding: 30px 36px !important;
+    width: min(100%, calc(100vw - 32px)) !important;
     border-radius: 30px !important;
     background: var(--bw-reviews-glass-bg) !important;
     border: 1px solid var(--bw-reviews-glass-border) !important;
@@ -642,16 +633,13 @@
     justify-content: center !important;
     min-height: 58px !important;
     padding: 0 28px !important;
-    border: 1px solid var(--bw-reviews-glass-border) !important;
-    border-radius: 999px !important;
-    background: var(--bw-reviews-glass-bg) !important;
-    color: var(--bw-reviews-glass-text) !important;
+    border: 1px solid rgba(17, 17, 17, 0.2) !important;
+    border-radius: 18px !important;
+    background: transparent !important;
+    color: #111111 !important;
     font-size: 14px !important;
     line-height: 1 !important;
-    font-weight: 600 !important;
-    backdrop-filter: blur(24px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-    box-shadow: var(--bw-reviews-glass-shadow) !important;
+    font-weight: 500 !important;
     cursor: pointer !important;
     transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), color var(--bw-reviews-transition), opacity var(--bw-reviews-transition), transform var(--bw-reviews-transition) !important;
 }
@@ -660,9 +648,9 @@
 .bw-reviews__more:hover,
 .elementor-widget-bw-reviews .bw-reviews__more:focus-visible,
 .bw-reviews__more:focus-visible {
-    background: linear-gradient(180deg, rgba(64, 64, 64, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%) !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
-    color: var(--bw-reviews-glass-text) !important;
+    background: #111111 !important;
+    border-color: #111111 !important;
+    color: #ffffff !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-summary__trigger:focus,
@@ -688,7 +676,7 @@
 .elementor-widget-bw-reviews .bw-reviews-card__edit:focus-visible,
 .bw-reviews-card__edit:focus-visible {
     outline: none !important;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 0 0 4px rgba(0, 0, 0, 0.08), var(--bw-reviews-glass-shadow) !important;
+    box-shadow: none !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews__more[disabled],
