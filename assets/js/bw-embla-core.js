@@ -192,7 +192,21 @@
     };
 
     BWEmblaCore.prototype._onReInit = function () {
-        // Aggiorna dots se i snap sono cambiati (es. resize)
+        // Se il numero di snap è cambiato (es. slidesToScroll diverso per breakpoint)
+        // i dot esistenti sono sbagliati: li ricostruiamo da zero prima di aggiornare.
+        if (this._dotsList && this._feat.dotsContainer) {
+            var newSnaps = this._embla.scrollSnapList();
+            if (newSnaps.length !== this._dotsNodes.length) {
+                if (this._dotsList.parentNode) {
+                    this._dotsList.parentNode.removeChild(this._dotsList);
+                }
+                this._dotsList  = null;
+                this._dotsNodes = [];
+                this._setupDots();      // chiama internamente _updateDots()
+                this._updateArrowState();
+                return;
+            }
+        }
         this._updateDots();
         this._updateArrowState();
     };

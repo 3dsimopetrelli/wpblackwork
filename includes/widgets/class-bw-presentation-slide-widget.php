@@ -475,7 +475,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
-                'description'  => __( 'Switch to Slick slider layout on mobile/tablet', 'bw-elementor-widgets' ),
+                'description'  => __( 'Switch to Embla slider layout on mobile/tablet', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -688,7 +688,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-arrow' => 'font-size: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-ps-arrow svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -1164,8 +1164,12 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             </div>
 
             <div class="bw-ps-arrows-container">
-                <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">&#8592;</button>
-                <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">&#8594;</button>
+                <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 8L2 12L6 16"/><path d="M2 12H22"/></svg>
+                </button>
+                <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg>
+                </button>
             </div>
 
             <!-- Container dots: BWEmblaCore inietta la <ul> qui -->
@@ -1251,9 +1255,63 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
+     * Genera CSS scoped per il breakpoint responsivo del layout verticale.
+     *
+     * Il CSS statico in bw-presentation-slide.css hardcoda 1024px per il
+     * vertical switch desktop→responsive. Se l'utente configura un breakpoint
+     * diverso, il CSS statico e il JS si discordano: il CSS mostra la versione
+     * responsive (senza Embla inizializzata) a dimensioni diverse da quelle
+     * attese dal JS. Questo metodo emette regole scoped con il breakpoint
+     * corretto, con specificità più alta di quella statica (.elementor-element-X
+     * vs selettore generico), sovrascrivendo il 1024px fisso.
+     *
+     * Emette sia max-width (responsive visible) sia min-width (desktop visible)
+     * per coprire tutti i casi, inclusa la discesa da 27" a mobile.
+     */
+    protected function render_vertical_responsive_css( $settings ) {
+        $breakpoint = absint( $settings['responsive_breakpoint'] ?? 1024 );
+        if ( $breakpoint <= 0 ) {
+            return;
+        }
+
+        $widget_id  = $this->get_id();
+        $prefix     = '.elementor-element-' . esc_attr( $widget_id );
+        $sel_thumbs = $prefix . ' .bw-ps-vertical .bw-ps-thumbnails';
+        $sel_main   = $prefix . ' .bw-ps-vertical .bw-ps-main-images';
+        $sel_resp   = $prefix . ' .bw-ps-vertical .bw-ps-vertical-responsive';
+
+        $enable_responsive = ( $settings['enable_responsive_mode'] ?? '' ) === 'yes';
+
+        $css = '<style>';
+
+        if ( $enable_responsive ) {
+            // Sotto il breakpoint: mostra responsive, nascondi desktop
+            $css .= '@media (max-width:' . $breakpoint . 'px){';
+            $css .= $sel_thumbs . ',' . $sel_main . '{display:none!important;}';
+            $css .= $sel_resp . '{display:block!important;}';
+            $css .= '}';
+            // Sopra il breakpoint: mostra desktop, nascondi responsive
+            // (sovrascrive il 1024px fisso del CSS statico se bp < 1024)
+            $css .= '@media (min-width:' . ( $breakpoint + 1 ) . 'px){';
+            $css .= $sel_resp . '{display:none!important;}';
+            $css .= '}';
+        } else {
+            // Responsive mode disabilitato: il div responsive resta sempre nascosto,
+            // anche a ≤1024px dove il CSS statico lo mostrerebbe con display:block !important
+            $css .= $sel_resp . '{display:none!important;}';
+        }
+
+        $css .= '</style>';
+
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo $css;
+    }
+
+    /**
      * Render vertical layout
      */
     protected function render_vertical_layout( $images, $settings ) {
+        $this->render_vertical_responsive_css( $settings );
         ?>
         <div class="bw-ps-vertical">
             <?php if ( $settings['enable_thumbnails'] === 'yes' ) : ?>
