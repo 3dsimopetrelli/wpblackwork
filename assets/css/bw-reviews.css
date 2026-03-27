@@ -237,6 +237,18 @@
     backdrop-filter: blur(28px) saturate(135%) !important;
     -webkit-backdrop-filter: blur(28px) saturate(135%) !important;
     box-shadow: var(--bw-reviews-glass-shadow) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(10px) scale(0.985) !important;
+    transition: opacity 220ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    will-change: opacity, transform !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-sort__menu.is-open,
+.bw-reviews-sort__menu.is-open {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-sort__title,

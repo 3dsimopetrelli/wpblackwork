@@ -795,13 +795,51 @@
             const expanded = 'true' === String(this.$sortTrigger.attr('aria-expanded'));
             window.BWReviews.closeAllSortMenus(this.instanceId);
             window.BWReviews.closeAllBreakdowns();
-            this.$sortTrigger.attr('aria-expanded', expanded ? 'false' : 'true');
-            this.$sortMenu.prop('hidden', expanded);
+
+            if (expanded) {
+                this.closeSortMenu();
+                return;
+            }
+
+            this.openSortMenu();
+        }
+
+        openSortMenu() {
+            if (!this.$sortMenu.length) {
+                return;
+            }
+
+            this.$sortTrigger.attr('aria-expanded', 'true');
+            this.$sortMenu.off('transitionend.bwReviewsSort');
+            this.$sortMenu.prop('hidden', false);
+            this.$sortMenu.get(0).offsetHeight;
+
+            window.requestAnimationFrame(() => {
+                this.$sortMenu.addClass('is-open');
+            });
         }
 
         closeSortMenu() {
+            if (!this.$sortMenu.length) {
+                return;
+            }
+
             this.$sortTrigger.attr('aria-expanded', 'false');
-            this.$sortMenu.prop('hidden', true);
+
+            if (this.$sortMenu.prop('hidden')) {
+                return;
+            }
+
+            this.$sortMenu.off('transitionend.bwReviewsSort');
+            this.$sortMenu.removeClass('is-open');
+            this.$sortMenu.one('transitionend.bwReviewsSort', (event) => {
+                const propertyName = event.originalEvent ? event.originalEvent.propertyName : '';
+                if (propertyName && 'opacity' !== propertyName && 'transform' !== propertyName) {
+                    return;
+                }
+
+                this.$sortMenu.prop('hidden', true);
+            });
         }
 
         syncSortUi() {
