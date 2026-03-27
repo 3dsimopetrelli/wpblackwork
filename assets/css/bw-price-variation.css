@@ -449,6 +449,7 @@
 	border-radius: 50px;
 	color: #000000;
 	text-decoration: none;
+	transition: background-color 0.18s ease;
 }
 
 .bw-price-variation__faq-button:hover,

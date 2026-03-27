@@ -111,7 +111,7 @@
     min-height: 48px !important;
     padding: 0 14px !important;
     border: 0 !important;
-    border-radius: 999px !important;
+    border-radius: 50px !important;
     background: transparent !important;
     color: #111111 !important;
     cursor: pointer !important;
@@ -171,7 +171,7 @@
     min-height: 58px !important;
     padding: 0 28px !important;
     border: 1px solid rgba(17, 17, 17, 0.2) !important;
-    border-radius: 8px !important;
+    border-radius: 50px !important;
     background: transparent !important;
     color: #111111 !important;
     font-size: 20px !important;
@@ -202,7 +202,7 @@
     min-width: 58px !important;
     height: 58px !important;
     border: 1px solid rgba(17, 17, 17, 0.2) !important;
-    border-radius: 8px !important;
+    border-radius: 50px !important;
     color: #111111 !important;
     cursor: pointer !important;
     transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), opacity var(--bw-reviews-transition) !important;
