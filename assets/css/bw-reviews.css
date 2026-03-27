@@ -35,6 +35,31 @@
     font-family: var(--bw-reviews-sans) !important;
 }
 
+.bw-reviews-focus-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9990 !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(18px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(120%) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 240ms ease, visibility 0s linear 240ms !important;
+}
+
+.bw-reviews-focus-backdrop.is-active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition: opacity 240ms ease, visibility 0s linear 0s !important;
+}
+
+body.bw-reviews-focus-active .bw-reviews.has-focus-panel {
+    position: relative !important;
+    z-index: 10000 !important;
+}
+
 .elementor-widget-bw-reviews .bw-reviews *,
 .bw-reviews *,
 .bw-reviews-modal *,
@@ -776,8 +801,9 @@
 .bw-reviews-modal__backdrop {
     position: absolute !important;
     inset: 0 !important;
-    background: rgba(0, 0, 0, 0.72) !important;
-    backdrop-filter: blur(5px) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(18px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(120%) !important;
     opacity: 0 !important;
     transition: opacity 240ms ease !important;
 }

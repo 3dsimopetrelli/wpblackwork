@@ -759,6 +759,7 @@
 
             window.requestAnimationFrame(() => {
                 $breakdown.addClass('is-open');
+                window.BWReviews.syncBackdropState();
             });
         }
 
@@ -772,10 +773,13 @@
             this.$summaryTrigger.attr('aria-expanded', 'false');
 
             if ($breakdown.prop('hidden')) {
+                this.$root.removeClass('has-focus-panel');
+                window.BWReviews.syncBackdropState();
                 return;
             }
 
             $breakdown.removeClass('is-open');
+            window.BWReviews.syncBackdropState();
 
             $breakdown.one('transitionend.bwReviewsBreakdown', (event) => {
                 const propertyName = event.originalEvent ? event.originalEvent.propertyName : '';
@@ -784,6 +788,7 @@
                 }
 
                 $breakdown.prop('hidden', true);
+                window.BWReviews.syncBackdropState();
             });
         }
 
@@ -816,6 +821,7 @@
 
             window.requestAnimationFrame(() => {
                 this.$sortMenu.addClass('is-open');
+                window.BWReviews.syncBackdropState();
             });
         }
 
@@ -827,11 +833,14 @@
             this.$sortTrigger.attr('aria-expanded', 'false');
 
             if (this.$sortMenu.prop('hidden')) {
+                this.$root.removeClass('has-focus-panel');
+                window.BWReviews.syncBackdropState();
                 return;
             }
 
             this.$sortMenu.off('transitionend.bwReviewsSort');
             this.$sortMenu.removeClass('is-open');
+            window.BWReviews.syncBackdropState();
             this.$sortMenu.one('transitionend.bwReviewsSort', (event) => {
                 const propertyName = event.originalEvent ? event.originalEvent.propertyName : '';
                 if (propertyName && 'opacity' !== propertyName && 'transform' !== propertyName) {
@@ -839,6 +848,7 @@
                 }
 
                 this.$sortMenu.prop('hidden', true);
+                window.BWReviews.syncBackdropState();
             });
         }
 
@@ -1054,6 +1064,42 @@
                 controller.closeBreakdown();
             }
         });
+    };
+
+    BWReviews.ensureFocusBackdrop = function () {
+        if (this.$focusBackdrop && this.$focusBackdrop.length) {
+            return this.$focusBackdrop;
+        }
+
+        this.$focusBackdrop = $('<div class="bw-reviews-focus-backdrop" aria-hidden="true"></div>');
+        $('body').append(this.$focusBackdrop);
+
+        this.$focusBackdrop.on('click.bwReviewsFocus', () => {
+            this.closeAllSortMenus();
+            this.closeAllBreakdowns();
+        });
+
+        return this.$focusBackdrop;
+    };
+
+    BWReviews.syncBackdropState = function () {
+        const $backdrop = this.ensureFocusBackdrop();
+        let hasActivePanel = false;
+
+        this.registry.forEach((controller) => {
+            const hasOpenSort = !!(controller.$sortMenu && controller.$sortMenu.length && controller.$sortMenu.hasClass('is-open'));
+            const hasOpenBreakdown = !!(controller.$breakdown && controller.$breakdown.length && controller.$breakdown.hasClass('is-open'));
+            const isActive = hasOpenSort || hasOpenBreakdown;
+
+            controller.$root.toggleClass('has-focus-panel', isActive);
+
+            if (isActive) {
+                hasActivePanel = true;
+            }
+        });
+
+        $backdrop.toggleClass('is-active', hasActivePanel);
+        $('body').toggleClass('bw-reviews-focus-active', hasActivePanel);
     };
 
     BWReviews.bindGlobalEvents = function () {
