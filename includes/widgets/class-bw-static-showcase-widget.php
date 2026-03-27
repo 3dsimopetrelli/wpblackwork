@@ -636,6 +636,8 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $container_style = esc_attr(
             '--bw-slide-showcase-text-color: ' . $meta_color . '; --bw-slide-showcase-badge-border-color: ' . $meta_color . ';'
         );
+        $bottom_info_style = esc_attr( 'color: ' . $meta_color . ';' );
+        $badge_style       = esc_attr( 'color: ' . $meta_color . '; border-color: ' . $meta_color . ';' );
 
         // Shared attributes for lazy images
         $img_style = $this->build_image_style( $object_fit );
@@ -676,28 +678,28 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 <?php if ( $has_bottom_info || $has_cta ) : ?>
                     <div class="bw-slide-showcase-bottom-section">
                         <?php if ( $has_bottom_info ) : ?>
-                            <div class="bw-slide-showcase-info">
+                            <div class="bw-slide-showcase-info" style="<?php echo $bottom_info_style; ?>">
                                 <?php if ( 'digital' === $product_type_value ) : ?>
                                     <?php if ( $assets_display ) : ?>
-                                        <div class="bw-slide-showcase-info-item"><?php echo esc_html( $assets_display ); ?></div>
+                                        <div class="bw-slide-showcase-info-item" style="<?php echo $bottom_info_style; ?>"><?php echo esc_html( $assets_display ); ?></div>
                                     <?php endif; ?>
                                     <?php if ( $size_display ) : ?>
-                                        <div class="bw-slide-showcase-info-item"><?php echo esc_html( $size_display ); ?></div>
+                                        <div class="bw-slide-showcase-info-item" style="<?php echo $bottom_info_style; ?>"><?php echo esc_html( $size_display ); ?></div>
                                     <?php endif; ?>
                                     <?php if ( ! empty( $format_badges ) ) : ?>
-                                        <div class="bw-slide-showcase-badges">
+                                        <div class="bw-slide-showcase-badges" style="<?php echo $bottom_info_style; ?>">
                                             <?php foreach ( $format_badges as $format_badge ) : ?>
-                                                <span class="bw-slide-showcase-badge"><?php echo esc_html( $format_badge ); ?></span>
+                                                <span class="bw-slide-showcase-badge" style="<?php echo $badge_style; ?>"><?php echo esc_html( $format_badge ); ?></span>
                                             <?php endforeach; ?>
                                         </div>
                                     <?php endif; ?>
                                 <?php elseif ( 'physical' === $product_type_value ) : ?>
-                                    <div class="bw-slide-showcase-physical">
+                                    <div class="bw-slide-showcase-physical" style="<?php echo $bottom_info_style; ?>">
                                         <?php if ( '' !== $info_1_display ) : ?>
-                                            <div class="bw-slide-showcase-info-item"><?php echo esc_html( $info_1_display ); ?></div>
+                                            <div class="bw-slide-showcase-info-item" style="<?php echo $bottom_info_style; ?>"><?php echo esc_html( $info_1_display ); ?></div>
                                         <?php endif; ?>
                                         <?php if ( '' !== $info_2_display ) : ?>
-                                            <div class="bw-slide-showcase-info-item"><?php echo esc_html( $info_2_display ); ?></div>
+                                            <div class="bw-slide-showcase-info-item" style="<?php echo $bottom_info_style; ?>"><?php echo esc_html( $info_2_display ); ?></div>
                                         <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
