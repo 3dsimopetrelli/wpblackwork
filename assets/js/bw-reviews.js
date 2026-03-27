@@ -716,12 +716,14 @@
         }
 
         handleDocumentClick(target) {
-            if (!this.$sortMenu.length || this.$sortMenu.prop('hidden')) {
-                return;
+            const $target = $(target);
+
+            if (this.$sortMenu.length && !this.$sortMenu.prop('hidden') && !$target.closest(this.$root.find('.bw-reviews-sort')).length) {
+                this.closeSortMenu();
             }
 
-            if (!$(target).closest(this.$root.find('.bw-reviews-sort')).length) {
-                this.closeSortMenu();
+            if (this.$breakdown.length && this.$breakdown.hasClass('is-collapsible') && !this.$breakdown.prop('hidden') && !$target.closest(this.$root.find('.bw-reviews-summary')).length) {
+                this.closeBreakdown();
             }
         }
 
@@ -735,10 +737,13 @@
             this.$summaryTrigger.attr('aria-expanded', expanded ? 'false' : 'true');
 
             if (expanded) {
-                this.closeBreakdown(element);
+                this.closeBreakdown();
                 return;
             }
 
+            this.$sortTrigger.attr('aria-expanded', 'false');
+            this.closeSortMenu();
+            window.BWReviews.closeAllBreakdowns(this.instanceId);
             this.openBreakdown(element);
         }
 
@@ -749,49 +754,36 @@
 
             const $breakdown = this.$breakdown;
             $breakdown.off('transitionend.bwReviewsBreakdown');
-            $breakdown.addClass('is-open is-animating');
-
-            element.style.height = 'auto';
-            const targetHeight = element.scrollHeight;
-            element.style.height = '0px';
+            $breakdown.prop('hidden', false);
             element.offsetHeight;
 
             window.requestAnimationFrame(() => {
-                element.style.height = targetHeight + 'px';
-            });
-
-            $breakdown.one('transitionend.bwReviewsBreakdown', (event) => {
-                if (event.originalEvent && 'height' !== event.originalEvent.propertyName) {
-                    return;
-                }
-
-                $breakdown.removeClass('is-animating');
-                element.style.height = 'auto';
+                $breakdown.addClass('is-open');
             });
         }
 
-        closeBreakdown(element) {
-            if (!element) {
+        closeBreakdown() {
+            if (!this.$breakdown.length) {
                 return;
             }
 
             const $breakdown = this.$breakdown;
             $breakdown.off('transitionend.bwReviewsBreakdown');
+            this.$summaryTrigger.attr('aria-expanded', 'false');
 
-            element.style.height = element.scrollHeight + 'px';
-            element.offsetHeight;
-            $breakdown.addClass('is-animating').removeClass('is-open');
+            if ($breakdown.prop('hidden')) {
+                return;
+            }
 
-            window.requestAnimationFrame(() => {
-                element.style.height = '0px';
-            });
+            $breakdown.removeClass('is-open');
 
             $breakdown.one('transitionend.bwReviewsBreakdown', (event) => {
-                if (event.originalEvent && 'height' !== event.originalEvent.propertyName) {
+                const propertyName = event.originalEvent ? event.originalEvent.propertyName : '';
+                if (propertyName && 'opacity' !== propertyName && 'transform' !== propertyName) {
                     return;
                 }
 
-                $breakdown.removeClass('is-animating');
+                $breakdown.prop('hidden', true);
             });
         }
 
@@ -802,6 +794,7 @@
 
             const expanded = 'true' === String(this.$sortTrigger.attr('aria-expanded'));
             window.BWReviews.closeAllSortMenus(this.instanceId);
+            window.BWReviews.closeAllBreakdowns();
             this.$sortTrigger.attr('aria-expanded', expanded ? 'false' : 'true');
             this.$sortMenu.prop('hidden', expanded);
         }
@@ -1017,6 +1010,14 @@
         });
     };
 
+    BWReviews.closeAllBreakdowns = function (exceptInstanceId) {
+        this.registry.forEach((controller, instanceId) => {
+            if (!exceptInstanceId || instanceId !== exceptInstanceId) {
+                controller.closeBreakdown();
+            }
+        });
+    };
+
     BWReviews.bindGlobalEvents = function () {
         if (this.globalEventsBound) {
             return;
@@ -1030,6 +1031,7 @@
 
         $(window).on('scroll.bwReviewsGlobal', () => {
             this.closeAllSortMenus();
+            this.closeAllBreakdowns();
         });
 
         this.globalEventsBound = true;

@@ -66,6 +66,15 @@
     margin-bottom: 18px !important;
 }
 
+.elementor-widget-bw-reviews .bw-reviews-summary,
+.bw-reviews-summary {
+    position: relative !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    flex-shrink: 0 !important;
+}
+
 .elementor-widget-bw-reviews .bw-reviews-summary__trigger,
 .bw-reviews-summary__trigger,
 .elementor-widget-bw-reviews .bw-reviews__write,
@@ -310,33 +319,23 @@
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown.is-collapsible,
 .bw-reviews-breakdown.is-collapsible {
-    height: 0;
-    opacity: 0 !important;
-    overflow: hidden !important;
-    margin-bottom: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-color: transparent !important;
+    position: absolute !important;
+    top: calc(100% + 12px) !important;
+    left: 0 !important;
+    z-index: 20 !important;
+    margin: 0 !important;
     pointer-events: none !important;
-    transform: translateY(-10px) scale(0.985) !important;
-    transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1), margin-bottom 320ms ease, padding-top 320ms ease, padding-bottom 320ms ease, border-color 240ms ease !important;
-    will-change: height, opacity, transform !important;
+    opacity: 0 !important;
+    transform: translateY(10px) scale(0.985) !important;
+    transition: opacity 220ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    will-change: opacity, transform !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown.is-collapsible.is-open,
 .bw-reviews-breakdown.is-collapsible.is-open {
     opacity: 1 !important;
-    margin-bottom: 28px !important;
-    padding-top: 24px !important;
-    padding-bottom: 18px !important;
-    border-color: var(--bw-reviews-glass-border) !important;
     pointer-events: auto !important;
     transform: translateY(0) scale(1) !important;
-}
-
-.elementor-widget-bw-reviews .bw-reviews-breakdown.is-collapsible.is-animating,
-.bw-reviews-breakdown.is-collapsible.is-animating {
-    overflow: hidden !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown__summary,
@@ -351,14 +350,14 @@
 .elementor-widget-bw-reviews .bw-reviews-breakdown__summary-star,
 .bw-reviews-breakdown__summary-star {
     color: var(--bw-reviews-accent) !important;
-    font-size: clamp(52px, 8vw, 66px) !important;
+    font-size: clamp(26px, 4vw, 34px) !important;
     line-height: 1 !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-breakdown__summary-score,
 .bw-reviews-breakdown__summary-score {
     color: var(--bw-reviews-glass-text) !important;
-    font-size: clamp(56px, 8.6vw, 74px) !important;
+    font-size: clamp(28px, 4.2vw, 36px) !important;
     line-height: 1 !important;
     font-weight: 600 !important;
     letter-spacing: -0.05em !important;
@@ -403,7 +402,7 @@
 .elementor-widget-bw-reviews .bw-reviews-breakdown.is-collapsible .bw-reviews-breakdown__bar span,
 .bw-reviews-breakdown.is-collapsible .bw-reviews-breakdown__bar span {
     transform: scaleX(0) !important;
-    transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1) 90ms !important;
     will-change: transform !important;
 }
 
@@ -1206,7 +1205,7 @@ body.bw-reviews-modal-open {
 @media (max-width: 1200px) {
     .elementor-widget-bw-reviews .bw-reviews-breakdown__row,
     .bw-reviews-breakdown__row {
-        grid-template-columns: 180px minmax(0, 1fr) auto !important;
+        grid-template-columns: 96px minmax(0, 1fr) auto !important;
     }
 
     .bw-reviews-modal__inner {
@@ -1220,6 +1219,11 @@ body.bw-reviews-modal-open {
     .bw-reviews__header {
         flex-direction: column !important;
         align-items: stretch !important;
+    }
+
+    .elementor-widget-bw-reviews .bw-reviews-summary,
+    .bw-reviews-summary {
+        align-self: flex-start !important;
     }
 
     .elementor-widget-bw-reviews .bw-reviews-controls,
@@ -1261,6 +1265,11 @@ body.bw-reviews-modal-open {
     .bw-reviews-summary__trigger {
         flex-wrap: wrap !important;
         row-gap: 10px !important;
+    }
+
+    .elementor-widget-bw-reviews .bw-reviews-summary,
+    .bw-reviews-summary {
+        width: 100% !important;
     }
 
     .elementor-widget-bw-reviews .bw-reviews-summary__count,
