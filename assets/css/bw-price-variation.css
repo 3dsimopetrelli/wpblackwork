@@ -453,8 +453,9 @@
 
 .bw-price-variation__faq-button:hover,
 .bw-price-variation__faq-button:focus {
+	background-color: #ebebeb;
 	color: #000000;
-	opacity: 0.82;
+	opacity: 1;
 	text-decoration: none;
 }
 
