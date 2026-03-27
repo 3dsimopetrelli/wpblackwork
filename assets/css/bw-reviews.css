@@ -198,11 +198,14 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    flex: 0 0 58px !important;
     width: 58px !important;
     min-width: 58px !important;
     height: 58px !important;
+    padding: 0 !important;
+    aspect-ratio: 1 / 1 !important;
     border: 1px solid rgba(17, 17, 17, 0.2) !important;
-    border-radius: 50px !important;
+    border-radius: 999px !important;
     color: #111111 !important;
     cursor: pointer !important;
     transition: background-color var(--bw-reviews-transition), border-color var(--bw-reviews-transition), opacity var(--bw-reviews-transition) !important;
