@@ -414,6 +414,11 @@
             void header.offsetHeight;
             header.style.transition = '';
             isHidden = false;
+            // Force immediate colour check: if we arrived at the top while the
+            // header was hidden, the scroll-handler check (line ~426) was skipped.
+            // forceImmediate=true bypasses the 150ms debounce so the class is
+            // corrected in the same frame.
+            checkDarkZoneOverlap(header, null, true);
         }
 
         function onScroll() {
