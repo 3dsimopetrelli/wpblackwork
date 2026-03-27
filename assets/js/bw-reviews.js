@@ -727,6 +727,116 @@
             }
         }
 
+        shouldAutoRepositionPanels() {
+            return window.matchMedia && window.matchMedia('(min-width: 1025px)').matches;
+        }
+
+        getViewportAnchorY() {
+            return Math.round(window.innerHeight * 0.34);
+        }
+
+        needsViewportReposition(element) {
+            if (!element || !this.shouldAutoRepositionPanels()) {
+                return false;
+            }
+
+            const rect = element.getBoundingClientRect();
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const anchorY = this.getViewportAnchorY();
+            const tolerance = 40;
+
+            return rect.top > anchorY + tolerance || rect.bottom > viewportHeight - 140;
+        }
+
+        getFixedTopOffset() {
+            let offset = 0;
+            const adminBar = document.getElementById('wpadminbar');
+
+            if (adminBar) {
+                const adminBarRect = adminBar.getBoundingClientRect();
+                if (adminBarRect.top <= 0) {
+                    offset += adminBarRect.height;
+                }
+            }
+
+            const fixedHeader = document.querySelector('.bw-custom-header');
+            if (fixedHeader) {
+                const headerRect = fixedHeader.getBoundingClientRect();
+                if (headerRect.top <= 0) {
+                    offset += headerRect.height;
+                }
+            }
+
+            return offset;
+        }
+
+        scrollElementIntoFocus(element, onComplete) {
+            if (!element || !this.needsViewportReposition(element)) {
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
+                return;
+            }
+
+            const rect = element.getBoundingClientRect();
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop || 0;
+            const fixedOffset = this.getFixedTopOffset();
+            const anchorY = Math.max(fixedOffset + 24, this.getViewportAnchorY());
+            const documentHeight = Math.max(
+                document.body.scrollHeight,
+                document.documentElement.scrollHeight,
+                document.body.offsetHeight,
+                document.documentElement.offsetHeight
+            );
+            const maxScroll = Math.max(0, documentHeight - window.innerHeight);
+            const targetScroll = Math.max(0, Math.min(maxScroll, currentScroll + rect.top - anchorY));
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (Math.abs(targetScroll - currentScroll) < 8) {
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
+                return;
+            }
+
+            let settledFrames = 0;
+            let frameId = 0;
+            const startTime = Date.now();
+            const finish = () => {
+                if (frameId) {
+                    window.cancelAnimationFrame(frameId);
+                }
+
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
+            };
+            const watchScroll = () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+                const isSettled = Math.abs(scrollTop - targetScroll) < 3;
+                settledFrames = isSettled ? settledFrames + 1 : 0;
+
+                if (settledFrames >= 3 || Date.now() - startTime > 900) {
+                    finish();
+                    return;
+                }
+
+                frameId = window.requestAnimationFrame(watchScroll);
+            };
+
+            window.scrollTo({
+                top: targetScroll,
+                behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            });
+
+            if (prefersReducedMotion) {
+                finish();
+                return;
+            }
+
+            frameId = window.requestAnimationFrame(watchScroll);
+        }
+
         toggleBreakdown() {
             if (!this.$breakdown.length || this.$summaryTrigger.is(':disabled')) {
                 return;
@@ -734,7 +844,6 @@
 
             const element = this.$breakdown.get(0);
             const expanded = 'true' === String(this.$summaryTrigger.attr('aria-expanded'));
-            this.$summaryTrigger.attr('aria-expanded', expanded ? 'false' : 'true');
 
             if (expanded) {
                 this.closeBreakdown();
@@ -744,7 +853,9 @@
             this.$sortTrigger.attr('aria-expanded', 'false');
             this.closeSortMenu();
             window.BWReviews.closeAllBreakdowns(this.instanceId);
-            this.openBreakdown(element);
+            this.scrollElementIntoFocus(this.$summaryTrigger.get(0), () => {
+                this.openBreakdown(element);
+            });
         }
 
         openBreakdown(element) {
@@ -753,6 +864,7 @@
             }
 
             const $breakdown = this.$breakdown;
+            this.$summaryTrigger.attr('aria-expanded', 'true');
             $breakdown.off('transitionend.bwReviewsBreakdown');
             $breakdown.prop('hidden', false);
             element.offsetHeight;
@@ -806,7 +918,9 @@
                 return;
             }
 
-            this.openSortMenu();
+            this.scrollElementIntoFocus(this.$sortTrigger.get(0), () => {
+                this.openSortMenu();
+            });
         }
 
         openSortMenu() {
