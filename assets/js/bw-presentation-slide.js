@@ -42,6 +42,9 @@
             this._sortedBreakpoints    = [];
             this._lastBreakpointIndex  = undefined; // track active bp for Embla reInit
 
+            // Wheel handler reference for cleanup (mouse/trackpad drag on desktop)
+            this._wheelHandler = null;
+
             // Body scroll lock state (iOS-safe popup scroll locking)
             this._savedScrollY = 0;
 
@@ -96,22 +99,24 @@
             const nextBtn    = this.$wrapper.find('.bw-ps-arrow-next')[0];
             const dotsCont   = this.$wrapper.find('.bw-ps-dots-container')[0];
 
+            // Salva riferimento al viewport per _loadAdjacentSlides e _updateEmblaBreakpointOptions
+            this._emblaViewport = viewport;
+
             // Loop + center: the last slide is rendered to the LEFT of the first
-            // slide and is immediately visible. Preload it via <link rel="preload">
-            // so it downloads with high priority concurrently with slide 0/1,
-            // regardless of whether the HTML has loading="eager" or "lazy"
-            // (page-cache may serve stale HTML with the old lazy attribute).
+            // slide and is immediately visible. PHP marks it eager, but as a safety
+            // net for cached pages inject a <link rel="preload"> if not yet loaded.
+            // Handles both src (eager PHP) and data-bw-src (stale cache fallback).
             if (hCfg.infinite && (hCfg.align || 'start') === 'center') {
                 const $lastImg = this.$wrapper.find('.bw-ps-image img').last();
                 if ($lastImg.length && !$lastImg[0].complete) {
-                    const src    = $lastImg.attr('src');
-                    const srcset = $lastImg.attr('srcset');
-                    const sizes  = $lastImg.attr('sizes');
+                    const src    = $lastImg.attr('src') || $lastImg.data('bw-src');
+                    const srcset = $lastImg.attr('srcset') || $lastImg.data('bw-srcset');
+                    const sizes  = $lastImg.attr('sizes')  || $lastImg.data('bw-sizes');
                     if (src) {
-                        const link        = document.createElement('link');
-                        link.rel          = 'preload';
-                        link.as           = 'image';
-                        link.href         = src;
+                        const link         = document.createElement('link');
+                        link.rel           = 'preload';
+                        link.as            = 'image';
+                        link.href          = src;
                         link.fetchPriority = 'high';
                         if (srcset) link.setAttribute('imagesrcset', srcset);
                         if (sizes)  link.setAttribute('imagesizes',  sizes);
@@ -131,12 +136,15 @@
             } : false;
 
             const globalAlign     = hCfg.align || 'start';
-            // enableTouchDrag: quando false, il drag via touch/pen (mobile & tablet) è disabilitato.
-            // Il mouse (desktop) funziona sempre indipendentemente da questa impostazione.
-            // Embla watchDrag API: https://www.embla-carousel.com/api/options/#watchdrag
-            // Il callback riceve (emblaApi, PointerEvent). PointerEvent.pointerType può essere
-            // 'mouse' (desktop), 'touch' (touchscreen) o 'pen' (stilo).
+            // Embla watchDrag: combine touch + mouse toggles
+            // PointerEvent.pointerType: 'mouse' (desktop), 'touch' (touchscreen), 'pen' (stylus)
             const enableTouchDrag = hCfg.enableTouchDrag !== false; // default true
+            const enableMouseDrag = hCfg.enableMouseDrag !== false; // default true
+            let watchDrag;
+            if (enableTouchDrag && enableMouseDrag)        watchDrag = true;
+            else if (!enableTouchDrag && !enableMouseDrag) watchDrag = false;
+            else if (enableMouseDrag)                      watchDrag = (_api, evt) => evt.pointerType === 'mouse';
+            else                                           watchDrag = (_api, evt) => evt.pointerType !== 'mouse';
 
             const emblaOptions = {
                 loop:           hCfg.infinite === true,
@@ -145,11 +153,7 @@
                 slidesToScroll: 1,
                 dragFree:       hCfg.dragFree === true,
                 watchResize:    true,
-                // watchDrag: true   → tutti i pointer types possono trascinare (default)
-                // watchDrag: fn     → solo 'mouse' può trascinare (touch/pen bloccati)
-                watchDrag: enableTouchDrag
-                    ? true
-                    : (_emblaApi, evt) => evt.pointerType === 'mouse',
+                watchDrag,
             };
 
             // Cache selectors prima di init() perché onSelect può essere chiamata durante init()
@@ -162,7 +166,12 @@
                 dotsContainer:  dotsCont,
                 dotsPosition:   dotsPos,
                 autoplay:       autoplayOpts,
-                onSelect:       () => this._updateImageHeightControls(),
+                onSelect: () => {
+                    this._updateImageHeightControls();
+                    // Attiva il download delle slide adiacenti a quella corrente
+                    const coreApi = this.emblaCore ? this.emblaCore.api() : null;
+                    if (coreApi) this._loadAdjacentSlides(this._emblaViewport, coreApi);
+                },
             });
 
             const api = this.emblaCore.init();
@@ -198,6 +207,22 @@
             // Image-height mode + opzioni Embla (ancora JS: non gestibili solo da CSS)
             this._updateImageHeightControls();
             this._updateEmblaBreakpointOptions();
+
+            // Trackpad/mouse wheel handler (desktop only)
+            if (enableMouseDrag) {
+                this._attachWheelHandler();
+            }
+
+            // Chiamata esplicita post-init con rAF: garantisce che il browser abbia
+            // calcolato il layout prima di interrogare slidesInView(). La chiamata
+            // dentro onSelect (durante BWEmblaCore.init()) è sincrona e potrebbe
+            // vedere dimensioni ancora a 0 se il CSS non era ancora applicato.
+            // Il check img.getAttribute('src') !== null evita download doppi.
+            requestAnimationFrame(() => {
+                if (this._emblaViewport && this.emblaCore) {
+                    this._loadAdjacentSlides(this._emblaViewport, this.emblaCore.api());
+                }
+            });
 
             // Aggiorna on resize (debounced: evita esecuzione per ogni pixel)
             $(window).on(`resize.bwps-${this.widgetId}`, debounce(() => {
@@ -482,6 +507,74 @@
         }
 
         /* ────────────────────────────────────────────
+           TRACKPAD / MOUSE WHEEL — horizontal swipe
+        ──────────────────────────────────────────── */
+
+        _attachWheelHandler() {
+            const wrapper = this.$wrapper[0];
+            let _wheelEndTimer = null;
+
+            this._wheelHandler = (evt) => {
+                // Only intercept gestures that originate inside this carousel
+                if (!wrapper.contains(evt.target)) return;
+                // Ignore vertical-dominant gestures (page scroll)
+                if (Math.abs(evt.deltaX) <= Math.abs(evt.deltaY)) return;
+
+                const emblaApi = this.emblaCore?.api();
+                if (!emblaApi) return;
+
+                // If Embla is already handling a pointer drag (touch/mouse),
+                // skip the wheel handler to avoid double-movement on devices
+                // that fire both pointer and wheel events for the same gesture.
+                if (emblaApi.isDragging?.()) return;
+
+                // Block browser back/forward navigation triggered by horizontal swipe
+                evt.preventDefault();
+
+                // Normalize delta: trackpads = px (deltaMode 0), wheels = lines/pages
+                let dx = evt.deltaX;
+                if (evt.deltaMode === 1) dx *= 20;
+                if (evt.deltaMode === 2) dx *= 200;
+                dx *= 3; // amplify for responsive feel
+
+                // Drive Embla's internal scroll target pixel-by-pixel — fluid, drag-free feel
+                const engine    = emblaApi.internalEngine();
+                const snaps     = engine.scrollSnaps;
+                const newTarget = engine.target.get() - dx;
+
+                engine.target.set(
+                    engine.options.loop
+                        ? newTarget
+                        : Math.max(
+                            Math.min.apply(null, snaps),
+                            Math.min(Math.max.apply(null, snaps), newTarget)
+                        )
+                );
+                engine.animation.start();
+
+                // After gesture ends, snap to nearest slide.
+                // 300ms: gives Embla's deceleration physics time to settle before snapping.
+                clearTimeout(_wheelEndTimer);
+                _wheelEndTimer = setTimeout(() => {
+                    const api2 = this.emblaCore?.api();
+                    if (!api2) return;
+                    const eng2  = api2.internalEngine();
+                    const t     = eng2.target.get();
+                    const snps  = eng2.scrollSnaps;
+                    let bestIdx = 0, bestDist = Infinity;
+                    for (let i = 0; i < snps.length; i++) {
+                        const d = Math.abs(snps[i] - t);
+                        if (d < bestDist) { bestDist = d; bestIdx = i; }
+                    }
+                    api2.scrollTo(bestIdx);
+                }, 300);
+            };
+
+            // Must be on window: Chrome captures horizontal swipe before element listeners fire
+            window.addEventListener('wheel', this._wheelHandler, { passive: false });
+        }
+
+        /* ────────────────────────────────────────────
            IMAGE HEIGHT MODE (responsive)
         ──────────────────────────────────────────── */
 
@@ -562,6 +655,12 @@
             };
 
             api.reInit(newOpts);
+
+            // Dopo reInit il set di slide visibili può cambiare; ricarica le adiacenti.
+            // onSelect non si attiva automaticamente su reInit quando lo snap non cambia.
+            if (this._emblaViewport) {
+                this._loadAdjacentSlides(this._emblaViewport, api);
+            }
         }
 
         /**
@@ -598,6 +697,67 @@
             }
 
             return bestIndex;
+        }
+
+        /* ────────────────────────────────────────────
+           LAZY LOAD SLIDES (on-demand, via data-bw-src)
+        ──────────────────────────────────────────── */
+
+        /**
+         * Attiva il download delle immagini nelle slide "vicine" a quella corrente.
+         *
+         * Le slide non-eager in PHP sono renderizzate SENZA src (solo data-bw-src /
+         * data-bw-srcset / data-bw-sizes). Questo evita che il browser scarichi
+         * tutte le slide in sequenza attraverso overflow:hidden, problema che
+         * loading="lazy" non risolve in modo affidabile su tutti i browser.
+         *
+         * Strategia: carica le slide in-view + 1 slide di preloading ai lati.
+         * Su navigazione, la slide successiva inizia a scaricarsi prima che
+         * l'utente ci arrivi.
+         *
+         * @param {HTMLElement} viewport  — elemento .bw-ps-embla-viewport
+         * @param {Object}      api       — istanza Embla API
+         */
+        _loadAdjacentSlides(viewport, api) {
+            if (!viewport || !api) return;
+
+            const total  = api.slideNodes().length;
+            if (total === 0) return;
+
+            // slidesInView() può restituire [] se chiamata durante l'init Embla
+            // (prima che il browser abbia calcolato il layout). In quel caso usiamo
+            // selectedScrollSnap() come ancora. Con buffer ±2 le slide in-view
+            // sono sempre incluse anche in carousel con 3+ slide visibili.
+            let inView = api.slidesInView();
+            if (inView.length === 0) {
+                inView = [api.selectedScrollSnap()];
+            }
+
+            // Buffer ±2: precarica 2 slide avanti/indietro rispetto alle visibili.
+            // Con ±1 l'utente può arrivare a una slide prima che sia scaricata;
+            // ±2 garantisce che la slide successiva sia sempre in download prima
+            // che l'utente ci navighi, anche a velocità normale.
+            const preloadAhead = 2;
+            const toLoad = new Set(inView);
+            inView.forEach((idx) => {
+                for (let off = 1; off <= preloadAhead; off++) {
+                    toLoad.add((idx - off + total) % total);
+                    toLoad.add((idx + off) % total);
+                }
+            });
+
+            viewport.querySelectorAll('.bw-ps-slide').forEach((slideEl) => {
+                const slideIdx = parseInt(slideEl.getAttribute('data-bw-index'), 10);
+                if (!toLoad.has(slideIdx)) return;
+
+                slideEl.querySelectorAll('img[data-bw-src]').forEach((img) => {
+                    // Salta se src è già stato impostato (già scaricata o in corso)
+                    if (img.getAttribute('src') !== null) return;
+                    img.src = img.dataset.bwSrc;
+                    if (img.dataset.bwSrcset) img.srcset = img.dataset.bwSrcset;
+                    if (img.dataset.bwSizes)  img.sizes  = img.dataset.bwSizes;
+                });
+            });
         }
 
         /* ────────────────────────────────────────────
@@ -867,6 +1027,12 @@
         ──────────────────────────────────────────── */
 
         destroy() {
+            // Wheel handler (trackpad/mouse drag on desktop)
+            if (this._wheelHandler) {
+                window.removeEventListener('wheel', this._wheelHandler);
+                this._wheelHandler = null;
+            }
+
             // Istanze Embla
             if (this.emblaCore)   { this.emblaCore.destroy();   this.emblaCore = null; }
             if (this.emblaMain)   { this.emblaMain.destroy();   this.emblaMain = null; }
@@ -901,8 +1067,9 @@
             }
 
             // Cache DOM
-            this._$horizontal = null;
-            this._$images     = null;
+            this._$horizontal   = null;
+            this._$images       = null;
+            this._emblaViewport = null;
 
             // Stato istanza
             this._sortedBreakpoints   = null;

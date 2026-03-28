@@ -178,7 +178,20 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw-elementor-widgets' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
-                'description'  => __( 'Allow swiping with fingers to navigate slides on touch devices. On desktop, mouse drag always works regardless of this setting.', 'bw-elementor-widgets' ),
+                'description'  => __( 'Allow swiping with fingers to navigate slides on touch devices.', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'mouse_drag',
+            [
+                'label'        => __( 'Mouse / Trackpad Drag (Desktop)', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Allow click-drag with a mouse and horizontal trackpad swipe to navigate slides on desktop. Horizontal trackpad gestures are intercepted to prevent accidental browser back/forward navigation.', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -977,6 +990,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'pauseOnHover'     => $settings['pause_on_hover'] === 'yes',
                 'dragFree'         => ( $settings['drag_free'] ?? '' ) === 'yes',
                 'enableTouchDrag'  => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
+                'enableMouseDrag'  => ( $settings['mouse_drag'] ?? 'yes' ) === 'yes',
                 'align'            => $settings['slide_align'] ?? 'start',
                 'responsive'       => $this->build_responsive_config( $settings ),
             ],
@@ -1140,23 +1154,30 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                         // - indice 0 (centro/prima) + indice 1 (destra) sempre eager.
                         // - Con loop+center, l'ultima slide è visibile a SINISTRA → eager
                         //   + fetchpriority="high" così scarica in parallelo con slide 0.
-                        // Tenere il set piccolo (2-3 immagini) riduce la contesa di banda
-                        // e fa sì che tutte e tre le slide visibili appaiano insieme.
-                        $is_first        = ( 0 === $index );
-                        $is_loop_center  = $is_loop && $is_center_align && ( $index === $last_index );
-                        $is_eager        = ( $index < 2 ) || $is_loop_center;
-                        $img_attrs       = [
-                            'loading'       => $is_eager ? 'eager' : 'lazy',
-                            'decoding'      => $is_first ? 'sync'  : 'async',
-                            'fetchpriority' => ( $is_first || $is_loop_center ) ? 'high' : 'auto',
-                            'class'         => 'bw-embla-img',
-                        ];
+                        // Tutte le altre slide usano render_lazy_img(): NO src, solo data-bw-src.
+                        // Il JS le attiverà via _loadAdjacentSlides() quando sono "vicine".
+                        // NON usiamo loading="lazy" per le altre slide perché overflow:hidden
+                        // non impedisce il download in tutti i browser, causando il caricamento
+                        // sequenziale di 1000 slide prima che l'ultima (visibile a sx) arrivi.
+                        $is_first       = ( 0 === $index );
+                        $is_loop_center = $is_loop && $is_center_align && ( $index === $last_index );
+                        $is_eager       = ( $index < 2 ) || $is_loop_center;
                     ?>
                         <div class="bw-embla-slide bw-ps-slide"
                              data-bw-index="<?php echo esc_attr( $index ); ?>"
                              data-attachment-id="<?php echo esc_attr( $image['id'] ); ?>">
                             <div class="bw-ps-image bw-ps-image-clickable">
-                                <?php echo wp_get_attachment_image( $image['id'], $image_size, false, $img_attrs ); ?>
+                                <?php if ( $is_eager ) :
+                                    echo wp_get_attachment_image( $image['id'], $image_size, false, [
+                                        'loading'       => 'eager',
+                                        'decoding'      => $is_first ? 'sync' : 'async',
+                                        'fetchpriority' => ( $is_first || $is_loop_center ) ? 'high' : 'auto',
+                                        'class'         => 'bw-embla-img',
+                                    ] );
+                                else :
+                                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                    echo $this->render_lazy_img( $image['id'], $image_size );
+                                endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -1451,6 +1472,57 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Render un <img> placeholder senza src per le slide del carousel non-eager.
+     *
+     * Il browser NON scarica queste immagini al parse-time: usa data-bw-src /
+     * data-bw-srcset / data-bw-sizes al posto di src/srcset/sizes. Il JS
+     * attiva il download solo quando la slide è "vicina" a quella corrente.
+     *
+     * Perché non loading="lazy": loading="lazy" all'interno di un container
+     * overflow:hidden non è rispettato da tutti i browser — molti scaricano
+     * comunque le immagini fuori schermo, causando il caricamento sequenziale
+     * di tutte le slide prima dell'ultima (visibile a sinistra in loop+center).
+     *
+     * BWEmblaCore.initImageLoading() gestisce il fade-in correttamente:
+     * senza src, img.naturalWidth === 0, quindi attacca un listener su 'load'
+     * che viene eseguito quando il JS imposta img.src.
+     *
+     * @param  int          $image_id  WordPress attachment ID
+     * @param  string|array $size      Image size (stringa o array [w,h])
+     * @return string                  HTML tag <img> (non escaped — il caller deve phpcs:ignore)
+     */
+    protected function render_lazy_img( $image_id, $size ) {
+        $src_data = wp_get_attachment_image_src( $image_id, $size );
+        if ( ! $src_data ) {
+            return '';
+        }
+
+        list( $src, $width, $height ) = $src_data;
+        $alt    = trim( strip_tags( get_post_meta( $image_id, '_wp_attachment_image_alt', true ) ) );
+        $srcset = wp_get_attachment_image_srcset( $image_id, $size );
+        $sizes  = wp_get_attachment_image_sizes( $image_id, $size );
+
+        $html  = '<img class="bw-embla-img"';
+        $html .= ' data-bw-src="' . esc_url( $src ) . '"';
+        if ( $srcset ) {
+            $html .= ' data-bw-srcset="' . esc_attr( $srcset ) . '"';
+        }
+        if ( $sizes ) {
+            $html .= ' data-bw-sizes="' . esc_attr( $sizes ) . '"';
+        }
+        if ( $width ) {
+            $html .= ' width="' . absint( $width ) . '"';
+        }
+        if ( $height ) {
+            $html .= ' height="' . absint( $height ) . '"';
+        }
+        $html .= ' alt="' . esc_attr( $alt ) . '"';
+        $html .= ' decoding="async">';
+
+        return $html;
     }
 
     /**
