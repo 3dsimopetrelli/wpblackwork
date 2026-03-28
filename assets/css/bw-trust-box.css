@@ -62,6 +62,8 @@
 
 .bw-trust-box__review-slider[data-bw-trust-review-slider-effect="fade"] .bw-trust-box__review-slide.is-active {
 	position: relative;
+	z-index: 1;
+	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
 }
