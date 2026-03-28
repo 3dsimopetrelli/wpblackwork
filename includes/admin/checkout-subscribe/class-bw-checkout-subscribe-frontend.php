@@ -34,6 +34,9 @@ class BW_Checkout_Subscribe_Frontend {
         add_action( 'woocommerce_checkout_create_order', [ $this, 'save_consent_meta_on_create_order' ], 10, 2 );
         add_action( 'woocommerce_checkout_update_order_meta', [ $this, 'save_consent_meta' ], 10, 2 );
         add_action( 'woocommerce_checkout_order_processed', [ $this, 'maybe_subscribe_on_created' ], 20, 3 );
+        // Priority 5: runs before order status → processing (priority 10) so consent
+        // is recorded before maybe_subscribe_on_paid reads it.
+        add_action( 'woocommerce_payment_complete', [ $this, 'apply_paypal_express_default_consent' ], 5 );
         add_action( 'woocommerce_order_status_processing', [ $this, 'maybe_subscribe_on_paid' ] );
         add_action( 'woocommerce_order_status_completed', [ $this, 'maybe_subscribe_on_paid' ] );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ], 25 );
@@ -248,6 +251,53 @@ class BW_Checkout_Subscribe_Frontend {
         }
 
         $this->process_subscription( $order, 'checkout_paid_hook' );
+    }
+
+    /**
+     * Apply default newsletter consent for orders placed via PayPal Express Checkout.
+     *
+     * PayPal Express bypasses the standard checkout form entirely, so
+     * $_POST['bw_subscribe_newsletter'] is never set and consent meta is never
+     * recorded. When default_checked is enabled the customer would have seen a
+     * pre-ticked checkbox on the normal checkout — this method applies the
+     * equivalent consent so those customers are still subscribed to Brevo.
+     *
+     * Runs on woocommerce_payment_complete at priority 5, which fires before the
+     * order status transitions to "processing" (where maybe_subscribe_on_paid
+     * reads the consent meta). This guarantees the meta is written in time.
+     *
+     * @param int $order_id Order ID.
+     */
+    public function apply_paypal_express_default_consent( $order_id ) {
+        $checkout_settings = $this->get_checkout_settings();
+
+        // Feature must be active and default_checked must be on.
+        if ( empty( $checkout_settings['enabled'] ) || empty( $checkout_settings['default_checked'] ) ) {
+            return;
+        }
+
+        $order = wc_get_order( $order_id );
+        if ( ! $order instanceof WC_Order ) {
+            return;
+        }
+
+        // Only PayPal PPCP Express orders (gateway ID: ppcp-gateway).
+        if ( 'ppcp-gateway' !== $order->get_payment_method() ) {
+            return;
+        }
+
+        // Bail if the checkout form was submitted normally — consent already recorded.
+        if ( 'yes' === (string) $order->get_meta( '_bw_checkout_field_received', true ) ) {
+            return;
+        }
+
+        // Write default consent — mirrors what save_consent_meta records when
+        // the checkbox is checked on the standard checkout.
+        $order->update_meta_data( '_bw_subscribe_newsletter',     1 );
+        $order->update_meta_data( '_bw_subscribe_consent_source', 'paypal_express_default' );
+        $order->update_meta_data( '_bw_subscribe_consent_at',     current_time( 'mysql' ) );
+        $order->update_meta_data( '_bw_checkout_field_received',  'yes' );
+        $order->save();
     }
 
     /**
