@@ -138,7 +138,7 @@
 /* License Box */
 .bw-price-variation__license-box {
 	padding: 20px;
-	border: 0;
+	border: 1px solid #e0e0e0;
 	border-radius: 8px;
 	background-color: #ffffff;
 	margin-top: 20px;
@@ -481,7 +481,7 @@
 	box-shadow: none;
 	outline: none;
 	/* Spacing: left text indent, right smaller for the arrow pill */
-	padding: 10px 10px 10px 22px;
+	padding: 0;
 	margin: 0;
 	/* Typography — inherit from page, no Kit overrides */
 	font: inherit;
