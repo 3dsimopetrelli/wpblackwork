@@ -29,7 +29,6 @@
 }
 
 .bw-trust-box__review-slider[data-bw-trust-review-slider-effect="fade"] .bw-trust-box__review-slider-container {
-	position: relative;
 	display: block;
 }
 
@@ -47,12 +46,8 @@
 }
 
 .bw-trust-box__review-slider[data-bw-trust-review-slider-effect="fade"] .bw-trust-box__review-slide {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	flex: none;
+	display: none;
 	opacity: 0;
-	visibility: hidden;
 	pointer-events: none;
 }
 
@@ -61,11 +56,20 @@
 }
 
 .bw-trust-box__review-slider[data-bw-trust-review-slider-effect="fade"] .bw-trust-box__review-slide.is-active {
-	position: relative;
-	z-index: 1;
+	display: flex;
 	opacity: 1;
-	visibility: visible;
 	pointer-events: auto;
+	animation: bw-trust-box-fade-in 0.32s ease both;
+}
+
+@keyframes bw-trust-box-fade-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
 }
 
 .bw-trust-box__review-slide-stars,
