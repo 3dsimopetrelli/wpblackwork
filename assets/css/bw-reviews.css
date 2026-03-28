@@ -1,5 +1,11 @@
+:root {
+    --bw-reviews-screen-backdrop-bg: rgba(255, 255, 255, 0.02);
+    --bw-reviews-screen-backdrop-filter: blur(4px) saturate(1.5);
+}
+
 .elementor-widget-bw-reviews .bw-reviews,
-.bw-reviews {
+.bw-reviews,
+.bw-reviews-modal {
     --bw-reviews-bg: #050505;
     --bw-reviews-surface: #232327;
     --bw-reviews-surface-2: #17171a;
@@ -39,9 +45,6 @@
     position: fixed !important;
     inset: 0 !important;
     z-index: 9990 !important;
-    background: rgba(255, 255, 255, 0.02) !important;
-    backdrop-filter: blur(18px) saturate(120%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(120%) !important;
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
@@ -802,11 +805,15 @@
 .bw-reviews-modal__backdrop {
     position: absolute !important;
     inset: 0 !important;
-    background: rgba(255, 255, 255, 0.02) !important;
-    backdrop-filter: blur(18px) saturate(120%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(120%) !important;
     opacity: 0 !important;
     transition: opacity 240ms ease !important;
+}
+
+.bw-reviews-focus-backdrop,
+.bw-reviews-modal__backdrop {
+    background: var(--bw-reviews-screen-backdrop-bg) !important;
+    backdrop-filter: var(--bw-reviews-screen-backdrop-filter) !important;
+    -webkit-backdrop-filter: var(--bw-reviews-screen-backdrop-filter) !important;
 }
 
 .bw-reviews-modal__dialog {
