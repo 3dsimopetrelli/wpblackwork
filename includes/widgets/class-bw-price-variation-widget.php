@@ -201,6 +201,23 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'show_paypal_button',
+			[
+				'label'        => __( 'Show PayPal Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'description'  => __( 'Show the PayPal smart button above "More payment options". Requires the WooCommerce PayPal Payments plugin with Product Page location enabled.', 'bw' ),
+				'condition'    => [
+					'show_add_to_cart'           => 'yes',
+					'show_more_payment_options'  => 'yes',
+				],
+			]
+		);
+
                 $this->end_controls_section();
 
         }
@@ -1073,27 +1090,12 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'payment_options_style_enabled',
-			[
-				'label'        => __( 'Enable', 'bw' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'On', 'bw' ),
-				'label_off'    => __( 'Off', 'bw' ),
-				'return_value' => 'yes',
-				'default'      => '',
-			]
-		);
-
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			[
-				'name'      => 'payment_options_typography',
-				'label'     => __( 'More Payment Options Typography', 'bw' ),
-				'selector'  => '{{WRAPPER}} .bw-price-variation__payment-options',
-				'condition' => [
-					'payment_options_style_enabled' => 'yes',
-				],
+				'name'     => 'payment_options_typography',
+				'label'    => __( 'More Payment Options Typography', 'bw' ),
+				'selector' => '{{WRAPPER}} .bw-price-variation__payment-options',
 			]
 		);
 
@@ -1106,8 +1108,17 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'selectors'  => [
 					'{{WRAPPER}} .bw-price-variation__payment-options-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
-				'condition'  => [
-					'payment_options_style_enabled' => 'yes',
+			]
+		);
+
+		$this->add_responsive_control(
+			'paypal_button_margin',
+			[
+				'label'      => __( 'PayPal Button Margin', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-price-variation__paypal-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -1445,7 +1456,9 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                 $add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
                                 $checkout_url    = add_query_arg( $url_params, wc_get_checkout_url() );
 				$show_more_payment_options = isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'];
-				$should_render_paypal_button = $show_more_payment_options && $this->should_render_paypal_product_button();
+				$should_render_paypal_button = $show_more_payment_options
+					&& ( $settings['show_paypal_button'] ?? '' ) === 'yes'
+					&& $this->should_render_paypal_product_button();
 
                                 $attributes = [
                                         'href'                 => esc_url( $add_to_cart_url ),
@@ -1486,15 +1499,15 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 						/>
 					<?php endforeach; ?>
 
-	                                <div class="bw-add-to-cart-wrapper">
-	                                        <a <?php
-	                                        foreach ( $attributes as $key => $value ) {
-	                                                if ( is_string( $value ) || is_numeric( $value ) ) {
-	                                                        echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
-	                                                }
-	                                        }
-	                                        ?>><?php echo esc_html( $button_text ); ?></a>
-	                                </div>
+					<div class="bw-add-to-cart-wrapper">
+						<a <?php
+						foreach ( $attributes as $key => $value ) {
+							if ( is_string( $value ) || is_numeric( $value ) ) {
+								echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
+							}
+						}
+						?>><?php echo esc_html( $button_text ); ?></a>
+					</div>
 
 					<?php if ( $show_more_payment_options ) : ?>
 						<?php if ( $should_render_paypal_button ) : ?>
