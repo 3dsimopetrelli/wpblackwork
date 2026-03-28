@@ -306,8 +306,18 @@
                         'data-variation_id': variation.id
                 });
 
+                const $priceMirror = $form.find('.bw-price-variation__paypal-price-mirror').first();
+                if ($priceMirror.length) {
+                        if (variation.price_html) {
+                                $priceMirror.html(variation.price_html);
+                        } else if (variation.price !== undefined && variation.price !== null && variation.price !== '') {
+                                $priceMirror.html(formatPriceFromNumber(variation.price));
+                        }
+                }
+
                 $form.trigger('change');
                 $form.find('[name="variation_id"]').trigger('change');
+                $(document.body).trigger('ppcp_refresh_payment_buttons');
         }
 
         /**

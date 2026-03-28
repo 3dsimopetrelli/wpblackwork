@@ -182,6 +182,18 @@
 	width: 100%;
 }
 
+.bw-price-variation__paypal-price-mirror {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
 .bw-price-variation__paypal-button-wrapper {
 	width: 100%;
 	margin-top: 12px;

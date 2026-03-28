@@ -1492,6 +1492,9 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 					data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
 					data-variation_id="<?php echo esc_attr( $default_variation_id ); ?>"
 				>
+					<span class="bw-price-variation__paypal-price-mirror" aria-hidden="true">
+						<?php echo $default_price_html_raw; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</span>
 					<input type="hidden" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" />
 					<input type="hidden" name="product_id" value="<?php echo esc_attr( $product->get_id() ); ?>" />
 					<input type="hidden" name="quantity" value="1" />
