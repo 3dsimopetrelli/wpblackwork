@@ -625,6 +625,7 @@ add_action('init', 'bw_register_related_products_widget_assets');
 // related-products: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_products_widget_assets');
 add_action('init', 'bw_register_price_variation_widget_assets');
+add_action('init', 'bw_register_trust_box_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
 add_action('init', 'bw_register_product_slider_widget_assets');
 add_action('init', 'bw_register_showcase_slide_widget_assets');
@@ -1228,7 +1229,7 @@ function bw_register_price_variation_widget_assets()
     wp_register_style(
         'bw-price-variation-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-price-variation.css',
-        ['bw-embla-core-css'],
+        [],
         $css_version
     );
 
@@ -1238,6 +1239,30 @@ function bw_register_price_variation_widget_assets()
     wp_register_script(
         'bw-price-variation-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-price-variation.js',
+        ['jquery'],
+        $js_version,
+        true
+    );
+}
+
+function bw_register_trust_box_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-trust-box.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-trust-box-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-trust-box.css',
+        ['bw-embla-core-css'],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-trust-box.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-trust-box-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-trust-box.js',
         ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
         $js_version,
         true
