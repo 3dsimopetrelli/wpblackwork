@@ -364,6 +364,12 @@
                         if (form === targetForm) {
                                 form.classList.add('cart');
                                 form.classList.add('variations_form');
+
+                                form.querySelectorAll('[data-bw-paypal-original-name]').forEach(function(field) {
+                                        if (!field.hasAttribute('name')) {
+                                                field.setAttribute('name', field.getAttribute('data-bw-paypal-original-name'));
+                                        }
+                                });
                                 return;
                         }
 
@@ -371,8 +377,31 @@
                                 form.dataset.bwPaypalDemoted = 'yes';
                                 form.classList.remove('cart');
                                 form.classList.remove('variations_form');
+
+                                form.querySelectorAll('[name]').forEach(function(field) {
+                                        const name = field.getAttribute('name') || '';
+                                        const isPayPalSensitiveField = [
+                                                'add-to-cart',
+                                                'product_id',
+                                                'quantity',
+                                                'variation_id'
+                                        ].indexOf(name) !== -1 || name.indexOf('attribute_') === 0;
+
+                                        if (!isPayPalSensitiveField) {
+                                                return;
+                                        }
+
+                                        if (!field.dataset.bwPaypalOriginalName) {
+                                                field.dataset.bwPaypalOriginalName = name;
+                                        }
+
+                                        field.removeAttribute('name');
+                                });
                         }
                 });
+
+                $form.find('.ppc-button-wrapper').trigger('ppcp-reload-buttons');
+                $(document).trigger('ppcp_refresh_payment_buttons');
         }
 
         /**

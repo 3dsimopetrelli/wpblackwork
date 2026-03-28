@@ -93,6 +93,22 @@ class BW_Trust_Box_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'review_slider_transition',
+			[
+				'label'     => __( 'Review Slider Effect', 'bw' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'slide',
+				'options'   => [
+					'slide' => __( 'Slide', 'bw' ),
+					'fade'  => __( 'Fade', 'bw' ),
+				],
+				'condition' => [
+					'show_global_review_slider' => 'yes',
+				],
+			]
+		);
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
@@ -391,6 +407,9 @@ class BW_Trust_Box_Widget extends Widget_Base {
 		$review_box_content  = $this->get_review_box_content( $trust_settings );
 		$show_review_slider  = ! empty( $trust_settings['enable_review_slider'] ) && ! empty( $review_slider_items ) && isset( $settings['show_global_review_slider'] ) && 'yes' === $settings['show_global_review_slider'];
 		$show_review_box     = ! empty( $trust_settings['enable_review_box'] ) && '' !== $review_box_content && isset( $settings['show_global_review_box'] ) && 'yes' === $settings['show_global_review_box'];
+		$review_slider_transition = isset( $settings['review_slider_transition'] ) && in_array( $settings['review_slider_transition'], [ 'slide', 'fade' ], true )
+			? $settings['review_slider_transition']
+			: 'slide';
 		$info_box_items      = ( isset( $settings['show_digital_product_info'] ) && 'yes' === $settings['show_digital_product_info'] )
 			? $this->get_digital_product_info_items( $settings )
 			: [];
@@ -416,7 +435,7 @@ class BW_Trust_Box_Widget extends Widget_Base {
 			<div class="bw-trust-box__stack">
 				<?php if ( $show_review_slider ) : ?>
 					<?php $is_single_review_slide = count( $review_slider_items ) < 2; ?>
-					<section class="bw-trust-box__card bw-trust-box__review-slider<?php echo $is_single_review_slide ? ' is-single-slide' : ''; ?>" data-bw-trust-review-slider>
+					<section class="bw-trust-box__card bw-trust-box__review-slider<?php echo $is_single_review_slide ? ' is-single-slide' : ''; ?>" data-bw-trust-review-slider data-bw-trust-review-slider-effect="<?php echo esc_attr( $review_slider_transition ); ?>">
 						<?php if ( ! $is_single_review_slide ) : ?>
 							<button class="bw-trust-box__review-slider-arrow bw-trust-box__review-slider-arrow--prev" type="button" aria-label="<?php esc_attr_e( 'Previous review', 'bw' ); ?>">
 								<svg viewBox="0 0 20 20" focusable="false" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
