@@ -178,6 +178,26 @@
 	margin-top: 20px;
 }
 
+/* PayPal smart button — rendered by woocommerce-paypal-payments into our
+   hidden form.cart wrapper. The form itself is invisible; only the PayPal
+   button div injected by the plugin is visible. */
+.bw-price-variation__paypal-wrapper {
+	width: 100%;
+	margin-top: 12px;
+}
+
+.bw-price-variation__paypal-wrapper .bw-pv-paypal-form {
+	/* Reset WooCommerce form defaults that could add unwanted spacing */
+	margin: 0;
+	padding: 0;
+}
+
+/* PayPal plugin injects buttons inside a div with class/id starting with ppc- */
+.bw-price-variation__paypal-wrapper [id^="ppc-button"],
+.bw-price-variation__paypal-wrapper [class^="ppc-button"] {
+	width: 100% !important;
+}
+
 .bw-price-variation__payment-options-wrapper {
 	width: 100%;
 	display: flex;

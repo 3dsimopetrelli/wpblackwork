@@ -180,6 +180,23 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'show_paypal_button',
+			[
+				'label'        => __( 'Show PayPal Button', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'description'  => __( 'Show the PayPal smart button above "More payment options". Requires the WooCommerce PayPal Payments plugin with Product Page location enabled.', 'bw' ),
+				'condition'    => [
+					'show_add_to_cart'           => 'yes',
+					'show_more_payment_options'  => 'yes',
+				],
+			]
+		);
+
                 $this->end_controls_section();
 
                 $this->start_controls_section(
@@ -1230,27 +1247,12 @@ class BW_Price_Variation_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'payment_options_style_enabled',
-			[
-				'label'        => __( 'Enable', 'bw' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'On', 'bw' ),
-				'label_off'    => __( 'Off', 'bw' ),
-				'return_value' => 'yes',
-				'default'      => '',
-			]
-		);
-
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			[
-				'name'      => 'payment_options_typography',
-				'label'     => __( 'More Payment Options Typography', 'bw' ),
-				'selector'  => '{{WRAPPER}} .bw-price-variation__payment-options',
-				'condition' => [
-					'payment_options_style_enabled' => 'yes',
-				],
+				'name'     => 'payment_options_typography',
+				'label'    => __( 'More Payment Options Typography', 'bw' ),
+				'selector' => '{{WRAPPER}} .bw-price-variation__payment-options',
 			]
 		);
 
@@ -1263,8 +1265,17 @@ class BW_Price_Variation_Widget extends Widget_Base {
 				'selectors'  => [
 					'{{WRAPPER}} .bw-price-variation__payment-options-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
-				'condition'  => [
-					'payment_options_style_enabled' => 'yes',
+			]
+		);
+
+		$this->add_responsive_control(
+			'paypal_button_margin',
+			[
+				'label'      => __( 'PayPal Button Margin', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-price-variation__paypal-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -1793,7 +1804,39 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                         }
                                         ?>><?php echo esc_html( $button_text ); ?></a>
                                 </div>
-				<?php if ( isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'] && isset( $settings['payment_options_style_enabled'] ) && 'yes' === $settings['payment_options_style_enabled'] ) : ?>
+				<?php if ( ( $settings['show_more_payment_options'] ?? '' ) === 'yes' ) : ?>
+
+					<?php if ( ( $settings['show_paypal_button'] ?? '' ) === 'yes' ) : ?>
+					<div class="bw-price-variation__paypal-wrapper">
+						<?php
+						/*
+						 * Hidden form.cart — PayPal Payments (ppcp) JS reads the nearest
+						 * form.cart on the page to get product_id / variation_id / attributes
+						 * when building the PayPal order. We provide it here so the button
+						 * works correctly even though our widget uses a custom add-to-cart UI.
+						 * The JS (bw-price-variation.js) keeps the hidden inputs in sync
+						 * whenever the user changes the selected variation.
+						 */
+						?>
+						<form class="cart bw-pv-paypal-form"
+							method="post"
+							enctype="multipart/form-data"
+							data-product_id="<?php echo esc_attr( $product->get_id() ); ?>">
+							<input type="hidden" name="product_id" value="<?php echo esc_attr( $product->get_id() ); ?>">
+							<input type="hidden" name="quantity"   value="1">
+							<input type="hidden" name="variation_id" class="bw-pv-paypal-variation-id" value="<?php echo esc_attr( $default_variation_id ); ?>">
+							<?php foreach ( $default_variation_attrs as $attr_key => $attr_value ) : ?>
+							<input type="hidden"
+								name="<?php echo esc_attr( $attr_key ); ?>"
+								class="bw-pv-paypal-attr"
+								data-attr-name="<?php echo esc_attr( $attr_key ); ?>"
+								value="<?php echo esc_attr( $attr_value ); ?>">
+							<?php endforeach; ?>
+							<?php do_action( 'woocommerce_after_add_to_cart_button' ); ?>
+						</form>
+					</div>
+					<?php endif; ?>
+
 					<div class="bw-price-variation__payment-options-wrapper">
 						<a
 							class="bw-price-variation__payment-options"

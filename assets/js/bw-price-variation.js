@@ -205,6 +205,26 @@
         }
 
         /**
+         * Keep the hidden form.cart inside .bw-pv-paypal-form in sync with the
+         * currently selected variation so the PayPal Payments plugin can read the
+         * correct product / variation data when the PayPal button is clicked.
+         *
+         * @param {jQuery} $form     — the .bw-pv-paypal-form element
+         * @param {Object} variation — current variation object
+         */
+        function syncPaypalForm($form, variation) {
+                if (!$form.length || !variation) return;
+                $form.find('.bw-pv-paypal-variation-id').val(variation.id);
+                if (variation.attributes && typeof variation.attributes === 'object') {
+                        Object.entries(variation.attributes).forEach(function(entry) {
+                                var key   = entry[0];
+                                var value = entry[1];
+                                $form.find('input[name="' + key + '"]').val(value != null ? value : '');
+                        });
+                }
+        }
+
+        /**
          * Update checkout/payment options link so it follows the active variation.
          * @param {jQuery} $link
          * @param {number} productId
@@ -565,6 +585,7 @@
                 const $buttons = $widget.find('.bw-price-variation__variation-button');
                 const $addToCartButton = $widget.find('.bw-add-to-cart-button');
                 const $paymentOptionsLink = $widget.find('.bw-price-variation__payment-options');
+                const $paypalForm = $widget.find('.bw-pv-paypal-form');
                 const checkoutUrl = $widget.data('checkout-url');
 
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
@@ -579,6 +600,7 @@
                         updateLicenseBox($licenseBox, activeVariation);
                         updateAddToCartButton($addToCartButton, productId, activeVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, activeVariation, checkoutUrl);
+                        syncPaypalForm($paypalForm, activeVariation);
                 }
 
                 $buttons.on('click', function(e) {
@@ -609,6 +631,7 @@
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
+                        syncPaypalForm($paypalForm, selectedVariation);
                         syncFloatingAtc();
 
                         $widget.trigger('bw_price_variation_changed', {
