@@ -670,14 +670,44 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
             ? absint( $settings['default_category'] )
             : 'all';
+        $post_type              = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+        $show_subcategories     = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
+        $show_tags              = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
+        $initial_types          = $show_subcategories ? $this->get_subcategories_data( $post_type, $default_category ) : [];
+        $initial_tags           = $show_tags ? $this->get_related_tags( $post_type, $default_category, [] ) : [];
         $drawer_title        = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
-        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger', 'bw-fpw-mobile-filter-trigger--drawer' ];
+        $global_search_label  = __( 'Search in collection...', 'bw-elementor-widgets' );
+        $reset_filters_label  = __( 'Reset filters', 'bw-elementor-widgets' );
+        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
         $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
+        $bootstrap_payload     = [
+            'show_types' => $show_subcategories,
+            'show_tags'  => $show_tags,
+            'types'      => array_values( $initial_types ),
+            'tags'       => array_values( $initial_tags ),
+        ];
         ?>
-        <div class="bw-fpw-mobile-filter bw-fpw-mobile-filter--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+        <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <div class="bw-fpw-discovery-toolbar__summary">
+                <div class="bw-fpw-discovery-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                <div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                    <span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
+                    <button class="bw-fpw-discovery-reset" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
+                </div>
+            </div>
+
+            <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                <span class="bw-fpw-discovery-search__icon" aria-hidden="true"></span>
+                <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
+            </label>
+
+            <div class="bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+        </div>
+
+        <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
             <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
                 <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
                 <span class="bw-fpw-mobile-filter-button-icon-shell">
@@ -695,7 +725,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     </div>
 
                     <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
-                        <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                        <div class="bw-fpw-drawer-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                        <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                            <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                        </div>
                     </div>
 
                     <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
@@ -706,6 +739,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         </div>
 
         <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
+        <script type="application/json" class="bw-fpw-discovery-bootstrap" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo wp_json_encode( $bootstrap_payload ); ?></script>
         <?php
     }
 
@@ -821,6 +855,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $masonry_effect = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
         $layout_mode    = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
         $disable_hover_on_touch = isset( $settings['disable_hover_on_touch'] ) && 'yes' === $settings['disable_hover_on_touch'];
+        $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
 
         // These are not yet exposed as Elementor controls; declared here so that
         // adding a control in the future only requires reading from $settings.
@@ -866,7 +901,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'post_type'      => $post_type,
             'posts_per_page' => $initial_query_size,
             'post_status'    => 'publish',
-            'no_found_rows'  => true,
+            'no_found_rows'  => ! $responsive_filter_mode,
             'ignore_sticky_posts' => true,
             'orderby'        => $order_by,
             'order'          => $order,
@@ -914,6 +949,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $next_page         = $has_more ? 2 : 0;
         $next_offset       = $has_more ? $initial_items : 0;
         $load_trigger_px   = 300;
+        $result_count      = $responsive_filter_mode ? (int) $query->found_posts : max( 0, $query->post_count );
 
         $wrapper_classes = [ 'bw-product-grid' ];
         $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
@@ -956,6 +992,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-has-more'               => $has_more ? '1' : '0',
             'data-infinite-enabled'       => $infinite_enabled ? 'yes' : 'no',
             'data-load-trigger-offset'    => $load_trigger_px,
+            'data-result-count'           => $result_count,
         ];
 
         $grid_attr_html = '';
