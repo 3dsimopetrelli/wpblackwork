@@ -5,11 +5,39 @@
 		const slideCount = $slides.length;
 		let activeIndex = 0;
 		let autoplayTimer = null;
+		let fadeCleanupTimer = null;
 		const autoplayDelay = 2000;
+		const fadeDuration = 320;
+
+		const cleanupLeavingSlides = function () {
+			if (fadeCleanupTimer) {
+				window.clearTimeout(fadeCleanupTimer);
+				fadeCleanupTimer = null;
+			}
+
+			$slides.removeClass('is-fading-out');
+		};
 
 		const goTo = function (index) {
-			activeIndex = (index + slideCount) % slideCount;
+			const nextIndex = (index + slideCount) % slideCount;
+			if (nextIndex === activeIndex) {
+				return;
+			}
+
+			const $currentSlide = $slides.eq(activeIndex);
+			const $nextSlide = $slides.eq(nextIndex);
+
+			cleanupLeavingSlides();
+			if ($currentSlide.length) {
+				$currentSlide.removeClass('is-active').addClass('is-fading-out');
+			}
+
+			activeIndex = nextIndex;
 			setActiveSlide(activeIndex);
+
+			fadeCleanupTimer = window.setTimeout(function () {
+				cleanupLeavingSlides();
+			}, fadeDuration);
 		};
 
 		const stopAutoplay = function () {
@@ -70,6 +98,7 @@
 
 		$slider.data('bwTrustSliderInstance', {
 			destroy: function () {
+				cleanupLeavingSlides();
 				stopAutoplay();
 				$slider.off('.bwTrustFadeHover');
 				if (prevBtn) {
