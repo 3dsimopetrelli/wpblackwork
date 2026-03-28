@@ -281,6 +281,17 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'description'  => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
         ] );
 
+        $this->add_control( 'enable_responsive_filter_mode', [
+            'label'        => __( 'Enable Responsive Filter Mode', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the left-side drawer shell.', 'bw-elementor-widgets' ),
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
         // Get product categories for the dropdown
         $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
         $product_categories = get_terms(
@@ -469,8 +480,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
     private function render_wrapper_start( $settings, $show_filters = true ) {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
         $responsive_breakpoint = 900;
+        $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
 
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '">';
+        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '">';
     }
 
     private function render_wrapper_end( $settings ) {
@@ -478,6 +490,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function render_filters( $settings, $widget_id ) {
+        if ( $this->is_responsive_filter_mode_enabled( $settings ) ) {
+            $this->render_responsive_filter_drawer_shell( $settings, $widget_id );
+            return;
+        }
+
         $post_type = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
         $categories_title      = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
         $subcategories_title   = isset( $settings['filter_subcategories_title'] ) ? $settings['filter_subcategories_title'] : __( 'Subcategories', 'bw-elementor-widgets' );
@@ -642,6 +659,53 @@ class BW_Product_Grid_Widget extends Widget_Base {
                 <?php endif; ?>
             </div>
         </div>
+        <?php
+    }
+
+    private function is_responsive_filter_mode_enabled( $settings ) {
+        return isset( $settings['enable_responsive_filter_mode'] ) && 'yes' === $settings['enable_responsive_filter_mode'];
+    }
+
+    private function render_responsive_filter_drawer_shell( $settings, $widget_id ) {
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 'all';
+        $drawer_title        = __( 'Filters', 'bw-elementor-widgets' );
+        $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
+        $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
+        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger', 'bw-fpw-mobile-filter-trigger--drawer' ];
+        $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
+        $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
+        ?>
+        <div class="bw-fpw-mobile-filter bw-fpw-mobile-filter--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+            <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
+                <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+                <span class="bw-fpw-mobile-filter-button-icon-shell">
+                    <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </span>
+            </button>
+
+            <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
+                <div class="bw-fpw-mobile-filter-drawer">
+                    <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
+                        <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
+                        <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
+                            <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+
+                    <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
+                        <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                    </div>
+
+                    <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
+                        <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
         <?php
     }
 
