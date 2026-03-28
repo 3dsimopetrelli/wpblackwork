@@ -145,7 +145,7 @@ Current tabs include:
 - Emails
 - Brevo
 
-`Trust Content` is the current global admin surface for the curated review slider and fixed review trust box used below `BW-SP Price Variation`.
+`Trust Content` is the current global admin surface for the curated review slider and fixed review trust box used by `BW Trust Box`.
 
 ### Reviews list screen
 Authority:

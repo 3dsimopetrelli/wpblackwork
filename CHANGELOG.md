@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Trust Box / Price Variation: extracted the lower trust stack out of `BW-SP Price Variation` into the new `BW Trust Box` widget, with dedicated trust-box assets, retained global Reviews Settings trust authority, and Elementor panel SP-family styling for the new widget card.
 - Related Products: added `Layout > Show Overlay Actions on Tablet & Mobile` with default tablet/mobile state off, implemented as a widget-local overlay suppression below `1025px` without changing the shared product-card contract.
 - Cart Popup: fixed discount rows going stale after quantity change when a percentage coupon is applied — `update_quantity` and `remove_item` responses now include full coupon data via shared `bw_cart_popup_build_totals_data()` helper; `_patchTotals()` now delegates to `updateTotals()` which rebuilds coupon rows.
 - Cart Popup: apply coupon error now returns the real WooCommerce reason (minimum spend, usage limit, product restriction) instead of always showing "Coupon code invalid or expired."
@@ -12,6 +13,8 @@
 - Cart Popup: `bw_cart_popup_get_cart_contents` enforces POST method, consistent with all other handlers.
 - Price Variation / Sticky Sidebar: hardened sticky behavior for dynamic license-accordion height changes, popup/body-lock layout shifts, and viewport restore events by refreshing sticky geometry, placeholder sizing, and layout context during accordion transitions, ResizeObserver updates, body/html mutations, and visual viewport changes.
 - Product Details: extended the existing widget and Product Details metabox with a new `Compatibility` content type powered by product-level checkbox selections, with default-all behavior for untouched products and no parallel data system.
+- Product Details: aligned the `Product Details` branch title contract so `Collection Content` is now the default heading, and removed the duplicated `Collection content` subtitle above the assets hero row.
+- Price Variation: `Show More Payment Options` now also enables the official `WooCommerce PayPal Payments` single-product button above the text shortcut, using a synchronized WooCommerce-compatible variation form bridge instead of a custom PayPal flow.
 - Price Variation: added widget-level `Review Trust` on/off toggles for the global review slider and fixed review box, so each widget instance can suppress those global trust blocks without changing Reviews Settings authority.
 - Price Variation: added a governed trust stack below the main pricing box with shared-Embla review slider support, global fixed review summary box support from `Reviews Settings -> Trust Content`, widget-level digital product info cards, and widget-level FAQ CTA controls.
 - Docs: aligned `BW-SP Price Variation` documentation with current runtime reality, clarifying compact reviews-as-trust usage, variation-bound license disclosure accordion behavior, single-axis selector constraints, and current `More payment options` render gating.

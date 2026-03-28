@@ -57,8 +57,8 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		$this->add_control( 'table_title', [
 			'label'       => __( 'Table Title', 'bw' ),
 			'type'        => Controls_Manager::TEXT,
-			'placeholder' => __( 'Product Details', 'bw' ),
-			'default'     => __( 'Product Details', 'bw' ),
+			'placeholder' => __( 'Collection Content', 'bw' ),
+			'default'     => __( 'Collection Content', 'bw' ),
 			'condition'   => [ 'content_type' => 'product_details' ],
 		] );
 
@@ -341,7 +341,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		} else {
 			$title = isset( $settings['table_title'] ) && '' !== trim( $settings['table_title'] )
 				? $settings['table_title']
-				: __( 'Product Details', 'bw' );
+				: __( 'Collection Content', 'bw' );
 		}
 
 		// Wrapper classes.
@@ -491,9 +491,8 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
 		$sections = [
 			[
-				'id'       => 'digital',
-				'subtitle' => __( 'Collection content', 'bw' ),
-				'fields'   => $digital_fields,
+				'id'     => 'digital',
+				'fields' => $digital_fields,
 			],
 			[
 				'id'     => 'prints',

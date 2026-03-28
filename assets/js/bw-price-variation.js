@@ -205,26 +205,6 @@
         }
 
         /**
-         * Keep the hidden form.cart inside .bw-pv-paypal-form in sync with the
-         * currently selected variation so the PayPal Payments plugin can read the
-         * correct product / variation data when the PayPal button is clicked.
-         *
-         * @param {jQuery} $form     — the .bw-pv-paypal-form element
-         * @param {Object} variation — current variation object
-         */
-        function syncPaypalForm($form, variation) {
-                if (!$form.length || !variation) return;
-                $form.find('.bw-pv-paypal-variation-id').val(variation.id);
-                if (variation.attributes && typeof variation.attributes === 'object') {
-                        Object.entries(variation.attributes).forEach(function(entry) {
-                                var key   = entry[0];
-                                var value = entry[1];
-                                $form.find('input[name="' + key + '"]').val(value != null ? value : '');
-                        });
-                }
-        }
-
-        /**
          * Update checkout/payment options link so it follows the active variation.
          * @param {jQuery} $link
          * @param {number} productId
@@ -264,6 +244,164 @@
                 } else {
                         $link.removeClass('is-disabled').attr('aria-disabled', 'false');
                 }
+        }
+
+        /**
+         * Sync the WooCommerce-compatible cart form used by official PayPal smart buttons.
+         * @param {jQuery} $form
+         * @param {number} productId
+         * @param {Object} variation
+         */
+        function syncPayPalCartForm($form, productId, variation) {
+                if (!$form.length || !variation || !variation.id) {
+                        return;
+                }
+
+                const ensureField = function(name, value, extraClass) {
+                        let $field = $form.find('[name="' + name + '"]').first();
+
+                        if (!$field.length) {
+                                $field = $('<input>', {
+                                        type: 'hidden',
+                                        name: name
+                                });
+
+                                if (extraClass) {
+                                        $field.addClass(extraClass);
+                                }
+
+                                $form.prepend($field);
+                        }
+
+                        $field.val(value).attr('value', value);
+                        return $field;
+                };
+
+                ensureField('add-to-cart', productId);
+                ensureField('product_id', productId);
+                ensureField('quantity', 1);
+                ensureField('variation_id', variation.id);
+
+                const attrKeys = [];
+                if (variation.attributes && typeof variation.attributes === 'object') {
+                        Object.entries(variation.attributes).forEach(function(entry) {
+                                const key = entry[0];
+                                const value = entry[1] === undefined || entry[1] === null ? '' : entry[1];
+                                attrKeys.push(key);
+
+                                const $field = ensureField(key, value, 'bw-price-variation__variation-attribute');
+                                $field.attr('data-attribute-name', key);
+                        });
+                }
+
+                $form.find('.bw-price-variation__variation-attribute').each(function() {
+                        const name = $(this).attr('name') || $(this).data('attribute-name');
+                        if (name && attrKeys.indexOf(name) === -1) {
+                                $(this).remove();
+                        }
+                });
+
+                $form.attr({
+                        'data-product_id': productId,
+                        'data-variation_id': variation.id
+                });
+
+                const $priceMirror = $form.find('.bw-price-variation__paypal-price-mirror').first();
+                if ($priceMirror.length) {
+                        if (variation.price_html) {
+                                $priceMirror.html(variation.price_html);
+                        } else if (variation.price !== undefined && variation.price !== null && variation.price !== '') {
+                                $priceMirror.html(formatPriceFromNumber(variation.price));
+                        }
+                }
+
+                $form.trigger('change');
+                $form.find('[name="variation_id"]').trigger('change');
+                $(document.body).trigger('ppcp_refresh_payment_buttons');
+        }
+
+        /**
+         * Check whether an element is visible in the current layout.
+         * @param {HTMLElement} element
+         * @returns {boolean}
+         */
+        function isVisibleInLayout(element) {
+                if (!element) {
+                        return false;
+                }
+
+                return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+        }
+
+        /**
+         * WooCommerce PayPal Payments binds product buttons to the first global form.cart.
+         * On some templates a hidden duplicate WooCommerce product form is still present.
+         * When no other visible product form exists, demote those hidden duplicates so the
+         * official PayPal script can bind to the Price Variation cart form instead.
+         * @param {jQuery} $form
+         */
+        function prioritizePayPalCartForm($form) {
+                if (!$form.length) {
+                        return;
+                }
+
+                const targetForm = $form.get(0);
+                const forms = Array.from(document.querySelectorAll('form.cart'));
+
+                if (!forms.length || forms[0] === targetForm) {
+                        return;
+                }
+
+                const otherVisibleForms = forms.filter(function(form) {
+                        return form !== targetForm && isVisibleInLayout(form);
+                });
+
+                if (otherVisibleForms.length) {
+                        return;
+                }
+
+                forms.forEach(function(form) {
+                        if (form === targetForm) {
+                                form.classList.add('cart');
+                                form.classList.add('variations_form');
+
+                                form.querySelectorAll('[data-bw-paypal-original-name]').forEach(function(field) {
+                                        if (!field.hasAttribute('name')) {
+                                                field.setAttribute('name', field.getAttribute('data-bw-paypal-original-name'));
+                                        }
+                                });
+                                return;
+                        }
+
+                        if (!form.dataset.bwPaypalDemoted) {
+                                form.dataset.bwPaypalDemoted = 'yes';
+                                form.classList.remove('cart');
+                                form.classList.remove('variations_form');
+
+                                form.querySelectorAll('[name]').forEach(function(field) {
+                                        const name = field.getAttribute('name') || '';
+                                        const isPayPalSensitiveField = [
+                                                'add-to-cart',
+                                                'product_id',
+                                                'quantity',
+                                                'variation_id'
+                                        ].indexOf(name) !== -1 || name.indexOf('attribute_') === 0;
+
+                                        if (!isPayPalSensitiveField) {
+                                                return;
+                                        }
+
+                                        if (!field.dataset.bwPaypalOriginalName) {
+                                                field.dataset.bwPaypalOriginalName = name;
+                                        }
+
+                                        field.removeAttribute('name');
+                                });
+                        }
+                });
+
+                $form.find('.ppc-button-wrapper').trigger('ppcp-reload-buttons');
+                $(document).trigger('ppcp_refresh_payment_buttons');
         }
 
         /**
@@ -485,78 +623,6 @@
         }
 
         /**
-         * Initialize the optional global review slider.
-         * @param {jQuery} $widget
-         */
-        function initReviewTrustSlider($widget) {
-                const $slider = $widget.find('[data-bw-price-review-slider]').first();
-                if (!$slider.length || $slider.data('bwReviewSliderInit')) {
-                        return;
-                }
-
-                $slider.data('bwReviewSliderInit', true);
-
-                const viewport = $slider.find('.bw-price-variation__review-slider-viewport')[0];
-                const prevBtn = $slider.find('.bw-price-variation__review-slider-arrow--prev')[0];
-                const nextBtn = $slider.find('.bw-price-variation__review-slider-arrow--next')[0];
-                const $slides = $slider.find('.bw-price-variation__review-slide');
-
-                if (!viewport || !$slides.length) {
-                        return;
-                }
-
-                const setActiveSlide = function(index) {
-                        $slides.removeClass('is-active');
-                        const $activeSlide = $slides.eq(index);
-                        if ($activeSlide.length) {
-                                $activeSlide.addClass('is-active');
-                        }
-                };
-
-                setActiveSlide(0);
-
-                if ($slides.length < 2) {
-                        return;
-                }
-
-                if (typeof BWEmblaCore === 'undefined') {
-                        console.warn('BW Price Variation: BWEmblaCore not available for trust review slider');
-                        return;
-                }
-
-                const emblaCore = new BWEmblaCore(viewport, {
-                        loop: true,
-                        align: 'start',
-                        containScroll: 'trimSnaps',
-                        slidesToScroll: 1,
-                        dragFree: false,
-                        watchResize: true
-                }, {
-                        prevBtn: prevBtn,
-                        nextBtn: nextBtn,
-                        autoplay: {
-                                delay: 2000,
-                                playOnInit: true,
-                                stopOnInteraction: false,
-                                stopOnMouseEnter: true,
-                                stopOnFocusIn: true,
-                                jump: false
-                        },
-                        onSelect: setActiveSlide
-                });
-
-                const api = emblaCore.init();
-                if (!api) {
-                        return;
-                }
-
-                $slider.data('bwReviewSliderInstance', emblaCore);
-                requestAnimationFrame(function() {
-                        setActiveSlide(api.selectedScrollSnap());
-                });
-        }
-
-        /**
          * Initialize a single widget instance.
          * @param {jQuery} $widget
          */
@@ -585,7 +651,7 @@
                 const $buttons = $widget.find('.bw-price-variation__variation-button');
                 const $addToCartButton = $widget.find('.bw-add-to-cart-button');
                 const $paymentOptionsLink = $widget.find('.bw-price-variation__payment-options');
-                const $paypalForm = $widget.find('.bw-pv-paypal-form');
+                const $payPalCartForm = $widget.find('.bw-price-variation__cart-form').first();
                 const checkoutUrl = $widget.data('checkout-url');
 
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
@@ -600,7 +666,8 @@
                         updateLicenseBox($licenseBox, activeVariation);
                         updateAddToCartButton($addToCartButton, productId, activeVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, activeVariation, checkoutUrl);
-                        syncPaypalForm($paypalForm, activeVariation);
+                        prioritizePayPalCartForm($payPalCartForm);
+                        syncPayPalCartForm($payPalCartForm, productId, activeVariation);
                 }
 
                 $buttons.on('click', function(e) {
@@ -631,7 +698,8 @@
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
-                        syncPaypalForm($paypalForm, selectedVariation);
+                        prioritizePayPalCartForm($payPalCartForm);
+                        syncPayPalCartForm($payPalCartForm, productId, selectedVariation);
                         syncFloatingAtc();
 
                         $widget.trigger('bw_price_variation_changed', {
@@ -819,9 +887,6 @@
 
                         floatObserver.observe($addToCartWrapper[0]);
                 })();
-
-                initReviewTrustSlider($widget);
-
         }
 
         /**

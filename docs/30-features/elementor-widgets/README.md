@@ -35,7 +35,8 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `product-details-widget.md`: `BW-SP Product Details` — single-product details/compatibility/info-box widget backed by the existing WooCommerce Product Details metabox
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
-- `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with compact inline trust summary, variation-bound license disclosure, direct-checkout shortcut, and governed trust stack extensions below the main CTA box
+- `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with compact inline trust summary, variation-bound license disclosure, and direct-checkout shortcut
+- `trust-box-widget.md`: BW Trust Box widget — standalone trust/support stack with curated review slider, fixed review box, digital product info cards, and FAQ CTA
 - `big-text-widget.md`: `BW-UI Big Text` — premium editorial statement widget with controlled line length, fluid `clamp()` scaling, automatic balance mode, and optional manual editorial line grouping
 - `hero-slide-widget.md`: `BW-UI Hero Slide` — premium static hero widget with future-ready `Slide` mode surface, centered copy, background image, and glass CTA button grid
 - `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with 4 desktop mosaic variants, auto-scale/square modes, responsive partial-slide reveal, and shared product-card reuse
@@ -62,7 +63,8 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-related-products` -> current best reference for shared product-card reuse
   - current widget-local extension also supports tablet/mobile suppression of overlay CTA actions without mutating the shared component globally
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
-- `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product, expose variation-bound license disclosure, and host a subordinate trust stack (global review slider/box plus widget-level info/FAQ) without becoming a second reviews authority
+- `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product and expose variation-bound license disclosure without becoming a second reviews authority
+- `bw-trust-box` -> standalone trust/support stack widget consuming global Reviews trust content plus widget-level info/FAQ controls
 
 ## BW-UI Presentation Slider
 - Widget slug: `bw-presentation-slide`

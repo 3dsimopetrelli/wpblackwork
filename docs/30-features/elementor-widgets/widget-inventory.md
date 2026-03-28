@@ -24,6 +24,7 @@ Canonical transition note:
 | `bw-presentation-slide` | `includes/widgets/class-bw-presentation-slide-widget.php` | Presentation Slider | specialized presentation/gallery slider; horizontal and responsive-vertical runtime are Embla-based |
 | `bw-hero-slide` | `includes/widgets/class-bw-hero-slide-widget.php` | Hero / Banner | static-first hero widget; future-ready `Slide` mode surface; background image, centered copy, and responsive glass CTA grid |
 | `bw-price-variation` | `includes/widgets/class-bw-price-variation-widget.php` | Product Pricing | non-card pricing widget with current-product review summary and direct-checkout shortcut support |
+| `bw-trust-box` | `includes/widgets/class-bw-trust-box-widget.php` | Product Trust / Support | standalone trust/support stack widget for curated review slider, fixed review box, info cards, and FAQ CTA |
 | `bw-product-details-table` | `includes/widgets/class-bw-product-details-widget.php` | Product Details | non-card details widget |
 | `bw-title-product` | `includes/widgets/class-bw-title-product-widget.php` | Product Utility | single-product title widget |
 | `bw-product-slider` | `includes/widgets/class-bw-product-slider-widget.php` | Product Slider | canonical current product slider; Embla-based; query-driven; shared product-card delegation |
@@ -203,13 +204,16 @@ Important runtime note:
   - now supports a `More payment options` checkout shortcut under Add to Cart
   - checkout shortcut follows the currently selected variation, or the default variation at initial render
   - current runtime may render a variation-bound license disclosure accordion between the variation buttons and Add to Cart
-  - may render a subordinate trust stack below the main box:
+  - current visible variation selector is effectively license-first and single-axis
+- `bw-trust-box`:
+  - standalone trust/support widget extracted from the old lower `bw-price-variation` trust stack
+  - can render:
     - global review slider
     - global fixed review summary box
     - widget-level digital product info cards
     - widget-level FAQ CTA
   - global review slider/review box content is delegated to `Blackwork Site -> Reviews Settings -> Trust Content`
-  - current visible variation selector is effectively license-first and single-axis
+  - widget-level authority owns info-card and FAQ controls only
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
   - AJAX response path (`bw_fpw_filter_posts`).

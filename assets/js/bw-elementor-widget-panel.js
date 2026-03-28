@@ -36,6 +36,7 @@
   var TITLE_FAMILY_MAP = {
     'BW Title Product':          'bw-family-sp',
     'BW Reviews':                'bw-family-sp',
+    'BW Trust Box':              'bw-family-sp',
     'Go to App':                 'bw-family-ui',
     'Newsletter Subscription':   'bw-family-ui',
     'BW Product Grid':           'bw-family-ui',

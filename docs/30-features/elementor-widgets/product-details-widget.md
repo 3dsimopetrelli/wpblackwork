@@ -36,6 +36,11 @@ Reads product-level meta from the existing Product Details metabox families:
 - books fields: `_bw_biblio_*`
 - prints fields: `_print_*`
 
+Title contract:
+- the default title for the `Product Details` branch is `Collection Content`
+- editors can override that title through the widget `Table Title` control
+- the digital assets section no longer renders a duplicated `Collection content` subtitle above the hero assets row
+
 Special render branches:
 - `_digital_total_assets` + `_digital_assets_list` become the assets hero row
 - `_digital_formats` renders as pills
