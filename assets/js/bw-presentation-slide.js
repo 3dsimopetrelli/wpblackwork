@@ -206,6 +206,17 @@
             this._updateImageHeightControls();
             this._updateEmblaBreakpointOptions();
 
+            // Chiamata esplicita post-init con rAF: garantisce che il browser abbia
+            // calcolato il layout prima di interrogare slidesInView(). La chiamata
+            // dentro onSelect (durante BWEmblaCore.init()) è sincrona e potrebbe
+            // vedere dimensioni ancora a 0 se il CSS non era ancora applicato.
+            // Il check img.getAttribute('src') !== null evita download doppi.
+            requestAnimationFrame(() => {
+                if (this._emblaViewport && this.emblaCore) {
+                    this._loadAdjacentSlides(this._emblaViewport, this.emblaCore.api());
+                }
+            });
+
             // Aggiorna on resize (debounced: evita esecuzione per ogni pixel)
             $(window).on(`resize.bwps-${this.widgetId}`, debounce(() => {
                 this._updateImageHeightControls();
@@ -638,14 +649,26 @@
             const total  = api.slideNodes().length;
             if (total === 0) return;
 
-            const inView = api.slidesInView();
-            if (inView.length === 0) return;
+            // slidesInView() può restituire [] se chiamata durante l'init Embla
+            // (prima che il browser abbia calcolato il layout). In quel caso usiamo
+            // selectedScrollSnap() come ancora. Con buffer ±2 le slide in-view
+            // sono sempre incluse anche in carousel con 3+ slide visibili.
+            let inView = api.slidesInView();
+            if (inView.length === 0) {
+                inView = [api.selectedScrollSnap()];
+            }
 
-            // Slide in vista + 1 di preload ai lati (con wrap per loop mode)
+            // Buffer ±2: precarica 2 slide avanti/indietro rispetto alle visibili.
+            // Con ±1 l'utente può arrivare a una slide prima che sia scaricata;
+            // ±2 garantisce che la slide successiva sia sempre in download prima
+            // che l'utente ci navighi, anche a velocità normale.
+            const preloadAhead = 2;
             const toLoad = new Set(inView);
             inView.forEach((idx) => {
-                toLoad.add((idx - 1 + total) % total);
-                toLoad.add((idx + 1) % total);
+                for (let off = 1; off <= preloadAhead; off++) {
+                    toLoad.add((idx - off + total) % total);
+                    toLoad.add((idx + off) % total);
+                }
             });
 
             viewport.querySelectorAll('.bw-ps-slide').forEach((slideEl) => {
