@@ -33,6 +33,7 @@
     --bw-cart-accent:      #80FD03;
     --bw-cart-radius:      16px;
     --bw-cart-radius-sm:   10px;
+    --bw-screen-backdrop-bg: rgba(255, 255, 255, 0.02);
     --bw-screen-backdrop-filter: blur(4px) saturate(1.5);
 }
 
@@ -360,7 +361,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.06);
+    background: var(--bw-screen-backdrop-bg);
     backdrop-filter: var(--bw-screen-backdrop-filter);
     -webkit-backdrop-filter: var(--bw-screen-backdrop-filter);
     opacity: 0;
@@ -389,11 +390,11 @@
 }
 
 .bw-cart-already-modal-overlay {
-    background-color: rgba(0, 0, 0, 0.55);
+    background: var(--bw-screen-backdrop-bg);
 }
 
 .bw-cart-error-modal-overlay {
-    background-color: rgba(0, 0, 0, 0.7);
+    background: var(--bw-screen-backdrop-bg);
 }
 
 
