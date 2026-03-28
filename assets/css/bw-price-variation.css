@@ -178,6 +178,20 @@
 	margin-top: 20px;
 }
 
+.bw-price-variation__cart-form {
+	width: 100%;
+}
+
+.bw-price-variation__paypal-button-wrapper {
+	width: 100%;
+	margin-top: 12px;
+}
+
+.bw-price-variation__paypal-button-wrapper .ppc-button-wrapper,
+.bw-price-variation__paypal-button-wrapper [id^="ppc-button-"] {
+	width: 100%;
+}
+
 .bw-price-variation__payment-options-wrapper {
 	width: 100%;
 	display: flex;

@@ -12,7 +12,7 @@ It owns:
 
 It also includes governed supporting integrations:
 - compact product review trust summary under the price
-- `More payment options` direct-checkout link under Add to Cart
+- official PayPal express button plus `More payment options` direct-checkout shortcut under Add to Cart
 
 ## Widget Contract
 
@@ -143,7 +143,8 @@ Control:
 - `Show More Payment Options`
 
 Behavior:
-- shows a centered text link under `Add to Cart`
+- when enabled, the widget may render the official `WooCommerce PayPal Payments` single-product button above the text shortcut
+- shows a centered text link under the PayPal button / Add to Cart
 - label:
 
 ```text
@@ -152,6 +153,7 @@ More payment options
 
 - visually underlined by default
 - intended as a direct checkout shortcut
+- the official PayPal button is an express-payment surface, not a custom checkout link
 
 ### Checkout behavior
 The link always follows the selected variation/license:
@@ -164,15 +166,20 @@ The generated checkout link includes:
 - quantity
 - selected variation attributes
 
-### Current code reality note
-The current PHP render requires both:
-- `Show More Payment Options`
-- style-section toggle `Payment Options -> Enable`
+### Official PayPal bridge
+When the `WooCommerce PayPal Payments` plugin is active and its `Single Product` smart-button location is enabled, the widget renders the official PayPal product button above the text link.
 
-for the link to render.
+Implementation note:
+- the widget does not build a custom PayPal SDK button
+- instead, it provides a synchronized WooCommerce-compatible `form.cart variations_form` bridge so the official plugin can read:
+  - `add-to-cart`
+  - `product_id`
+  - `variation_id`
+  - `attribute_*`
 
-This is a docs-to-code alignment note, not a target-state endorsement.
-Governance direction remains: content visibility should not be gated by style-only controls.
+Governance implication:
+- the express button and the text shortcut are both governed by the same content toggle
+- the active license/variation remains the single source of truth for both paths
 
 ### Style controls
 Section:

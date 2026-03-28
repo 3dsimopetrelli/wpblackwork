@@ -247,6 +247,70 @@
         }
 
         /**
+         * Sync the WooCommerce-compatible cart form used by official PayPal smart buttons.
+         * @param {jQuery} $form
+         * @param {number} productId
+         * @param {Object} variation
+         */
+        function syncPayPalCartForm($form, productId, variation) {
+                if (!$form.length || !variation || !variation.id) {
+                        return;
+                }
+
+                const ensureField = function(name, value, extraClass) {
+                        let $field = $form.find('[name="' + name + '"]').first();
+
+                        if (!$field.length) {
+                                $field = $('<input>', {
+                                        type: 'hidden',
+                                        name: name
+                                });
+
+                                if (extraClass) {
+                                        $field.addClass(extraClass);
+                                }
+
+                                $form.prepend($field);
+                        }
+
+                        $field.val(value).attr('value', value);
+                        return $field;
+                };
+
+                ensureField('add-to-cart', productId);
+                ensureField('product_id', productId);
+                ensureField('quantity', 1);
+                ensureField('variation_id', variation.id);
+
+                const attrKeys = [];
+                if (variation.attributes && typeof variation.attributes === 'object') {
+                        Object.entries(variation.attributes).forEach(function(entry) {
+                                const key = entry[0];
+                                const value = entry[1] === undefined || entry[1] === null ? '' : entry[1];
+                                attrKeys.push(key);
+
+                                const $field = ensureField(key, value, 'bw-price-variation__variation-attribute');
+                                $field.attr('data-attribute-name', key);
+                        });
+                }
+
+                $form.find('.bw-price-variation__variation-attribute').each(function() {
+                        const name = $(this).attr('name') || $(this).data('attribute-name');
+                        if (name && attrKeys.indexOf(name) === -1) {
+                                $(this).remove();
+                        }
+                });
+
+                $form.attr({
+                        'data-product_id': productId,
+                        'data-variation_id': variation.id
+                });
+
+                $form.trigger('change');
+                $form.find('[name="variation_id"]').trigger('change');
+        }
+
+        /**
          * Pick the variation to use as default.
          * @param {jQuery} $widget
          * @param {Array} variations
@@ -493,6 +557,7 @@
                 const $buttons = $widget.find('.bw-price-variation__variation-button');
                 const $addToCartButton = $widget.find('.bw-add-to-cart-button');
                 const $paymentOptionsLink = $widget.find('.bw-price-variation__payment-options');
+                const $payPalCartForm = $widget.find('.bw-price-variation__cart-form').first();
                 const checkoutUrl = $widget.data('checkout-url');
 
                 let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
@@ -507,6 +572,7 @@
                         updateLicenseBox($licenseBox, activeVariation);
                         updateAddToCartButton($addToCartButton, productId, activeVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, activeVariation, checkoutUrl);
+                        syncPayPalCartForm($payPalCartForm, productId, activeVariation);
                 }
 
                 $buttons.on('click', function(e) {
@@ -537,6 +603,7 @@
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
+                        syncPayPalCartForm($payPalCartForm, productId, selectedVariation);
                         syncFloatingAtc();
 
                         $widget.trigger('bw_price_variation_changed', {

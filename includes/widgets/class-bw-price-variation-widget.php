@@ -10,6 +10,52 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class BW_Price_Variation_Widget extends Widget_Base {
 
+	private function get_paypal_product_button_markup( $product ) {
+		if ( ! $product || ! class_exists( '\WooCommerce\PayPalCommerce\PPCP' ) ) {
+			return '';
+		}
+
+		$resolved_context_id = 0;
+
+		if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
+			$resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
+			$resolved_context_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+		}
+
+		if ( ! $resolved_context_id ) {
+			$resolved_context_id = absint( get_the_ID() );
+		}
+
+		if ( ! $resolved_context_id || (int) $product->get_id() !== $resolved_context_id ) {
+			return '';
+		}
+
+		try {
+			$container = \WooCommerce\PayPalCommerce\PPCP::container();
+
+			if ( ! is_object( $container ) || ! method_exists( $container, 'get' ) ) {
+				return '';
+			}
+
+			$settings_status = $container->get( 'wcgateway.settings.status' );
+			if ( ! is_object( $settings_status ) || ! method_exists( $settings_status, 'is_smart_button_enabled_for_location' ) || ! $settings_status->is_smart_button_enabled_for_location( 'product' ) ) {
+				return '';
+			}
+
+			$smart_button = $container->get( 'button.smart-button' );
+			if ( ! is_object( $smart_button ) || ! method_exists( $smart_button, 'button_renderer' ) ) {
+				return '';
+			}
+
+			ob_start();
+			$smart_button->button_renderer( 'ppcp-gateway', 'woocommerce_paypal_payments_single_product_button_render' );
+
+			return (string) ob_get_clean();
+		} catch ( \Throwable $e ) {
+			return '';
+		}
+	}
+
         private function render_editor_notice( $message ) {
                 echo '<div class="elementor-alert elementor-alert-warning">';
                 echo esc_html( $message );
@@ -1421,6 +1467,8 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 
                                 $add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
                                 $checkout_url    = add_query_arg( $url_params, wc_get_checkout_url() );
+				$show_more_payment_options = isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'];
+				$paypal_button_markup = $show_more_payment_options ? $this->get_paypal_product_button_markup( $product ) : '';
 
                                 $attributes = [
                                         'href'                 => esc_url( $add_to_cart_url ),
@@ -1437,28 +1485,56 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                 ];
 
                                 ?>
-                                <div class="bw-add-to-cart-wrapper">
-                                        <a <?php
-                                        foreach ( $attributes as $key => $value ) {
-                                                if ( is_string( $value ) || is_numeric( $value ) ) {
-                                                        echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
-                                                }
-                                        }
-                                        ?>><?php echo esc_html( $button_text ); ?></a>
-                                </div>
-				<?php if ( isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'] && isset( $settings['payment_options_style_enabled'] ) && 'yes' === $settings['payment_options_style_enabled'] ) : ?>
-					<div class="bw-price-variation__payment-options-wrapper">
-						<a
-							class="bw-price-variation__payment-options"
-							href="<?php echo esc_url( $checkout_url ); ?>"
-							data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
-							data-variation_id="<?php echo esc_attr( $default_variation_id ); ?>"
-							data-selected-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
-						>
-							<?php esc_html_e( 'More payment options', 'bw' ); ?>
-						</a>
-					</div>
-				<?php endif; ?>
+				<form
+					class="cart variations_form bw-price-variation__cart-form"
+					method="post"
+					action="<?php echo esc_url( $product->get_permalink() ); ?>"
+					data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
+					data-variation_id="<?php echo esc_attr( $default_variation_id ); ?>"
+				>
+					<input type="hidden" name="add-to-cart" value="<?php echo esc_attr( $product->get_id() ); ?>" />
+					<input type="hidden" name="product_id" value="<?php echo esc_attr( $product->get_id() ); ?>" />
+					<input type="hidden" name="quantity" value="1" />
+					<input type="hidden" name="variation_id" value="<?php echo esc_attr( $default_variation_id ); ?>" />
+					<?php foreach ( $default_variation_attrs as $attribute_name => $attribute_value ) : ?>
+						<input
+							type="hidden"
+							class="bw-price-variation__variation-attribute"
+							data-attribute-name="<?php echo esc_attr( $attribute_name ); ?>"
+							name="<?php echo esc_attr( $attribute_name ); ?>"
+							value="<?php echo esc_attr( $attribute_value ); ?>"
+						/>
+					<?php endforeach; ?>
+
+	                                <div class="bw-add-to-cart-wrapper">
+	                                        <a <?php
+	                                        foreach ( $attributes as $key => $value ) {
+	                                                if ( is_string( $value ) || is_numeric( $value ) ) {
+	                                                        echo esc_attr( $key ) . '="' . esc_attr( $value ) . '" ';
+	                                                }
+	                                        }
+	                                        ?>><?php echo esc_html( $button_text ); ?></a>
+	                                </div>
+
+					<?php if ( $show_more_payment_options ) : ?>
+						<?php if ( '' !== $paypal_button_markup ) : ?>
+							<div class="bw-price-variation__paypal-button-wrapper">
+								<?php echo $paypal_button_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- official plugin renderer output ?>
+							</div>
+						<?php endif; ?>
+						<div class="bw-price-variation__payment-options-wrapper">
+							<a
+								class="bw-price-variation__payment-options"
+								href="<?php echo esc_url( $checkout_url ); ?>"
+								data-product_id="<?php echo esc_attr( $product->get_id() ); ?>"
+								data-variation_id="<?php echo esc_attr( $default_variation_id ); ?>"
+								data-selected-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
+							>
+								<?php esc_html_e( 'More payment options', 'bw' ); ?>
+							</a>
+						</div>
+					<?php endif; ?>
+				</form>
                         <?php endif; ?>
 
                 </div>
