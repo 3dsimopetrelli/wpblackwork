@@ -3,7 +3,7 @@
 ## Status decisions (governed)
 - `bw-add-to-cart`: **DELETE** (completed)
 - `bw-add-to-cart-variation`: **DELETE** (completed)
-- `bw-wallpost`: **DELETE** (completed), replacement path is `bw-product-grid` with `Enable Filter = No`
+- `bw-wallpost`: **DELETE** (completed), replacement path is `bw-product-grid` with `Show Filters = No`
 - `bw-product-grid`: **KEEP as canonical wall/query-grid widget** (supports filtered and non-filtered mode)
 - `bw-product-slider`: **KEEP as canonical current product slider**
 - `bw-presentation-slide`: **KEEP as specialized presentation/gallery slider**

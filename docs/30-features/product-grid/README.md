@@ -1,11 +1,13 @@
 # Product Grid Widget
 
-Filterable masonry/CSS-grid widget for products and posts.
+Filterable or plain masonry/CSS-grid widget for products and posts.
 Elementor widget slug: `bw-product-grid`.
 
 Current notable UI/runtime deltas:
+- `Filter Settings > Show Filters` is the current dual-mode switch for filtered vs simple grid behavior
 - mobile filter trigger uses the new bordered white pill + green icon treatment
 - mobile first paint is CSS-governed, so desktop filter labels do not flash before JS init
+- `Layout` includes `Show Title`, `Show Description`, and `Show Price`
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
 
 ## Documents

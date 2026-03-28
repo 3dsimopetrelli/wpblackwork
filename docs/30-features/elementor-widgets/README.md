@@ -157,10 +157,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - Woo related template
   - `bw-slick-slider` product path
   - `bw-product-grid` product path (including AJAX HTML response path)
-- `bw-product-grid` supports `Enable Filter = yes/no`.
+- `bw-product-grid` supports filtered/simple grid mode via `Show Filters = yes/no`.
 - `bw-product-grid` also completed a post-implementation runtime hardening pass covering settings alignment, dead-code removal, duplicate-markup reduction, debug-log removal, and resize-handler consolidation.
 - Removal/replacement path finalized:
-  - `bw-wallpost` -> use `bw-product-grid` with `Enable Filter = No`
+  - `bw-wallpost` -> use `bw-product-grid` with `Show Filters = No`
   - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces
 - Mail Marketing wave completed:
   - `bw-newsletter-subscription` added as the governed subscription widget for site-wide Brevo capture
@@ -169,12 +169,19 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 
 ## BW Product Grid Stabilization (2026)
 - A dedicated stabilization wave was completed on `BW Product Grid` to harden runtime behavior and remove residual drift before further feature work.
-- Activated previously dormant Elementor controls:
+- Active Elementor controls were aligned with the current runtime contract:
+  - filtered/simple mode via `Show Filters`
+  - infinite loading (`Initial Items`, `Load Batch Size`)
+  - layout toggles (`Desktop Columns`, `Container Max Width`, `Masonry Effect`)
+  - content visibility (`Show Title`, `Show Description`, `Show Price`)
+  - touch-device hover suppression
+- Internal/runtime-only values remain non-exposed in Elementor:
   - `image_toggle`
   - `image_size`
+  - `image_mode`
   - `hover_effect`
-  - `filter_responsive_breakpoint`
-  - responsive filter mobile controls
+  - `open_cart_popup`
+  - filter breakpoint (`900`)
 - Removed dead JavaScript utilities from the runtime:
   - `clearWidgetCache()`
   - `debounce()`

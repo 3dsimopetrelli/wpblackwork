@@ -2,7 +2,7 @@
 
 ## 1) Purpose
 
-`bw-product-grid` renders a filterable masonry or CSS-grid layout of
+`bw-product-grid` renders a filterable or filterless masonry/CSS-grid layout of
 products (or any post type).  The initial HTML is server-rendered by the
 PHP widget class; subsequent filter and pagination changes are handled
 entirely in JS via AJAX calls to handlers in `blackwork-core-plugin.php`.
@@ -24,13 +24,13 @@ entirely in JS via AJAX calls to handlers in `blackwork-core-plugin.php`.
 
 ### 3.1 Controls
 
-Controls are registered across three private methods:
+Controls are registered across four private methods:
 
 | Method | Controls |
 |--------|----------|
-| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, `Disable Hover Actions on Tablet & Mobile` |
+| `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
-| `register_filter_controls()` | Show filters, default category, show categories/subcategories/tags, filter bar titles |
+| `register_filter_controls()` | `Show Filters`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
 | `register_query_controls()` | Post type, parent category, subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
@@ -61,6 +61,14 @@ This is intentionally scoped at wrapper level so the behavior applies to:
 
 without changing the shared `BW_Product_Card_Component` authority for other widgets.
 
+The outer `.bw-product-grid-wrapper` is a second wrapper-level contract:
+
+| Attribute | Source in PHP | Used by |
+|-----------|---------------|---------|
+| `data-filter-breakpoint` | hardcoded `900` | CSS first paint + `toggleResponsiveFilters()` |
+
+There is currently no Elementor control for the filter breakpoint.
+
 ### 3.4 PHP → JS data contract (data-attributes on `.bw-fpw-grid`)
 
 All values that the JS layer must know at runtime are serialised as
@@ -80,6 +88,9 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-image-mode` | `$image_mode` (default `proportional`) | `filterPosts()` AJAX payload |
 | `data-hover-effect` | `$hover_effect` (default `yes`) | `filterPosts()` AJAX payload |
 | `data-open-cart-popup` | `$open_cart_popup` (default `no`) | `filterPosts()` AJAX payload |
+| `data-show-title` | `show_title` control | CSS visibility contract |
+| `data-show-description` | `show_description` control | CSS visibility contract |
+| `data-show-price` | `show_price` control | CSS visibility contract |
 | `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
 | `data-initial-items`, `data-load-batch-size`, `data-per-page` | controls | paging state |
 | `data-current-page`, `data-next-page`, `data-next-offset` | `render_posts()` derived | paging state |
@@ -101,12 +112,22 @@ private function render_post_item(
     string $image_loading       = 'lazy',
     string $hover_image_loading = 'lazy',
     string $image_size          = 'large',
-    string $image_mode          = 'proportional'
+    string $image_mode          = 'proportional',
+    bool   $show_title          = true,
+    bool   $show_description    = true,
+    bool   $show_price          = true
 )
 ```
 
-`$image_size` and `$image_mode` are passed from `render_posts()` so the
-initial server render always matches what the AJAX handler produces.
+`$image_size`, `$image_mode`, and the three visibility booleans are passed
+from `render_posts()`.  The initial server render therefore respects the
+active widget settings directly.
+
+Important nuance for later maintenance:
+- the AJAX handler currently receives `image_*` / hover / popup flags
+- it does **not** receive `show_title`, `show_description`, or `show_price`
+- AJAX markup still renders those content blocks, and final visibility stays
+  governed by the grid-level `data-show-*` attributes plus CSS
 
 ---
 
@@ -238,14 +259,14 @@ The first-paint mobile/desktop decision is no longer JS-only; see the CSS contra
 
 ## 5) AJAX Handlers (PHP)
 
-All three handlers are in `blackwork-core-plugin.php`.
+All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 
 ### 5.1 bw_fpw_get_subcategories
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_get_subcategories`
 - Input: `category_id`, `post_type`, `nonce`
 - Returns: `[{ term_id, name, count }]`
-- Server cache: `bw_fpw_subcats_{post_type}_{category_id}` — 5 min transient
+- Server cache: `bw_fpw_subcats_{post_type}_{category_id}` — 15 min transient
 - Rate limit: 60 req/min (anon), 300 req/min (auth)
 
 ### 5.2 bw_fpw_get_tags
@@ -253,18 +274,25 @@ All three handlers are in `blackwork-core-plugin.php`.
 - Action: `wp_ajax[_nopriv]_bw_fpw_get_tags`
 - Input: `category_id`, `post_type`, `subcategories[]`, `nonce`
 - Returns: `[{ term_id, name, count }]`
-- Server cache: `bw_fpw_tags_{post_type}_{category_id}_{subcats_hash}` — 5 min transient
+- Server cache: `bw_fpw_tags_{post_type}_{category_id}_{subcats_hash}` — 15 min transient
 - Rate limit: 50 req/min (anon), 300 req/min (auth)
 
 ### 5.3 bw_fpw_filter_posts
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
 - Input: `widget_id`, `post_type`, `category`, `subcategories[]`, `tags[]`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
-- Returns: `{ html, tags_html, available_tags[], has_posts, has_more, next_offset, loaded_count, current_page }`
-- Server cache: SHA-256 transient keyed on canonical payload — 3 min (skipped for `rand`)
+- Returns: `{ html, tags_html, available_tags[], has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
+- Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
 
-### 5.4 Rate limiting
+### 5.4 bw_fpw_refresh_nonce
+
+- Action: `wp_ajax[_nopriv]_bw_fpw_refresh_nonce`
+- Input: none
+- Returns: `{ nonce }`
+- Purpose: refresh an expired Product Grid nonce without a full page reload
+
+### 5.5 Rate limiting
 
 `bw_fpw_is_throttled_request($action_key)` maintains a per-fingerprint
 counter in a short-lived transient.
@@ -332,11 +360,17 @@ called for its `data-widget-id`.
    later requires only: read from `$settings`, update the variable — the
    data-attribute and JS pipeline carry the value automatically.
 
-3. **Transient cache is per-server.**  In multi-server environments, a
+3. **`show_title`, `show_description`, `show_price` are currently a
+   presentation-only contract on AJAX refreshes.**  The initial PHP render
+   passes the booleans directly into `render_post_item()`, but the AJAX
+   endpoint still renders all three blocks and relies on grid-level
+   `data-show-*` attributes plus CSS to keep visibility aligned.
+
+4. **Transient cache is per-server.**  In multi-server environments, a
    request to a different server may miss cache and generate a fresh query.
    This is acceptable — the query is still rate-limited.
 
-4. **Client-side cache is per-page-load.**  Navigating away and back clears
+5. **Client-side cache is per-page-load.**  Navigating away and back clears
    the JS cache.  The server-side transient provides cross-session coverage.
 
 ---

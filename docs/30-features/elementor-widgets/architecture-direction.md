@@ -8,7 +8,7 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
   - slug: `bw-product-grid`
   - class: `BW_Product_Grid_Widget`
 - Product-card authority is `BW_Product_Card_Component` across migrated product surfaces (`BW_Product_Card_Renderer` remains compatibility bridge).
-- `bw-product-grid` already supports dual mode via `Enable Filter`:
+- `bw-product-grid` already supports dual mode via `Show Filters`:
   - enabled: filtered grid behavior
   - disabled: simple grid behavior
 - `bw-wallpost` has been removed after governed replacement validation.
@@ -62,7 +62,8 @@ Implemented improvements:
 - responsive behavior unified across CSS and JS
 - removal of console debug statements
 - elimination of dead JavaScript code
-- activation of dormant Elementor controls
+- alignment of active Elementor controls with the current runtime contract
+- explicit retention of some values as internal/runtime-only defaults (`image_*`, hover, popup, filter breakpoint)
 
 This wave focused on:
 - code health

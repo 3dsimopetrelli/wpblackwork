@@ -109,8 +109,22 @@ Important runtime note:
   - the behavior is wrapper-scoped and does not change the shared product-card contract for other widgets
 - `bw-product-grid` controls/runtime (current state):
   - `Layout`:
+    - `Infinite Scroll`
+    - `Initial Items`
+    - `Load Batch Size`
     - `Desktop Columns`: `3`, `4`, `5`, `6`
+    - `Container Max Width (px)`
+    - `Masonry Effect`
+    - `Show Title`
+    - `Show Description`
+    - `Show Price`
     - `Disable Hover Actions on Tablet & Mobile`
+  - `Filter Settings`:
+    - `Show Filters` is the current filtered/simple-grid switch
+    - default category
+    - show categories / subcategories / tags
+    - filter bar titles
+    - show `All` option
   - `Style > Text`:
     - content gap
     - title color / typography / padding
@@ -120,6 +134,12 @@ Important runtime note:
     - desktop inline filter rows + mobile slide-out filter panel
     - mobile trigger uses a white rounded pill with green icon shell
     - mobile first paint is CSS-managed to avoid desktop-filter flash before JS init
+  - internal fixed/runtime-only values:
+    - `image_size = large`
+    - `image_mode = proportional`
+    - `hover_effect = yes`
+    - `open_cart_popup = no`
+    - filter breakpoint is hardcoded to `900`
 - `bw-product-breadcrumbs` controls (current state):
   - `product_id`: explicit product ID override for editor preview
   - deterministic breadcrumb chain for current Woo single product
@@ -184,7 +204,7 @@ Important runtime note:
     - `Free / Existing Controls` -> legacy width/image-height contract
     - fixed frame ratio -> ratio-locked card with fit-mode authority
     - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
-- `bw-product-grid`: now supports `Enable Filter = yes/no` (can run as filtered grid or simple grid).
+- `bw-product-grid`: supports filtered/simple grid mode via `Show Filters = yes/no`.
   - `Desktop Columns` currently supports `3`, `4`, `5`, `6`
   - `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls
 - `bw-newsletter-subscription`:
@@ -217,6 +237,7 @@ Important runtime note:
 - `bw-product-grid` product rendering is delegated to `BW_Product_Card_Component` in both:
   - widget server render path
   - AJAX response path (`bw_fpw_filter_posts`).
+- `bw-product-grid` AJAX refresh still renders title/description/price markup unconditionally; final visibility is governed by grid-level `data-show-*` attributes and CSS.
 - `bw-slick-slider` product rendering path is delegated to `BW_Product_Card_Component`.
 - `bw-related-products` product rendering path is delegated to `BW_Product_Card_Component`.
 - shared product-card hover media now resolves in this order:
@@ -230,7 +251,7 @@ Important runtime note:
   - playback resets on exit
 - `bw-related-products` refactored (2026-03): proportional image grid, simplified controls (removed Image Settings, Overlay Buttons style, Card Container style, open_cart_popup, margin_top/bottom). Desktop columns control uses `selectors` for live Elementor preview without re-render. Tablet/mobile hardcoded to 2 columns in CSS.
 - Removed widgets (governed removal wave completed):
-  - `bw-wallpost` (replacement: `bw-product-grid` + `Enable Filter = No`)
+  - `bw-wallpost` (replacement: `bw-product-grid` + `Show Filters = No`)
   - `bw-add-to-cart`
   - `bw-add-to-cart-variation`
 
