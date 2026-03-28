@@ -48,6 +48,8 @@
 .bw-trust-box__review-slider[data-bw-trust-review-slider-effect="fade"] .bw-trust-box__review-slide {
 	grid-area: 1 / 1;
 	width: 100%;
+	opacity: 0;
+	visibility: hidden;
 	pointer-events: none;
 }
 
@@ -56,6 +58,7 @@
 }
 
 .bw-trust-box__review-slider[data-bw-trust-review-slider-effect="fade"] .bw-trust-box__review-slide.is-active {
+	visibility: visible;
 	pointer-events: auto;
 }
 
