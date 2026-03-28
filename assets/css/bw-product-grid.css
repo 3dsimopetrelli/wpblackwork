@@ -348,7 +348,10 @@
   bottom: 12px;
   width: min(80vw, 640px);
   max-width: calc(100vw - 24px);
-  background-color: var(--bw-cart-bg, rgba(15, 15, 15, 0.84));
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.035), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(128, 253, 3, 0.05), transparent 26%),
+    rgba(12, 12, 12, 0.9);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   color: var(--bw-cart-text, #ffffff);
