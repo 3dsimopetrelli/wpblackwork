@@ -728,11 +728,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
                         <div class="bw-fpw-drawer-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                         <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                            <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
                         </div>
                     </div>
 
                     <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
-                        <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
                         <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
                     </div>
                 </div>
