@@ -321,6 +321,61 @@
         }
 
         /**
+         * Check whether an element is visible in the current layout.
+         * @param {HTMLElement} element
+         * @returns {boolean}
+         */
+        function isVisibleInLayout(element) {
+                if (!element) {
+                        return false;
+                }
+
+                return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+        }
+
+        /**
+         * WooCommerce PayPal Payments binds product buttons to the first global form.cart.
+         * On some templates a hidden duplicate WooCommerce product form is still present.
+         * When no other visible product form exists, demote those hidden duplicates so the
+         * official PayPal script can bind to the Price Variation cart form instead.
+         * @param {jQuery} $form
+         */
+        function prioritizePayPalCartForm($form) {
+                if (!$form.length) {
+                        return;
+                }
+
+                const targetForm = $form.get(0);
+                const forms = Array.from(document.querySelectorAll('form.cart'));
+
+                if (!forms.length || forms[0] === targetForm) {
+                        return;
+                }
+
+                const otherVisibleForms = forms.filter(function(form) {
+                        return form !== targetForm && isVisibleInLayout(form);
+                });
+
+                if (otherVisibleForms.length) {
+                        return;
+                }
+
+                forms.forEach(function(form) {
+                        if (form === targetForm) {
+                                form.classList.add('cart');
+                                form.classList.add('variations_form');
+                                return;
+                        }
+
+                        if (!form.dataset.bwPaypalDemoted) {
+                                form.dataset.bwPaypalDemoted = 'yes';
+                                form.classList.remove('cart');
+                                form.classList.remove('variations_form');
+                        }
+                });
+        }
+
+        /**
          * Pick the variation to use as default.
          * @param {jQuery} $widget
          * @param {Array} variations
@@ -582,6 +637,7 @@
                         updateLicenseBox($licenseBox, activeVariation);
                         updateAddToCartButton($addToCartButton, productId, activeVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, activeVariation, checkoutUrl);
+                        prioritizePayPalCartForm($payPalCartForm);
                         syncPayPalCartForm($payPalCartForm, productId, activeVariation);
                 }
 
@@ -613,6 +669,7 @@
                         updateLicenseBox($licenseBox, selectedVariation);
                         updateAddToCartButton($addToCartButton, productId, selectedVariation);
                         updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
+                        prioritizePayPalCartForm($payPalCartForm);
                         syncPayPalCartForm($payPalCartForm, productId, selectedVariation);
                         syncFloatingAtc();
 
