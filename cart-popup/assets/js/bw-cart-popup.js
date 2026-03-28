@@ -103,8 +103,8 @@
             // altrimenti viene fatto un singolo fetch solo per marcare i pulsanti.
             if (bwCartPopupConfig.settings.show_floating_trigger) {
                 this.setupFloatingTriggerWatcher();
-                this.loadCartContents(true).always(function () {
-                    self._markButtonsFromCache();
+                this.loadCartContents(true).always(() => {
+                    this._markButtonsFromCache();
                 });
             } else {
                 this.markButtonsAlreadyInCart();
