@@ -730,6 +730,7 @@
                 subcategories: [],
                 tags: [],
                 search: '',
+                appliedSearch: '',
                 resultCount: 0,
                 options: {
                     types: [],
@@ -898,59 +899,9 @@
         return getDiscoverySelections(state, groupKey).indexOf(termId) > -1;
     }
 
-    function getDiscoveryChipData(widgetId) {
-        var state = filterState[widgetId];
-        var chips = [];
-
-        if (!state) {
-            return chips;
-        }
-
-        state.subcategories.forEach(function (termId) {
-            chips.push({
-                group: 'types',
-                termId: termId,
-                label: state.labels.types[termId] || ''
-            });
-        });
-
-        state.tags.forEach(function (termId) {
-            chips.push({
-                group: 'tags',
-                termId: termId,
-                label: state.labels.tags[termId] || ''
-            });
-        });
-
-        return chips.filter(function (chip) {
-            return chip.label;
-        });
-    }
-
     function formatResultCount(count) {
         var safeCount = Math.max(0, parseInteger(count, 0));
         return safeCount + (safeCount === 1 ? ' result' : ' results');
-    }
-
-    function renderDiscoveryChips(widgetId) {
-        var chips = getDiscoveryChipData(widgetId);
-
-        $('.bw-fpw-discovery-active-chips[data-widget-id="' + widgetId + '"], .bw-fpw-drawer-active-chips[data-widget-id="' + widgetId + '"]').each(function () {
-            var $container = $(this);
-            var html = '';
-
-            if (chips.length) {
-                chips.forEach(function (chip) {
-                    html += '<button class="bw-fpw-discovery-chip" type="button" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.termId + '">';
-                    html += '<span class="bw-fpw-discovery-chip__label">' + escapeHtml(chip.label) + '</span>';
-                    html += '<span class="bw-fpw-discovery-chip__remove" aria-hidden="true">×</span>';
-                    html += '</button>';
-                });
-            }
-
-            $container.html(html);
-            $container.toggleClass('is-empty', chips.length === 0);
-        });
     }
 
     function renderDiscoveryResultCount(widgetId) {
@@ -968,13 +919,27 @@
         var types = state && state.ui.showTypes ? state.options.types.slice() : [];
         var tags = state && state.ui.showTags ? state.options.tags.slice() : [];
 
-        getDiscoveryChipData(widgetId).forEach(function (chip) {
-            var key = chip.group + ':' + chip.termId;
+        state.subcategories.forEach(function (termId) {
+            var key = 'types:' + termId;
+
             selectedMap[key] = true;
             quickFilters.push({
-                group: chip.group,
-                term_id: chip.termId,
-                name: chip.label,
+                group: 'types',
+                term_id: termId,
+                name: state.labels.types[termId] || '',
+                count: 0,
+                selected: true
+            });
+        });
+
+        state.tags.forEach(function (termId) {
+            var key = 'tags:' + termId;
+
+            selectedMap[key] = true;
+            quickFilters.push({
+                group: 'tags',
+                term_id: termId,
+                name: state.labels.tags[termId] || '',
                 count: 0,
                 selected: true
             });
@@ -1005,7 +970,9 @@
         pushOptions(types, 'types', 3);
         pushOptions(tags, 'tags', 5);
 
-        return quickFilters.slice(0, 8);
+        return quickFilters.filter(function (filter) {
+            return filter.name;
+        }).slice(0, 8);
     }
 
     function renderDiscoveryQuickFilters(widgetId) {
@@ -1114,7 +1081,6 @@
         }
 
         renderDiscoverySearch(widgetId);
-        renderDiscoveryChips(widgetId);
         renderDiscoveryResultCount(widgetId);
         renderDiscoveryQuickFilters(widgetId);
         renderDiscoveryDrawerGroups(widgetId);
@@ -1132,6 +1098,8 @@
         } else if (typeof data.result_count !== 'undefined') {
             state.resultCount = Math.max(0, parseInteger(data.result_count, state.resultCount));
         }
+
+        state.appliedSearch = state.search;
 
         renderDiscoveryUi(widgetId);
     }
@@ -1165,6 +1133,7 @@
         state.subcategories = [];
         state.tags = [];
         state.search = '';
+        state.appliedSearch = '';
         state.ui.optionSearches.types = '';
         state.ui.optionSearches.tags = '';
         state.ui.openGroups.types = false;
@@ -2340,12 +2309,14 @@
         $(document).on('input', '.bw-fpw-discovery-search__input', function () {
             var widgetId = $(this).attr('data-widget-id');
             var state = getDiscoveryState(widgetId);
+            var normalizedSearch;
 
             if (!isDiscoveryDrawerMode(widgetId)) {
                 return;
             }
 
             state.search = $(this).val() || '';
+            normalizedSearch = $.trim(state.search);
 
             renderDiscoverySearch(widgetId);
 
@@ -2355,8 +2326,13 @@
 
             discoverySearchTimers[widgetId] = setTimeout(function () {
                 delete discoverySearchTimers[widgetId];
+
+                if (normalizedSearch === $.trim(state.appliedSearch || '')) {
+                    return;
+                }
+
                 filterPosts(widgetId);
-            }, 180);
+            }, 650);
         });
 
         $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
@@ -2411,29 +2387,6 @@
             toggleDiscoverySelection(widgetId, groupKey, termId);
             renderDiscoveryUi(widgetId);
             filterPosts(widgetId);
-        });
-
-        $(document).on('click', '.bw-fpw-discovery-chip', function (e) {
-            e.preventDefault();
-
-            var widgetId = $(this).attr('data-widget-id');
-            var groupKey = $(this).attr('data-group');
-            var termId = parseInteger($(this).attr('data-term-id'), 0);
-            var state = getDiscoveryState(widgetId);
-            var selections;
-
-            if (!isDiscoveryDrawerMode(widgetId) || termId <= 0 || !groupKey) {
-                return;
-            }
-
-            selections = getDiscoverySelections(state, groupKey);
-            state.ui.openGroups[groupKey] = true;
-
-            if (selections.indexOf(termId) > -1) {
-                toggleDiscoverySelection(widgetId, groupKey, termId);
-                renderDiscoveryUi(widgetId);
-                filterPosts(widgetId);
-            }
         });
 
         $(document).on('click', '.bw-fpw-discovery-reset', function (e) {

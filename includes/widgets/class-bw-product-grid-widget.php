@@ -692,7 +692,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
         ?>
         <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
             <div class="bw-fpw-discovery-toolbar__summary">
-                <div class="bw-fpw-discovery-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                 <div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                     <span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
                     <button class="bw-fpw-discovery-reset" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
@@ -725,7 +724,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     </div>
 
                     <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
-                        <div class="bw-fpw-drawer-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                         <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                             <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
