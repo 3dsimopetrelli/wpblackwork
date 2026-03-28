@@ -44,6 +44,8 @@
 
             // Wheel handler reference for cleanup (mouse/trackpad drag on desktop)
             this._wheelHandler = null;
+            // Flag: al primo swipe orizzontale vengono caricate tutte le slide
+            this._allSlidesPreloaded = false;
 
             // Body scroll lock state (iOS-safe popup scroll locking)
             this._savedScrollY = 0;
@@ -520,6 +522,15 @@
                 // Ignore vertical-dominant gestures (page scroll)
                 if (Math.abs(evt.deltaX) <= Math.abs(evt.deltaY)) return;
 
+                // Al primo swipe orizzontale rilevato dentro il carousel,
+                // carica immediatamente tutte le slide lazy. Questo garantisce
+                // che durante uno scorrimento veloce le immagini siano già
+                // in download prima che diventino visibili.
+                if (!this._allSlidesPreloaded) {
+                    this._allSlidesPreloaded = true;
+                    this._loadAllSlides();
+                }
+
                 const emblaApi = this.emblaCore?.api();
                 if (!emblaApi) return;
 
@@ -757,6 +768,23 @@
                     if (img.dataset.bwSrcset) img.srcset = img.dataset.bwSrcset;
                     if (img.dataset.bwSizes)  img.sizes  = img.dataset.bwSizes;
                 });
+            });
+        }
+
+        /**
+         * Avvia il download di TUTTE le slide lazy in una volta sola.
+         * Chiamato al primo swipe orizzontale sul trackpad: a quel punto
+         * l'utente ha già manifestato l'intento di scorrere velocemente,
+         * quindi è meglio avere tutto in cache piuttosto che caricare
+         * solo il buffer ±N.
+         */
+        _loadAllSlides() {
+            if (!this._emblaViewport) return;
+            this._emblaViewport.querySelectorAll('img[data-bw-src]').forEach((img) => {
+                if (img.getAttribute('src') !== null) return;
+                img.src = img.dataset.bwSrc;
+                if (img.dataset.bwSrcset) img.srcset = img.dataset.bwSrcset;
+                if (img.dataset.bwSizes)  img.sizes  = img.dataset.bwSizes;
             });
         }
 

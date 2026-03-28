@@ -16,6 +16,35 @@
 .bw-ps-image {
     position: relative;
     overflow: hidden;
+    /* Colore base che si vede prima che l'immagine sia scaricata */
+    background-color: #e8e8e8;
+}
+
+/* Shimmer skeleton: gradiente animato mentre l'immagine è in download */
+.bw-ps-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent      0%,
+        rgba(255,255,255,0.55) 50%,
+        transparent      100%
+    );
+    background-size: 200% 100%;
+    animation: bw-ps-shimmer 1.4s infinite linear;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Rimuove lo shimmer non appena l'immagine è stata caricata */
+.bw-ps-image:has(img.is-loaded)::before {
+    display: none;
+}
+
+@keyframes bw-ps-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 /* Le immagini usano la classe .bw-embla-img da bw-embla-core.css
@@ -25,6 +54,9 @@
     width: 100%;
     height: auto;
     transition: transform 0.3s ease;
+    /* Garantisce che l'img sia sopra lo shimmer ::before */
+    position: relative;
+    z-index: 2;
 }
 
 .bw-ps-image-clickable {
