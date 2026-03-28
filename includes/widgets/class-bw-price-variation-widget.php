@@ -10,49 +10,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class BW_Price_Variation_Widget extends Widget_Base {
 
-	private function get_paypal_product_button_markup( $product ) {
-		if ( ! $product || ! class_exists( '\WooCommerce\PayPalCommerce\PPCP' ) ) {
-			return '';
-		}
-
-		$resolved_context_id = 0;
-
-		if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
-			$resolution = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
-			$resolved_context_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
-		}
-
-		if ( ! $resolved_context_id ) {
-			$resolved_context_id = absint( get_the_ID() );
-		}
-
-		if ( ! $resolved_context_id || (int) $product->get_id() !== $resolved_context_id ) {
-			return '';
+	private function should_render_paypal_product_button() {
+		if ( ! class_exists( '\WooCommerce\PayPalCommerce\PPCP' ) ) {
+			return false;
 		}
 
 		try {
 			$container = \WooCommerce\PayPalCommerce\PPCP::container();
 
 			if ( ! is_object( $container ) || ! method_exists( $container, 'get' ) ) {
-				return '';
+				return false;
 			}
 
 			$settings_status = $container->get( 'wcgateway.settings.status' );
-			if ( ! is_object( $settings_status ) || ! method_exists( $settings_status, 'is_smart_button_enabled_for_location' ) || ! $settings_status->is_smart_button_enabled_for_location( 'product' ) ) {
-				return '';
+			if ( ! is_object( $settings_status ) || ! method_exists( $settings_status, 'is_smart_button_enabled_for_location' ) ) {
+				return false;
 			}
 
-			$smart_button = $container->get( 'button.smart-button' );
-			if ( ! is_object( $smart_button ) || ! method_exists( $smart_button, 'button_renderer' ) ) {
-				return '';
-			}
-
-			ob_start();
-			$smart_button->button_renderer( 'ppcp-gateway', 'woocommerce_paypal_payments_single_product_button_render' );
-
-			return (string) ob_get_clean();
+			return (bool) $settings_status->is_smart_button_enabled_for_location( 'product' );
 		} catch ( \Throwable $e ) {
-			return '';
+			return false;
 		}
 	}
 
@@ -1468,7 +1445,7 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                                 $add_to_cart_url = add_query_arg( $url_params, $add_to_cart_url );
                                 $checkout_url    = add_query_arg( $url_params, wc_get_checkout_url() );
 				$show_more_payment_options = isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'];
-				$paypal_button_markup = $show_more_payment_options ? $this->get_paypal_product_button_markup( $product ) : '';
+				$should_render_paypal_button = $show_more_payment_options && $this->should_render_paypal_product_button();
 
                                 $attributes = [
                                         'href'                 => esc_url( $add_to_cart_url ),
@@ -1520,9 +1497,12 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
 	                                </div>
 
 					<?php if ( $show_more_payment_options ) : ?>
-						<?php if ( '' !== $paypal_button_markup ) : ?>
+						<?php if ( $should_render_paypal_button ) : ?>
 							<div class="bw-price-variation__paypal-button-wrapper">
-								<?php echo $paypal_button_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- official plugin renderer output ?>
+								<div class="ppc-button-wrapper">
+									<div id="ppc-button-ppcp-gateway"></div>
+									<?php do_action( 'woocommerce_paypal_payments_single_product_button_render' ); ?>
+								</div>
 							</div>
 						<?php endif; ?>
 						<div class="bw-price-variation__payment-options-wrapper">
