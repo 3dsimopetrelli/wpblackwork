@@ -12,6 +12,7 @@ Completed:
 - preserved global Reviews Settings authority for curated review slider and fixed review box
 - created dedicated JS/CSS assets for the new trust widget
 - updated editor-panel family mapping so `BW Trust Box` appears in the SP/purple family in Elementor
+- completed post-extraction UI polish on the trust stack, including responsive card behavior, typography cleanup, and final CTA radius alignment
 
 ## 2) Files Changed
 - `includes/widgets/class-bw-trust-box-widget.php`
