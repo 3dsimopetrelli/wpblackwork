@@ -96,22 +96,24 @@
             const nextBtn    = this.$wrapper.find('.bw-ps-arrow-next')[0];
             const dotsCont   = this.$wrapper.find('.bw-ps-dots-container')[0];
 
+            // Salva riferimento al viewport per _loadAdjacentSlides e _updateEmblaBreakpointOptions
+            this._emblaViewport = viewport;
+
             // Loop + center: the last slide is rendered to the LEFT of the first
-            // slide and is immediately visible. Preload it via <link rel="preload">
-            // so it downloads with high priority concurrently with slide 0/1,
-            // regardless of whether the HTML has loading="eager" or "lazy"
-            // (page-cache may serve stale HTML with the old lazy attribute).
+            // slide and is immediately visible. PHP marks it eager, but as a safety
+            // net for cached pages inject a <link rel="preload"> if not yet loaded.
+            // Handles both src (eager PHP) and data-bw-src (stale cache fallback).
             if (hCfg.infinite && (hCfg.align || 'start') === 'center') {
                 const $lastImg = this.$wrapper.find('.bw-ps-image img').last();
                 if ($lastImg.length && !$lastImg[0].complete) {
-                    const src    = $lastImg.attr('src');
-                    const srcset = $lastImg.attr('srcset');
-                    const sizes  = $lastImg.attr('sizes');
+                    const src    = $lastImg.attr('src') || $lastImg.data('bw-src');
+                    const srcset = $lastImg.attr('srcset') || $lastImg.data('bw-srcset');
+                    const sizes  = $lastImg.attr('sizes')  || $lastImg.data('bw-sizes');
                     if (src) {
-                        const link        = document.createElement('link');
-                        link.rel          = 'preload';
-                        link.as           = 'image';
-                        link.href         = src;
+                        const link         = document.createElement('link');
+                        link.rel           = 'preload';
+                        link.as            = 'image';
+                        link.href          = src;
                         link.fetchPriority = 'high';
                         if (srcset) link.setAttribute('imagesrcset', srcset);
                         if (sizes)  link.setAttribute('imagesizes',  sizes);
@@ -162,7 +164,12 @@
                 dotsContainer:  dotsCont,
                 dotsPosition:   dotsPos,
                 autoplay:       autoplayOpts,
-                onSelect:       () => this._updateImageHeightControls(),
+                onSelect: () => {
+                    this._updateImageHeightControls();
+                    // Attiva il download delle slide adiacenti a quella corrente
+                    const coreApi = this.emblaCore ? this.emblaCore.api() : null;
+                    if (coreApi) this._loadAdjacentSlides(this._emblaViewport, coreApi);
+                },
             });
 
             const api = this.emblaCore.init();
@@ -198,6 +205,17 @@
             // Image-height mode + opzioni Embla (ancora JS: non gestibili solo da CSS)
             this._updateImageHeightControls();
             this._updateEmblaBreakpointOptions();
+
+            // Chiamata esplicita post-init con rAF: garantisce che il browser abbia
+            // calcolato il layout prima di interrogare slidesInView(). La chiamata
+            // dentro onSelect (durante BWEmblaCore.init()) è sincrona e potrebbe
+            // vedere dimensioni ancora a 0 se il CSS non era ancora applicato.
+            // Il check img.getAttribute('src') !== null evita download doppi.
+            requestAnimationFrame(() => {
+                if (this._emblaViewport && this.emblaCore) {
+                    this._loadAdjacentSlides(this._emblaViewport, this.emblaCore.api());
+                }
+            });
 
             // Aggiorna on resize (debounced: evita esecuzione per ogni pixel)
             $(window).on(`resize.bwps-${this.widgetId}`, debounce(() => {
@@ -562,6 +580,12 @@
             };
 
             api.reInit(newOpts);
+
+            // Dopo reInit il set di slide visibili può cambiare; ricarica le adiacenti.
+            // onSelect non si attiva automaticamente su reInit quando lo snap non cambia.
+            if (this._emblaViewport) {
+                this._loadAdjacentSlides(this._emblaViewport, api);
+            }
         }
 
         /**
@@ -598,6 +622,67 @@
             }
 
             return bestIndex;
+        }
+
+        /* ────────────────────────────────────────────
+           LAZY LOAD SLIDES (on-demand, via data-bw-src)
+        ──────────────────────────────────────────── */
+
+        /**
+         * Attiva il download delle immagini nelle slide "vicine" a quella corrente.
+         *
+         * Le slide non-eager in PHP sono renderizzate SENZA src (solo data-bw-src /
+         * data-bw-srcset / data-bw-sizes). Questo evita che il browser scarichi
+         * tutte le slide in sequenza attraverso overflow:hidden, problema che
+         * loading="lazy" non risolve in modo affidabile su tutti i browser.
+         *
+         * Strategia: carica le slide in-view + 1 slide di preloading ai lati.
+         * Su navigazione, la slide successiva inizia a scaricarsi prima che
+         * l'utente ci arrivi.
+         *
+         * @param {HTMLElement} viewport  — elemento .bw-ps-embla-viewport
+         * @param {Object}      api       — istanza Embla API
+         */
+        _loadAdjacentSlides(viewport, api) {
+            if (!viewport || !api) return;
+
+            const total  = api.slideNodes().length;
+            if (total === 0) return;
+
+            // slidesInView() può restituire [] se chiamata durante l'init Embla
+            // (prima che il browser abbia calcolato il layout). In quel caso usiamo
+            // selectedScrollSnap() come ancora. Con buffer ±2 le slide in-view
+            // sono sempre incluse anche in carousel con 3+ slide visibili.
+            let inView = api.slidesInView();
+            if (inView.length === 0) {
+                inView = [api.selectedScrollSnap()];
+            }
+
+            // Buffer ±2: precarica 2 slide avanti/indietro rispetto alle visibili.
+            // Con ±1 l'utente può arrivare a una slide prima che sia scaricata;
+            // ±2 garantisce che la slide successiva sia sempre in download prima
+            // che l'utente ci navighi, anche a velocità normale.
+            const preloadAhead = 2;
+            const toLoad = new Set(inView);
+            inView.forEach((idx) => {
+                for (let off = 1; off <= preloadAhead; off++) {
+                    toLoad.add((idx - off + total) % total);
+                    toLoad.add((idx + off) % total);
+                }
+            });
+
+            viewport.querySelectorAll('.bw-ps-slide').forEach((slideEl) => {
+                const slideIdx = parseInt(slideEl.getAttribute('data-bw-index'), 10);
+                if (!toLoad.has(slideIdx)) return;
+
+                slideEl.querySelectorAll('img[data-bw-src]').forEach((img) => {
+                    // Salta se src è già stato impostato (già scaricata o in corso)
+                    if (img.getAttribute('src') !== null) return;
+                    img.src = img.dataset.bwSrc;
+                    if (img.dataset.bwSrcset) img.srcset = img.dataset.bwSrcset;
+                    if (img.dataset.bwSizes)  img.sizes  = img.dataset.bwSizes;
+                });
+            });
         }
 
         /* ────────────────────────────────────────────
@@ -901,8 +986,9 @@
             }
 
             // Cache DOM
-            this._$horizontal = null;
-            this._$images     = null;
+            this._$horizontal   = null;
+            this._$images       = null;
+            this._emblaViewport = null;
 
             // Stato istanza
             this._sortedBreakpoints   = null;
