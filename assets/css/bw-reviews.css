@@ -157,11 +157,21 @@
 
 .elementor-widget-bw-reviews .bw-reviews-summary__count,
 .bw-reviews-summary__count {
-    font-size: clamp(22px, 2.1vw, 28px) !important;
+    font-size: 20px !important;
     line-height: 1.1 !important;
     font-weight: 500 !important;
     letter-spacing: -0.03em !important;
     color: #111111 !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-summary__stars .bw-reviews-stars,
+.bw-reviews-summary__stars .bw-reviews-stars {
+    gap: 4px !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-summary__stars .bw-reviews-stars__star,
+.bw-reviews-summary__stars .bw-reviews-stars__star {
+    font-size: 20px !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-summary__chevron,
