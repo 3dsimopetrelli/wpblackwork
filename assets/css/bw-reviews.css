@@ -1,6 +1,5 @@
 :root {
-    --bw-reviews-screen-backdrop-bg: rgba(255, 255, 255, 0.02);
-    --bw-reviews-screen-backdrop-filter: blur(4px) saturate(1.5);
+    --bw-screen-backdrop-filter: blur(4px) saturate(1.5);
 }
 
 .elementor-widget-bw-reviews .bw-reviews,
@@ -811,9 +810,9 @@
 
 .bw-reviews-focus-backdrop,
 .bw-reviews-modal__backdrop {
-    background: var(--bw-reviews-screen-backdrop-bg) !important;
-    backdrop-filter: var(--bw-reviews-screen-backdrop-filter) !important;
-    -webkit-backdrop-filter: var(--bw-reviews-screen-backdrop-filter) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: var(--bw-screen-backdrop-filter) !important;
+    -webkit-backdrop-filter: var(--bw-screen-backdrop-filter) !important;
 }
 
 .bw-reviews-modal__dialog {
