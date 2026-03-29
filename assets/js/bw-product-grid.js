@@ -445,6 +445,7 @@
     // be cancelled if a new load fires before the 150 ms delay completes.
     // Keys: widgetId + '_subcats' | widgetId + '_tags'
     var filterAnimTimers = {};
+    var discoverySearchTimers = {};
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
     function getCacheKey(action, params) {
@@ -721,7 +722,6 @@
 
     function initFilterState(widgetId) {
         if (!filterState[widgetId]) {
-            // Check if there's a default category set
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
             var defaultCategory = $filters.attr('data-default-category');
             var initialCategory = 'all';
@@ -734,8 +734,437 @@
                 category: initialCategory,
                 subcategories: [],
                 tags: [],
-                search: ''
+                search: '',
+                appliedSearch: '',
+                resultCount: 0,
+                options: {
+                    types: [],
+                    tags: []
+                },
+                labels: {
+                    types: {},
+                    tags: {}
+                },
+                ui: {
+                    showTypes: true,
+                    showTags: true,
+                    optionSearches: {
+                        types: '',
+                        tags: ''
+                    },
+                    openGroups: {
+                        types: false,
+                        tags: false
+                    }
+                }
             };
+        }
+    }
+
+    function escapeHtml(value) {
+        return $('<div>').text(value == null ? '' : String(value)).html();
+    }
+
+    function uniqueIntArray(values) {
+        var seen = {};
+        var result = [];
+
+        (Array.isArray(values) ? values : []).forEach(function (value) {
+            var parsed = parseInteger(value, NaN);
+
+            if (!isNaN(parsed) && parsed > 0 && !seen[parsed]) {
+                seen[parsed] = true;
+                result.push(parsed);
+            }
+        });
+
+        return result;
+    }
+
+    function normalizeDiscoveryText(value) {
+        var text = String(value || '').toLowerCase();
+
+        if (typeof text.normalize === 'function') {
+            text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        return $.trim(text);
+    }
+
+    function getDiscoveryBootstrapPayload(widgetId) {
+        var $bootstrap = $('.bw-fpw-discovery-bootstrap[data-widget-id="' + widgetId + '"]').first();
+
+        if (!$bootstrap.length) {
+            return null;
+        }
+
+        try {
+            return JSON.parse($bootstrap.text() || '{}');
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function isDiscoveryDrawerMode(widgetId) {
+        return isResponsiveFilterDrawerMode(widgetId);
+    }
+
+    function storeDiscoveryLabels(state, groupKey, options) {
+        if (!state || !state.labels || !state.labels[groupKey]) {
+            return;
+        }
+
+        (Array.isArray(options) ? options : []).forEach(function (option) {
+            var termId = parseInteger(option.term_id, 0);
+
+            if (termId > 0 && option.name) {
+                state.labels[groupKey][termId] = option.name;
+            }
+        });
+    }
+
+    function sortDiscoveryOptions(options) {
+        return (Array.isArray(options) ? options.slice() : []).sort(function (a, b) {
+            var countA = parseInteger(a && a.count, 0);
+            var countB = parseInteger(b && b.count, 0);
+
+            if (countA !== countB) {
+                return countB - countA;
+            }
+
+            return String(a && a.name || '').localeCompare(String(b && b.name || ''));
+        });
+    }
+
+    function mergeSelectedDiscoveryOptions(state, groupKey, options) {
+        var selectedIds = groupKey === 'types' ? state.subcategories : state.tags;
+        var optionMap = {};
+
+        sortDiscoveryOptions(options).forEach(function (option) {
+            var termId = parseInteger(option.term_id, 0);
+
+            if (termId > 0) {
+                optionMap[termId] = {
+                    term_id: termId,
+                    name: option.name || state.labels[groupKey][termId] || '',
+                    count: Math.max(0, parseInteger(option.count, 0))
+                };
+            }
+        });
+
+        (Array.isArray(selectedIds) ? selectedIds : []).forEach(function (termId) {
+            if (!optionMap[termId]) {
+                optionMap[termId] = {
+                    term_id: termId,
+                    name: state.labels[groupKey][termId] || '',
+                    count: 0
+                };
+            }
+        });
+
+        return sortDiscoveryOptions(Object.keys(optionMap).map(function (key) {
+            return optionMap[key];
+        })).filter(function (option) {
+            return option.term_id > 0 && option.name;
+        });
+    }
+
+    function updateDiscoveryOptions(widgetId, filterUi) {
+        var state = filterState[widgetId];
+
+        if (!state || !filterUi) {
+            return;
+        }
+
+        if (Array.isArray(filterUi.types)) {
+            storeDiscoveryLabels(state, 'types', filterUi.types);
+            state.options.types = mergeSelectedDiscoveryOptions(state, 'types', filterUi.types);
+        }
+
+        if (Array.isArray(filterUi.tags)) {
+            storeDiscoveryLabels(state, 'tags', filterUi.tags);
+            state.options.tags = mergeSelectedDiscoveryOptions(state, 'tags', filterUi.tags);
+        }
+
+        if (typeof filterUi.result_count !== 'undefined') {
+            state.resultCount = Math.max(0, parseInteger(filterUi.result_count, state.resultCount));
+        }
+    }
+
+    function getDiscoveryState(widgetId) {
+        initFilterState(widgetId);
+        return filterState[widgetId];
+    }
+
+    function getDiscoverySelections(state, groupKey) {
+        return groupKey === 'types' ? state.subcategories : state.tags;
+    }
+
+    function hasDiscoverySelection(state, groupKey, termId) {
+        return getDiscoverySelections(state, groupKey).indexOf(termId) > -1;
+    }
+
+    function formatResultCount(count) {
+        var safeCount = Math.max(0, parseInteger(count, 0));
+        return safeCount + (safeCount === 1 ? ' result' : ' results');
+    }
+
+    function isDiscoveryResponsiveToolbar() {
+        return (window.innerWidth || $(window).width() || 0) <= 800;
+    }
+
+    function renderDiscoveryResultCount(widgetId) {
+        var state = filterState[widgetId];
+        var resultText = formatResultCount(state && typeof state.resultCount !== 'undefined' ? state.resultCount : 0);
+
+        $('.bw-fpw-discovery-result-count[data-widget-id="' + widgetId + '"]').text(resultText);
+        $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').attr('data-result-count', state.resultCount || 0);
+    }
+
+    function getDiscoveryQuickFilters(widgetId) {
+        var state = filterState[widgetId];
+        var selectedMap = {};
+        var quickFilters = [];
+        var types = state && state.ui.showTypes ? state.options.types.slice() : [];
+        var tags = state && state.ui.showTags ? state.options.tags.slice() : [];
+        var responsiveToolbar = isDiscoveryResponsiveToolbar();
+
+        state.subcategories.forEach(function (termId) {
+            var key = 'types:' + termId;
+
+            selectedMap[key] = true;
+            quickFilters.push({
+                group: 'types',
+                term_id: termId,
+                name: state.labels.types[termId] || '',
+                count: 0,
+                selected: true
+            });
+        });
+
+        state.tags.forEach(function (termId) {
+            var key = 'tags:' + termId;
+
+            selectedMap[key] = true;
+            quickFilters.push({
+                group: 'tags',
+                term_id: termId,
+                name: state.labels.tags[termId] || '',
+                count: 0,
+                selected: true
+            });
+        });
+
+        if (responsiveToolbar) {
+            return quickFilters.filter(function (filter) {
+                return filter.name;
+            });
+        }
+
+        function pushOptions(options, groupKey, limit) {
+            var added = 0;
+
+            options.forEach(function (option) {
+                var key = groupKey + ':' + option.term_id;
+
+                if (selectedMap[key] || added >= limit) {
+                    return;
+                }
+
+                selectedMap[key] = true;
+                added++;
+                quickFilters.push({
+                    group: groupKey,
+                    term_id: option.term_id,
+                    name: option.name,
+                    count: option.count,
+                    selected: hasDiscoverySelection(state, groupKey, option.term_id)
+                });
+            });
+        }
+
+        pushOptions(types, 'types', 3);
+        pushOptions(tags, 'tags', 5);
+
+        return quickFilters.filter(function (filter) {
+            return filter.name;
+        }).slice(0, 8);
+    }
+
+    function renderDiscoveryQuickFilters(widgetId) {
+        var quickFilters = getDiscoveryQuickFilters(widgetId);
+        var responsiveToolbar = isDiscoveryResponsiveToolbar();
+        var html = '';
+
+        quickFilters.forEach(function (filter) {
+            html += '<button class="bw-fpw-quick-filter' + (filter.selected ? ' is-selected' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + filter.group + '" data-term-id="' + filter.term_id + '">';
+            html += '<span class="bw-fpw-quick-filter__label">' + escapeHtml(filter.name) + '</span>';
+            if (responsiveToolbar && filter.selected) {
+                html += '<span class="bw-fpw-quick-filter__remove" aria-hidden="true"></span>';
+            } else if (filter.count > 0) {
+                html += '<span class="bw-fpw-quick-filter__count">' + escapeHtml(filter.count) + '</span>';
+            }
+            html += '</button>';
+        });
+
+        $('.bw-fpw-quick-filters[data-widget-id="' + widgetId + '"]').html(html).toggleClass('is-empty', quickFilters.length === 0);
+    }
+
+    function renderDiscoveryDrawerGroups(widgetId) {
+        var state = filterState[widgetId];
+        var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
+        var groupConfigs = [
+            {
+                key: 'types',
+                label: 'Type',
+                placeholder: 'Search types...'
+            },
+            {
+                key: 'tags',
+                label: 'Style / Subject',
+                placeholder: 'Search styles...'
+            }
+        ];
+        var html = '';
+
+        if (!state || !$groups.length) {
+            return;
+        }
+
+        groupConfigs.forEach(function (groupConfig) {
+            var groupKey = groupConfig.key;
+            var showGroup = groupKey === 'types' ? state.ui.showTypes : state.ui.showTags;
+
+            if (!showGroup) {
+                return;
+            }
+
+            var options = state.options[groupKey] || [];
+            var selectedIds = getDiscoverySelections(state, groupKey);
+            var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
+            var visibleOptions = options.filter(function (option) {
+                if (!termSearch) {
+                    return true;
+                }
+
+                return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
+            });
+            var isOpen = !!state.ui.openGroups[groupKey] || !!termSearch;
+
+            html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+            html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+            html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
+            html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true"></span>';
+            html += '</button>';
+            html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+            html += '<label class="bw-fpw-discovery-group-search">';
+            html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
+            html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
+            html += '</label>';
+            html += '<div class="bw-fpw-discovery-options">';
+
+            if (visibleOptions.length) {
+                visibleOptions.forEach(function (option) {
+                    var termId = parseInteger(option.term_id, 0);
+                    var isSelected = selectedIds.indexOf(termId) > -1;
+                    var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
+
+                    html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-term-id="' + termId + '"' + (isDisabled ? ' disabled' : '') + '>';
+                    html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
+                    html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
+                    html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
+                    html += '</button>';
+                });
+            } else {
+                html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
+            }
+
+            html += '</div>';
+            html += '</div>';
+            html += '</section>';
+        });
+
+        $groups.html(html);
+    }
+
+    function renderDiscoverySearch(widgetId) {
+        var state = filterState[widgetId];
+        var value = state ? state.search || '' : '';
+        var hasValue = $.trim(value) !== '';
+
+        $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').val(value);
+        $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').toggleClass('has-value', hasValue);
+    }
+
+    function renderDiscoveryUi(widgetId) {
+        if (!isDiscoveryDrawerMode(widgetId)) {
+            return;
+        }
+
+        renderDiscoverySearch(widgetId);
+        renderDiscoveryResultCount(widgetId);
+        renderDiscoveryQuickFilters(widgetId);
+        renderDiscoveryDrawerGroups(widgetId);
+    }
+
+    function syncDiscoveryResponse(widgetId, data) {
+        var state = filterState[widgetId];
+
+        if (!state || !isDiscoveryDrawerMode(widgetId) || !data) {
+            return;
+        }
+
+        if (data.filter_ui) {
+            updateDiscoveryOptions(widgetId, data.filter_ui);
+        } else if (typeof data.result_count !== 'undefined') {
+            state.resultCount = Math.max(0, parseInteger(data.result_count, state.resultCount));
+        }
+
+        state.appliedSearch = state.search;
+
+        renderDiscoveryUi(widgetId);
+    }
+
+    function toggleDiscoverySelection(widgetId, groupKey, termId) {
+        var state = getDiscoveryState(widgetId);
+        var selections = getDiscoverySelections(state, groupKey);
+        var index = selections.indexOf(termId);
+
+        state.ui.openGroups[groupKey] = true;
+
+        if (index > -1) {
+            selections.splice(index, 1);
+        } else {
+            selections.push(termId);
+        }
+
+        if (groupKey === 'types') {
+            state.subcategories = uniqueIntArray(selections);
+        } else {
+            state.tags = uniqueIntArray(selections);
+        }
+    }
+
+    function resetDiscoveryFilters(widgetId, closePanel) {
+        var state = getDiscoveryState(widgetId);
+        var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+        var defaultCategory = $filters.attr('data-default-category') || 'all';
+
+        state.category = defaultCategory;
+        state.subcategories = [];
+        state.tags = [];
+        state.search = '';
+        state.appliedSearch = '';
+        state.ui.optionSearches.types = '';
+        state.ui.optionSearches.tags = '';
+        state.ui.openGroups.types = false;
+        state.ui.openGroups.tags = false;
+
+        renderDiscoveryUi(widgetId);
+        filterPosts(widgetId);
+
+        if (closePanel) {
+            closeMobilePanel(widgetId);
         }
     }
 
@@ -1116,6 +1545,11 @@
             delete loadingIndicatorTimers[widgetId];
         }
 
+        if (discoverySearchTimers[widgetId]) {
+            clearTimeout(discoverySearchTimers[widgetId]);
+            delete discoverySearchTimers[widgetId];
+        }
+
         // Scroll reveal listener (namespaced per widget)
         $(window).off('scroll.bwreveal' + widgetId);
 
@@ -1135,6 +1569,7 @@
         delete staggerObserversByWidget[widgetId];
         delete lastDeviceByGrid[widgetId];
         delete infiniteLoadSpacers[widgetId];
+        unlockDrawerBodyScrollIfSafe();
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -1512,6 +1947,7 @@
         var order = $grid.attr('data-order') || 'DESC';
         var requestPerPage = appendMode ? pagingState.loadBatchSize : pagingState.initialItems;
         var requestedOffset = appendMode ? Math.max(0, parseInteger(options.offset, pagingState.nextOffset > 0 ? pagingState.nextOffset : pagingState.loadedCount)) : 0;
+        var searchTerm = state.search || '';
 
         if (!appendMode && requestPerPage === 0) {
             requestPerPage = pagingState.perPage;
@@ -1535,7 +1971,7 @@
             category: state.category,
             subcategories: state.subcategories,
             tags: state.tags,
-            search: state.search || '',
+            search: searchTerm,
             order_by: orderBy,
             order: order,
             image_mode: imageMode,
@@ -1597,7 +2033,7 @@
                 category: state.category,
                 subcategories: state.subcategories,
                 tags: state.tags,
-                search: state.search || '',
+                search: searchTerm,
                 image_toggle: imageToggle,
                 image_size: imageSize,
                 image_mode: imageMode,
@@ -1709,6 +2145,7 @@
             var $responseNodes = createResponseNodes(response.data.html);
             var $responseItems = getResponseItems($responseNodes);
 
+            syncDiscoveryResponse(widgetId, response.data);
             prepareItemsForReveal($responseItems, appendMode ? 'append' : 'initial');
 
             if (appendMode) {
@@ -1843,8 +2280,18 @@
                 return;
             }
 
+            if (isDiscoveryDrawerMode(widgetId)) {
+                filterState[widgetId].resultCount = 0;
+                updateDiscoveryOptions(widgetId, {
+                    types: [],
+                    tags: [],
+                    result_count: 0
+                });
+                renderDiscoveryUi(widgetId);
+            }
+
             var emptyStateHtml = '<div class="bw-fpw-empty-state">';
-            emptyStateHtml += '<p class="bw-fpw-empty-message">No content available</p>';
+            emptyStateHtml += '<p class="bw-fpw-empty-message">No results found.</p>';
             emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
             emptyStateHtml += '</div>';
             clearStaggerTimers(widgetId);
@@ -1870,7 +2317,123 @@
         return $wrapper.hasClass('bw-fpw-mobile-filters-enabled');
     }
 
+    function isResponsiveFilterDrawerMode(widgetId) {
+        var $wrapper = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"]').closest('.bw-product-grid-wrapper');
+
+        if (!$wrapper.length) {
+            $wrapper = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]').closest('.bw-product-grid-wrapper');
+        }
+
+        return $wrapper.attr('data-responsive-filter-mode') === 'yes';
+    }
+
+    function lockDrawerBodyScroll() {
+        $('body').addClass('bw-cart-popup-no-scroll');
+    }
+
+    function unlockDrawerBodyScrollIfSafe() {
+        var hasOpenFilterDrawer = $('.bw-fpw-mobile-filter-panel[aria-hidden="false"]').length > 0;
+        var cartPopupActive = $('#bw-cart-popup-panel').hasClass('active') || $('#bw-cart-popup-overlay').hasClass('active');
+
+        if (!hasOpenFilterDrawer && !cartPopupActive) {
+            $('body').removeClass('bw-cart-popup-no-scroll');
+        }
+    }
+
     function initFilters() {
+        $(document).on('input', '.bw-fpw-discovery-search__input', function () {
+            var widgetId = $(this).attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+            var normalizedSearch;
+
+            if (!isDiscoveryDrawerMode(widgetId)) {
+                return;
+            }
+
+            state.search = $(this).val() || '';
+            normalizedSearch = $.trim(state.search);
+
+            renderDiscoverySearch(widgetId);
+
+            if (discoverySearchTimers[widgetId]) {
+                clearTimeout(discoverySearchTimers[widgetId]);
+            }
+
+            discoverySearchTimers[widgetId] = setTimeout(function () {
+                delete discoverySearchTimers[widgetId];
+
+                if (normalizedSearch === $.trim(state.appliedSearch || '')) {
+                    return;
+                }
+
+                filterPosts(widgetId);
+            }, 650);
+        });
+
+        $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
+            e.preventDefault();
+
+            var widgetId = $(this).attr('data-widget-id');
+            var groupKey = $(this).attr('data-group');
+            var state = getDiscoveryState(widgetId);
+
+            if (!isDiscoveryDrawerMode(widgetId) || !state.ui.openGroups.hasOwnProperty(groupKey)) {
+                return;
+            }
+
+            state.ui.openGroups[groupKey] = !state.ui.openGroups[groupKey];
+            renderDiscoveryDrawerGroups(widgetId);
+        });
+
+        $(document).on('input', '.bw-fpw-discovery-group-search__input', function () {
+            var widgetId = $(this).attr('data-widget-id');
+            var groupKey = $(this).attr('data-group');
+            var state = getDiscoveryState(widgetId);
+            var cursorPosition = this.selectionStart;
+
+            if (!isDiscoveryDrawerMode(widgetId) || !state.ui.optionSearches.hasOwnProperty(groupKey)) {
+                return;
+            }
+
+            state.ui.optionSearches[groupKey] = $(this).val() || '';
+            renderDiscoveryDrawerGroups(widgetId);
+
+            var $replacementInput = $('.bw-fpw-discovery-group-search__input[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+            if ($replacementInput.length) {
+                $replacementInput.trigger('focus');
+                if (typeof cursorPosition === 'number' && $replacementInput[0].setSelectionRange) {
+                    $replacementInput[0].setSelectionRange(cursorPosition, cursorPosition);
+                }
+            }
+        });
+
+        $(document).on('click', '.bw-fpw-discovery-option, .bw-fpw-quick-filter', function (e) {
+            e.preventDefault();
+
+            var $button = $(this);
+            var widgetId = $button.attr('data-widget-id');
+            var groupKey = $button.attr('data-group');
+            var termId = parseInteger($button.attr('data-term-id'), 0);
+
+            if (!isDiscoveryDrawerMode(widgetId) || termId <= 0 || !groupKey) {
+                return;
+            }
+
+            toggleDiscoverySelection(widgetId, groupKey, termId);
+            renderDiscoveryUi(widgetId);
+            filterPosts(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-discovery-reset', function (e) {
+            e.preventDefault();
+
+            var widgetId = $(this).attr('data-widget-id');
+
+            if (widgetId && isDiscoveryDrawerMode(widgetId)) {
+                resetDiscoveryFilters(widgetId, false);
+            }
+        });
+
         $(document).on('click', '.bw-fpw-cat-button', function (e) {
             e.preventDefault();
 
@@ -1878,7 +2441,6 @@
             var widgetId = $button.closest('[data-widget-id]').attr('data-widget-id');
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
             var categoryId = $button.attr('data-category');
-            var $subcatRow = $('.bw-fpw-filter-subcategories[data-widget-id="' + widgetId + '"]');
             var $subcatContainer = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
             var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
 
@@ -2000,11 +2562,12 @@
             }
         });
 
-        // Search input — debounced, fires filterPosts in both desktop and mobile mode
+        // Search input — debounced, fires filterPosts in standard (non-discovery-drawer) mode.
+        // Discovery-drawer mode is handled by its own handler above (uses discoverySearchTimers).
         $(document).on('input', '.bw-fpw-search-input', function () {
             var $input = $(this);
             var widgetId = $input.attr('data-widget-id');
-            if (!widgetId) {
+            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
                 return;
             }
             initFilterState(widgetId);
@@ -2040,6 +2603,15 @@
             closeMobilePanel(widgetId);
         });
 
+        $(document).on('click', '.bw-fpw-mobile-filter-panel--drawer', function (e) {
+            if (e.target !== this) {
+                return;
+            }
+
+            var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            closeMobilePanel(widgetId);
+        });
+
         $(document).on('click', '.bw-fpw-mobile-dropdown-toggle', function () {
             var $group = $(this).closest('.bw-fpw-mobile-filter-group');
             var $panel = $group.find('.bw-fpw-mobile-dropdown-panel');
@@ -2066,21 +2638,41 @@
                 return;
             }
 
+            if (isDiscoveryDrawerMode(widgetId)) {
+                resetDiscoveryFilters(widgetId, isInMobileMode(widgetId));
+                return;
+            }
+
             initFilterState(widgetId);
 
             // Get default category from filters
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
             var defaultCategory = $filters.attr('data-default-category') || 'all';
 
-            // Reset filter state
+            // Reset filter state (preserve options/labels caches from discovery state if present)
+            var prevState = filterState[widgetId] || {};
             filterState[widgetId] = {
                 category: defaultCategory,
                 subcategories: [],
                 tags: [],
-                search: ''
+                search: '',
+                appliedSearch: '',
+                resultCount: 0,
+                options: { types: [], tags: [] },
+                labels: prevState.labels || { types: {}, tags: {} },
+                ui: {
+                    showTypes: true,
+                    showTags: true,
+                    optionSearches: { types: '', tags: '' },
+                    openGroups: { types: false, tags: false }
+                }
             };
 
-            // Clear search input
+            // Clear search timers and inputs
+            if (discoverySearchTimers[widgetId]) {
+                clearTimeout(discoverySearchTimers[widgetId]);
+                delete discoverySearchTimers[widgetId];
+            }
             if (searchDebounceTimers[widgetId]) {
                 clearTimeout(searchDebounceTimers[widgetId]);
                 delete searchDebounceTimers[widgetId];
@@ -2122,6 +2714,20 @@
             filterPosts(widgetId);
 
         });
+
+        $(document).on('keyup', function (e) {
+            if (e.key !== 'Escape') {
+                return;
+            }
+
+            $('.bw-product-grid-wrapper.bw-fpw-mobile-panel-open').each(function () {
+                var widgetId = $(this).find('.bw-fpw-mobile-filter').first().attr('data-widget-id');
+
+                if (widgetId) {
+                    closeMobilePanel(widgetId);
+                }
+            });
+        });
     }
 
     function openMobilePanel(widgetId) {
@@ -2131,6 +2737,10 @@
         if ($panel.length) {
             $wrapper.addClass('bw-fpw-mobile-panel-open');
             $panel.attr('aria-hidden', 'false');
+
+            if (isResponsiveFilterDrawerMode(widgetId)) {
+                lockDrawerBodyScroll();
+            }
         }
     }
 
@@ -2141,6 +2751,10 @@
         if ($panel.length) {
             $wrapper.removeClass('bw-fpw-mobile-panel-open');
             $panel.attr('aria-hidden', 'true');
+
+            if (isResponsiveFilterDrawerMode(widgetId)) {
+                unlockDrawerBodyScrollIfSafe();
+            }
         }
     }
 
@@ -2148,13 +2762,15 @@
         $('.bw-product-grid-wrapper').each(function () {
             var $wrapper = $(this);
             var breakpoint = parseInt($wrapper.attr('data-filter-breakpoint')) || 900;
+            var responsiveDrawerMode = $wrapper.attr('data-responsive-filter-mode') === 'yes';
             var width = window.innerWidth || $(window).width();
 
-            if (width < breakpoint) {
+            if (responsiveDrawerMode || width < breakpoint) {
                 $wrapper.addClass('bw-fpw-mobile-filters-enabled');
             } else {
                 $wrapper.removeClass('bw-fpw-mobile-filters-enabled bw-fpw-mobile-panel-open');
                 $wrapper.find('.bw-fpw-mobile-filter-panel').attr('aria-hidden', 'true');
+                unlockDrawerBodyScrollIfSafe();
             }
         });
     }
@@ -2191,11 +2807,12 @@
 
             initFilterState(widgetId);
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+            var state = filterState[widgetId];
 
             if ($filters.length) {
                 var $activeCategory = $filters.find('.bw-fpw-cat-button.active').first();
                 if ($activeCategory.length) {
-                    filterState[widgetId].category = $activeCategory.attr('data-category') || 'all';
+                    state.category = $activeCategory.attr('data-category') || 'all';
                 }
 
                 var initialSubcats = [];
@@ -2205,7 +2822,7 @@
                         initialSubcats.push(id);
                     }
                 });
-                filterState[widgetId].subcategories = initialSubcats;
+                state.subcategories = initialSubcats;
 
                 var initialTags = [];
                 $filters.find('.bw-fpw-tag-button.active').each(function () {
@@ -2214,7 +2831,22 @@
                         initialTags.push(id);
                     }
                 });
-                filterState[widgetId].tags = initialTags;
+                state.tags = initialTags;
+            }
+
+            if (isDiscoveryDrawerMode(widgetId)) {
+                var bootstrapPayload = getDiscoveryBootstrapPayload(widgetId) || {};
+
+                state.ui.showTypes = !!bootstrapPayload.show_types;
+                state.ui.showTags = !!bootstrapPayload.show_tags;
+                state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
+
+                updateDiscoveryOptions(widgetId, {
+                    types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
+                    tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
+                    result_count: state.resultCount
+                });
+                renderDiscoveryUi(widgetId);
             }
 
             if (!isElementorEditor()) {

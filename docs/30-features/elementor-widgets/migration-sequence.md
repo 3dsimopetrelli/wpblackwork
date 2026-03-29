@@ -16,9 +16,9 @@
 
 ## Wave 2 — Wall/query-grid convergence (completed)
 - Canonical direction confirmed: `bw-product-grid`
-- `Enable Filter = yes/no` implemented in `bw-product-grid`
+- `Show Filters = yes/no` implemented in `bw-product-grid`
 - `bw-wallpost` replacement path validated and documented:
-  - `bw-product-grid` + `Enable Filter = No`
+  - `bw-product-grid` + `Show Filters = No`
 - `bw-wallpost` removed in governed removal wave
 
 ## Wave 3 — Slider runtime convergence (future)

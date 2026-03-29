@@ -1577,22 +1577,7 @@
             $('.bw-cart-already-modal-overlay').remove();
 
             const modalHtml = `
-                <div class="bw-cart-already-modal-overlay" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.55);
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 999999;
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                ">
+                <div class="bw-cart-already-modal-overlay">
                     <div class="bw-cart-already-modal" style="
                         background: #2c2c2c;
                         border-radius: 16px;
@@ -1746,20 +1731,7 @@
 
             // Crea l'overlay e il modal
             const modalHtml = `
-                <div class="bw-cart-error-modal-overlay" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.7);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 999999;
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                ">
+                <div class="bw-cart-error-modal-overlay">
                     <div class="bw-cart-error-modal" style="
                         background: #fff;
                         border-radius: 8px;

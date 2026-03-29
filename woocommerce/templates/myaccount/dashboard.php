@@ -15,7 +15,7 @@ $identity             = bw_mew_get_dashboard_identity( $current_user->ID );
 $full_name            = $identity['full_name'];
 $account_email        = $identity['email'];
 $black_box_text       = bw_mew_get_my_account_black_box_text();
-$support_link         = bw_mew_get_my_account_support_link();
+$support_link         = 'https://blackwork.pro/request/';
 $orders               = bw_mew_get_recent_customer_orders( 3 );
 $orders_url           = wc_get_endpoint_url( 'orders' );
 $member_since         = $current_user->user_registered ? date_i18n( 'F Y', strtotime( $current_user->user_registered ) ) : '';
@@ -52,7 +52,7 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
             <p class="bw-hero-help-title"><?php esc_html_e( 'Need help?', 'bw' ); ?></p>
             <div class="bw-hero-body"><?php echo wp_kses_post( wpautop( $black_box_text ) ); ?></div>
             <div class="bw-hero-footer">
-                <a class="bw-hero-support-link" href="<?php echo esc_url( $support_link ); ?>"><?php esc_html_e( 'Contact support', 'bw' ); ?></a>
+                <a class="bw-hero-support-link" href="<?php echo esc_url( $support_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contact support', 'bw' ); ?></a>
             </div>
         </div>
     </div>

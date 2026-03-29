@@ -481,7 +481,7 @@
 	box-shadow: none;
 	outline: none;
 	/* Spacing: left text indent, right smaller for the arrow pill */
-	padding: 10px 10px 10px 22px;
+	padding: 0;
 	margin: 0;
 	/* Typography — inherit from page, no Kit overrides */
 	font: inherit;
