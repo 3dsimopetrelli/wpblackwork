@@ -534,7 +534,7 @@ body.bw-cart-popup-no-scroll {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   width: 58px;
   max-width: 300px;
   min-width: 58px;
@@ -542,7 +542,7 @@ body.bw-cart-popup-no-scroll {
   height: 58px;
   min-height: 58px;
   box-sizing: border-box;
-  padding: 4px;
+  padding: 3px;
   border-radius: 999px;
   border: 2px solid #111111;
   background: #f5f5f2;
@@ -554,16 +554,17 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:focus-within,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value {
   width: 300px;
-  padding: 4px 6px 4px 18px;
+  justify-content: flex-end;
+  padding: 3px 6px 3px 18px;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__icon-shell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   border-radius: 999px;
   background: #80fd03;
   color: #000000;
@@ -921,8 +922,8 @@ body.bw-cart-popup-no-scroll {
   height: 58px;
   min-height: 58px;
   box-sizing: border-box;
-  padding: 4px;
-  justify-content: flex-end;
+  padding: 3px;
+  justify-content: center;
   gap: 0;
   overflow: hidden;
   transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), padding 0.28s cubic-bezier(0.16, 1, 0.3, 1);
@@ -931,7 +932,8 @@ body.bw-cart-popup-no-scroll {
 .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:hover,
 .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:focus {
   width: 168px;
-  padding: 5px 6px 5px 16px;
+  justify-content: flex-end;
+  padding: 3px 6px 3px 16px;
   gap: 12px;
 }
 
@@ -953,9 +955,9 @@ body.bw-cart-popup-no-scroll {
 }
 
 .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-button-icon-shell {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   transform: translateX(0);
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
