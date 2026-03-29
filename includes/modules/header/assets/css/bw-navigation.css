@@ -332,10 +332,11 @@
 .bw-navigation__mobile .bw-navigation__link {
     display: inline-flex;
     width: 100%;
-    font-size: clamp(30px, 7vw, 42px);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
-    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: 0;
+    font-weight: 600;
+    color: #555555 !important;
     text-wrap: balance;
 }
 
@@ -347,6 +348,72 @@
 .bw-navigation__auth-link:hover,
 .bw-navigation__auth-link:focus-visible {
     color: #80FD03 !important;
+}
+
+.bw-navigation__mobile-footer {
+    margin-top: 32px;
+}
+
+.bw-navigation__mobile-footer-divider {
+    width: calc(100% + 32px);
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.08);
+    margin: 0 -16px 16px;
+}
+
+.bw-navigation__mobile-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.bw-navigation__mobile-footer-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    min-width: 0;
+}
+
+.bw-navigation__mobile-footer-link {
+    color: #9f9d9d;
+    text-decoration: none;
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 600;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.bw-navigation__mobile-footer-link:hover,
+.bw-navigation__mobile-footer-link:focus-visible {
+    color: #e5e5e5;
+}
+
+.bw-navigation__mobile-footer-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #9f9d9d;
+    flex: 0 0 auto;
+    cursor: default;
+}
+
+.bw-navigation__mobile-footer-social-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239F9D9D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='2.5' width='19' height='19' rx='5' ry='5'/%3E%3Cpath d='M16.5 11.37a4.5 4.5 0 1 1-8.87 1.33 4.5 4.5 0 0 1 8.87-1.33z'/%3E%3Cline x1='17.5' y1='6.5' x2='17.51' y2='6.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
 }
 
 .bw-navigation__mobile-content::-webkit-scrollbar {
@@ -375,11 +442,5 @@ body.bw-navigation-mobile-open {
 
     .bw-navigation__mobile-overlay {
         padding: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .bw-navigation__mobile .bw-navigation__link {
-        font-size: clamp(28px, 9vw, 38px);
     }
 }
