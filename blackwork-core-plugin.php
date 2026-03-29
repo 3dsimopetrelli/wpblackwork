@@ -2005,6 +2005,23 @@ add_action('wp_ajax_nopriv_bw_fpw_filter_posts', 'bw_fpw_filter_posts');
 add_action('wp_ajax_bw_fpw_refresh_nonce', 'bw_fpw_ajax_refresh_nonce');
 add_action('wp_ajax_nopriv_bw_fpw_refresh_nonce', 'bw_fpw_ajax_refresh_nonce');
 
+/**
+ * Flush product grid transient cache when a product or post is saved/updated.
+ */
+add_action('save_post', 'bw_fpw_clear_grid_transients');
+function bw_fpw_clear_grid_transients($post_id)
+{
+    if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+        return;
+    }
+    global $wpdb;
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_bw_fpw_%'
+            OR option_name LIKE '_transient_timeout_bw_fpw_%'"
+    );
+}
+
 function bw_fpw_ajax_refresh_nonce()
 {
     wp_send_json_success(['nonce' => wp_create_nonce('bw_fpw_nonce')]);
@@ -2044,6 +2061,7 @@ function bw_fpw_filter_posts()
     );
     $raw_offset = isset($_POST['offset']) ? wp_unslash($_POST['offset']) : null;
     $offset = is_numeric($raw_offset) ? max(0, (int) $raw_offset) : 0;
+    $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
 
     if (bw_fpw_is_throttled_request('bw_fpw_filter_posts')) {
         bw_fpw_send_throttled_response('bw_fpw_filter_posts', $widget_id);
@@ -2065,6 +2083,7 @@ function bw_fpw_filter_posts()
             'category' => $category,
             'subcategories' => $subcategories,
             'tags' => $tags,
+            'search' => $search,
             'image_toggle' => $image_toggle,
             'image_size' => $image_size,
             'image_mode' => $image_mode,
@@ -2100,6 +2119,10 @@ function bw_fpw_filter_posts()
         'orderby' => $order_by,
         'order' => $order,
     ];
+
+    if (!empty($search)) {
+        $query_args['s'] = $search;
+    }
 
     if ($per_page > 0 && $offset > 0) {
         $query_args['offset'] = $offset;
