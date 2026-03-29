@@ -1008,6 +1008,7 @@
     function renderDiscoveryDrawerGroups(widgetId) {
         var state = filterState[widgetId];
         var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
+        var chevronIcon = '<svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
         var groupConfigs = [
             {
                 key: 'types',
@@ -1049,7 +1050,7 @@
             html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
             html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
             html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
-            html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true"></span>';
+            html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
             html += '</button>';
             html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
             html += '<label class="bw-fpw-discovery-group-search">';
