@@ -382,7 +382,7 @@
 
             updateGridHeight($grid);
             finalizeLayout();
-        }, imageWaitTimeout || 800);
+        }, imageWaitTimeout || 200);
     }
 
     function initGrid($grid, onReady) {
@@ -401,6 +401,7 @@
     var widgetPagingState = {};
     var staggerTimersByWidget = {};
     var staggerObserversByWidget = {};
+    var searchDebounceTimers = {};
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -701,6 +702,10 @@
         state.observer = new window.IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
+                    var currentState = getWidgetPagingState(widgetId);
+                    if (!currentState || currentState.isLoading) {
+                        return;
+                    }
                     disconnectInfiniteObserver(widgetId);
                     loadNextPage(widgetId);
                 }
@@ -1239,6 +1244,8 @@
             return;
         }
 
+        $subcatContainers.addClass('bw-fpw-options-loading');
+
         ajaxRequestQueue[queueKey] = $.ajax({
             url: bwProductGridAjax.ajaxurl,
             type: 'POST',
@@ -1250,11 +1257,13 @@
             },
             success: function (response) {
                 delete ajaxRequestQueue[queueKey];
+                $subcatContainers.removeClass('bw-fpw-options-loading');
                 setCachedData(cacheKey, response);
                 processSubcategoriesResponse(response, widgetId, $subcatContainers, $subcatRow, hasPosts, isMobile, autoOpenMobile);
             },
             error: function (xhr, status) {
                 delete ajaxRequestQueue[queueKey];
+                $subcatContainers.removeClass('bw-fpw-options-loading');
                 if (status === 'abort') {
                     return;
                 }
@@ -1363,6 +1372,8 @@
             return;
         }
 
+        $tagContainers.addClass('bw-fpw-options-loading');
+
         ajaxRequestQueue[queueKey] = $.ajax({
             url: bwProductGridAjax.ajaxurl,
             type: 'POST',
@@ -1375,11 +1386,13 @@
             },
             success: function (response) {
                 delete ajaxRequestQueue[queueKey];
+                $tagContainers.removeClass('bw-fpw-options-loading');
                 setCachedData(cacheKey, response);
                 processTagsResponse(response, widgetId, $tagContainers, $tagRow, hasPosts, isMobile, autoOpenMobile);
             },
             error: function (xhr, status) {
                 delete ajaxRequestQueue[queueKey];
+                $tagContainers.removeClass('bw-fpw-options-loading');
                 if (status === 'abort') {
                     return;
                 }
@@ -1543,6 +1556,12 @@
 
         // Infinite-scroll load spacer
         removeLoadSpacer(widgetId);
+
+        // Search debounce timer
+        if (searchDebounceTimers[widgetId]) {
+            clearTimeout(searchDebounceTimers[widgetId]);
+            delete searchDebounceTimers[widgetId];
+        }
 
         // Per-widget state objects
         delete filterState[widgetId];
@@ -1849,7 +1868,7 @@
         }
 
         var $imageScope = appendMode && $items && $items.length ? $items : $grid;
-        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize, appendMode ? 450 : 800);
+        withImagesLoaded(getPrimaryImageScope($imageScope), runFinalize, appendMode ? 200 : 200);
     }
 
     function runInitialReveal($grid) {
@@ -2493,6 +2512,10 @@
                 subcats.push(subcatId);
             }
 
+            // Reset tag state — previously selected tags may not exist under the new subcategory
+            filterState[widgetId].tags = [];
+            $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"] .bw-fpw-tag-button').removeClass('active');
+
             // Reload tags based on category and selected subcategories
             var currentCategory = filterState[widgetId].category;
             var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
@@ -2538,6 +2561,25 @@
             if (!isInMobileMode(widgetId)) {
                 filterPosts(widgetId);
             }
+        });
+
+        // Search input — debounced, fires filterPosts in standard (non-discovery-drawer) mode.
+        // Discovery-drawer mode is handled by its own handler above (uses discoverySearchTimers).
+        $(document).on('input', '.bw-fpw-search-input', function () {
+            var $input = $(this);
+            var widgetId = $input.attr('data-widget-id');
+            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
+                return;
+            }
+            initFilterState(widgetId);
+            filterState[widgetId].search = $.trim($input.val());
+            if (searchDebounceTimers[widgetId]) {
+                clearTimeout(searchDebounceTimers[widgetId]);
+            }
+            searchDebounceTimers[widgetId] = setTimeout(function () {
+                delete searchDebounceTimers[widgetId];
+                filterPosts(widgetId);
+            }, 350);
         });
 
         $(document).on('click', '.bw-fpw-mobile-filter-button', function (e) {
@@ -2608,12 +2650,35 @@
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
             var defaultCategory = $filters.attr('data-default-category') || 'all';
 
-            // Reset filter state
+            // Reset filter state (preserve options/labels caches from discovery state if present)
+            var prevState = filterState[widgetId] || {};
             filterState[widgetId] = {
                 category: defaultCategory,
                 subcategories: [],
-                tags: []
+                tags: [],
+                search: '',
+                appliedSearch: '',
+                resultCount: 0,
+                options: { types: [], tags: [] },
+                labels: prevState.labels || { types: {}, tags: {} },
+                ui: {
+                    showTypes: true,
+                    showTags: true,
+                    optionSearches: { types: '', tags: '' },
+                    openGroups: { types: false, tags: false }
+                }
             };
+
+            // Clear search timers and inputs
+            if (discoverySearchTimers[widgetId]) {
+                clearTimeout(discoverySearchTimers[widgetId]);
+                delete discoverySearchTimers[widgetId];
+            }
+            if (searchDebounceTimers[widgetId]) {
+                clearTimeout(searchDebounceTimers[widgetId]);
+                delete searchDebounceTimers[widgetId];
+            }
+            $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]').val('');
 
             // Reset all category buttons
             $filters.find('.bw-fpw-cat-button').removeClass('active');
