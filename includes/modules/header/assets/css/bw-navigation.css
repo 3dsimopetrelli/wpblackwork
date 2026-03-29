@@ -245,25 +245,30 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 68px;
+    max-width: 100%;
+    box-sizing: border-box;
+    height: 36px;
+    min-height: 36px;
     margin: 4px 0 28px;
-    padding: 18px 24px;
+    padding: 8px 16px;
     border-radius: 999px;
     background: #80fd03;
     color: #000000 !important;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.55);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-weight: 600;
+    letter-spacing: 0;
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 1px #080808, rgba(0, 0, 0, 0.1) 0 10px 50px;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
 }
 
 .bw-navigation__mobile-cta:hover,
 .bw-navigation__mobile-cta:focus-visible {
     color: #000000 !important;
-    opacity: 0.92;
+    background: #80fd03;
+    opacity: 0.96;
 }
 
 .bw-navigation__close {
