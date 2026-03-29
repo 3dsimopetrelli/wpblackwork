@@ -1275,43 +1275,44 @@ body.woocommerce-account .bw-account-content .bw-page-header h2 {
     padding: 0;
 }
 
-.bw-tab {
-    border: 1px solid #111;
+body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab {
+    border: 1px solid #111 !important;
     background: #80fd03 !important;
     background-color: #80fd03 !important;
-    padding: 19px 20px;
-    border-radius: 20px;
+    padding: 19px 20px !important;
+    border-radius: 20px !important;
     cursor: pointer;
-    color: #111;
-    font-size: 20px;
-    font-weight: 400;
-    line-height: 1;
+    color: #111 !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    font-family: "Inter", Sans-serif !important;
     transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
     will-change: transform;
     -webkit-tap-highlight-color: transparent;
 }
 
-.bw-tab:hover,
-.bw-tab:focus-visible {
+body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab:hover,
+body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab:focus-visible {
     background: #fff !important;
     background-color: #fff !important;
-    color: #000;
+    color: #000 !important;
     transform: translateY(-1px) scale(1.015);
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
     outline: none;
 }
 
-.bw-tab.is-active,
-.bw-tab[aria-selected="true"] {
+body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab.is-active,
+body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab[aria-selected="true"] {
     background: #fff !important;
     background-color: #fff !important;
     color: #000 !important;
-    font-weight: 500;
+    font-weight: 400 !important;
     transform: none;
     box-shadow: none;
 }
 
-.bw-tab:not(.is-active)[aria-selected="false"] {
+body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab:not(.is-active)[aria-selected="false"] {
     background: #80fd03 !important;
     background-color: #80fd03 !important;
     color: #111 !important;
