@@ -958,7 +958,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
         $this->add_render_attribute(
             'wrapper',
             [
-                'class'          => 'bw-showcase-slide-wrapper bw-ps-wrapper',
+                'class'          => 'bw-showcase-slide-wrapper bw-ps-wrapper loading',
                 'data-widget-id' => esc_attr( $widget_id ),
                 'data-config'    => wp_json_encode( $config ),
             ]

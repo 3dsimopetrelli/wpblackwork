@@ -193,11 +193,20 @@ Important runtime note:
     - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
     - `bw-presentation-slide-script`
   - shared Embla base styles/classes in `bw-embla-core.css`; widget-local CSS owns popup, cursor, arrows, dots, elevator layout, responsive skin
-- `bw-showcase-slide` controls/runtime (audit state 2026-03-25):
+- `bw-showcase-slide` controls/runtime (audit state 2026-03-29):
   - visible title: `BW-UI Showcase Slide`
   - manual product ID composition sourced from the showcase metabox
   - horizontal Embla-only runtime; no popup surface
+  - slide content authority:
+    - title: `_bw_showcase_title` with product-title fallback
+    - description: `_bw_showcase_description`
+    - image: `_bw_showcase_image`, fallback `_product_showcase_image`, then featured image
+    - text color: `_bw_texts_color`
+    - CTA text/link: `_product_button_text`, `_product_button_link`, fallback permalink
   - `Style > Link Button` now exposes responsive typography for the green CTA text pill only
+  - `Style > Text` exposes typography groups for title, subtitle, labels, and physical-info lines
+  - `Style > Images` owns border radius, spacing between slides, and image size
+  - `Style > Custom Cursor` exposes the cursor on/off switch
   - horizontal breakpoint repeater now supports:
     - slides to scroll
     - show arrows / show dots
@@ -210,6 +219,14 @@ Important runtime note:
     - `Free / Existing Controls` -> legacy width/image-height contract
     - fixed frame ratio -> ratio-locked card with fit-mode authority
     - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
+  - first-render contract:
+    - wrapper is server-rendered with `.loading`
+    - reveal waits for the first primary image, with a defensive 2 second timeout
+    - first slide image gets `fetchpriority="high"` / `decoding="sync"`
+    - second slide image is also promoted to eager loading
+  - mobile CTA contract:
+    - below `800px`, the detached green CTA pair is hidden
+    - the whole slide becomes the tap target when a CTA URL exists
 - `bw-product-grid`: supports filtered/simple grid mode via `Show Filters = yes/no`.
   - `Desktop Columns` currently supports `3`, `4`, `5`, `6`
   - `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls
