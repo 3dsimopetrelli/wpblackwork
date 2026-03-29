@@ -1030,10 +1030,18 @@ body.bw-cart-popup-no-scroll {
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls {
     display: grid;
+    grid-template-columns: 1fr;
     gap: 12px;
     justify-items: stretch;
     justify-self: stretch;
+    align-self: stretch;
     width: 100%;
+    max-width: none;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls > * {
+    width: 100%;
+    max-width: none;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search {
