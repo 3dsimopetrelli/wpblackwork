@@ -479,7 +479,7 @@ body.bw-cart-popup-no-scroll {
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     "quick controls"
-    "summary";
+    "summary summary";
   align-items: start;
   column-gap: 24px;
   row-gap: 16px;
