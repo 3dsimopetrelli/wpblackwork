@@ -1349,6 +1349,21 @@ function bw_register_presentation_slide_widget_assets()
     );
 }
 
+function bw_enqueue_presentation_slide_widget_assets()
+{
+    if (!wp_style_is('bw-presentation-slide-style', 'registered') || !wp_script_is('bw-presentation-slide-script', 'registered')) {
+        bw_register_presentation_slide_widget_assets();
+    }
+
+    if (wp_style_is('bw-presentation-slide-style', 'registered')) {
+        wp_enqueue_style('bw-presentation-slide-style');
+    }
+
+    if (wp_script_is('bw-presentation-slide-script', 'registered')) {
+        wp_enqueue_script('bw-presentation-slide-script');
+    }
+}
+
 function bw_register_product_slider_widget_assets()
 {
     $css_file = __DIR__ . '/assets/css/bw-product-slider.css';
