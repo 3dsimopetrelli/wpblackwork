@@ -72,6 +72,12 @@ This wave focused on:
 
 This wave did not introduce new user-facing features; it was a bounded cleanup and consistency pass ahead of future UI refinement and feature work.
 
+Follow-up reality update (2026-03-29):
+- `BW Product Grid` has since gained a governed responsive discovery-drawer surface
+- the discovery surface is still owned by the widget/runtime itself, not by a shared filter-shell abstraction
+- the drawer shell now supports configurable opening side (`left` / `right`) at widget-control level
+- this does not change the architectural direction: a future shared filter-shell abstraction remains possible, but current authority is still `bw-product-grid`
+
 ### Loading Policy and Animation Sequencing Hardening
 This hardening wave also corrected loading-policy propagation and animation sequencing without changing the widget architecture.
 

@@ -5,10 +5,19 @@ Elementor widget slug: `bw-product-grid`.
 
 Current notable UI/runtime deltas:
 - `Filter Settings > Show Filters` is the current dual-mode switch for filtered vs simple grid behavior
+- `Filter Settings > Enable Responsive Filter Mode` promotes the drawer interaction to desktop too
+- `Filter Settings > Drawer Opening` lets the responsive drawer open from `left` or `right`
 - mobile filter trigger uses the new bordered white pill + green icon treatment
+- responsive drawer groups are currently labeled `Categories` and `Style / Subject`
+- responsive toolbar uses the shared discovery state:
+  - global search: `Search in collection...`
+  - result count
+  - quick filters / selected pills contract
+  - reset action
 - mobile first paint is CSS-governed, so desktop filter labels do not flash before JS init
 - `Layout` includes `Show Title`, `Show Description`, and `Show Price`
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
+- under `800px` the discovery controls switch to always-open full-width pills and quick filters collapse to selected-only pills
 
 ## Documents
 

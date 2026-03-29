@@ -121,6 +121,8 @@ Important runtime note:
     - `Disable Hover Actions on Tablet & Mobile`
   - `Filter Settings`:
     - `Show Filters` is the current filtered/simple-grid switch
+    - `Enable Responsive Filter Mode`
+    - `Drawer Opening` (`left` / `right`)
     - default category
     - show categories / subcategories / tags
     - filter bar titles
@@ -131,8 +133,12 @@ Important runtime note:
     - description color / typography / padding
     - price color / typography / padding
   - filter runtime:
-    - desktop inline filter rows + mobile slide-out filter panel
-    - mobile trigger uses a white rounded pill with green icon shell
+    - legacy path still supports desktop inline filter rows + classic mobile slide-out panel
+    - responsive drawer mode promotes the drawer interaction to desktop too
+    - discovery toolbar includes global search, result count, reset, selected quick-filter pills, and drawer trigger
+    - drawer shell reuses cart-popup visual language and now supports `left` or `right` opening
+    - accordion labels in the responsive drawer are currently `Categories` and `Style / Subject`
+    - mobile trigger/search use the white rounded pill + green icon shell treatment
     - mobile first paint is CSS-managed to avoid desktop-filter flash before JS init
   - internal fixed/runtime-only values:
     - `image_size = large`

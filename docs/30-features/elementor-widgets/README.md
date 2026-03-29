@@ -62,6 +62,11 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
   - current widget-local extension also supports tablet/mobile suppression of overlay CTA actions without mutating the shared component globally
+- `bw-product-grid` current UI baseline also includes the responsive discovery drawer path:
+  - desktop-opt-in via `Enable Responsive Filter Mode`
+  - configurable drawer opening side (`Left` / `Right`)
+  - discovery labels currently `Categories` and `Style / Subject`
+  - shared search/result-count/reset state between toolbar and drawer
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
 - `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product and expose variation-bound license disclosure without becoming a second reviews authority
 - `bw-trust-box` -> standalone trust/support stack widget consuming global Reviews trust content plus widget-level info/FAQ controls
