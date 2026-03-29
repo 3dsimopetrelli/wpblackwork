@@ -83,10 +83,11 @@ if (!function_exists('bw_header_get_page_options')) {
 }
 
 if (!function_exists('bw_header_render_media_field')) {
-    function bw_header_render_media_field($name, $attachment_id, $label)
+    function bw_header_render_media_field($name, $attachment_id, $label, $svg_code_name = '', $svg_code = '')
     {
         $attachment_id = absint($attachment_id);
         $url = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
+        $field_id_base = sanitize_html_class(str_replace(['[', ']'], ['-', ''], $name));
         ?>
         <tr>
             <th scope="row"><label><?php echo esc_html($label); ?></label></th>
@@ -102,6 +103,22 @@ if (!function_exists('bw_header_render_media_field')) {
                     <button type="button" class="button button-secondary bw-header-media-remove" <?php disabled(!$attachment_id); ?>><?php esc_html_e('Remove', 'bw'); ?></button>
                 </div>
                 <p class="description"><?php esc_html_e('Supports SVG and regular image attachments.', 'bw'); ?></p>
+                <?php if ($svg_code_name !== '') : ?>
+                    <div class="bw-header-inline-svg" style="margin-top:12px;max-width:760px;">
+                        <label for="<?php echo esc_attr($field_id_base . '-svg-code'); ?>" style="display:block;font-weight:600;margin-bottom:6px;">
+                            <?php esc_html_e('SVG code', 'bw'); ?>
+                        </label>
+                        <textarea
+                            id="<?php echo esc_attr($field_id_base . '-svg-code'); ?>"
+                            name="<?php echo esc_attr($svg_code_name); ?>"
+                            rows="8"
+                            class="large-text code"
+                            style="width:100%;"
+                            placeholder="<?php echo esc_attr('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">...</svg>'); ?>"
+                        ><?php echo esc_textarea($svg_code); ?></textarea>
+                        <p class="description"><?php esc_html_e('Optional. If filled, this inline SVG code overrides the uploaded attachment for this icon.', 'bw'); ?></p>
+                    </div>
+                <?php endif; ?>
             </td>
         </tr>
         <?php
@@ -275,9 +292,9 @@ if (!function_exists('bw_header_render_admin_page')) {
                     <p class="bw-admin-card-helper"><?php esc_html_e('Tune mobile icon assets, spacing, and badge offsets.', 'bw'); ?></p>
                     <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tbody>
-                    <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_hamburger_attachment_id]', $settings['icons']['mobile_hamburger_attachment_id'], __('Mobile Hamburger SVG', 'bw')); ?>
-                    <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_search_attachment_id]', $settings['icons']['mobile_search_attachment_id'], __('Mobile Search SVG', 'bw')); ?>
-                    <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_cart_attachment_id]', $settings['icons']['mobile_cart_attachment_id'], __('Mobile Cart SVG', 'bw')); ?>
+                    <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_hamburger_attachment_id]', $settings['icons']['mobile_hamburger_attachment_id'], __('Mobile Hamburger SVG', 'bw'), BW_HEADER_OPTION_KEY . '[icons][mobile_hamburger_svg_code]', isset($settings['icons']['mobile_hamburger_svg_code']) ? $settings['icons']['mobile_hamburger_svg_code'] : ''); ?>
+                    <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_search_attachment_id]', $settings['icons']['mobile_search_attachment_id'], __('Mobile Search SVG', 'bw'), BW_HEADER_OPTION_KEY . '[icons][mobile_search_svg_code]', isset($settings['icons']['mobile_search_svg_code']) ? $settings['icons']['mobile_search_svg_code'] : ''); ?>
+                    <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_cart_attachment_id]', $settings['icons']['mobile_cart_attachment_id'], __('Mobile Cart SVG', 'bw'), BW_HEADER_OPTION_KEY . '[icons][mobile_cart_svg_code]', isset($settings['icons']['mobile_cart_svg_code']) ? $settings['icons']['mobile_cart_svg_code'] : ''); ?>
                     <tr>
                         <th scope="row"><label for="bw-header-mobile-right-icons-gap"><?php esc_html_e('Mobile Right Icons Gap (px)', 'bw'); ?></label></th>
                         <td>

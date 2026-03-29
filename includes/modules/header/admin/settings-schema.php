@@ -87,6 +87,9 @@ if (!function_exists('bw_header_default_settings')) {
                 'mobile_hamburger_attachment_id' => 0,
                 'mobile_cart_attachment_id' => 0,
                 'mobile_search_attachment_id' => 0,
+                'mobile_hamburger_svg_code' => '',
+                'mobile_cart_svg_code' => '',
+                'mobile_search_svg_code' => '',
             ],
             'labels' => [
                 'search' => 'Search',
@@ -128,6 +131,150 @@ if (!function_exists('bw_header_default_settings')) {
                 'menu_blur_padding_left' => 10,
             ],
         ];
+    }
+}
+
+if (!function_exists('bw_header_sanitize_svg_markup')) {
+    function bw_header_sanitize_svg_markup($markup)
+    {
+        $markup = is_string($markup) ? trim($markup) : '';
+        if ($markup === '' || stripos($markup, '<svg') === false) {
+            return '';
+        }
+
+        $allowed_tags = [
+            'svg' => [
+                'xmlns' => true,
+                'viewbox' => true,
+                'width' => true,
+                'height' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'stroke-miterlimit' => true,
+                'stroke-dasharray' => true,
+                'stroke-dashoffset' => true,
+                'fill-rule' => true,
+                'clip-rule' => true,
+                'transform' => true,
+                'class' => true,
+                'style' => true,
+                'role' => true,
+                'focusable' => true,
+                'aria-hidden' => true,
+                'preserveaspectratio' => true,
+            ],
+            'g' => [
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'stroke-miterlimit' => true,
+                'stroke-dasharray' => true,
+                'stroke-dashoffset' => true,
+                'fill-rule' => true,
+                'clip-rule' => true,
+                'transform' => true,
+                'class' => true,
+                'style' => true,
+            ],
+            'path' => [
+                'd' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'stroke-miterlimit' => true,
+                'stroke-dasharray' => true,
+                'stroke-dashoffset' => true,
+                'fill-rule' => true,
+                'clip-rule' => true,
+                'transform' => true,
+                'class' => true,
+                'style' => true,
+            ],
+            'circle' => [
+                'cx' => true,
+                'cy' => true,
+                'r' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'class' => true,
+                'style' => true,
+                'transform' => true,
+            ],
+            'ellipse' => [
+                'cx' => true,
+                'cy' => true,
+                'rx' => true,
+                'ry' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'class' => true,
+                'style' => true,
+                'transform' => true,
+            ],
+            'rect' => [
+                'x' => true,
+                'y' => true,
+                'width' => true,
+                'height' => true,
+                'rx' => true,
+                'ry' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'class' => true,
+                'style' => true,
+                'transform' => true,
+            ],
+            'line' => [
+                'x1' => true,
+                'y1' => true,
+                'x2' => true,
+                'y2' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'class' => true,
+                'style' => true,
+                'transform' => true,
+            ],
+            'polyline' => [
+                'points' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'class' => true,
+                'style' => true,
+                'transform' => true,
+            ],
+            'polygon' => [
+                'points' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'class' => true,
+                'style' => true,
+                'transform' => true,
+            ],
+            'title' => [],
+            'desc' => [],
+        ];
+
+        return trim(wp_kses($markup, $allowed_tags));
     }
 }
 
@@ -243,6 +390,9 @@ if (!function_exists('bw_header_sanitize_settings')) {
         $out['icons']['mobile_hamburger_attachment_id'] = isset($icons['mobile_hamburger_attachment_id']) ? absint($icons['mobile_hamburger_attachment_id']) : 0;
         $out['icons']['mobile_cart_attachment_id'] = isset($icons['mobile_cart_attachment_id']) ? absint($icons['mobile_cart_attachment_id']) : 0;
         $out['icons']['mobile_search_attachment_id'] = isset($icons['mobile_search_attachment_id']) ? absint($icons['mobile_search_attachment_id']) : 0;
+        $out['icons']['mobile_hamburger_svg_code'] = isset($icons['mobile_hamburger_svg_code']) ? bw_header_sanitize_svg_markup($icons['mobile_hamburger_svg_code']) : '';
+        $out['icons']['mobile_cart_svg_code'] = isset($icons['mobile_cart_svg_code']) ? bw_header_sanitize_svg_markup($icons['mobile_cart_svg_code']) : '';
+        $out['icons']['mobile_search_svg_code'] = isset($icons['mobile_search_svg_code']) ? bw_header_sanitize_svg_markup($icons['mobile_search_svg_code']) : '';
 
         $labels = isset($input['labels']) && is_array($input['labels']) ? $input['labels'] : [];
         $out['labels']['search'] = isset($labels['search']) ? sanitize_text_field($labels['search']) : $defaults['labels']['search'];

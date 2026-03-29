@@ -85,6 +85,9 @@ Authority boundary:
 | `icons.mobile_hamburger_attachment_id` | `0` | media ID | Icons | `bw_header_get_icon_markup()`, template `header.php` | mobile nav icon | Fallback inline SVG used if absent. |
 | `icons.mobile_cart_attachment_id` | `0` | media ID | Icons | `bw_header_get_icon_markup()`, template `header.php` | cart icon | Fallback inline SVG used if absent. |
 | `icons.mobile_search_attachment_id` | `0` | media ID | Icons | `bw_header_get_icon_markup()`, template `header.php` | search icon | Fallback inline SVG used if absent. |
+| `icons.mobile_hamburger_svg_code` | `''` | sanitized SVG markup | Responsive / Icons | `bw_header_get_icon_markup()`, template `header.php` | mobile nav icon | If present, inline SVG takes precedence over uploaded attachment. |
+| `icons.mobile_cart_svg_code` | `''` | sanitized SVG markup | Responsive / Icons | `bw_header_get_icon_markup()`, template `header.php` | cart icon | If present, inline SVG takes precedence over uploaded attachment. |
+| `icons.mobile_search_svg_code` | `''` | sanitized SVG markup | Responsive / Icons | `bw_header_get_icon_markup()`, template `header.php` | search icon | If present, inline SVG takes precedence over uploaded attachment. |
 | `labels.search` | `Search` | text | Labels | template rendering (`header.php`) | search button text | Mobile may hide label and show icon only. |
 | `labels.account` | `Account` | text | Labels | template rendering (`header.php`) | account link text | Presentation-only. |
 | `labels.cart` | `Cart` | text | Labels | template rendering (`header.php`) | cart text/aria label | Presentation-only. |
