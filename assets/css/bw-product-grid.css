@@ -1349,7 +1349,7 @@ body.bw-cart-popup-no-scroll {
 
 .bw-fpw-item.bw-fpw-item--reveal-initial,
 .bw-fpw-item.bw-fpw-item--reveal-append {
-  transition: opacity 0.45s ease;
+  transition: opacity 0.25s ease;
 }
 
 .bw-fpw-item.bw-fpw-item--reveal.bw-fpw-item--visible {

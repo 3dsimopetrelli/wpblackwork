@@ -1600,8 +1600,8 @@
 
         var $revealItems = $items.filter('.bw-fpw-item--reveal');
         var revealMode = mode === 'initial' ? 'initial' : 'append';
-        var baseDelay = 40;
-        var cleanupDelay = 600;
+        var baseDelay = 20;
+        var cleanupDelay = 300;
 
         if (!$revealItems.length) {
             return;
@@ -1666,8 +1666,8 @@
             return;
         }
 
-        var STAGGER = 40;        // ms between items within a batch
-        var cleanupDelay = 600;  // must be >= CSS transition duration (0.45s)
+        var STAGGER = 20;        // ms between items within a batch
+        var cleanupDelay = 300;  // must be >= CSS transition duration (0.25s)
         var FALLBACK_MS = 15000; // safety net for genuinely stuck items only
 
         if (widgetId) {

@@ -1936,20 +1936,23 @@ function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
 
 function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search)
 {
-    $normalized_search = bw_fpw_normalize_search_value($search);
-    $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
-    $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+    if ('' === bw_fpw_normalize_search_value($search)) {
+        return [];
+    }
 
+    // Single WP_Query: native search (title + content) scoped to the active
+    // category / subcategory / tag filters.  One query replaces the previous
+    // "load all → per-post loop (N+1) + second search query" approach.
     $query_args = [
-        'post_type' => $post_type,
-        'post_status' => 'publish',
-        'posts_per_page' => -1,
-        'paged' => 1,
-        'fields' => 'ids',
-        'no_found_rows' => true,
-        'ignore_sticky_posts' => true,
+        'post_type'              => $post_type,
+        'post_status'            => 'publish',
+        'posts_per_page'         => -1,
+        'fields'                 => 'ids',
+        'no_found_rows'          => true,
+        'ignore_sticky_posts'    => true,
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
+        's'                      => $search,
     ];
 
     $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, $tags);
@@ -1958,32 +1961,8 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
     }
 
     $query = new WP_Query($query_args);
-    $post_ids = array_map('absint', $query->posts);
 
-    if ('' === $normalized_search) {
-        return $post_ids;
-    }
-
-    $matching_post_ids = [];
-
-    foreach ($post_ids as $post_id) {
-        if (bw_fpw_post_matches_search($post_id, $normalized_search, $taxonomy, $tag_taxonomy)) {
-            $matching_post_ids[] = $post_id;
-        }
-    }
-
-    $wp_search_args = $query_args;
-    $wp_search_args['s'] = $normalized_search;
-    $wp_search_query = new WP_Query($wp_search_args);
-    $wp_search_post_ids = array_map('absint', $wp_search_query->posts);
-
-    if (!empty($wp_search_post_ids)) {
-        $matching_post_ids = array_merge($matching_post_ids, $wp_search_post_ids);
-    }
-
-    $matching_post_ids = array_values(array_unique(array_filter($matching_post_ids)));
-
-    return $matching_post_ids;
+    return array_values(array_filter(array_map('absint', $query->posts)));
 }
 
 function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
@@ -2278,7 +2257,6 @@ function bw_fpw_filter_posts()
     );
     $raw_offset = isset($_POST['offset']) ? wp_unslash($_POST['offset']) : null;
     $offset = is_numeric($raw_offset) ? max(0, (int) $raw_offset) : 0;
-    $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
 
     if (bw_fpw_is_throttled_request('bw_fpw_filter_posts')) {
         bw_fpw_send_throttled_response('bw_fpw_filter_posts', $widget_id);
@@ -2333,10 +2311,6 @@ function bw_fpw_filter_posts()
         'orderby' => $order_by,
         'order' => $order,
     ];
-
-    if (!empty($search)) {
-        $query_args['s'] = $search;
-    }
 
     if ($per_page > 0 && $offset > 0) {
         $query_args['offset'] = $offset;
