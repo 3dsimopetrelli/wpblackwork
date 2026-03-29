@@ -904,6 +904,10 @@
         return safeCount + (safeCount === 1 ? ' result' : ' results');
     }
 
+    function isDiscoveryResponsiveToolbar() {
+        return (window.innerWidth || $(window).width() || 0) <= 800;
+    }
+
     function renderDiscoveryResultCount(widgetId) {
         var state = filterState[widgetId];
         var resultText = formatResultCount(state && typeof state.resultCount !== 'undefined' ? state.resultCount : 0);
@@ -918,6 +922,7 @@
         var quickFilters = [];
         var types = state && state.ui.showTypes ? state.options.types.slice() : [];
         var tags = state && state.ui.showTags ? state.options.tags.slice() : [];
+        var responsiveToolbar = isDiscoveryResponsiveToolbar();
 
         state.subcategories.forEach(function (termId) {
             var key = 'types:' + termId;
@@ -944,6 +949,12 @@
                 selected: true
             });
         });
+
+        if (responsiveToolbar) {
+            return quickFilters.filter(function (filter) {
+                return filter.name;
+            });
+        }
 
         function pushOptions(options, groupKey, limit) {
             var added = 0;
@@ -977,12 +988,15 @@
 
     function renderDiscoveryQuickFilters(widgetId) {
         var quickFilters = getDiscoveryQuickFilters(widgetId);
+        var responsiveToolbar = isDiscoveryResponsiveToolbar();
         var html = '';
 
         quickFilters.forEach(function (filter) {
             html += '<button class="bw-fpw-quick-filter' + (filter.selected ? ' is-selected' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + filter.group + '" data-term-id="' + filter.term_id + '">';
             html += '<span class="bw-fpw-quick-filter__label">' + escapeHtml(filter.name) + '</span>';
-            if (filter.count > 0) {
+            if (responsiveToolbar && filter.selected) {
+                html += '<span class="bw-fpw-quick-filter__remove" aria-hidden="true"></span>';
+            } else if (filter.count > 0) {
                 html += '<span class="bw-fpw-quick-filter__count">' + escapeHtml(filter.count) + '</span>';
             }
             html += '</button>';
