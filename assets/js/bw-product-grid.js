@@ -2258,7 +2258,7 @@
             }
 
             var emptyStateHtml = '<div class="bw-fpw-empty-state">';
-            emptyStateHtml += '<p class="bw-fpw-empty-message">No content available</p>';
+            emptyStateHtml += '<p class="bw-fpw-empty-message">No results found.</p>';
             emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
             emptyStateHtml += '</div>';
             clearStaggerTimers(widgetId);

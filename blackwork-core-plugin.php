@@ -1661,7 +1661,7 @@ function bw_fpw_send_throttled_response($action_key, $widget_id = '')
         ob_start();
         ?>
         <div class="bw-fpw-empty-state">
-            <p class="bw-fpw-empty-message"><?php esc_html_e('No content available', 'bw-elementor-widgets'); ?></p>
+            <p class="bw-fpw-empty-message"><?php esc_html_e('No results found.', 'bw-elementor-widgets'); ?></p>
             <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr($safe_widget_id); ?>">
                 <?php esc_html_e('RESET FILTERS', 'bw-elementor-widgets'); ?>
             </button>
@@ -1889,6 +1889,20 @@ function bw_fpw_build_tax_query($post_type, $category = 'all', $subcategories = 
     return $tax_query;
 }
 
+function bw_fpw_has_active_refinement_filters($subcategories = [], $tags = [], $search = '')
+{
+    return !empty($subcategories) || !empty($tags) || '' !== bw_fpw_normalize_search_query($search);
+}
+
+function bw_fpw_get_empty_state_message($subcategories = [], $tags = [], $search = '')
+{
+    if (bw_fpw_has_active_refinement_filters($subcategories, $tags, $search)) {
+        return __('No results found.', 'bw-elementor-widgets');
+    }
+
+    return __('There is nothing in this archive yet.', 'bw-elementor-widgets');
+}
+
 function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
 {
     $normalized_search = bw_fpw_normalize_search_value($search);
@@ -1899,6 +1913,9 @@ function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
 
     $haystacks = [
         get_the_title($post_id),
+        get_post_field('post_excerpt', $post_id),
+        wp_strip_all_tags((string) get_post_field('post_content', $post_id)),
+        get_post_field('post_name', $post_id),
     ];
 
     $taxonomy_terms = wp_get_object_terms($post_id, [$taxonomy, $tag_taxonomy], ['fields' => 'names']);
@@ -1954,6 +1971,17 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
             $matching_post_ids[] = $post_id;
         }
     }
+
+    $wp_search_args = $query_args;
+    $wp_search_args['s'] = $normalized_search;
+    $wp_search_query = new WP_Query($wp_search_args);
+    $wp_search_post_ids = array_map('absint', $wp_search_query->posts);
+
+    if (!empty($wp_search_post_ids)) {
+        $matching_post_ids = array_merge($matching_post_ids, $wp_search_post_ids);
+    }
+
+    $matching_post_ids = array_values(array_unique(array_filter($matching_post_ids)));
 
     return $matching_post_ids;
 }
@@ -2524,7 +2552,7 @@ function bw_fpw_filter_posts()
     } elseif (1 === $page) {
         ?>
         <div class="bw-fpw-empty-state">
-            <p class="bw-fpw-empty-message"><?php esc_html_e('No content available', 'bw-elementor-widgets'); ?></p>
+            <p class="bw-fpw-empty-message"><?php echo esc_html(bw_fpw_get_empty_state_message($subcategories, $tags, $search)); ?></p>
             <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr($widget_id); ?>">
                 <?php esc_html_e('RESET FILTERS', 'bw-elementor-widgets'); ?>
             </button>

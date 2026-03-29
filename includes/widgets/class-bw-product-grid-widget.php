@@ -1043,7 +1043,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     ?>
                 <?php else : ?>
                     <div class="bw-fpw-empty-state">
-                        <p class="bw-fpw-empty-message"><?php esc_html_e( 'No content available', 'bw-elementor-widgets' ); ?></p>
+                        <p class="bw-fpw-empty-message"><?php esc_html_e( 'There is nothing in this archive yet.', 'bw-elementor-widgets' ); ?></p>
                         <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <?php esc_html_e( 'RESET FILTERS', 'bw-elementor-widgets' ); ?>
                         </button>
