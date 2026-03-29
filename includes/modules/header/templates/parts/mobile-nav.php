@@ -34,36 +34,35 @@ if (empty($terms_policy_url)) {
             <nav class="bw-navigation__mobile" aria-label="<?php esc_attr_e('Mobile navigation', 'bw'); ?>">
                 <?php echo $mobile_menu_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </nav>
+        </div>
 
-            <?php
-            $my_account_url = function_exists('wc_get_page_permalink')
-                ? wc_get_page_permalink('myaccount')
-                : home_url('/my-account/');
-            ?>
+        <?php
+        $my_account_url = function_exists('wc_get_page_permalink')
+            ? wc_get_page_permalink('myaccount')
+            : home_url('/my-account/');
+        ?>
 
+        <div class="bw-navigation__mobile-footer">
             <a class="bw-navigation__mobile-cta" href="<?php echo esc_url($my_account_url); ?>">
                 <?php esc_html_e('Login or Join', 'bw'); ?>
             </a>
-
-            <div class="bw-navigation__mobile-footer">
-                <div class="bw-navigation__mobile-footer-divider" aria-hidden="true"></div>
-                <div class="bw-navigation__mobile-footer-row">
-                    <div class="bw-navigation__mobile-footer-links">
-                        <?php if (!empty($privacy_policy_url)) : ?>
-                            <a class="bw-navigation__mobile-footer-link" href="<?php echo esc_url($privacy_policy_url); ?>">
-                                <?php esc_html_e('Privacy Policy', 'bw'); ?>
-                            </a>
-                        <?php endif; ?>
-                        <?php if (!empty($terms_policy_url)) : ?>
-                            <a class="bw-navigation__mobile-footer-link" href="<?php echo esc_url($terms_policy_url); ?>">
-                                <?php esc_html_e('Terms Policy', 'bw'); ?>
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                    <button class="bw-navigation__mobile-footer-social" type="button" aria-label="<?php esc_attr_e('Instagram', 'bw'); ?>">
-                        <span class="bw-navigation__mobile-footer-social-icon" aria-hidden="true"></span>
-                    </button>
+            <div class="bw-navigation__mobile-footer-divider" aria-hidden="true"></div>
+            <div class="bw-navigation__mobile-footer-row">
+                <div class="bw-navigation__mobile-footer-links">
+                    <?php if (!empty($privacy_policy_url)) : ?>
+                        <a class="bw-navigation__mobile-footer-link" href="<?php echo esc_url($privacy_policy_url); ?>">
+                            <?php esc_html_e('Privacy Policy', 'bw'); ?>
+                        </a>
+                    <?php endif; ?>
+                    <?php if (!empty($terms_policy_url)) : ?>
+                        <a class="bw-navigation__mobile-footer-link" href="<?php echo esc_url($terms_policy_url); ?>">
+                            <?php esc_html_e('Terms Policy', 'bw'); ?>
+                        </a>
+                    <?php endif; ?>
                 </div>
+                <button class="bw-navigation__mobile-footer-social" type="button" aria-label="<?php esc_attr_e('Instagram', 'bw'); ?>">
+                    <span class="bw-navigation__mobile-footer-social-icon" aria-hidden="true"></span>
+                </button>
             </div>
         </div>
     </div>
