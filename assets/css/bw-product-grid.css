@@ -476,7 +476,7 @@ body.bw-cart-popup-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) 380px;
   grid-template-areas:
     "quick controls"
     "summary summary";
@@ -502,6 +502,8 @@ body.bw-cart-popup-no-scroll {
   align-items: center;
   gap: 12px;
   align-self: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-meta {
@@ -635,10 +637,12 @@ body.bw-cart-popup-no-scroll {
   grid-area: quick;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  max-width: 60%;
+  max-width: min(72%, 860px);
+  min-width: 0;
   align-self: center;
+  align-content: flex-start;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filters.is-empty {
@@ -648,17 +652,18 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filter {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 16px;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(17, 17, 17, 0.14);
   background: rgba(255, 255, 255, 0.72);
   color: #111111;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filter:hover {
@@ -675,6 +680,7 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filter__count {
   color: inherit;
   opacity: 0.68;
+  font-size: 12px;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-drawer-groups {
@@ -1016,6 +1022,7 @@ body.bw-cart-popup-no-scroll {
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filters {
     max-width: none;
+    gap: 10px;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__input {
