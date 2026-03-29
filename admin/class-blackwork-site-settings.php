@@ -1223,6 +1223,7 @@ function bw_site_render_info_tab()
     $hover_class = 'bw-hover-underline-ltr';
     $breakout_class = 'bw-layout-breakout';
     $full_bleed_class = 'bw-layout-full-bleed';
+    $strong_radius_class = 'bw-strong-border-radius';
     ?>
     <section class="bw-admin-card">
         <h2 class="bw-admin-card-title"><?php esc_html_e('Utility CSS Classes', 'bw'); ?></h2>
@@ -1259,6 +1260,16 @@ function bw_site_render_info_tab()
                     <p class="description"><?php esc_html_e('Apply this to an Elementor Container or Section to span the full viewport width and ignore the global layout shell. Best for hero bands and edge-to-edge visual strips.', 'bw'); ?></p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row"><label for="bw-site-info-strong-radius-class"><?php esc_html_e('Strong Border Radius', 'bw'); ?></label></th>
+                <td>
+                    <div class="bw-site-info-copy-row">
+                        <input type="text" id="bw-site-info-strong-radius-class" class="regular-text code" readonly value="<?php echo esc_attr($strong_radius_class); ?>" />
+                        <button type="button" class="button bw-site-info-copy-button" data-copy-target="bw-site-info-strong-radius-class"><?php esc_html_e('Copy class', 'bw'); ?></button>
+                    </div>
+                    <p class="description"><?php esc_html_e('Apply this to an Elementor Container or Section to clip the whole element with a strong 15px border radius, including cover background images and overlays.', 'bw'); ?></p>
+                </td>
+            </tr>
         </table>
     </section>
 
@@ -1269,8 +1280,8 @@ function bw_site_render_info_tab()
         <ol class="bw-site-info-steps">
             <li><?php esc_html_e('Open the Elementor element you want to affect.', 'bw'); ?></li>
             <li><?php esc_html_e('Go to Advanced -> CSS Classes.', 'bw'); ?></li>
-            <li><?php echo esc_html(sprintf(__('Paste %s for hover underline, or use %s / %s on the Container or Section that should extend past the layout shell.', 'bw'), $hover_class, $breakout_class, $full_bleed_class)); ?></li>
-            <li><?php esc_html_e('Use breakout for controlled extra width and full-bleed for true edge-to-edge sections.', 'bw'); ?></li>
+            <li><?php echo esc_html(sprintf(__('Paste %s for hover underline, use %s / %s on the Container or Section that should extend past the layout shell, or use %s when a full container with background image needs rounded corners.', 'bw'), $hover_class, $breakout_class, $full_bleed_class, $strong_radius_class)); ?></li>
+            <li><?php esc_html_e('Use breakout for controlled extra width, full-bleed for true edge-to-edge sections, and Strong Border Radius when the whole Elementor wrapper should clip its background.', 'bw'); ?></li>
         </ol>
     </section>
 

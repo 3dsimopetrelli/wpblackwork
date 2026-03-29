@@ -17,6 +17,7 @@
 - Added reusable utility classes to `Site Settings -> Info`:
   - `bw-layout-breakout`
   - `bw-layout-full-bleed`
+  - `bw-strong-border-radius`
   - existing `bw-hover-underline-ltr` preserved
 
 ## Files Changed

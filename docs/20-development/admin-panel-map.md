@@ -233,6 +233,7 @@ Current adoption:
   - `bw-hover-underline-ltr`
   - `bw-layout-breakout`
   - `bw-layout-full-bleed`
+  - `bw-strong-border-radius`
 - Notes:
   - this tab is the first Site Settings tab
   - it is intentionally informational and does not own frontend runtime behavior

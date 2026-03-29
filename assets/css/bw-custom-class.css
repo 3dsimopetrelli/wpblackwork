@@ -139,3 +139,26 @@ body.bw-site-layout-allow-full-bleed .bw-layout-breakout .e-con {
 .bw-hover-underline-ltr > a:focus-visible {
   background-size: 100% var(--bw-hover-underline-thickness);
 }
+
+/* ==========================================================
+   BW STRONG BORDER RADIUS
+   Applica un border radius forte e clippa sfondi/overlay Elementor
+   ========================================================== */
+
+.bw-strong-border-radius,
+.elementor-section.bw-strong-border-radius,
+.elementor-element.bw-strong-border-radius,
+.e-con.bw-strong-border-radius {
+  border-radius: 15px !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+.bw-strong-border-radius > .elementor-background-overlay,
+.bw-strong-border-radius > .elementor-motion-effects-container,
+.bw-strong-border-radius > .elementor-motion-effects-layer,
+.bw-strong-border-radius > .e-con-inner,
+.bw-strong-border-radius > .elementor-container,
+.bw-strong-border-radius > .e-con {
+  border-radius: inherit !important;
+}
