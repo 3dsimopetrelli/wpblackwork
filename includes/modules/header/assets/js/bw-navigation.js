@@ -6,8 +6,7 @@
         this.toggle = root.querySelector('.bw-navigation__toggle');
         this.overlay = root.querySelector('.bw-navigation__mobile-overlay');
         this.close = root.querySelector('.bw-navigation__close');
-        this.mobileLinks = root.querySelectorAll('.bw-navigation__mobile .bw-navigation__link');
-        this.mobileItems = root.querySelectorAll('.bw-navigation__mobile .menu-item');
+        this.mobileLinks = root.querySelectorAll('.bw-navigation__mobile .bw-navigation__link, .bw-navigation__auth-link');
 
         this.handleDocumentKeydown = this.handleDocumentKeydown.bind(this);
         this.handleOverlayClick = this.handleOverlayClick.bind(this);
@@ -26,10 +25,6 @@
         if (this.overlay.parentNode !== document.body) {
             document.body.appendChild(this.overlay);
         }
-
-        this.mobileItems.forEach(function (item, index) {
-            item.style.setProperty('--bw-nav-stagger-delay', index * 70 + 'ms');
-        });
 
         this.toggle.addEventListener('click', this.handleToggleClick);
         this.close.addEventListener('click', this.handleCloseClick);
