@@ -377,6 +377,16 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
+        $this->add_control( 'show_search', [
+            'label'        => __( 'Show Search', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -503,6 +513,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $show_subcategories    = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
         $show_tags             = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
         $show_all_button       = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
+        $show_search           = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
 
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
             ? absint( $settings['default_category'] )
@@ -562,6 +573,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
                 </div>
 
                 <div class="bw-fpw-mobile-filter-panel__body">
+                    <?php if ( $show_search ) : ?>
+                        <div class="bw-fpw-mobile-search-row">
+                            <input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
+                        </div>
+                    <?php endif; ?>
                     <?php if ( $show_categories ) : ?>
                         <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                             <button class="bw-fpw-mobile-dropdown-toggle" type="button">
@@ -622,6 +638,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
         </div>
 
         <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+            <?php if ( $show_search ) : ?>
+            <div class="bw-fpw-search-row" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                <input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
+            </div>
+            <?php endif; ?>
             <div class="bw-fpw-filter-rows">
                 <?php if ( $show_categories ) : ?>
                     <div class="bw-fpw-filter-row bw-fpw-filter-row--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
@@ -748,9 +769,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ) {
-        if ( $show_all_button && 'all' === $default_category ) :
+        if ( $show_all_button ) :
+            $all_active = 'all' === $default_category;
             ?>
-            <button class="bw-fpw-filter-option bw-fpw-cat-button active" data-category="all">
+            <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $all_active ? ' active' : ''; ?>" data-category="all">
                 <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
             </button>
             <?php
@@ -760,6 +782,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             return;
         }
 
+        // $has_active_category is true if "All" button already handles the active state
         $has_active_category = $show_all_button && 'all' === $default_category;
 
         foreach ( $parent_terms as $category ) :
