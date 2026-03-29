@@ -56,11 +56,6 @@ function bw_mew_initialize_woocommerce_overrides()
         require_once $klarna_gateway_file;
     }
 
-    $apple_pay_gateway_file = BW_MEW_PATH . 'includes/Gateways/class-bw-apple-pay-gateway.php';
-    if (file_exists($apple_pay_gateway_file)) {
-        require_once $apple_pay_gateway_file;
-    }
-
     $google_pay_file = BW_MEW_PATH . 'includes/woocommerce-overrides/class-bw-google-pay-gateway.php';
     if (file_exists($google_pay_file)) {
         require_once $google_pay_file;
@@ -1059,6 +1054,25 @@ function bw_mew_hide_single_product_notices()
     remove_action('woocommerce_before_single_product_summary', 'woocommerce_output_all_notices', 10);
 }
 
+/**
+ * Handle social login start and callback.
+ *
+ * @deprecated Use BW_Social_Login class instead.
+ */
+function bw_mew_handle_social_login_requests()
+{
+    if (!function_exists('is_account_page') || !is_account_page()) {
+        return;
+    }
+
+    if (isset($_GET['bw_social_login'])) {
+        bw_mew_social_login_redirect(sanitize_key(wp_unslash($_GET['bw_social_login'])));
+    }
+
+    if (isset($_GET['bw_social_login_callback'])) {
+        bw_mew_process_social_login_callback(sanitize_key(wp_unslash($_GET['bw_social_login_callback'])));
+    }
+}
 
 /**
  * Sync cart quantities during checkout AJAX refreshes so totals update immediately.
@@ -1266,6 +1280,56 @@ function bw_mew_get_checkout_settings()
     return $settings;
 }
 
+/**
+ * DEPRECATED FUNCTIONS
+ *
+ * The following functions have been moved to the BW_Social_Login class.
+ * They are kept here as deprecated stubs for backward compatibility.
+ * Use BW_Social_Login class methods directly instead.
+ */
+
+/**
+ * @deprecated Use BW_Social_Login::start_oauth_flow() instead.
+ */
+function bw_mew_social_login_redirect($provider)
+{
+    // Deprecated: Handled by BW_Social_Login class.
+}
+
+/**
+ * @deprecated Use BW_Social_Login::process_oauth_callback() instead.
+ */
+function bw_mew_process_social_login_callback($provider)
+{
+    // Deprecated: Handled by BW_Social_Login class.
+}
+
+/**
+ * @deprecated Use BW_Social_Login::exchange_facebook_code() instead.
+ */
+function bw_mew_exchange_facebook_code($code, $redirect_uri)
+{
+    // Deprecated: Handled by BW_Social_Login class.
+    return new WP_Error('bw_deprecated', __('This function is deprecated.', 'bw'));
+}
+
+/**
+ * @deprecated Use BW_Social_Login::exchange_google_code() instead.
+ */
+function bw_mew_exchange_google_code($code, $redirect_uri)
+{
+    // Deprecated: Handled by BW_Social_Login class.
+    return new WP_Error('bw_deprecated', __('This function is deprecated.', 'bw'));
+}
+
+/**
+ * @deprecated Use BW_Social_Login::login_or_register_user() instead.
+ */
+function bw_mew_login_or_register_social_user($email, $name)
+{
+    // Deprecated: Handled by BW_Social_Login class.
+    return new WP_Error('bw_deprecated', __('This function is deprecated.', 'bw'));
+}
 
 /**
  * Retrieve the passwordless URL if configured.
