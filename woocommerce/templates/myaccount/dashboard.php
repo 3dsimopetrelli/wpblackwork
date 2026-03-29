@@ -52,7 +52,7 @@ $physical_orders      = bw_mew_get_dashboard_physical_orders( $current_user->ID,
             <p class="bw-hero-help-title"><?php esc_html_e( 'Need help?', 'bw' ); ?></p>
             <div class="bw-hero-body"><?php echo wp_kses_post( wpautop( $black_box_text ) ); ?></div>
             <div class="bw-hero-footer">
-                <a class="bw-hero-support-link" href="<?php echo esc_url( $support_link ); ?>"><?php esc_html_e( 'Contact support', 'bw' ); ?></a>
+                <a class="bw-hero-support-link" href="<?php echo esc_url( $support_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contact support', 'bw' ); ?></a>
             </div>
         </div>
     </div>

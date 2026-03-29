@@ -607,7 +607,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 .bw-hero-support-link:hover,
 .bw-hero-support-link:focus {
     background: #000000;
-    color: #ffffff;
+    color: #ffffff !important;
     border-color: #ffffff;
     text-decoration: none;
 }
@@ -1279,13 +1279,13 @@ body.woocommerce-account .bw-account-content .bw-page-header h2 {
     border: 1px solid #111;
     background: #80fd03 !important;
     background-color: #80fd03 !important;
-    padding: 8px 18px;
-    border-radius: 999px;
+    padding: 19px 20px;
+    border-radius: 20px;
     cursor: pointer;
     color: #111;
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 1.2;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1;
     transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
     will-change: transform;
     -webkit-tap-highlight-color: transparent;
