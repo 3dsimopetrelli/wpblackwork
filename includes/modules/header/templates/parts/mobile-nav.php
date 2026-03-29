@@ -31,6 +31,10 @@ if (empty($terms_policy_url)) {
         </div>
 
         <div class="bw-navigation__mobile-content">
+            <nav class="bw-navigation__mobile" aria-label="<?php esc_attr_e('Mobile navigation', 'bw'); ?>">
+                <?php echo $mobile_menu_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            </nav>
+
             <?php
             $my_account_url = function_exists('wc_get_page_permalink')
                 ? wc_get_page_permalink('myaccount')
@@ -40,10 +44,6 @@ if (empty($terms_policy_url)) {
             <a class="bw-navigation__mobile-cta" href="<?php echo esc_url($my_account_url); ?>">
                 <?php esc_html_e('Login or Join', 'bw'); ?>
             </a>
-
-            <nav class="bw-navigation__mobile" aria-label="<?php esc_attr_e('Mobile navigation', 'bw'); ?>">
-                <?php echo $mobile_menu_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            </nav>
 
             <div class="bw-navigation__mobile-footer">
                 <div class="bw-navigation__mobile-footer-divider" aria-hidden="true"></div>
