@@ -120,7 +120,7 @@ Implemented direction note for `bw-showcase-slide`:
 - borrows slider settings and responsive breakpoint structure from the Embla slider family
 - keeps content authority aligned to the showcase metabox and CTA contract
 - excludes popup settings from day one so the widget surface stays focused
-- current first-render contract is server-seeded `loading` + JS reveal after the first primary image resolves, to avoid pre-init copy/image flash
+- current runtime also owns an explicit widget-local image/overlay stacking contract so showcase copy cannot be covered by late image-state rules
 
 Expected outcomes:
 - one core lifecycle (`init`, `reinit`, `destroy`) per scope

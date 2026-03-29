@@ -40,7 +40,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `big-text-widget.md`: `BW-UI Big Text` — premium editorial statement widget with controlled line length, fluid `clamp()` scaling, automatic balance mode, and optional manual editorial line grouping
 - `hero-slide-widget.md`: `BW-UI Hero Slide` — premium static hero widget with future-ready `Slide` mode surface, centered copy, background image, and glass CTA button grid
 - `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with 4 desktop mosaic variants, auto-scale/square modes, responsive partial-slide reveal, and shared product-card reuse
-- `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching, breakpoint-level fixed frame ratios, curated `Classic Photo (3:2)` peek presets, mobile full-slide CTA behavior, responsive CTA link-button typography, and a server-seeded first-image reveal contract to avoid pre-init title/image flash
+- `showcase-slide-widget.md`: `BW-UI Showcase Slide` — Embla-based curated showcase slider powered by product showcase metabox content, with digital/physical footer branching, breakpoint-level fixed frame ratios, curated `Classic Photo (3:2)` peek presets, mobile full-slide CTA behavior, responsive CTA link-button typography, and explicit image/overlay layering so copy stays above the media
 - `import-info/showcase-slide-metabox-import-map.md`: importer mapping for the Showcase metabox (`product_type`, digital fields, physical fields, CTA, and shared meta keys)
 
 ## Confirmed decisions (current)
@@ -59,7 +59,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-title-product` -> canonical single-product title utility widget with fluid/fixed responsive title sizing and width-measure controls
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
-  - current runtime seeds `.loading` from PHP and reveals only after the first primary image resolves, so pre-init overlay copy does not flash before Embla/image stabilization
+  - current runtime keeps the overlay above the image through an explicit widget-local stacking contract (`image z-index: 0`, overlay `z-index: 1`)
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
   - current widget-local extension also supports tablet/mobile suppression of overlay CTA actions without mutating the shared component globally

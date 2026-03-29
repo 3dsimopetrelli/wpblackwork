@@ -268,16 +268,15 @@ Below `800px` viewport width:
 - The widget title is `BW-UI Showcase Slide`, so it participates in the Elementor panel black BW-UI family styling.
 - The widget does not introduce popup, AJAX, or review dependencies.
 - The widget uses `BWEmblaCore` and does not own a popup runtime.
-- First render stability is handled in two layers:
+- First render stability is handled in the current runtime by:
   - breakpoint CSS is emitted from PHP before JS boot
-  - the wrapper is server-rendered with `loading`, then revealed after the first primary image resolves
   - initial image height mode / image height / image width are seeded into CSS custom properties when legacy image controls are active
   - fixed frame ratio and start-offset rules are emitted in breakpoint CSS so Elementor/frontend first paint matches the configured layout more closely
-- Reveal contract:
-  - JS waits for the first `.bw-showcase-slide-image-el`
-  - if the image is already complete, reveal is deferred by two nested `requestAnimationFrame()` calls
-  - if the image is still pending, reveal happens on `load` / `error`
-  - a 2 second timeout is the defensive fallback
+- Layering contract:
+  - `.bw-showcase-slide-media` is an isolated stacking context
+  - `.bw-showcase-slide-image` / `.bw-showcase-slide-image-el` stay on `z-index: 0`
+  - `.bw-showcase-slide-overlay` is explicitly rendered above them on `z-index: 1`
+  - this prevents late image-state/theme rules from covering title/description/footer copy
 - Loading policy:
   - first visible slide image uses `fetchpriority="high"` and `decoding="sync"`
   - the second slide image is also promoted to eager loading

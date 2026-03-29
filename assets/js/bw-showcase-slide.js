@@ -41,7 +41,6 @@
             }
 
             if (typeof BWEmblaCore === 'undefined') {
-                this.$wrapper.removeClass('loading');
                 console.warn('BW Showcase Slide: BWEmblaCore non disponibile.');
                 return;
             }
@@ -62,7 +61,6 @@
             const viewport = this.$wrapper.find('.bw-ss-embla-viewport')[0];
 
             if (!viewport) {
-                this.$wrapper.removeClass('loading');
                 return;
             }
 

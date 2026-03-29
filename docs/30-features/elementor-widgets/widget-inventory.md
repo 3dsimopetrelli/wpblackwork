@@ -219,11 +219,12 @@ Important runtime note:
     - `Free / Existing Controls` -> legacy width/image-height contract
     - fixed frame ratio -> ratio-locked card with fit-mode authority
     - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
-  - first-render contract:
-    - wrapper is server-rendered with `.loading`
-    - reveal waits for the first primary image, with a defensive 2 second timeout
+  - image/layering contract:
     - first slide image gets `fetchpriority="high"` / `decoding="sync"`
     - second slide image is also promoted to eager loading
+    - showcase media uses an isolated stacking context
+    - image stays at `z-index: 0`
+    - overlay stays above it at `z-index: 1`
   - mobile CTA contract:
     - below `800px`, the detached green CTA pair is hidden
     - the whole slide becomes the tap target when a CTA URL exists
