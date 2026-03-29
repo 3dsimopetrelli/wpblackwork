@@ -594,9 +594,10 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     justify-content: center;
     min-height: 52px;
     padding: 10px 32px;
-    border: 1.5px solid rgba(255, 255, 255, 0.78);
+    border: 1.5px solid #ffffff;
     border-radius: 999px;
-    color: #fff;
+    background: #ffffff;
+    color: #000000;
     text-decoration: none;
     font-size: 19px;
     line-height: 1;
@@ -605,9 +606,9 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-hero-support-link:hover,
 .bw-hero-support-link:focus {
-    background: #fff;
-    color: #000;
-    border-color: #fff;
+    background: #000000;
+    color: #ffffff;
+    border-color: #ffffff;
     text-decoration: none;
 }
 
@@ -912,7 +913,7 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 
 .bw-order-btn--details {
     background: #111;
-    color: #fff;
+    color: #fff !important;
 }
 
 .bw-order-btn--icon {
@@ -1089,8 +1090,12 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
 }
 
 .bw-empty-state {
-    margin: 8px 0;
+    margin: 0;
+    padding: 18px 20px 22px;
+    border-top: 1px solid #ececec;
     color: #666;
+    font-size: 16px;
+    line-height: 1.45;
 }
 
 .bw-download-list {
@@ -1144,9 +1149,24 @@ body.woocommerce-account:not(.bw-account-login-only) .bw-account-page-header .bw
     padding: 8px 14px;
     border-radius: 8px;
     background: #000;
-    color: #fff;
+    color: #fff !important;
     text-decoration: none;
     border: none;
+}
+
+.bw-download-button:hover,
+.bw-download-button:focus,
+.bw-download-button:visited,
+.bw-download-button span,
+.bw-download-button svg {
+    color: #fff !important;
+}
+
+.bw-order-btn--details:hover,
+.bw-order-btn--details:focus,
+.bw-order-btn--details:visited,
+.bw-order-btn--details span {
+    color: #fff !important;
 }
 
 .bw-download-unavailable {
