@@ -556,7 +556,7 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value {
   width: 300px;
   justify-content: flex-end;
-  padding: 3px 6px 3px 18px;
+  padding: 3px 6px 3px 12px;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__icon-shell {
@@ -601,9 +601,23 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:hover .bw-fpw-discovery-search__input,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:focus-within .bw-fpw-discovery-search__input,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value .bw-fpw-discovery-search__input {
-  max-width: 220px;
+  max-width: 226px;
   opacity: 1;
   pointer-events: auto;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
+  background-size: 14px 14px;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  opacity: 0.9;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__input::placeholder,
