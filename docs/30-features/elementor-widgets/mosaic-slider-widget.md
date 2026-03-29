@@ -106,6 +106,9 @@ Query rules:
 - if randomize is enabled and manual IDs are present, only the selected ID set is shuffled
 - if randomize is enabled and manual IDs are not present, the query uses randomized ordering
 - deterministic transient caching is skipped when randomize is enabled
+- parent category controls now support multi-select for both `product` and `post` source types
+- when one or more parent categories are selected, taxonomy matching uses `IN` with children included
+- sub-category selections still override the parent-category filter for the active source type
 
 ## Rendering Authority
 ### Product path
@@ -172,8 +175,9 @@ Responsive drag note:
   - supports decimals like `2.2`
 
 Layout spacing note:
-- `Horizontal Gap` governs both the desktop internal column spacing and the slide-side desktop gutter
+- `Horizontal Gap` governs the desktop internal column spacing
 - responsive visible-slide math and responsive guttering are both derived from the same width model
+- the desktop slide wrapper no longer adds extra left/right inline padding, so the mosaic page aligns cleanly with surrounding copy
 
 ### Style > Images
 - `Image Border Radius`

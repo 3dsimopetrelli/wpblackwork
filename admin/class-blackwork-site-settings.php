@@ -1223,6 +1223,7 @@ function bw_site_render_info_tab()
     $hover_class = 'bw-hover-underline-ltr';
     $breakout_class = 'bw-layout-breakout';
     $full_bleed_class = 'bw-layout-full-bleed';
+    $responsive_full_bleed_class = 'bw-layout-full-bleed-responsive';
     $strong_radius_class = 'bw-strong-border-radius';
     ?>
     <section class="bw-admin-card">
@@ -1261,6 +1262,16 @@ function bw_site_render_info_tab()
                 </td>
             </tr>
             <tr>
+                <th scope="row"><label for="bw-site-info-responsive-full-bleed-class"><?php esc_html_e('Responsive full-bleed class', 'bw'); ?></label></th>
+                <td>
+                    <div class="bw-site-info-copy-row">
+                        <input type="text" id="bw-site-info-responsive-full-bleed-class" class="regular-text code" readonly value="<?php echo esc_attr($responsive_full_bleed_class); ?>" />
+                        <button type="button" class="button bw-site-info-copy-button" data-copy-target="bw-site-info-responsive-full-bleed-class"><?php esc_html_e('Copy class', 'bw'); ?></button>
+                    </div>
+                    <p class="description"><?php esc_html_e('Apply this to an Elementor Container or Section to go full-bleed only on tablet and mobile. Desktop keeps the normal centered shell.', 'bw'); ?></p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row"><label for="bw-site-info-strong-radius-class"><?php esc_html_e('Strong Border Radius', 'bw'); ?></label></th>
                 <td>
                     <div class="bw-site-info-copy-row">
@@ -1280,8 +1291,8 @@ function bw_site_render_info_tab()
         <ol class="bw-site-info-steps">
             <li><?php esc_html_e('Open the Elementor element you want to affect.', 'bw'); ?></li>
             <li><?php esc_html_e('Go to Advanced -> CSS Classes.', 'bw'); ?></li>
-            <li><?php echo esc_html(sprintf(__('Paste %s for hover underline, use %s / %s on the Container or Section that should extend past the layout shell, or use %s when a full container with background image needs rounded corners.', 'bw'), $hover_class, $breakout_class, $full_bleed_class, $strong_radius_class)); ?></li>
-            <li><?php esc_html_e('Use breakout for controlled extra width, full-bleed for true edge-to-edge sections, and Strong Border Radius when the whole Elementor wrapper should clip its background.', 'bw'); ?></li>
+            <li><?php echo esc_html(sprintf(__('Paste %s for hover underline, use %s / %s on the Container or Section that should extend past the layout shell, use %s when only tablet/mobile should go full-bleed, or use %s when a full container with background image needs rounded corners.', 'bw'), $hover_class, $breakout_class, $full_bleed_class, $responsive_full_bleed_class, $strong_radius_class)); ?></li>
+            <li><?php esc_html_e('Use breakout for controlled extra width, full-bleed for true edge-to-edge sections, responsive full-bleed when only smaller screens should break out, and Strong Border Radius when the whole Elementor wrapper should clip its background.', 'bw'); ?></li>
         </ol>
     </section>
 

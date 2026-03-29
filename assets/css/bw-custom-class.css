@@ -64,6 +64,43 @@ body.bw-site-layout-allow-full-bleed .elementor .bw-layout-full-bleed.elementor-
 }
 
 /* ==========================================================
+   BW FULL BLEED RESPONSIVE ONLY
+   Applica il full-bleed solo su tablet e mobile
+   ========================================================== */
+
+@media (max-width: 1024px) {
+  body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed-responsive {
+    position: relative !important;
+    width: 100vw !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed-responsive > .elementor-container,
+  body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed-responsive > .e-con,
+  body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed-responsive .elementor-container,
+  body.bw-site-layout-allow-full-bleed .bw-layout-full-bleed-responsive .e-con {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  body.bw-site-layout-allow-full-bleed .elementor .bw-layout-full-bleed-responsive.elementor-section {
+    --padding-left: 0 !important;
+    --padding-right: 0 !important;
+  }
+}
+
+/* ==========================================================
    BW LAYOUT BREAKOUT
    Allarga un container oltre il layout shell, senza andare full viewport
    ========================================================== */

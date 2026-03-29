@@ -125,7 +125,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				'label'       => __( 'Product Category', 'bw-elementor-widgets' ),
 				'type'        => Controls_Manager::SELECT2,
 				'label_block' => true,
-				'multiple'    => false,
+				'multiple'    => true,
 				'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : array(),
 				'condition'   => array( 'post_type' => 'product' ),
 			)
@@ -153,7 +153,7 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				'label'       => __( 'Post Category', 'bw-elementor-widgets' ),
 				'type'        => Controls_Manager::SELECT2,
 				'label_block' => true,
-				'multiple'    => false,
+				'multiple'    => true,
 				'options'     => $this->get_parent_post_category_options(),
 				'condition'   => array( 'post_type' => 'post' ),
 			)
@@ -1183,13 +1183,13 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 				);
 			}
 
-			$parent = absint( $settings['product_parent_category'] ?? 0 );
-			if ( $parent > 0 ) {
+			$parents = array_filter( array_map( 'absint', (array) ( $settings['product_parent_category'] ?? array() ) ) );
+			if ( ! empty( $parents ) ) {
 				return array(
 					array(
 						'taxonomy'         => 'product_cat',
 						'field'            => 'term_id',
-						'terms'            => array( $parent ),
+						'terms'            => $parents,
 						'include_children' => true,
 						'operator'         => 'IN',
 					),
@@ -1211,13 +1211,13 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			);
 		}
 
-		$parent = absint( $settings['post_parent_category'] ?? 0 );
-		if ( $parent > 0 ) {
+		$parents = array_filter( array_map( 'absint', (array) ( $settings['post_parent_category'] ?? array() ) ) );
+		if ( ! empty( $parents ) ) {
 			return array(
 				array(
 					'taxonomy'         => 'category',
 					'field'            => 'term_id',
-					'terms'            => array( $parent ),
+					'terms'            => $parents,
 					'include_children' => true,
 					'operator'         => 'IN',
 				),
