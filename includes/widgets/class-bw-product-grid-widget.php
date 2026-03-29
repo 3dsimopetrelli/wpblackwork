@@ -288,12 +288,37 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => '',
-            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the left-side drawer shell.', 'bw-elementor-widgets' ),
+            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the drawer shell.', 'bw-elementor-widgets' ),
             'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
-        // Get product categories for the dropdown
+        $this->add_control( 'responsive_filter_drawer_side', [
+            'label'       => __( 'Drawer Opening', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => [
+                'left'  => __( 'Left', 'bw-elementor-widgets' ),
+                'right' => __( 'Right', 'bw-elementor-widgets' ),
+            ],
+            'default'     => 'left',
+            'condition'   => [
+                'show_filters'                  => 'yes',
+                'enable_responsive_filter_mode' => 'yes',
+            ],
+            'description' => __( 'Choose which side the responsive filter drawer opens from.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->register_filter_controls_categories_section();
+    }
+
+    private function get_responsive_filter_drawer_side( $settings ) {
+        $side = isset( $settings['responsive_filter_drawer_side'] ) ? sanitize_key( $settings['responsive_filter_drawer_side'] ) : 'left';
+
+        return in_array( $side, [ 'left', 'right' ], true ) ? $side : 'left';
+    }
+
+    private function register_filter_controls_categories_section() {
         $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
+
         $product_categories = get_terms(
             [
                 'taxonomy'   => 'product_cat',
@@ -313,7 +338,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'options'     => $category_options,
             'default'     => 'all',
             'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'show_categories', [
@@ -491,8 +516,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
         $responsive_breakpoint = 900;
         $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
+        $drawer_side            = $this->get_responsive_filter_drawer_side( $settings );
 
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '">';
+        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '" data-drawer-side="' . esc_attr( $drawer_side ) . '">';
     }
 
     private function render_wrapper_end( $settings ) {

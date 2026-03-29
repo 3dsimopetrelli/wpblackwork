@@ -1017,7 +1017,7 @@
         var groupConfigs = [
             {
                 key: 'types',
-                label: 'Type',
+                label: 'Categories',
                 placeholder: 'Search types...'
             },
             {
