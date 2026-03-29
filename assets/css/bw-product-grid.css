@@ -1032,12 +1032,26 @@ body.bw-cart-popup-no-scroll {
     display: grid;
     gap: 12px;
     justify-items: stretch;
+    justify-self: stretch;
+    width: 100%;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search {
     width: 100%;
     max-width: none;
+    min-width: 0;
     padding: 4px 6px 4px 18px;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:hover,
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:focus-within,
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value {
+    width: 100%;
+    max-width: none;
+    padding: 4px 6px 4px 18px;
+    justify-content: flex-end;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filters {
@@ -1046,25 +1060,42 @@ body.bw-cart-popup-no-scroll {
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__input {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
     opacity: 1;
     pointer-events: auto;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter {
     width: 100%;
+    justify-content: stretch;
   }
 
   .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger {
     width: 100%;
     max-width: none;
+    min-width: 0;
     padding: 5px 6px 5px 16px;
     gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:hover,
+  .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:focus {
+    width: 100%;
+    max-width: none;
+    padding: 5px 6px 5px 16px;
+    gap: 12px;
+    justify-content: flex-end;
   }
 
   .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-button-label {
+    flex: 1 1 auto;
     width: auto;
     max-width: none;
     opacity: 1;
+    text-align: left;
   }
 }
 
