@@ -1071,8 +1071,10 @@
     function renderDiscoverySearch(widgetId) {
         var state = filterState[widgetId];
         var value = state ? state.search || '' : '';
+        var hasValue = $.trim(value) !== '';
 
         $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').val(value);
+        $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').toggleClass('has-value', hasValue);
     }
 
     function renderDiscoveryUi(widgetId) {

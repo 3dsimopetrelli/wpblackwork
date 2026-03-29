@@ -683,6 +683,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
         $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
+        $search_icon_html      = '<svg class="bw-fpw-discovery-search__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
         $bootstrap_payload     = [
             'show_types' => $show_subcategories,
             'show_tags'  => $show_tags,
@@ -698,43 +699,47 @@ class BW_Product_Grid_Widget extends Widget_Base {
                 </div>
             </div>
 
-            <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                <span class="bw-fpw-discovery-search__icon" aria-hidden="true"></span>
-                <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
-            </label>
+            <div class="bw-fpw-discovery-toolbar__controls">
+                <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                    <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
+                    <span class="bw-fpw-discovery-search__icon-shell">
+                        <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    </span>
+                </label>
 
-            <div class="bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-        </div>
+                <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+                    <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
+                        <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+                        <span class="bw-fpw-mobile-filter-button-icon-shell">
+                            <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </span>
+                    </button>
 
-        <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
-            <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
-                <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
-                <span class="bw-fpw-mobile-filter-button-icon-shell">
-                    <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                </span>
-            </button>
+                    <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
+                        <div class="bw-fpw-mobile-filter-drawer">
+                            <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
+                                <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
+                                <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
+                                    <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
+                                </button>
+                            </div>
 
-            <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
-                <div class="bw-fpw-mobile-filter-drawer">
-                    <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
-                        <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
-                        <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
-                            <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
-                        </button>
-                    </div>
+                            <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
+                                <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                    <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                                    <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
+                                </div>
+                            </div>
 
-                    <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
-                        <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                            <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
+                            <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
+                                <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
-                        <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
                     </div>
                 </div>
             </div>
+
+            <div class="bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
         </div>
 
         <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
