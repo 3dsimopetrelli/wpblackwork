@@ -230,6 +230,8 @@
 }
 
 .bw-navigation__mobile-content {
+    display: flex;
+    flex-direction: column;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -365,7 +367,8 @@
 }
 
 .bw-navigation__mobile-footer {
-    margin-top: 32px;
+    margin-top: auto;
+    padding-top: 24px;
 }
 
 .bw-navigation__mobile-footer-divider {
@@ -401,7 +404,7 @@
 
 .bw-navigation__mobile-footer-link:hover,
 .bw-navigation__mobile-footer-link:focus-visible {
-    color: #e5e5e5;
+    color: #fafafa;
 }
 
 .bw-navigation__mobile-footer-social {
