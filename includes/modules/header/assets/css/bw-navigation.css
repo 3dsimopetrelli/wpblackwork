@@ -374,9 +374,7 @@
 .bw-navigation__mobile-footer {
     flex: 0 0 auto;
     padding: 12px 16px 16px;
-    background: linear-gradient(180deg, rgba(15, 15, 15, 0) 0%, rgba(15, 15, 15, 0.55) 12%, rgba(15, 15, 15, 0.78) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: transparent;
 }
 
 .bw-navigation__mobile-footer-divider {
