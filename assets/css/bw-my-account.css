@@ -1279,8 +1279,8 @@ body.woocommerce-account .bw-settings .bw-tab-switcher > button.bw-tab {
     border: 1px solid #111 !important;
     background: #80fd03 !important;
     background-color: #80fd03 !important;
-    padding: 19px 20px !important;
-    border-radius: 20px !important;
+    padding: 12px 20px !important;
+    border-radius: 50px !important;
     cursor: pointer;
     color: #111 !important;
     font-size: 20px !important;
