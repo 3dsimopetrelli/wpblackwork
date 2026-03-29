@@ -6,7 +6,7 @@
         this.toggle = root.querySelector('.bw-navigation__toggle');
         this.overlay = root.querySelector('.bw-navigation__mobile-overlay');
         this.close = root.querySelector('.bw-navigation__close');
-        this.mobileLinks = root.querySelectorAll('.bw-navigation__mobile .bw-navigation__link, .bw-navigation__auth-link, .bw-navigation__mobile-footer-link');
+        this.mobileLinks = root.querySelectorAll('.bw-navigation__mobile .bw-navigation__link, .bw-navigation__mobile-cta, .bw-navigation__mobile-footer-link');
 
         this.handleDocumentKeydown = this.handleDocumentKeydown.bind(this);
         this.handleOverlayClick = this.handleOverlayClick.bind(this);
