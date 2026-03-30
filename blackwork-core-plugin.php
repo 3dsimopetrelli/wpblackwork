@@ -2385,7 +2385,11 @@ function bw_fpw_filter_posts_inner()
     }
 
     if ('' !== $search) {
-        $matching_post_ids = bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search);
+        // Text search: find IDs matching the search term across title/slug/excerpt/terms.
+        // Category and tag filtering is already handled by tax_query above,
+        // so we pass 'all'/'[]' here to avoid a complex JOIN that can silently return
+        // empty when there is a category mismatch between the SQL and the term hierarchy.
+        $matching_post_ids = bw_fpw_get_matching_post_ids($post_type, 'all', [], [], $search);
 
         if (empty($matching_post_ids)) {
             $query_args['post__in'] = [0];
