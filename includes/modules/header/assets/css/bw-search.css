@@ -132,15 +132,15 @@
     box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.24);
     overflow: hidden;
     opacity: 0;
-    transform: translateY(-24px);
-    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.24s ease;
+    transform: translateY(-56px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
     transition-delay: 0s;
 }
 
 .bw-search-overlay.is-active .bw-search-overlay__container {
     opacity: 1;
     transform: translateY(0);
-    transition-delay: 0.04s;
+    transition-delay: 0.03s;
 }
 
 /* Close Button */
