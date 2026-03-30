@@ -1936,13 +1936,8 @@ function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
 
 function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search)
 {
-    if ('' === bw_fpw_normalize_search_value($search)) {
-        return [];
-    }
+    $normalized_search = bw_fpw_normalize_search_value($search);
 
-    // Single WP_Query: native search (title + content) scoped to the active
-    // category / subcategory / tag filters.  One query replaces the previous
-    // "load all → per-post loop (N+1) + second search query" approach.
     $query_args = [
         'post_type'              => $post_type,
         'post_status'            => 'publish',
@@ -1952,7 +1947,6 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         'ignore_sticky_posts'    => true,
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
-        's'                      => $search,
     ];
 
     $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, $tags);
@@ -1960,9 +1954,57 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         $query_args['tax_query'] = $tax_query;
     }
 
-    $query = new WP_Query($query_args);
+    $query    = new WP_Query($query_args);
+    $post_ids = array_map('absint', $query->posts);
 
-    return array_values(array_filter(array_map('absint', $query->posts)));
+    if ('' === $normalized_search || empty($post_ids)) {
+        return $post_ids;
+    }
+
+    // Batch-load all taxonomy terms for every post in one query (avoids N+1).
+    $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
+    $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+
+    $all_terms = wp_get_object_terms($post_ids, [$taxonomy, $tag_taxonomy], [
+        'fields' => 'all_with_object_id',
+    ]);
+
+    $post_term_names = [];
+    if (!is_wp_error($all_terms)) {
+        foreach ($all_terms as $term) {
+            $post_term_names[(int) $term->object_id][] = $term->name;
+        }
+    }
+
+    $matching_ids = [];
+
+    foreach ($post_ids as $post_id) {
+        $post = get_post($post_id);
+        if (!$post) {
+            continue;
+        }
+
+        $haystacks = [
+            $post->post_title,
+            $post->post_excerpt,
+            wp_strip_all_tags((string) $post->post_content),
+            $post->post_name,
+        ];
+
+        if (!empty($post_term_names[$post_id])) {
+            $haystacks = array_merge($haystacks, $post_term_names[$post_id]);
+        }
+
+        foreach ($haystacks as $haystack) {
+            $normalized_haystack = bw_fpw_normalize_search_value((string) $haystack);
+            if ('' !== $normalized_haystack && false !== strpos($normalized_haystack, $normalized_search)) {
+                $matching_ids[] = $post_id;
+                break;
+            }
+        }
+    }
+
+    return $matching_ids;
 }
 
 function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
