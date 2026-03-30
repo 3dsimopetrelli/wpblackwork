@@ -240,6 +240,10 @@
   background-position: center;
 }
 
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter-close--drawer::before {
+  display: none;
+}
+
 .bw-fpw-mobile-filter-panel__body {
   flex: 1;
   overflow-y: auto;
