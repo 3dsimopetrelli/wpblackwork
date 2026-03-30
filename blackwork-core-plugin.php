@@ -1987,65 +1987,34 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         $wheres[] = "tt_tag.term_id IN ({$ids_in})";
     }
 
-    $sql      = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p"
-              . $joins
-              . ' WHERE ' . implode(' AND ', $wheres);
-    $post_ids = array_map('absint', (array) $wpdb->get_col($sql));
-
-    if ('' === $normalized_search || empty($post_ids)) {
-        return $post_ids;
+    // ---- Text search via SQL LIKE — single query, no PHP post-processing needed ----
+    // LOWER() ensures case-insensitive matching regardless of DB collation.
+    // The search term is already accent-normalized by bw_fpw_normalize_search_value.
+    if ('' !== $normalized_search) {
+        $like        = '%' . $wpdb->esc_like($normalized_search) . '%';
+        $like_sql    = "'" . esc_sql($like) . "'";
+        $tax_sql     = "'" . esc_sql($taxonomy) . "'";
+        $tag_tax_sql = "'" . esc_sql($tag_taxonomy) . "'";
+        $wheres[]    = "(LOWER(p.post_title) LIKE {$like_sql}"
+                     . " OR LOWER(p.post_name) LIKE {$like_sql}"
+                     . " OR LOWER(p.post_excerpt) LIKE {$like_sql}"
+                     . " OR p.ID IN ("
+                     . "   SELECT tr2.object_id"
+                     . "   FROM {$wpdb->term_relationships} tr2"
+                     . "   INNER JOIN {$wpdb->term_taxonomy} tt2"
+                     . "     ON tt2.term_taxonomy_id = tr2.term_taxonomy_id"
+                     . "   INNER JOIN {$wpdb->terms} t2"
+                     . "     ON t2.term_id = tt2.term_id"
+                     . "   WHERE tt2.taxonomy IN ({$tax_sql}, {$tag_tax_sql})"
+                     . "   AND LOWER(t2.name) LIKE {$like_sql}"
+                     . "))";
     }
 
-    // ---- Text search: 2 batch SQL queries, no N+1 ----
-    $ids_in = implode(',', $post_ids);
-
-    $post_rows = $wpdb->get_results(
-        "SELECT ID, post_title, post_excerpt, post_content, post_name
-         FROM {$wpdb->posts}
-         WHERE ID IN ({$ids_in})",
-        ARRAY_A
-    );
-
-    $taxon_in  = "'" . esc_sql($taxonomy) . "','" . esc_sql($tag_taxonomy) . "'";
-    $term_rows = $wpdb->get_results(
-        "SELECT tr.object_id, t.name
-         FROM {$wpdb->term_relationships} tr
-         INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
-         INNER JOIN {$wpdb->terms}          t  ON t.term_id = tt.term_id
-         WHERE tr.object_id IN ({$ids_in})
-           AND tt.taxonomy  IN ({$taxon_in})",
-        ARRAY_A
-    );
-
-    $post_term_names = [];
-    if ($term_rows) {
-        foreach ($term_rows as $row) {
-            $post_term_names[(int) $row['object_id']][] = $row['name'];
-        }
-    }
-
-    $matching_ids = [];
-    foreach ((array) $post_rows as $row) {
-        $post_id   = (int) $row['ID'];
-        $haystacks = [
-            $row['post_title'],
-            $row['post_excerpt'],
-            wp_strip_all_tags((string) $row['post_content']),
-            $row['post_name'],
-        ];
-        if (!empty($post_term_names[$post_id])) {
-            $haystacks = array_merge($haystacks, $post_term_names[$post_id]);
-        }
-        foreach ($haystacks as $haystack) {
-            $norm = bw_fpw_normalize_search_value((string) $haystack);
-            if ('' !== $norm && false !== strpos($norm, $normalized_search)) {
-                $matching_ids[] = $post_id;
-                break;
-            }
-        }
-    }
-
-    return $matching_ids;
+    $sql     = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p"
+             . $joins
+             . ' WHERE ' . implode(' AND ', $wheres);
+    $raw_col = $wpdb->get_col($sql);
+    return array_map('absint', (array) $raw_col);
 }
 function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
 {
