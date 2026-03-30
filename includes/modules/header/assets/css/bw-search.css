@@ -125,10 +125,10 @@
 
 .bw-search-overlay__container {
     position: relative;
-    width: min(1240px, calc(100vw - 10px));
-    min-height: calc(100dvh - 10px);
-    margin: 5px auto;
-    padding: 28px 32px 32px;
+    width: min(980px, calc(100vw - 72px));
+    min-height: min(720px, calc(100dvh - 72px));
+    margin: 36px auto;
+    padding: 28px 28px 30px;
     box-sizing: border-box;
     background:
         radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%),
@@ -184,16 +184,16 @@
 
 /* Content */
 .bw-search-overlay__content {
-    max-width: 920px;
+    max-width: 760px;
     margin: 0 auto;
-    padding-top: 72px;
+    padding-top: 64px;
 }
 
 .bw-search-overlay__title {
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 500;
-    color: #ffffff;
-    margin: 0 0 28px 0;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 0 22px 0;
     text-align: center;
     line-height: 1.2;
     letter-spacing: -0.02em;
@@ -208,17 +208,50 @@
     position: relative;
     display: flex;
     align-items: center;
-    min-height: 64px;
-    padding: 0 22px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    min-height: 52px;
+    padding: 0 18px 0 42px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 999px;
-    box-shadow: inset 0 0 0 1px rgba(8, 8, 8, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(8, 8, 8, 0.32);
+}
+
+.bw-search-overlay__input-wrapper::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.55)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+}
+
+.bw-search-overlay__input-wrapper::after {
+    content: "Search Blackwork...";
+    position: absolute;
+    left: 38px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.34);
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.bw-search-overlay__input-wrapper:focus-within::after,
+.bw-search-overlay__input-wrapper:has(.bw-search-overlay__input.has-content)::after {
+    opacity: 0;
 }
 
 .bw-search-overlay__input {
     width: 100%;
-    font-size: clamp(22px, 3vw, 32px);
+    font-size: clamp(18px, 2.4vw, 24px);
     font-weight: 400;
     color: #ffffff;
     background: none;
@@ -228,10 +261,12 @@
     /* Default padding: 12px 0 12px 0 is set in the widget control */
     line-height: 1.4;
     font-family: inherit;
+    position: relative;
+    z-index: 1;
 }
 
 .bw-search-overlay__input::placeholder {
-    color: rgba(255, 255, 255, 0.38);
+    color: transparent;
 }
 
 .bw-search-overlay__input:focus {
@@ -287,9 +322,9 @@ body input.bw-search-overlay__input[type="search"] {
 
 /* Hint Text */
 .bw-search-overlay__hint {
-    font-size: 15px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.56);
-    margin: 14px 4px 24px 4px;
+    margin: 12px 6px 18px 6px;
     text-align: left;
     line-height: 1.5;
 }
@@ -302,7 +337,8 @@ body input.bw-search-overlay__input[type="search"] {
     }
 
     .bw-search-overlay__content {
-        padding-top: 72px;
+        max-width: 100%;
+        padding-top: 64px;
     }
 
     .bw-search-overlay__title {
@@ -310,10 +346,19 @@ body input.bw-search-overlay__input[type="search"] {
     }
 
     .bw-search-overlay__container {
-        width: calc(100vw - 10px);
-        min-height: calc(100dvh - 10px);
-        margin: 5px auto;
+        width: calc(100vw - 24px);
+        min-height: calc(100dvh - 24px);
+        margin: 12px auto;
         padding: 20px 14px 18px;
+    }
+
+    .bw-search-overlay__input-wrapper {
+        min-height: 50px;
+        padding-left: 40px;
+    }
+
+    .bw-search-overlay__input-wrapper::after {
+        font-size: 14px;
     }
 }
 
@@ -398,7 +443,7 @@ body.bw-search-overlay-active {
 
 /* Results Container */
 .bw-search-results {
-    margin-top: 28px;
+    margin-top: 20px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px);
@@ -416,7 +461,7 @@ body.bw-search-overlay-active {
 .bw-search-results__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 14px;
     width: 100%;
 }
 
@@ -478,7 +523,7 @@ body.bw-search-overlay-active {
 
 /* Product Info */
 .bw-search-results .bw-product-card__info {
-    padding: 14px 14px 16px;
+    padding: 12px 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -486,7 +531,7 @@ body.bw-search-overlay-active {
 
 /* Product Title */
 .bw-search-results .bw-product-card__title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     color: #ffffff;
     margin: 0;
@@ -500,7 +545,7 @@ body.bw-search-overlay-active {
 
 /* Product Price */
 .bw-search-results .bw-product-card__price {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #ffffff;
 }
@@ -573,16 +618,16 @@ body.bw-search-overlay-active {
 /* Responsive - Mobile (2 colonne) */
 @media (max-width: 768px) {
     .bw-search-results {
-        margin-top: 24px;
+        margin-top: 18px;
     }
 
     .bw-search-results__grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 10px;
     }
 
     .bw-search-results .bw-product-card__info {
-        padding: 12px;
+        padding: 10px 10px 12px;
     }
 
     .bw-search-results .bw-product-card__title {
@@ -602,6 +647,6 @@ body.bw-search-overlay-active {
 /* Responsive - Molto piccolo (1 colonna) */
 @media (max-width: 480px) {
     .bw-search-results__grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
     }
 }
