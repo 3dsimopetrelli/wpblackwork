@@ -1,15 +1,9 @@
 # Newsletter Subscription Widget
 
 ## Purpose
-`bw-newsletter-subscription` is the canonical fixed-design Mail Marketing opt-in widget for Elementor surfaces.
+`bw-newsletter-subscription` is the governed Mail Marketing opt-in widget for Elementor surfaces.
 
-It is the current reusable site-wide capture entrypoint for Brevo outside WooCommerce checkout.
-
-Primary goals:
-- reuse Mail Marketing/Brevo configuration without duplicating logic in Elementor
-- keep submit handling GDPR-safe
-- avoid client-side exposure of Brevo credentials
-- remain visually opinionated and operationally deterministic
+It reuses the shared Brevo/Mail Marketing subscription channel and only changes presentation at widget level. Submit flow, validation, consent enforcement, and response handling remain centralized.
 
 ## Runtime Authority
 Widget file:
@@ -28,7 +22,7 @@ Frontend assets:
 
 Admin authority:
 - `Blackwork Site -> Mail Marketing -> Subscription`
-- settings option: `bw_mail_marketing_subscription_settings`
+- option: `bw_mail_marketing_subscription_settings`
 
 ## Widget Contract
 Widget slug:
@@ -50,29 +44,64 @@ blackwork
 ```
 
 ## Editor Controls
-The widget deliberately exposes only minimal per-instance content controls.
+The widget now exposes two governed presentation variants.
 
-Current controls:
+### `Style Footer`
+Purpose:
+- current footer-style newsletter form
+- minimal per-instance override surface
+
+Controls:
+- `Style` = `Style Footer`
 - `Show name field`
-- `Consent text`
-- `Name float label`
-- `Email float label`
 
-Not intentionally exposed:
-- design system/style controls for this custom runtime
-- Brevo list selection
-- API behavior
-- opt-in mode
-- response copy authority
+### `Style Section`
+Purpose:
+- large hero/section variant for standalone newsletter blocks
+- same subscription channel and field names as footer style
 
-Reason:
-- channel behavior must remain centralized in Mail Marketing settings
-- the widget should stay reusable and deterministic across footer/pages/templates
+Controls:
+- `Style` = `Style Section`
+- `Show name field`
+- `Title`
+- `Subtitle`
+- `Background Color`
+- `Section Height` (`vh`)
+- `Background Image`
+- `Background Image Position` (`left|center|right`)
+- `Background Image Fit` (`contain|cover`)
+
+Implementation note:
+- `Style Section` changes only layout/visual treatment
+- the form still submits through the exact same AJAX action and consent flow as `Style Footer`
+- the name field is controlled separately per style so legacy footer instances keep their current behavior
+
+## Rendering Behavior
+Common runtime output:
+- optional Name field
+- Email field
+- privacy checkbox
+- submit button
+- live-region message area
+
+`Style Footer`:
+- renders the original stacked form layout
+- keeps the legacy floating-label treatment
+
+`Style Section`:
+- renders title + subtitle above the form
+- uses a dark section shell with configurable background color and optional art image
+- integrates the submit button into the email row on desktop
+- keeps the same input names, nonce, consent checkbox, and message region as the footer style
+
+When the channel is disabled:
+- frontend: widget does not render
+- Elementor editor: widget stays visible with a preview notice
 
 ## Mail Marketing Dependency
 The widget does not own Brevo configuration.
 
-It reads channel settings from:
+It reads shared channel settings from:
 
 ```text
 bw_mail_marketing_subscription_settings
@@ -101,18 +130,6 @@ Runtime-ready message keys already supported:
 - `already_subscribed_message`
 - `loading_message`
 - `rate_limited_message`
-
-## Rendering Behavior
-The widget renders:
-- optional Name field
-- Email field
-- privacy checkbox
-- submit button
-- live-region message area
-
-When the channel is disabled:
-- frontend: widget does not render
-- Elementor editor: widget remains visible with a preview notice for layout work
 
 ## Submit Flow
 1. User submits the widget.
@@ -147,22 +164,7 @@ Stable response codes:
 - `success`
 - `generic_failure`
 
-These codes are the public contract for the widget runtime and should remain stable unless documentation is updated.
-
-## Security Model
-Implemented protections:
-- nonce validation
-- server-side-only Brevo API calls
-- deterministic email normalization
-- server-side consent enforcement
-- transient cooldown keyed by normalized email + request IP hash
-- generic customer-facing failures
-- detailed provider errors logged server-side only
-
-Not implemented:
-- CAPTCHA
-- honeypot
-- queue-based retry worker
+These response codes are shared across both style variants.
 
 ## Accessibility Baseline
 Implemented:
@@ -173,6 +175,9 @@ Implemented:
 - `aria-live` message region
 - `<noscript>` fallback message
 
+Variant note:
+- `Style Section` visually hides field labels and relies on placeholders for the designed look, but keeps the labels in the DOM for accessibility
+
 ## Asset Loading Model
 Normal Elementor path:
 - widget declares `get_style_depends()` and `get_script_depends()`
@@ -181,38 +186,14 @@ Custom footer exception:
 - Theme Builder Lite footer templates can be injected late in `wp_footer`
 - the channel runtime pre-enqueues widget assets during `wp_enqueue_scripts` when the active footer contains `bw-newsletter-subscription`
 
-Purpose:
-- keep frontend/footer output styled correctly
-- avoid CSS/JS missing due to late render timing
-
-## Brevo Data Model
-The widget uses the same Brevo data model as the broader Mail Marketing system.
-
-Minimum attributes sent:
-- `SOURCE`
-- `CONSENT_SOURCE`
-- `CONSENT_AT`
-- `CONSENT_STATUS`
-- `BW_ORIGIN_SYSTEM`
-- `BW_ENV`
-
-Name attributes:
-- `FIRSTNAME`
-- `LASTNAME`
-
-Source value:
-- defaults to `elementor_widget`
-- can be overridden through the Subscription tab
-
 ## Current Limitations
-- fixed-design only
+- the widget remains a governed design system surface, not a free-form style builder
 - JS is required for submit
-- no local entity meta surface equivalent to Woo orders
-- full message schema exists in runtime, but not all message keys are exposed in the current admin UI
+- no CAPTCHA / honeypot
+- background art controls are intentionally minimal and currently limited to image, horizontal position, and fit
 
 ## Documentation Links
 - `docs/40-integrations/brevo/brevo-mail-marketing-architecture.md`
 - `docs/40-integrations/brevo/subscribe.md`
 - `docs/40-integrations/brevo/brevo-architecture-map.md`
 - `docs/40-integrations/brevo/mail-marketing-qa-checklist.md`
-- `docs/20-development/admin-panel-map.md`

@@ -161,14 +161,24 @@ Widget slug and file:
 - `includes/widgets/class-bw-newsletter-subscription-widget.php`
 
 Current editor controls:
+- `Style`
+
+`Style Footer` controls:
 - `Show name field`
-- `Consent text`
-- `Name float label`
-- `Email float label`
+
+`Style Section` controls:
+- `Show name field`
+- `Title`
+- `Subtitle`
+- `Background Color`
+- `Section Height`
+- `Background Image`
+- `Background Image Position`
+- `Background Image Fit`
 
 Current control strategy:
-- The widget keeps design and behavior intentionally fixed.
-- Elementor controls are limited to content overrides only.
+- The widget keeps behavior fixed and exposes only governed presentation variants.
+- Elementor controls are limited to layout/copy overrides for the section variant.
 - Channel logic, Brevo list behavior, and default copy authority remain in `Mail Marketing -> Subscription`.
 
 ## Attribute model (centralized map)

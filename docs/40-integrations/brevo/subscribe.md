@@ -280,15 +280,25 @@ Implementation note:
 ### Elementor widget controls
 Current widget controls:
 
+- `Style`
+
+`Style Footer`:
 - `Show name field`
-- `Consent text`
-- `Name float label`
-- `Email float label`
+
+`Style Section`:
+- `Show name field`
+- `Title`
+- `Subtitle`
+- `Background Color`
+- `Section Height`
+- `Background Image`
+- `Background Image Position`
+- `Background Image Fit`
 
 Design contract:
 
-- The widget is intentionally fixed-design.
-- Elementor controls are limited to content overrides.
+- The widget keeps a governed design contract with two presentation variants.
+- Elementor controls are limited to style selection plus section-layout copy/media controls.
 - Brevo behavior is owned by `Mail Marketing -> Subscription`, not by per-instance style controls.
 
 ## 3.4 WooCommerce Order Admin -> Newsletter Status Panel
