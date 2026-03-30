@@ -735,7 +735,18 @@
     transition: opacity 0.2s ease;
 }
 
-.bw-cart-item-name a:hover {
+.bw-cart-popup-panel .bw-cart-item-name,
+.bw-cart-popup-panel .bw-cart-item-name a,
+.bw-cart-popup-panel .bw-cart-item-name a:visited,
+.bw-cart-popup-panel .bw-cart-item-name a:hover,
+.bw-cart-popup-panel .bw-cart-item-name a:focus,
+.bw-cart-popup-panel .bw-cart-item-name a:active {
+    color: var(--bw-cart-text) !important;
+}
+
+.bw-cart-item-name a:hover,
+.bw-cart-item-name a:focus,
+.bw-cart-item-name a:active {
     opacity: 0.75;
 }
 
