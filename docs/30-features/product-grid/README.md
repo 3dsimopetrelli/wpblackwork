@@ -17,6 +17,7 @@ Current notable UI/runtime deltas:
 - mobile first paint is CSS-governed, so desktop filter labels do not flash before JS init
 - `Layout` includes `Show Title`, `Show Description`, and `Show Price`
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
+- `Grid` exposes independent responsive `Post Gap Horizontal` and `Post Gap Vertical` controls for column and row spacing
 - under `800px` the discovery controls switch to always-open full-width pills and quick filters collapse to selected-only pills
 
 ## Documents

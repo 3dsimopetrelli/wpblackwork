@@ -84,7 +84,8 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-post-type` | `$settings['post_type']` | filter/AJAX calls |
 | `data-layout-mode` | masonry_effect control | `initGrid()` |
 | `data-columns-desktop/tablet/mobile` | controls | `setItemWidths()` |
-| `data-gap-desktop/tablet/mobile` | controls | CSS vars / layout |
+| `data-gap-x-desktop/tablet/mobile` | `Grid > Post Gap Horizontal` | CSS vars + masonry width/gutter |
+| `data-gap-y-desktop/tablet/mobile` | `Grid > Post Gap Vertical` | CSS vars + masonry row spacing |
 | `data-breakpoint-tablet-min/max`, `data-breakpoint-mobile-max` | hardcoded defaults | `getCurrentDevice()` |
 | `data-image-size` | `$image_size` (default `large`) | `filterPosts()` AJAX payload |
 | `data-image-mode` | `$image_mode` (default `proportional`) | `filterPosts()` AJAX payload |

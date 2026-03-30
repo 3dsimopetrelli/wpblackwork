@@ -61,12 +61,13 @@
         return columns;
     }
 
-    function getGutterValue($grid, device) {
-        var attr = 'data-gap-' + device;
+    function getGapValue($grid, device, axis) {
+        var suffix = axis === 'y' ? 'y' : 'x';
+        var attr = 'data-gap-' + suffix + '-' + device;
         var gap = parseInt($grid.attr(attr));
 
-        if (!gap || isNaN(gap)) {
-            gap = 15;
+        if (isNaN(gap)) {
+            gap = 10;
         }
 
         return gap;
@@ -119,7 +120,8 @@
 
         var device = getCurrentDevice($grid);
         var columnsCount = getColumns($grid, device);
-        var gap = getGutterValue($grid, device);
+        var horizontalGap = getGapValue($grid, device, 'x');
+        var verticalGap = getGapValue($grid, device, 'y');
         var $items = $masonryContainer.find('.bw-fpw-item');
 
         if (!$items.length) {
@@ -127,7 +129,7 @@
         }
 
         var containerWidth = $masonryContainer.width();
-        var totalGap = gap * (columnsCount - 1);
+        var totalGap = horizontalGap * (columnsCount - 1);
         var itemWidth = (containerWidth - totalGap) / columnsCount;
         $grid.data('bw-item-width', itemWidth > 0 ? itemWidth : 0);
 
@@ -135,7 +137,7 @@
             var $item = $(this);
             $item.css({
                 'width': itemWidth + 'px',
-                'margin-bottom': gap + 'px'
+                'margin-bottom': verticalGap + 'px'
             });
         });
     }
@@ -319,26 +321,28 @@
 
         var device = getCurrentDevice($grid);
         var columnsCount = getColumns($grid, device);
-        var gap = getGutterValue($grid, device);
+        var horizontalGap = getGapValue($grid, device, 'x');
+        var verticalGap = getGapValue($grid, device, 'y');
         var instance = $grid.data('masonry');
 
         var lastColumns = $grid.data('bw-last-columns');
-        var lastGutter = $grid.data('bw-last-gutter');
+        var lastHorizontalGap = $grid.data('bw-last-gap-x');
         var lastDevice = $grid.data('bw-last-device');
 
-        if (instance && (lastColumns !== columnsCount || lastGutter !== gap || lastDevice !== device)) {
+        if (instance && (lastColumns !== columnsCount || lastHorizontalGap !== horizontalGap || lastDevice !== device)) {
             forceReinit = true;
         }
 
         $grid.data('bw-last-columns', columnsCount);
-        $grid.data('bw-last-gutter', gap);
+        $grid.data('bw-last-gap-x', horizontalGap);
+        $grid.data('bw-last-gap-y', verticalGap);
         $grid.data('bw-last-device', device);
 
         if (instance && !forceReinit) {
             setItemWidths($grid);
 
             withImagesLoaded(getPrimaryImageScope($grid), function () {
-                instance.options.gutter = gap;
+                instance.options.gutter = horizontalGap;
                 var currentItemWidth = getCurrentItemWidth($grid);
                 if (currentItemWidth > 0) {
                     instance.options.columnWidth = currentItemWidth;
@@ -363,7 +367,7 @@
                 itemSelector: '.bw-fpw-item',
                 columnWidth: getCurrentItemWidth($grid) || '.bw-fpw-item',
                 percentPosition: false,
-                gutter: gap,
+                gutter: horizontalGap,
                 horizontalOrder: true,
                 transitionDuration: '0'
             };

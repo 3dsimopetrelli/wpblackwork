@@ -37,6 +37,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $this->register_filter_controls();
         $this->register_query_controls();
         $this->register_rebuild_layout_controls();
+        $this->register_grid_controls();
         $this->register_style_controls();
     }
 
@@ -143,6 +144,65 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => '',
             'description'  => __( 'Hide hover overlays and secondary hover media below desktop widths.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->end_controls_section();
+    }
+
+    private function register_grid_controls() {
+        $this->start_controls_section( 'layout_grid_section', [
+            'label' => __( 'Grid', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ] );
+
+        $this->add_responsive_control( 'grid_horizontal_gap', [
+            'label'          => __( 'Post Gap Horizontal', 'bw-elementor-widgets' ),
+            'type'           => Controls_Manager::SLIDER,
+            'size_units'     => [ 'px' ],
+            'range'          => [
+                'px' => [
+                    'min'  => 0,
+                    'max'  => 80,
+                    'step' => 1,
+                ],
+            ],
+            'default'        => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'tablet_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'mobile_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'grid_vertical_gap', [
+            'label'          => __( 'Post Gap Vertical', 'bw-elementor-widgets' ),
+            'type'           => Controls_Manager::SLIDER,
+            'size_units'     => [ 'px' ],
+            'range'          => [
+                'px' => [
+                    'min'  => 0,
+                    'max'  => 80,
+                    'step' => 1,
+                ],
+            ],
+            'default'        => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'tablet_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'mobile_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
         ] );
 
         $this->end_controls_section();
@@ -314,6 +374,33 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $side = isset( $settings['responsive_filter_drawer_side'] ) ? sanitize_key( $settings['responsive_filter_drawer_side'] ) : 'left';
 
         return in_array( $side, [ 'left', 'right' ], true ) ? $side : 'left';
+    }
+
+    private function get_responsive_slider_size( $settings, $control_name, $default = 0 ) {
+        $values = [
+            'desktop' => $default,
+            'tablet'  => $default,
+            'mobile'  => $default,
+        ];
+
+        foreach ( $values as $device => $fallback ) {
+            $setting_key = 'desktop' === $device ? $control_name : $control_name . '_' . $device;
+            $raw_value   = $settings[ $setting_key ] ?? null;
+
+            if ( is_array( $raw_value ) && isset( $raw_value['size'] ) && '' !== $raw_value['size'] ) {
+                $values[ $device ] = max( 0, (int) $raw_value['size'] );
+                continue;
+            }
+
+            if ( is_numeric( $raw_value ) ) {
+                $values[ $device ] = max( 0, (int) $raw_value );
+                continue;
+            }
+
+            $values[ $device ] = $fallback;
+        }
+
+        return $values;
     }
 
     private function register_filter_controls_categories_section() {
@@ -888,14 +975,19 @@ class BW_Product_Grid_Widget extends Widget_Base {
         if ( ! in_array( $desktop_columns, [ 3, 4, 5, 6 ], true ) ) {
             $desktop_columns = 4;
         }
-        $gap_desktop_size = 10;
+        $grid_horizontal_gap = $this->get_responsive_slider_size( $settings, 'grid_horizontal_gap', 10 );
+        $grid_vertical_gap   = $this->get_responsive_slider_size( $settings, 'grid_vertical_gap', 10 );
+        $gap_desktop_size    = $grid_horizontal_gap['desktop'];
+        $gap_tablet_size     = $grid_horizontal_gap['tablet'];
+        $gap_mobile_size     = $grid_horizontal_gap['mobile'];
+        $row_gap_desktop     = $grid_vertical_gap['desktop'];
+        $row_gap_tablet      = $grid_vertical_gap['tablet'];
+        $row_gap_mobile      = $grid_vertical_gap['mobile'];
         $breakpoint_tablet_min = 768;
         $breakpoint_tablet_max = 1024;
         $columns_tablet = 2;
-        $gap_tablet_size = 10;
         $breakpoint_mobile_max = 767;
         $columns_mobile = 2;
-        $gap_mobile_size = 10;
 
         $container_max_width = isset( $settings['container_max_width'] ) ? absint( $settings['container_max_width'] ) : 2000;
         if ( $container_max_width < 800 ) {
@@ -1006,7 +1098,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $result_count      = $responsive_filter_mode ? (int) $query->found_posts : max( 0, $query->post_count );
 
         $wrapper_classes = [ 'bw-product-grid' ];
-        $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
+        $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-column-gap:' . $gap_desktop_size . 'px; --bw-fpw-grid-row-gap:' . $row_gap_desktop . 'px; --bw-fpw-grid-column-gap-tablet:' . $gap_tablet_size . 'px; --bw-fpw-grid-row-gap-tablet:' . $row_gap_tablet . 'px; --bw-fpw-grid-column-gap-mobile:' . $gap_mobile_size . 'px; --bw-fpw-grid-row-gap-mobile:' . $row_gap_mobile . 'px;';
         $wrapper_attributes = [
             'class'                         => implode( ' ', $wrapper_classes ),
             'style'                         => $wrapper_style,
@@ -1019,14 +1111,17 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-widget-id'              => $widget_id,
             'data-post-type'              => $post_type,
             'data-columns-desktop'        => $desktop_columns,
-            'data-gap-desktop'            => $gap_desktop_size,
+            'data-gap-x-desktop'          => $gap_desktop_size,
+            'data-gap-y-desktop'          => $row_gap_desktop,
             'data-breakpoint-tablet-min'  => $breakpoint_tablet_min,
             'data-breakpoint-tablet-max'  => $breakpoint_tablet_max,
             'data-columns-tablet'         => $columns_tablet,
-            'data-gap-tablet'             => $gap_tablet_size,
+            'data-gap-x-tablet'           => $gap_tablet_size,
+            'data-gap-y-tablet'           => $row_gap_tablet,
             'data-breakpoint-mobile-max'  => $breakpoint_mobile_max,
             'data-columns-mobile'         => $columns_mobile,
-            'data-gap-mobile'             => $gap_mobile_size,
+            'data-gap-x-mobile'           => $gap_mobile_size,
+            'data-gap-y-mobile'           => $row_gap_mobile,
             'data-image-size'             => $image_size,
             'data-image-mode'             => $image_mode,
             'data-hover-effect'           => $hover_effect ? 'yes' : 'no',
