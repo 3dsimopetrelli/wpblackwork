@@ -1508,25 +1508,23 @@ body.bw-cart-popup-no-scroll {
   margin-bottom: 16px;
 }
 
-/* Spinner inside the search input while results are loading */
-.bw-fpw-filters.loading .bw-fpw-search-row::after {
-  content: '';
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  border-top-color: #000;
-  border-radius: 50%;
-  animation: bw-fpw-search-spin 0.55s linear infinite;
+/* Shimmer gradient on the search input while results are loading */
+.bw-fpw-filters.loading .bw-fpw-search-input {
+  background: linear-gradient(
+    90deg,
+    #f6f7f8 0%,
+    #edeef1 20%,
+    #f6f7f8 40%,
+    #f6f7f8 100%
+  );
+  background-size: 200% 100%;
+  animation: bw-fpw-search-shimmer 1.4s linear infinite;
   pointer-events: none;
-  transform: translateY(-50%);
 }
 
-@keyframes bw-fpw-search-spin {
-  from { transform: translateY(-50%) rotate(0deg); }
-  to   { transform: translateY(-50%) rotate(360deg); }
+@keyframes bw-fpw-search-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .bw-fpw-search-input {
