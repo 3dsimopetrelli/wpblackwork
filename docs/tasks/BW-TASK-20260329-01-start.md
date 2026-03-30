@@ -44,7 +44,8 @@
   - wait for user sign-off before editing runtime files
 
 ## 5) Current Readiness
-- Status: OPEN
+- Status: CLOSED
 - Analysis status:
   - audit completed
-  - implementation applied; awaiting frontend validation
+  - implementation applied
+  - user accepted current navigation state as good enough to close

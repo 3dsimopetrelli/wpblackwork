@@ -145,6 +145,10 @@ Markup strategy:
 
 Mobile navigation behavior:
 - Off-canvas overlay model with explicit open/close controls.
+- Current visual contract is a floating glass panel with rounded corners and a viewport margin, not a white full-height drawer.
+- Lower mobile action area may contain:
+  - a full-width `Login or Join` CTA to the My Account destination
+  - a legal footer row with `Privacy Policy` and `Terms Policy`
 - Close interactions include:
   - close button
   - overlay click

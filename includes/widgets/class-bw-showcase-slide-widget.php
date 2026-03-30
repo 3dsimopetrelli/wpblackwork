@@ -200,7 +200,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'min'     => 1,
                 'max'     => 10,
                 'condition' => [
-                    'frame_ratio!' => '3_2',
+                    'frame_ratio' => 'none',
                 ],
             ]
         );
@@ -351,7 +351,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 'step'        => 10,
                 'placeholder' => __( 'Auto', 'bw-elementor-widgets' ),
                 'condition'   => [
-                    'frame_ratio!'    => '3_2',
+                    'frame_ratio'     => 'none',
                     'variable_width!' => 'yes',
                 ],
             ]
@@ -1348,7 +1348,15 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                 $css .= $sel_media . '{aspect-ratio:' . $frame_ratio . ';}';
                 $css .= $sel_image_wrap . '{display:block;height:100%;}';
                 $css .= $sel_image . '{width:100%;height:100%;object-fit:' . ( 'contain' === $frame_fit ? 'contain' : 'cover' ) . ';object-position:center;}';
-            } elseif ( in_array( $height_mode, [ 'fixed', 'contain', 'cover' ], true ) ) {
+            } else {
+                // Explicitly reset ratio-led styles so "Free / Existing Controls" becomes
+                // the sole authority for image sizing at this breakpoint.
+                $css .= $sel_media . '{aspect-ratio:auto;}';
+                $css .= $sel_image_wrap . '{display:block;height:auto;}';
+                $css .= $sel_image . '{width:100%;height:auto;object-fit:unset;object-position:initial;}';
+            }
+
+            if ( ! $frame_ratio && in_array( $height_mode, [ 'fixed', 'contain', 'cover' ], true ) ) {
                 $css .= $sel_horizontal . '{';
                 $css .= '--bw-ss-initial-image-height-mode:' . $height_mode . ';';
 
