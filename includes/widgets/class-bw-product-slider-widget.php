@@ -78,7 +78,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'label'       => __( 'Categoria padre', 'bw-elementor-widgets' ),
                 'type'        => Controls_Manager::SELECT2,
                 'label_block' => true,
-                'multiple'    => false,
+                'multiple'    => true,
                 'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : [],
                 'condition'   => [ 'post_type' => 'product' ],
             ]
@@ -91,12 +91,12 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'type'        => Controls_Manager::SELECT2,
                 'label_block' => true,
                 'multiple'    => true,
-                'options'     => [],
+                'options'     => function_exists( 'bw_get_product_categories_options' ) ? bw_get_product_categories_options() : [],
                 'condition'   => [
                     'post_type'        => 'product',
                     'parent_category!' => '',
                 ],
-                'description' => __( 'Seleziona una o più sottocategorie della categoria padre scelta.', 'bw-elementor-widgets' ),
+                'description' => __( 'Seleziona una o più sottocategorie. Se presenti, hanno priorita sulle categorie padre selezionate.', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -1054,12 +1054,13 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     'operator' => 'IN',
                 ];
             } elseif ( ! empty( $settings['parent_category'] ) ) {
+                $parents = is_array( $settings['parent_category'] ) ? $settings['parent_category'] : [ $settings['parent_category'] ];
                 $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ absint( $settings['parent_category'] ) ],
+                    'taxonomy'         => 'product_cat',
+                    'field'            => 'term_id',
+                    'terms'            => array_map( 'absint', $parents ),
                     'include_children' => true,
-                    'operator' => 'IN',
+                    'operator'         => 'IN',
                 ];
             }
 

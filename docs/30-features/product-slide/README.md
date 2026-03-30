@@ -26,7 +26,7 @@ This widget is query-driven, horizontal-only, Embla-based, and delegates slide c
 ### Query
 - post type
 - specific IDs override
-- parent product category
+- parent product category multi-select
 - subcategory multi-select
 - order by / order
 - posts per page
