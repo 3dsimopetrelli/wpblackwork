@@ -40,6 +40,7 @@
     border: var(--bw-button-border-width) solid var(--bw-button-border-color);
     border-radius: var(--bw-button-border-radius);
     padding: var(--bw-button-padding-top) var(--bw-button-padding-right) var(--bw-button-padding-bottom) var(--bw-button-padding-left);
+    transition: transform 0.28s ease, filter 0.28s ease, background-color 0.28s ease, border-color 0.28s ease;
 }
 
 .bw-button__icon-wrap {
@@ -54,7 +55,7 @@
     height: 30px;
     padding: 4px;
     box-sizing: border-box;
-    transition: inherit;
+    transition: transform 0.28s ease, filter 0.28s ease, background-color 0.28s ease, border-color 0.28s ease;
 }
 
 .bw-button__icon {
@@ -77,6 +78,14 @@
 .bw-button:focus .bw-button__label {
     background-color: var(--bw-button-bg-hover);
     border-color: var(--bw-button-border-color-hover);
+    filter: brightness(1.02);
+    transform: translateY(-1px);
+}
+
+.bw-button:hover .bw-button__icon-wrap,
+.bw-button:focus .bw-button__icon-wrap {
+    filter: brightness(1.02);
+    transform: translateY(-1px);
 }
 
 .bw-button__icon svg,
