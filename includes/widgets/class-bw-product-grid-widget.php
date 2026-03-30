@@ -800,6 +800,42 @@ class BW_Product_Grid_Widget extends Widget_Base {
         return isset( $settings['enable_responsive_filter_mode'] ) && 'yes' === $settings['enable_responsive_filter_mode'];
     }
 
+    private function get_discovery_search_label( $settings ) {
+        $default_label = __( 'Search in collections...', 'bw-elementor-widgets' );
+        $taxonomy      = ( isset( $settings['post_type'] ) && 'product' === sanitize_key( $settings['post_type'] ) )
+            ? 'product_cat'
+            : 'category';
+
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 0;
+
+        if ( $default_category > 0 ) {
+            $term = get_term( $default_category, $taxonomy );
+            if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
+                return sprintf(
+                    /* translators: %s is the current category label used by the Product Grid search input. */
+                    __( 'Search in %s...', 'bw-elementor-widgets' ),
+                    $term->name
+                );
+            }
+        }
+
+        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
+        if ( 1 === count( $parent_categories ) ) {
+            $term = get_term( reset( $parent_categories ), $taxonomy );
+            if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
+                return sprintf(
+                    /* translators: %s is the current category label used by the Product Grid search input. */
+                    __( 'Search in %s...', 'bw-elementor-widgets' ),
+                    $term->name
+                );
+            }
+        }
+
+        return $default_label;
+    }
+
     private function render_responsive_filter_drawer_shell( $settings, $widget_id ) {
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
             ? absint( $settings['default_category'] )
@@ -812,7 +848,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $drawer_title        = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
-        $global_search_label  = __( 'Search in collections...', 'bw-elementor-widgets' );
+        $global_search_label  = $this->get_discovery_search_label( $settings );
         $reset_filters_label  = __( 'Reset filters', 'bw-elementor-widgets' );
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];

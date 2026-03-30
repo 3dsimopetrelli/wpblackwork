@@ -10,7 +10,7 @@ Current notable UI/runtime deltas:
 - mobile filter trigger uses the new bordered white pill + green icon treatment
 - responsive drawer groups are currently labeled `Categories` and `Style / Subject`
 - responsive toolbar uses the shared discovery state:
-  - global search: `Search in collection...`
+  - global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
   - result count
   - quick filters / selected pills contract
   - reset action

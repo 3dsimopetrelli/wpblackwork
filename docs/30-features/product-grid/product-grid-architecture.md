@@ -208,6 +208,7 @@ widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
 In discovery drawer mode the same `filterState` is the single source of truth for:
 - drawer checkboxes
 - global discovery search
+  - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
 - quick filters / selected pills
 - result count
 - reset actions
