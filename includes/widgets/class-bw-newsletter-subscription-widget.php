@@ -232,6 +232,18 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'section_title_color',
+            [
+                'label'     => __( 'Title Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#F7F7F2',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-section-title-color: {{VALUE}};',
+                ],
+            ]
+        );
+
         $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
@@ -249,12 +261,76 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'section_subtitle_color',
+            [
+                'label'     => __( 'Subtitle Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(247, 247, 242, 0.86)',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-section-subtitle-color: {{VALUE}};',
+                ],
+            ]
+        );
+
         $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
                 'name'     => 'section_privacy_typography',
                 'label'    => __( 'Privacy Typography', 'bw' ),
                 'selector' => '{{WRAPPER}} .bw-newsletter-subscription-consent, {{WRAPPER}} .bw-newsletter-subscription-consent__text, {{WRAPPER}} .bw-newsletter-subscription-consent__label, {{WRAPPER}} .bw-newsletter-subscription-consent__link',
+            ]
+        );
+
+        $this->add_control(
+            'section_privacy_color',
+            [
+                'label'     => __( 'Privacy Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(247, 247, 242, 0.84)',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-section-privacy-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_overlay_color',
+            [
+                'label'     => __( 'Overlay Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(8, 8, 8, 0.82)',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-overlay-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_glow_color',
+            [
+                'label'     => __( 'Glow Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(128, 253, 3, 0.16)',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-glow-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_overlay_opacity',
+            [
+                'label'     => __( 'Overlay Opacity', 'bw' ),
+                'type'      => Controls_Manager::NUMBER,
+                'min'       => 0,
+                'max'       => 1,
+                'step'      => 0.01,
+                'default'   => 1,
+                'selectors' => [
+                    '{{WRAPPER}}'                                           => '--bw-ns-overlay-opacity: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription-section-overlay' => 'opacity: {{VALUE}};',
+                ],
             ]
         );
 
@@ -379,6 +455,10 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 
             <?php if ( 'section' === $style_variant && '' !== $section_background_image ) : ?>
                 <div class="bw-newsletter-subscription-section-art" aria-hidden="true" style="<?php echo esc_attr( $art_style ); ?>"></div>
+            <?php endif; ?>
+
+            <?php if ( 'section' === $style_variant ) : ?>
+                <div class="bw-newsletter-subscription-section-overlay" aria-hidden="true"></div>
             <?php endif; ?>
 
             <form

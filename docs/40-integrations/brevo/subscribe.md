@@ -296,8 +296,14 @@ Current widget controls:
 - `Background Image Fit`
 - `Content Position`
 - `Title Typography`
+- `Title Color`
 - `Subtitle Typography`
+- `Subtitle Color`
 - `Privacy Typography`
+- `Privacy Color`
+- `Overlay Color`
+- `Glow Color`
+- `Overlay Opacity`
 
 Design contract:
 

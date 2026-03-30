@@ -74,8 +74,14 @@ Content controls:
 Style-tab controls:
 - `Content Position` (`left|center|right`)
 - `Title Typography`
+- `Title Color`
 - `Subtitle Typography`
+- `Subtitle Color`
 - `Privacy Typography`
+- `Privacy Color`
+- `Overlay Color`
+- `Glow Color`
+- `Overlay Opacity`
 
 Implementation note:
 - `Style Section` changes only layout/visual treatment
@@ -97,6 +103,7 @@ Common runtime output:
 `Style Section`:
 - renders title + subtitle above the form
 - uses a dark section shell with configurable background color and optional art image
+- adds an internal overlay/glow layer above the art and below the content
 - integrates the submit button into the email row on desktop
 - keeps the same input names, nonce, consent checkbox, and message region as the footer style
 

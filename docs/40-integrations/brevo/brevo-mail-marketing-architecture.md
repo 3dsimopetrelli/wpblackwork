@@ -179,8 +179,14 @@ Current editor controls:
 `Style Section` style-tab controls:
 - `Content Position`
 - `Title Typography`
+- `Title Color`
 - `Subtitle Typography`
+- `Subtitle Color`
 - `Privacy Typography`
+- `Privacy Color`
+- `Overlay Color`
+- `Glow Color`
+- `Overlay Opacity`
 
 Current control strategy:
 - The widget keeps behavior fixed and exposes only governed presentation variants.
