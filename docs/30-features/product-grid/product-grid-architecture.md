@@ -31,7 +31,7 @@ Controls are registered across four private methods:
 | `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
 | `register_filter_controls()` | `Show Filters`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
-| `register_query_controls()` | Post type, parent category, subcategory (multi-select), specific IDs, order by, order direction |
+| `register_query_controls()` | Post type, parent category (multi-select), subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
 

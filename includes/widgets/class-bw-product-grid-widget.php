@@ -439,7 +439,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label'       => __( 'Categoria padre', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::SELECT2,
             'label_block' => true,
-            'multiple'    => false,
+            'multiple'    => true,
             'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : [],
             'condition'   => [ 'post_type' => 'product' ],
         ] );
@@ -449,12 +449,12 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'type'        => Controls_Manager::SELECT2,
             'label_block' => true,
             'multiple'    => true,
-            'options'     => [],
+            'options'     => function_exists( 'bw_get_product_categories_options' ) ? bw_get_product_categories_options() : [],
             'condition'   => [
                 'post_type'        => 'product',
                 'parent_category!' => '',
             ],
-            'description' => __( 'Seleziona una o più sottocategorie della categoria padre scelta.', 'bw-elementor-widgets' ),
+            'description' => __( 'Seleziona una o più sottocategorie. Se presenti, hanno priorita sulle categorie padre selezionate.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'specific_ids', [
@@ -922,8 +922,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
-        $parent_category = isset( $settings['parent_category'] ) ? absint( $settings['parent_category'] ) : 0;
-        $subcategories   = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
+        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
+        $subcategories     = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
 
         // Get default category setting for filtering
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
@@ -981,11 +981,12 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     'field'    => 'term_id',
                     'terms'    => $subcategories,
                 ];
-            } elseif ( $parent_category > 0 ) {
+            } elseif ( ! empty( $parent_categories ) ) {
                 $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ $parent_category ],
+                    'taxonomy'         => 'product_cat',
+                    'field'            => 'term_id',
+                    'terms'            => $parent_categories,
+                    'include_children' => true,
                 ];
             }
 
