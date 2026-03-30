@@ -588,7 +588,7 @@ body.bw-cart-popup-no-scroll {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 58px;
   max-width: 300px;
   min-width: 58px;
@@ -607,18 +607,19 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:focus-within,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value {
-  width: 360px;
-  justify-content: flex-end;
-  padding: 3px 2px 3px 10px;
+  width: 392px;
+  justify-content: flex-start;
+  padding: 3px 2px 3px 12px;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__icon-shell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  margin-left: 8px;
   border-radius: 999px;
   background: #80fd03;
   color: #000000;
@@ -635,7 +636,7 @@ body.bw-cart-popup-no-scroll {
   background: transparent;
   box-shadow: none;
   color: #111111;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.2;
 }
 
@@ -655,7 +656,9 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:hover .bw-fpw-discovery-search__input,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:focus-within .bw-fpw-discovery-search__input,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value .bw-fpw-discovery-search__input {
-  max-width: 286px;
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
   opacity: 1;
   pointer-events: auto;
 }
@@ -677,6 +680,7 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__input::placeholder,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group-search__input::placeholder {
   color: rgba(17, 17, 17, 0.42);
+  text-align: left;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__icon-svg {
