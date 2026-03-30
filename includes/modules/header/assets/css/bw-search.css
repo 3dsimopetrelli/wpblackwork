@@ -107,20 +107,14 @@
     z-index: 99999;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-100%);
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                visibility 0s 0.5s;
+    transition: opacity 0.28s ease, visibility 0s 0.28s;
     overflow-y: auto;
 }
 
 .bw-search-overlay.is-active {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                visibility 0s 0s;
+    transition: opacity 0.28s ease, visibility 0s 0s;
 }
 
 .bw-search-overlay__container {
@@ -137,6 +131,16 @@
     border-radius: 24px;
     box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.24);
     overflow: hidden;
+    opacity: 0;
+    transform: translateY(-24px);
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.24s ease;
+    transition-delay: 0s;
+}
+
+.bw-search-overlay.is-active .bw-search-overlay__container {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.04s;
 }
 
 /* Close Button */
