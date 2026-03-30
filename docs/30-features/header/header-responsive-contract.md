@@ -56,7 +56,7 @@ Overlay placement:
 - This relocation is required to preserve viewport-fixed behavior independent of transformed ancestors.
 
 Visual composition:
-- Mobile navigation panel MAY use a floating card treatment with rounded corners and viewport margin.
+- Mobile navigation panel MAY use a floating card treatment with rounded corners, subtle blur/veil overlay, and a minimal viewport margin.
 - The lower CTA/footer area MAY remain visually separated from the scrollable menu list, but MUST stay inside the same mobile navigation panel surface.
 - Legal footer links inside the mobile panel MUST remain reachable and visually legible even when Elementor Kit/global anchor styles are active.
 

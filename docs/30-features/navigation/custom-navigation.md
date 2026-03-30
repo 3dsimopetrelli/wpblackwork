@@ -104,12 +104,13 @@ Documentazione correlata:
 ### Styling mobile
 
 - `includes/modules/header/assets/css/bw-navigation.css`:
-  - overlay full-screen fixed con fade.
-  - panel slide-in da sinistra.
-  - animazione ingresso item con stagger.
-  - close button accessibile con `:focus-visible`.
-  - submenu mobile annidato con indentazione (`.bw-navigation__mobile .sub-menu`).
-  - `@media (max-width: 769px)` forza panel full-width.
+  - overlay fixed full-screen con veil scuro molto leggero + blur.
+  - panel slide-in da sinistra con floating dark-glass card treatment, radius ampio e viewport margin minimo.
+  - close button circolare glass.
+  - primary links dentro card/pill rows con bordo soft e hover/focus elevation minima.
+  - submenu mobile annidato con indentazione e tono secondario (`.bw-navigation__mobile .sub-menu`).
+  - footer area separata ma dentro la stessa surface, con CTA verde piena e legal/social row.
+  - `@media (max-width: 769px)` mantiene il pannello detached quasi full-width senza toccare l'header shell.
 - `includes/modules/header/frontend/assets.php` (inline CSS):
   - breakpoint amministrabile (`breakpoints.mobile`).
   - sotto breakpoint:
