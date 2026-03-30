@@ -16,7 +16,7 @@ Canonical transition note:
 | `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
-| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
+| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants, still owned by Mail Marketing settings |
 | `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces |
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
@@ -232,8 +232,9 @@ Important runtime note:
   - `Desktop Columns` currently supports `3`, `4`, `5`, `6`
   - `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls
 - `bw-newsletter-subscription`:
-  - fixed-design widget
-  - minimal editor controls only
+  - governed widget with two presentation variants: `Style Footer` and `Style Section`
+  - `Style Footer` keeps the minimal legacy footer surface
+  - `Style Section` adds hero-style content/media controls plus a dedicated conditional Style tab for typography, colors, overlay, glow, and content positioning
   - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
   - public submit handled through nonce-protected server-side AJAX endpoint
 - `bw-reviews`:

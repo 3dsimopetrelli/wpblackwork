@@ -133,7 +133,7 @@ Implementation note:
 4. No implicit background mutation model is assumed beyond defined action behavior.
 
 ### E) Elementor widget -> explicit consent submit -> public endpoint validation -> Brevo sync
-1. The fixed-design widget renders in Elementor/front-end contexts.
+1. The governed widget renders in Elementor/front-end contexts, with `Style Footer` and `Style Section` presentation variants sharing the same submit contract.
 2. JS validates empty email, invalid email, and missing consent before request.
 3. Server normalizes email deterministically and revalidates consent.
 4. Cooldown/rate-limit gate runs before any Brevo API call.
