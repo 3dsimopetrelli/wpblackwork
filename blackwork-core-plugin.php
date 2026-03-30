@@ -1936,13 +1936,8 @@ function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
 
 function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search)
 {
-    if ('' === bw_fpw_normalize_search_value($search)) {
-        return [];
-    }
+    $normalized_search = bw_fpw_normalize_search_value($search);
 
-    // Single WP_Query: native search (title + content) scoped to the active
-    // category / subcategory / tag filters.  One query replaces the previous
-    // "load all → per-post loop (N+1) + second search query" approach.
     $query_args = [
         'post_type'              => $post_type,
         'post_status'            => 'publish',
@@ -1952,7 +1947,6 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         'ignore_sticky_posts'    => true,
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
-        's'                      => $search,
     ];
 
     $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, $tags);
@@ -1960,9 +1954,71 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         $query_args['tax_query'] = $tax_query;
     }
 
-    $query = new WP_Query($query_args);
+    $query    = new WP_Query($query_args);
+    $post_ids = array_map('absint', $query->posts);
 
-    return array_values(array_filter(array_map('absint', $query->posts)));
+    if ('' === $normalized_search || empty($post_ids)) {
+        return $post_ids;
+    }
+
+    global $wpdb;
+
+    $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
+    $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+
+    // Single SQL query: fetch title/excerpt/content/slug for all posts at once.
+    $ids_in       = implode(',', $post_ids);
+    $post_rows    = $wpdb->get_results(
+        "SELECT ID, post_title, post_excerpt, post_content, post_name
+         FROM {$wpdb->posts}
+         WHERE ID IN ({$ids_in})",
+        ARRAY_A
+    );
+
+    // Single SQL query: fetch all taxonomy term names for all posts at once.
+    $taxon_in     = "'" . esc_sql($taxonomy) . "','" . esc_sql($tag_taxonomy) . "'";
+    $term_rows    = $wpdb->get_results(
+        "SELECT tr.object_id, t.name
+         FROM {$wpdb->term_relationships} tr
+         INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+         INNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+         WHERE tr.object_id IN ({$ids_in})
+           AND tt.taxonomy IN ({$taxon_in})",
+        ARRAY_A
+    );
+
+    $post_term_names = [];
+    if ($term_rows) {
+        foreach ($term_rows as $row) {
+            $post_term_names[(int) $row['object_id']][] = $row['name'];
+        }
+    }
+
+    $matching_ids = [];
+
+    foreach ((array) $post_rows as $row) {
+        $post_id   = (int) $row['ID'];
+        $haystacks = [
+            $row['post_title'],
+            $row['post_excerpt'],
+            wp_strip_all_tags((string) $row['post_content']),
+            $row['post_name'],
+        ];
+
+        if (!empty($post_term_names[$post_id])) {
+            $haystacks = array_merge($haystacks, $post_term_names[$post_id]);
+        }
+
+        foreach ($haystacks as $haystack) {
+            $normalized_haystack = bw_fpw_normalize_search_value((string) $haystack);
+            if ('' !== $normalized_haystack && false !== strpos($normalized_haystack, $normalized_search)) {
+                $matching_ids[] = $post_id;
+                break;
+            }
+        }
+    }
+
+    return $matching_ids;
 }
 
 function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
