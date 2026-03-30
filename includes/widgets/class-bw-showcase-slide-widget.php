@@ -672,7 +672,7 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-ss-arrow' => 'font-size: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-ss-arrow svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -997,8 +997,18 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             </div>
 
             <div class="bw-ss-arrows-container">
-                <button class="bw-ss-arrow bw-ss-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">&#8592;</button>
-                <button class="bw-ss-arrow bw-ss-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">&#8594;</button>
+                <button class="bw-ss-arrow bw-ss-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M6 8L2 12L6 16"/>
+                        <path d="M2 12H22"/>
+                    </svg>
+                </button>
+                <button class="bw-ss-arrow bw-ss-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M18 8L22 12L18 16"/>
+                        <path d="M2 12H22"/>
+                    </svg>
+                </button>
             </div>
 
             <div class="bw-ss-dots-container bw-ss-dots-<?php echo esc_attr( $dots_position ); ?>"></div>

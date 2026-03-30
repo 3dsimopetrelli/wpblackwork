@@ -261,6 +261,16 @@
     transition: opacity 0.3s ease;
     user-select: none;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-ss-arrow svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
 }
 
 .bw-ss-arrow:hover,
