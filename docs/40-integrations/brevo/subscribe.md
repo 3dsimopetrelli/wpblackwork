@@ -294,6 +294,10 @@ Current widget controls:
 - `Background Image`
 - `Background Image Position`
 - `Background Image Fit`
+- `Content Position`
+- `Title Typography`
+- `Subtitle Typography`
+- `Privacy Typography`
 
 Design contract:
 

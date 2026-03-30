@@ -77,6 +77,18 @@
     gap: 18px !important;
 }
 
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget--section[data-section-content-position="left"] .bw-newsletter-subscription-form,
+.bw-newsletter-subscription-widget--section[data-section-content-position="left"] .bw-newsletter-subscription-form {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget--section[data-section-content-position="right"] .bw-newsletter-subscription-form,
+.bw-newsletter-subscription-widget--section[data-section-content-position="right"] .bw-newsletter-subscription-form {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-copy,
 .bw-newsletter-subscription-section-copy {
     display: flex !important;
@@ -87,12 +99,25 @@
     margin: 0 0 12px !important;
 }
 
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget--section[data-section-content-position="left"] .bw-newsletter-subscription-section-copy,
+.bw-newsletter-subscription-widget--section[data-section-content-position="left"] .bw-newsletter-subscription-section-copy {
+    align-items: flex-start !important;
+    text-align: left !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget--section[data-section-content-position="right"] .bw-newsletter-subscription-section-copy,
+.bw-newsletter-subscription-widget--section[data-section-content-position="right"] .bw-newsletter-subscription-section-copy {
+    align-items: flex-end !important;
+    text-align: right !important;
+}
+
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-title,
 .bw-newsletter-subscription-section-title {
     margin: 0 !important;
     color: #f7f7f2 !important;
     font-size: clamp(36px, 4.5vw, 64px) !important;
-    font-weight: 400 !important;
+    font-weight: 500 !important;
+    font-style: normal !important;
     line-height: 0.95 !important;
     letter-spacing: -0.03em !important;
     text-wrap: balance !important;
@@ -104,6 +129,8 @@
     margin: 0 !important;
     color: rgba(247, 247, 242, 0.86) !important;
     font-size: 19px !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
     line-height: 1.45 !important;
 }
 

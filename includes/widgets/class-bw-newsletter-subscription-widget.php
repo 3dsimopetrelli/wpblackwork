@@ -1,5 +1,6 @@
 <?php
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -188,6 +189,76 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         );
 
         $this->end_controls_section();
+
+        $this->start_controls_section(
+            'section_style_section',
+            [
+                'label'     => __( 'Style Section', 'bw' ),
+                'tab'       => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_content_position',
+            [
+                'label'   => __( 'Content Position', 'bw' ),
+                'type'    => Controls_Manager::SELECT,
+                'default' => 'center',
+                'options' => [
+                    'left'   => __( 'Left', 'bw' ),
+                    'center' => __( 'Center', 'bw' ),
+                    'right'  => __( 'Right', 'bw' ),
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'           => 'section_title_typography',
+                'label'          => __( 'Title Typography', 'bw' ),
+                'selector'       => '{{WRAPPER}} .bw-newsletter-subscription-section-title',
+                'fields_options' => [
+                    'font_weight' => [
+                        'default' => '500',
+                    ],
+                    'font_style' => [
+                        'default' => 'normal',
+                    ],
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'           => 'section_subtitle_typography',
+                'label'          => __( 'Subtitle Typography', 'bw' ),
+                'selector'       => '{{WRAPPER}} .bw-newsletter-subscription-section-subtitle, {{WRAPPER}} .bw-newsletter-subscription-section-subtitle p',
+                'fields_options' => [
+                    'font_weight' => [
+                        'default' => '400',
+                    ],
+                    'font_style' => [
+                        'default' => 'normal',
+                    ],
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'section_privacy_typography',
+                'label'    => __( 'Privacy Typography', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription-consent, {{WRAPPER}} .bw-newsletter-subscription-consent__text, {{WRAPPER}} .bw-newsletter-subscription-consent__label, {{WRAPPER}} .bw-newsletter-subscription-consent__link',
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -264,6 +335,11 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             $section_image_fit = 'contain';
         }
 
+        $section_content_position = isset( $widget_settings['section_content_position'] ) ? sanitize_key( $widget_settings['section_content_position'] ) : 'center';
+        if ( ! in_array( $section_content_position, [ 'left', 'center', 'right' ], true ) ) {
+            $section_content_position = 'center';
+        }
+
         $widget_classes = [
             'bw-newsletter-subscription-widget',
             'bw-newsletter-subscription-widget--' . $style_variant,
@@ -289,6 +365,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             id="<?php echo esc_attr( $widget_id ); ?>"
             <?php if ( 'section' === $style_variant ) : ?>
                 data-section-art-position="<?php echo esc_attr( $section_image_position ); ?>"
+                data-section-content-position="<?php echo esc_attr( $section_content_position ); ?>"
             <?php endif; ?>
             <?php if ( '' !== $widget_style ) : ?>
                 style="<?php echo esc_attr( $widget_style ); ?>"

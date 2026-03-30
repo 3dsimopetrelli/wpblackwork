@@ -60,7 +60,7 @@ Purpose:
 - large hero/section variant for standalone newsletter blocks
 - same subscription channel and field names as footer style
 
-Controls:
+Content controls:
 - `Style` = `Style Section`
 - `Show name field`
 - `Title`
@@ -70,6 +70,12 @@ Controls:
 - `Background Image`
 - `Background Image Position` (`left|center|right`)
 - `Background Image Fit` (`contain|cover`)
+
+Style-tab controls:
+- `Content Position` (`left|center|right`)
+- `Title Typography`
+- `Subtitle Typography`
+- `Privacy Typography`
 
 Implementation note:
 - `Style Section` changes only layout/visual treatment

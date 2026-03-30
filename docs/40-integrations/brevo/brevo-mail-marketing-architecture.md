@@ -176,6 +176,12 @@ Current editor controls:
 - `Background Image Position`
 - `Background Image Fit`
 
+`Style Section` style-tab controls:
+- `Content Position`
+- `Title Typography`
+- `Subtitle Typography`
+- `Privacy Typography`
+
 Current control strategy:
 - The widget keeps behavior fixed and exposes only governed presentation variants.
 - Elementor controls are limited to layout/copy overrides for the section variant.
