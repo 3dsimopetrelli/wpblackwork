@@ -177,9 +177,17 @@
 }
 
 .bw-search-overlay__close svg {
+    display: none;
+}
+
+.bw-search-overlay__close::before {
+    content: "";
     width: 18px;
     height: 18px;
-    stroke: currentColor;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 /* Content */
@@ -193,13 +201,14 @@
 body .bw-search-overlay .bw-search-overlay__title,
 .elementor .bw-search-overlay .bw-search-overlay__title,
 body.elementor-page .bw-search-overlay .bw-search-overlay__title {
-    font-size: clamp(28px, 4vw, 48px);
+    font-size: clamp(22px, 3.6cqw, 48px);
     font-weight: 500;
     color: rgba(255, 255, 255, 0.5) !important;
     margin: 0 0 22px 0;
     text-align: center;
     line-height: 1.2;
     letter-spacing: -0.02em;
+    text-wrap: balance;
 }
 
 /* Input Section */
@@ -287,10 +296,11 @@ body.elementor-page .bw-search-overlay .bw-search-overlay__title {
     width: 18px;
     height: 18px;
     border-radius: 999px;
-    background:
-        linear-gradient(45deg, transparent 44%, rgba(255, 255, 255, 0.72) 44%, rgba(255, 255, 255, 0.72) 56%, transparent 56%),
-        linear-gradient(-45deg, transparent 44%, rgba(255, 255, 255, 0.72) 44%, rgba(255, 255, 255, 0.72) 56%, transparent 56%),
-        rgba(255, 255, 255, 0.06);
+    background-color: rgba(255, 255, 255, 0.06);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-opacity='0.72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E");
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    background-position: center;
     border: 1px solid rgba(255, 255, 255, 0.12);
     cursor: pointer;
 }
@@ -345,7 +355,10 @@ body input.bw-search-overlay__input[type="search"] {
     }
 
     .bw-search-overlay__title {
+        font-size: clamp(20px, 5.8vw, 34px);
         margin-bottom: 24px;
+        line-height: 1.12;
+        letter-spacing: -0.03em;
     }
 
     .bw-search-overlay__container {
@@ -362,6 +375,12 @@ body input.bw-search-overlay__input[type="search"] {
 
     .bw-search-overlay__input-wrapper::after {
         font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bw-search-overlay__title {
+        font-size: clamp(18px, 5.6vw, 28px);
     }
 }
 

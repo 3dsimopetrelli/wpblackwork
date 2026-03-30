@@ -812,7 +812,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $drawer_title        = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
-        $global_search_label  = __( 'Search in collection...', 'bw-elementor-widgets' );
+        $global_search_label  = __( 'Search in collections...', 'bw-elementor-widgets' );
         $reset_filters_label  = __( 'Reset filters', 'bw-elementor-widgets' );
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
