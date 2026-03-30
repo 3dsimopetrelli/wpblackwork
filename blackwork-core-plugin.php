@@ -2209,7 +2209,7 @@ function bw_fpw_generate_cache_key($params)
     $params = is_array($params) ? $params : [];
 
     $canonical_payload = [
-        'schema' => 'v2',
+        'schema' => 'v3',
         'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
         'category' => isset($params['category']) ? (string) $params['category'] : 'all',
