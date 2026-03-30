@@ -1961,34 +1961,48 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         return $post_ids;
     }
 
-    // Batch-load all taxonomy terms for every post in one query (avoids N+1).
+    global $wpdb;
+
     $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
     $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
 
-    $all_terms = wp_get_object_terms($post_ids, [$taxonomy, $tag_taxonomy], [
-        'fields' => 'all_with_object_id',
-    ]);
+    // Single SQL query: fetch title/excerpt/content/slug for all posts at once.
+    $ids_in       = implode(',', $post_ids);
+    $post_rows    = $wpdb->get_results(
+        "SELECT ID, post_title, post_excerpt, post_content, post_name
+         FROM {$wpdb->posts}
+         WHERE ID IN ({$ids_in})",
+        ARRAY_A
+    );
+
+    // Single SQL query: fetch all taxonomy term names for all posts at once.
+    $taxon_in     = "'" . esc_sql($taxonomy) . "','" . esc_sql($tag_taxonomy) . "'";
+    $term_rows    = $wpdb->get_results(
+        "SELECT tr.object_id, t.name
+         FROM {$wpdb->term_relationships} tr
+         INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+         INNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id
+         WHERE tr.object_id IN ({$ids_in})
+           AND tt.taxonomy IN ({$taxon_in})",
+        ARRAY_A
+    );
 
     $post_term_names = [];
-    if (!is_wp_error($all_terms)) {
-        foreach ($all_terms as $term) {
-            $post_term_names[(int) $term->object_id][] = $term->name;
+    if ($term_rows) {
+        foreach ($term_rows as $row) {
+            $post_term_names[(int) $row['object_id']][] = $row['name'];
         }
     }
 
     $matching_ids = [];
 
-    foreach ($post_ids as $post_id) {
-        $post = get_post($post_id);
-        if (!$post) {
-            continue;
-        }
-
+    foreach ((array) $post_rows as $row) {
+        $post_id   = (int) $row['ID'];
         $haystacks = [
-            $post->post_title,
-            $post->post_excerpt,
-            wp_strip_all_tags((string) $post->post_content),
-            $post->post_name,
+            $row['post_title'],
+            $row['post_excerpt'],
+            wp_strip_all_tags((string) $row['post_content']),
+            $row['post_name'],
         ];
 
         if (!empty($post_term_names[$post_id])) {
