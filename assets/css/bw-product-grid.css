@@ -608,6 +608,7 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search:focus-within,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search.has-value {
   width: 404px;
+  max-width: 404px;
   justify-content: flex-start;
   padding: 5px 5px 5px 16px;
 }
