@@ -212,6 +212,11 @@ In discovery drawer mode the same `filterState` is the single source of truth fo
 - result count
 - reset actions
 
+The responsive drawer shell is intentionally style-only and does not alter filter behaviour:
+- overlay uses a light veil plus blur so page context remains visible behind the drawer
+- the drawer itself is a detached dark-glass panel with large radius and tight viewport margins
+- header, close control, and footer CTA follow the same floating-surface language used by other mobile navigation surfaces
+
 `filterState` is initialised by `initFilterState()` (once per widget) and reset only when `destroyWidgetState()` is called.
 
 `widgetPagingState` is updated on every AJAX response via

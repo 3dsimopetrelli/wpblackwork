@@ -14,6 +14,7 @@ Current notable UI/runtime deltas:
   - result count
   - quick filters / selected pills contract
   - reset action
+- responsive filter drawer uses the detached dark-glass floating-panel treatment with light veil overlay, rounded shell, and premium close/apply controls
 - mobile first paint is CSS-governed, so desktop filter labels do not flash before JS init
 - `Layout` includes `Show Title`, `Show Description`, and `Show Price`
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
