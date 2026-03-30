@@ -101,7 +101,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #FFFFFF;
+    background: rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(4px) saturate(1.5);
+    -webkit-backdrop-filter: blur(4px) saturate(1.5);
     z-index: 99999;
     opacity: 0;
     visibility: hidden;
@@ -123,38 +125,51 @@
 
 .bw-search-overlay__container {
     position: relative;
-    width: 100%;
-    min-height: 100%;
-    padding: 40px 2%;
+    width: min(1240px, calc(100vw - 10px));
+    min-height: calc(100dvh - 10px);
+    margin: 5px auto;
+    padding: 28px 32px 32px;
     box-sizing: border-box;
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%),
+        linear-gradient(180deg, rgba(24, 24, 24, 0.88) 0%, rgba(11, 11, 11, 0.92) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.24);
+    overflow: hidden;
 }
 
 /* Close Button */
 .bw-search-overlay__close {
     position: absolute;
     top: 16px;
-    right: 20px;
-    display: flex;
+    right: 16px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: transparent !important;
-    border: none !important;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 999px;
     cursor: pointer;
-    transition: opacity 0.2s ease;
-    padding: 4px;
-    color: #000000;
+    transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+    color: rgba(255, 255, 255, 0.82);
     box-shadow: none !important;
     outline: none !important;
 }
 
 .bw-search-overlay__close:hover {
     opacity: 1;
-    color: #4a4a4a !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .bw-search-overlay__close:hover svg,
 .bw-search-overlay__close:hover svg * {
-    stroke: #4a4a4a !important;
+    stroke: #ffffff !important;
 }
 
 .bw-search-overlay__close:focus {
@@ -162,25 +177,26 @@
 }
 
 .bw-search-overlay__close svg {
-    width: 40px;
-    height: 40px;
+    width: 18px;
+    height: 18px;
     stroke: currentColor;
 }
 
 /* Content */
 .bw-search-overlay__content {
-    max-width: 900px;
+    max-width: 920px;
     margin: 0 auto;
-    padding-top: 100px;
+    padding-top: 72px;
 }
 
 .bw-search-overlay__title {
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 500;
-    color: #080808;
-    margin: 0 0 40px 0;
+    color: #ffffff;
+    margin: 0 0 28px 0;
     text-align: center;
     line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 
 /* Input Section */
@@ -190,17 +206,21 @@
 
 .bw-search-overlay__input-wrapper {
     position: relative;
-    border-bottom: 2px solid #080808;
-    padding-bottom: 12px;
-    padding-left: 2%;
-    padding-right: 2%;
+    display: flex;
+    align-items: center;
+    min-height: 64px;
+    padding: 0 22px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(8, 8, 8, 0.45);
 }
 
 .bw-search-overlay__input {
     width: 100%;
-    font-size: clamp(20px, 3vw, 32px);
+    font-size: clamp(22px, 3vw, 32px);
     font-weight: 400;
-    color: #080808;
+    color: #ffffff;
     background: none;
     border: none;
     outline: none;
@@ -211,11 +231,30 @@
 }
 
 .bw-search-overlay__input::placeholder {
-    color: #C0C0C0;
+    color: rgba(255, 255, 255, 0.38);
 }
 
 .bw-search-overlay__input:focus {
     outline: none;
+}
+
+.bw-search-overlay__input::-webkit-search-decoration,
+.bw-search-overlay__input::-webkit-search-cancel-button,
+.bw-search-overlay__input::-webkit-search-results-button,
+.bw-search-overlay__input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+}
+
+.bw-search-overlay__input::-webkit-search-cancel-button {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background:
+        linear-gradient(45deg, transparent 44%, rgba(255, 255, 255, 0.72) 44%, rgba(255, 255, 255, 0.72) 56%, transparent 56%),
+        linear-gradient(-45deg, transparent 44%, rgba(255, 255, 255, 0.72) 44%, rgba(255, 255, 255, 0.72) 56%, transparent 56%),
+        rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
 }
 
 /* Override WooCommerce input borders - ensures only plugin border is visible */
@@ -248,9 +287,9 @@ body input.bw-search-overlay__input[type="search"] {
 
 /* Hint Text */
 .bw-search-overlay__hint {
-    font-size: 16px;
-    color: #808080;
-    margin: 16px 0 24px 0;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.56);
+    margin: 14px 4px 24px 4px;
     text-align: left;
     line-height: 1.5;
 }
@@ -259,19 +298,22 @@ body input.bw-search-overlay__input[type="search"] {
 @media (max-width: 768px) {
     .bw-search-overlay__close {
         top: 16px;
-        right: 20px;
+        right: 14px;
     }
 
     .bw-search-overlay__content {
-        padding-top: 80px;
+        padding-top: 72px;
     }
 
     .bw-search-overlay__title {
-        margin-bottom: 30px;
+        margin-bottom: 24px;
     }
 
     .bw-search-overlay__container {
-        padding: 20px 2%;
+        width: calc(100vw - 10px);
+        min-height: calc(100dvh - 10px);
+        margin: 5px auto;
+        padding: 20px 14px 18px;
     }
 }
 
@@ -296,10 +338,10 @@ body.bw-search-overlay-active {
     padding: 10px 20px;
     font-size: 16px;
     font-weight: 400;
-    color: #000000;
-    background-color: #FFFFFF;
-    border: 1px solid #000000;
-    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.86);
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
     cursor: pointer;
     transition: all 0.3s ease;
     line-height: 1.4;
@@ -311,13 +353,13 @@ body.bw-search-overlay-active {
 }
 
 .bw-category-filter.is-active {
-    color: #FFFFFF;
-    background-color: #000000;
-    border-color: #000000;
+    color: #000000;
+    background-color: #80fd03;
+    border-color: #111111;
 }
 
 .bw-category-filter:focus {
-    outline: 2px solid #080808;
+    outline: 2px solid rgba(128, 253, 3, 0.5);
     outline-offset: 2px;
 }
 
@@ -356,7 +398,7 @@ body.bw-search-overlay-active {
 
 /* Results Container */
 .bw-search-results {
-    margin-top: 40px;
+    margin-top: 28px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px);
@@ -374,7 +416,7 @@ body.bw-search-overlay-active {
 .bw-search-results__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 16px;
     width: 100%;
 }
 
@@ -382,12 +424,14 @@ body.bw-search-overlay-active {
    Scoped to the search overlay so shared product-card classes used by
    product grids / wallpost layouts are not polluted by search-specific UI. */
 .bw-search-results .bw-product-card {
-    background-color: #FFFFFF;
-    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
     overflow: hidden;
     animation: fadeInUp 0.5s ease forwards;
     opacity: 0;
     break-inside: avoid;
+    box-shadow: inset 0 0 0 1px rgba(8, 8, 8, 0.28);
 }
 
 @keyframes fadeInUp {
@@ -404,8 +448,14 @@ body.bw-search-overlay-active {
 /* Product Card Link */
 .bw-search-results .bw-product-card__link {
     display: block;
+    height: 100%;
     text-decoration: none;
     color: inherit;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.bw-search-results .bw-product-card:hover .bw-product-card__link {
+    transform: translateY(-1px);
 }
 
 /* Product Image */
@@ -414,7 +464,7 @@ body.bw-search-overlay-active {
     width: 100%;
     padding-bottom: 100%; /* 1:1 Aspect Ratio */
     overflow: hidden;
-    background-color: #F5F5F5;
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 .bw-search-results .bw-product-card__image img {
@@ -428,7 +478,7 @@ body.bw-search-overlay-active {
 
 /* Product Info */
 .bw-search-results .bw-product-card__info {
-    padding: 16px;
+    padding: 14px 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -438,7 +488,7 @@ body.bw-search-overlay-active {
 .bw-search-results .bw-product-card__title {
     font-size: 16px;
     font-weight: 500;
-    color: #080808;
+    color: #ffffff;
     margin: 0;
     line-height: 1.4;
     display: -webkit-box;
@@ -452,21 +502,23 @@ body.bw-search-overlay-active {
 .bw-search-results .bw-product-card__price {
     font-size: 18px;
     font-weight: 600;
-    color: #080808;
+    color: #ffffff;
 }
 
 .bw-search-results .bw-product-card__price .amount {
-    color: #080808;
+    color: #ffffff;
 }
 
 .bw-search-results .bw-product-card__price del {
-    opacity: 0.5;
+    opacity: 0.48;
     margin-right: 8px;
     font-weight: 400;
+    color: rgba(255, 255, 255, 0.44);
 }
 
 .bw-search-results .bw-product-card__price ins {
     text-decoration: none;
+    color: #80fd03;
 }
 
 /* Results Message */
@@ -474,7 +526,7 @@ body.bw-search-overlay-active {
     text-align: center;
     padding: 40px 20px;
     font-size: 18px;
-    color: #606060;
+    color: rgba(255, 255, 255, 0.62);
     display: none;
 }
 
@@ -498,8 +550,8 @@ body.bw-search-overlay-active {
 .bw-search-loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #F0F0F0;
-    border-top-color: #080808;
+    border: 4px solid rgba(255, 255, 255, 0.12);
+    border-top-color: #80fd03;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -521,7 +573,7 @@ body.bw-search-overlay-active {
 /* Responsive - Mobile (2 colonne) */
 @media (max-width: 768px) {
     .bw-search-results {
-        margin-top: 30px;
+        margin-top: 24px;
     }
 
     .bw-search-results__grid {
@@ -550,6 +602,6 @@ body.bw-search-overlay-active {
 /* Responsive - Molto piccolo (1 colonna) */
 @media (max-width: 480px) {
     .bw-search-results__grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
