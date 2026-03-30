@@ -479,18 +479,33 @@ body.bw-cart-popup-no-scroll {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  min-height: clamp(220px, 36vh, 380px);
-  padding: 32px 24px;
+  min-height: clamp(260px, 40vh, 420px);
+  padding: 48px 24px;
   text-align: center;
+}
+
+/* Decorative search icon */
+.bw-fpw-empty-state::before {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 48px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(17,17,17,0.25)' stroke-width='1.5'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cline x1='15.5' y1='15.5' x2='21' y2='21'/%3E%3Cline x1='8' y1='10.5' x2='13' y2='10.5'/%3E%3Cline x1='10.5' y1='8' x2='10.5' y2='13'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.6;
 }
 
 .bw-fpw-empty-message {
   margin: 0;
-  max-width: 34ch;
-  color: rgba(17, 17, 17, 0.72);
-  font-size: 18px;
+  max-width: 28ch;
+  color: rgba(17, 17, 17, 0.55);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   line-height: 1.4;
 }
 

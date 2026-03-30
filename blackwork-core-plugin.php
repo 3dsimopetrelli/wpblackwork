@@ -1896,11 +1896,7 @@ function bw_fpw_has_active_refinement_filters($subcategories = [], $tags = [], $
 
 function bw_fpw_get_empty_state_message($subcategories = [], $tags = [], $search = '')
 {
-    if (bw_fpw_has_active_refinement_filters($subcategories, $tags, $search)) {
-        return __('No results found.', 'bw-elementor-widgets');
-    }
-
-    return __('There is nothing in this archive yet.', 'bw-elementor-widgets');
+    return 'No results found.';
 }
 
 function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
