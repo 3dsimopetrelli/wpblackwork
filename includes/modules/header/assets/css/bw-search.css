@@ -189,10 +189,13 @@
     padding-top: 64px;
 }
 
-.bw-search-overlay__title {
+.bw-search-overlay .bw-search-overlay__title,
+body .bw-search-overlay .bw-search-overlay__title,
+.elementor .bw-search-overlay .bw-search-overlay__title,
+body.elementor-page .bw-search-overlay .bw-search-overlay__title {
     font-size: clamp(28px, 4vw, 48px);
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.5) !important;
     margin: 0 0 22px 0;
     text-align: center;
     line-height: 1.2;
@@ -471,7 +474,7 @@ body.bw-search-overlay-active {
 .bw-search-results .bw-product-card {
     background-color: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+    border-radius: 8px;
     overflow: hidden;
     animation: fadeInUp 0.5s ease forwards;
     opacity: 0;
