@@ -1846,7 +1846,7 @@ function bw_fpw_normalize_search_value($search)
         return '';
     }
 
-    $search = remove_accents(wp_strtolower($search));
+    $search = remove_accents(mb_strtolower($search, 'UTF-8'));
     $search = preg_replace('/\s+/', ' ', trim($search));
 
     return is_string($search) ? $search : '';
