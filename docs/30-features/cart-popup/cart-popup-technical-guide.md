@@ -70,6 +70,11 @@ Markup principale (`bw_cart_popup_render_panel`):
 - footer CTA (checkout + continue)
 - trigger flottante opzionale
 
+Visual contract attuale della shell popup:
+- overlay leggero con blur, per lasciare percepibile il contesto pagina dietro al pannello
+- pannello detached dark-glass con margini stretti viewport-edge e radius ampio
+- close button circolare e CTA footer trattati come floating controls coerenti con le altre navigation surfaces mobili
+
 ## 5) Trigger apertura popup
 
 ### Trigger automatico da Add to cart
