@@ -2571,14 +2571,26 @@
                 return;
             }
             initFilterState(widgetId);
-            filterState[widgetId].search = $.trim($input.val());
+            var val = $.trim($input.val());
+            filterState[widgetId].search = val;
+
+            // Require at least 2 characters to start searching.
+            // Always search when the field is cleared (val === '').
+            if (val.length === 1) {
+                if (searchDebounceTimers[widgetId]) {
+                    clearTimeout(searchDebounceTimers[widgetId]);
+                    delete searchDebounceTimers[widgetId];
+                }
+                return;
+            }
+
             if (searchDebounceTimers[widgetId]) {
                 clearTimeout(searchDebounceTimers[widgetId]);
             }
             searchDebounceTimers[widgetId] = setTimeout(function () {
                 delete searchDebounceTimers[widgetId];
                 filterPosts(widgetId);
-            }, 350);
+            }, 250);
         });
 
         $(document).on('click', '.bw-fpw-mobile-filter-button', function (e) {

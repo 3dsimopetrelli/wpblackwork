@@ -1460,7 +1460,29 @@ body.bw-cart-popup-no-scroll {
    Search Input
    ===================================================== */
 .bw-fpw-search-row {
+  position: relative;
   margin-bottom: 16px;
+}
+
+/* Spinner inside the search input while results are loading */
+.bw-fpw-filters.loading .bw-fpw-search-row::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: bw-fpw-search-spin 0.55s linear infinite;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+@keyframes bw-fpw-search-spin {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to   { transform: translateY(-50%) rotate(360deg); }
 }
 
 .bw-fpw-search-input {
