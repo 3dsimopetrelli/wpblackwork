@@ -129,25 +129,9 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 'isLinked' => true,
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-static-showcase-left' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-static-showcase-left' => '--bw-static-showcase-content-top: {{TOP}}{{UNIT}}; --bw-static-showcase-content-right: {{RIGHT}}{{UNIT}}; --bw-static-showcase-content-bottom: {{BOTTOM}}{{UNIT}}; --bw-static-showcase-content-left: {{LEFT}}{{UNIT}};',
             ],
-        ] );
-
-        $this->add_responsive_control( 'right_column_padding', [
-            'label'      => __( 'Right Column Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'default'    => [
-                'top'    => 0,
-                'right'  => 0,
-                'bottom' => 0,
-                'left'   => 0,
-                'unit'   => 'px',
-                'isLinked' => true,
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-static-showcase-right' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
+            'description' => __( 'Controlla gli offset del blocco titolo/testo e della fascia footer sopra l\'immagine grande.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'right_column_gap', [
