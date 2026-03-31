@@ -53,54 +53,32 @@
     flex: 0 0 25%;
     width: 25%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 8px;
     padding: 0;
     overflow: hidden !important;
-    border-radius: 8px !important;
-    clip-path: inset(0 round 8px) !important;
-    isolation: isolate;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
 }
 
 .bw-static-showcase-container .bw-static-showcase-right-image {
     position: relative;
-    flex: 1;
+    min-height: 0;
     width: 100%;
-    display: block;
     overflow: hidden !important;
     background: rgba(0, 0, 0, 0.05);
     border-radius: 8px !important;
-    clip-path: inset(0 round 8px) !important;
-    isolation: isolate;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .bw-static-showcase-container .bw-static-showcase-right-image img {
     width: 100%;
     height: 100%;
+    min-height: 0;
     display: block;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    background-clip: padding-box;
+    border-radius: inherit !important;
     /* object-fit set via inline style from build_image_style() */
-}
-
-.bw-static-showcase-container .bw-static-showcase-right-image:first-child,
-.bw-static-showcase-container .bw-static-showcase-right-image:first-child img {
-    border-bottom-left-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
-}
-
-.bw-static-showcase-container .bw-static-showcase-right-image:last-child,
-.bw-static-showcase-container .bw-static-showcase-right-image:last-child img {
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
-    border-bottom-left-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
 }
 
 .bw-static-showcase-right-image--placeholder {
@@ -333,7 +311,8 @@
         flex: 0 0 30%;
         width: 100%;
         height: 30%;
-        flex-direction: row;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: minmax(0, 1fr);
         border-top-right-radius: 0 !important;
         border-bottom-left-radius: 8px !important;
         border-bottom-right-radius: 8px !important;
