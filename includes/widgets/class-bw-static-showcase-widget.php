@@ -596,6 +596,11 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $has_cta           = ! empty( $btn_url ) && ! empty( $button_text );
 
         $object_fit = $image_crop ? 'cover' : 'contain';
+        $image_radius = $this->build_border_radius_value(
+            isset( $settings['images_border_radius'] ) && is_array( $settings['images_border_radius'] )
+                ? $settings['images_border_radius']
+                : []
+        );
 
         $container_classes = [ 'bw-static-showcase-container' ];
         if ( ! $image_crop ) {
@@ -609,13 +614,14 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $badge_style       = esc_attr( 'color: ' . $meta_color . '; border-color: ' . $meta_color . ';' );
 
         // Shared attributes for lazy images
-        $img_style = $this->build_image_style( $object_fit );
+        $img_style         = $this->build_image_style( $object_fit, $image_radius );
+        $media_shell_style = esc_attr( 'border-radius: ' . $image_radius . '; overflow: hidden;' );
 
         ?>
         <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>" style="<?php echo $container_style; ?>">
             <div class="bw-static-showcase-left">
                 <?php if ( $image_id || $image_url ) : ?>
-                    <div class="bw-slide-showcase-media">
+                    <div class="bw-slide-showcase-media" style="<?php echo $media_shell_style; ?>">
                         <?php if ( $image_id ) : ?>
                             <?php echo wp_get_attachment_image( $image_id, 'large', false, [
                                 'class'   => 'bw-slide-showcase-image bw-lazy-img',
@@ -692,7 +698,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             <div class="bw-static-showcase-right">
                 <?php if ( ! empty( $gallery_ids ) ) : ?>
                     <?php foreach ( $gallery_ids as $gal_id ) : ?>
-                        <div class="bw-static-showcase-right-image">
+                        <div class="bw-static-showcase-right-image" style="<?php echo $media_shell_style; ?>">
                             <?php echo wp_get_attachment_image( (int) $gal_id, 'medium_large', false, [
                                 'class'   => 'bw-lazy-img',
                                 'loading' => 'lazy',
@@ -725,10 +731,39 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
      * Returns unescaped inline style string for images.
      * Callers must escape on output: esc_attr() for direct echo, or pass raw to wp_get_attachment_image().
      */
-    private function build_image_style( $object_fit ) {
+    private function build_image_style( $object_fit, $border_radius ) {
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
-        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . ';';
+        $radius_value = '' !== $border_radius ? $border_radius : '8px';
+
+        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . '; border-radius: ' . $radius_value . '; display: block;';
+    }
+
+    /**
+     * Builds a CSS border-radius shorthand from Elementor dimensions.
+     */
+    private function build_border_radius_value( $radius_settings ) {
+        if ( ! is_array( $radius_settings ) ) {
+            return '8px';
+        }
+
+        $unit = isset( $radius_settings['unit'] ) && '' !== $radius_settings['unit']
+            ? sanitize_text_field( (string) $radius_settings['unit'] )
+            : 'px';
+
+        $top    = isset( $radius_settings['top'] ) && '' !== $radius_settings['top'] ? (string) $radius_settings['top'] : '8';
+        $right  = isset( $radius_settings['right'] ) && '' !== $radius_settings['right'] ? (string) $radius_settings['right'] : $top;
+        $bottom = isset( $radius_settings['bottom'] ) && '' !== $radius_settings['bottom'] ? (string) $radius_settings['bottom'] : $top;
+        $left   = isset( $radius_settings['left'] ) && '' !== $radius_settings['left'] ? (string) $radius_settings['left'] : $right;
+
+        return sprintf(
+            '%1$s%5$s %2$s%5$s %3$s%5$s %4$s%5$s',
+            esc_attr( $top ),
+            esc_attr( $right ),
+            esc_attr( $bottom ),
+            esc_attr( $left ),
+            esc_attr( $unit )
+        );
     }
 
 }

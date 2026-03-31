@@ -34,7 +34,7 @@ Canonical transition note:
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
 | `bw-slick-slider` | `includes/widgets/class-bw-slick-slider-widget.php` | Generic Slider | rationalize with slide-showcase |
 | `bw-slide-showcase` | `includes/widgets/class-bw-slide-showcase-widget.php` | Showcase Slider | rationalize with slick-slider |
-| `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase; image radius is owned only by `Border Radius Immagini` with a shared default of `8px` across all three media surfaces; `Content Padding` is the overlay-offset authority for the large-image text/footer block |
+| `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase; image radius is owned only by `Border Radius Immagini` with a shared default of `8px` across all three media surfaces and is applied directly to media wrappers + images at render time; `Content Padding` is the overlay-offset authority for the large-image text/footer block |
 | `bw-tags` | `includes/widgets/class-bw-tags-widget.php` | Taxonomy/UI | non-slider |
 
 ## Visible editor titles (selected canonical mappings)
