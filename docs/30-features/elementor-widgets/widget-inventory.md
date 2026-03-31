@@ -13,6 +13,7 @@ Canonical transition note:
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
+| `bw-basic-slide` | `includes/widgets/class-bw-basic-slide-widget.php` | Gallery / Slider | dual-mode image widget: Embla `Slide` mode or responsive `Wall` mode with optional bottom gradient |
 | `bw-psychadelic-banner` | `includes/widgets/class-bw-psychadelic-banner-widget.php` | Content/UI | CSS-only psychedelic label-loop banner with responsive central PNG art, viewport-driven label sizing, and optional marquee motion |
 | `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
@@ -41,6 +42,7 @@ Canonical transition note:
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-big-text` -> `BW-UI Big Text` (visible title)
+- `bw-basic-slide` -> `BW-UI Basic Slide` (visible title)
 - `bw-product-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-psychadelic-banner` -> `BW-UI Psychadelic Banner` (visible title)
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
@@ -239,6 +241,44 @@ Important runtime note:
   - `Style Section` adds hero-style content/media controls plus a dedicated conditional Style tab for typography, colors, overlay, glow, and content positioning
   - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
   - public submit handled through nonce-protected server-side AJAX endpoint
+- `bw-psychadelic-banner`:
+  - decorative editorial banner widget with CSS-only marquee rows and optional central PNG art
+  - content controls:
+    - `Labels List`
+    - `Center PNG`
+    - responsive `Center Image Position`
+    - responsive `Center Image Width`
+    - responsive `Banner Height`
+    - responsive `Inner Padding`
+    - `Rows` (`2..8`)
+    - `Animation` on/off
+    - `Animation Speed`
+  - style controls:
+    - `Background Color`
+    - label text / border / background colors
+    - typography group for family/weight/transform
+    - viewport-driven label sizing via `vw`, `vh`, `min`, `max`
+    - label padding / radius
+    - rows gap / labels gap
+  - runtime:
+    - no JS dependency
+    - animated mode duplicates label groups for infinite marquee motion
+    - static mode disables motion and wraps labels visibly
+    - central image is rendered in a non-interactive overlay layer above the label field
+- `bw-basic-slide`:
+  - dual-mode image gallery widget
+  - `Mode = Slide`:
+    - Embla-based horizontal gallery
+    - gallery-only source
+    - shared image resolution selector
+    - breakpoint repeater for slides-to-show / scroll, arrows, dots, center mode, variable width, slide width, and image height behavior
+    - eager/lazy image loading seeded from the desktop visible-count contract
+  - `Mode = Wall`:
+    - CSS grid image wall, not masonry
+    - responsive columns
+    - responsive wall height with internal overflow scroll
+    - optional bottom fade gradient to suggest more content below
+    - no `View all` button in the current contract
 - `bw-reviews`:
   - minimal editor controls only (`product_id` override)
   - business/data authority delegated to `includes/modules/reviews/`

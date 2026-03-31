@@ -628,6 +628,7 @@ add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_related_product
 add_action('init', 'bw_register_price_variation_widget_assets');
 add_action('init', 'bw_register_trust_box_widget_assets');
 add_action('init', 'bw_register_presentation_slide_widget_assets');
+add_action('init', 'bw_register_basic_slide_widget_assets');
 add_action('init', 'bw_register_product_slider_widget_assets');
 add_action('init', 'bw_register_showcase_slide_widget_assets');
 add_action('init', 'bw_register_mosaic_slider_widget_assets');
@@ -1368,6 +1369,30 @@ function bw_enqueue_presentation_slide_widget_assets()
     if (wp_script_is('bw-presentation-slide-script', 'registered')) {
         wp_enqueue_script('bw-presentation-slide-script');
     }
+}
+
+function bw_register_basic_slide_widget_assets()
+{
+    $css_file = __DIR__ . '/assets/css/bw-basic-slide.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-basic-slide-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-basic-slide.css',
+        ['bw-embla-core-css'],
+        $css_version
+    );
+
+    $js_file = __DIR__ . '/assets/js/bw-basic-slide.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : '1.0.0';
+
+    wp_register_script(
+        'bw-basic-slide-script',
+        plugin_dir_url(__FILE__) . 'assets/js/bw-basic-slide.js',
+        ['jquery', 'embla-js', 'bw-embla-core-js'],
+        $js_version,
+        true
+    );
 }
 
 function bw_register_product_slider_widget_assets()
