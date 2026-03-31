@@ -152,6 +152,27 @@ class BW_Psychadelic_Banner_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'inner_padding',
+            [
+                'label'      => __( 'Inner Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'vw', 'vh' ],
+                'default'    => [
+                    'top'      => 18,
+                    'right'    => 0,
+                    'bottom'   => 18,
+                    'left'     => 0,
+                    'unit'     => 'px',
+                    'isLinked' => false,
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-psychadelic-banner__background' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-psychadelic-banner__image-layer' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->add_control(
             'row_count',
             [

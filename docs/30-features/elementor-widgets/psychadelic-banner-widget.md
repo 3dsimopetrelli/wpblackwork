@@ -52,6 +52,10 @@ blackwork
 - `Banner Height`
   - responsive
   - supports `px | vh | %`
+- `Inner Padding`
+  - responsive
+  - controls the top/right/bottom/left inset of the animated label field and the central PNG layer
+  - primary authority for increasing or reducing the visible black border at top and bottom
 - `Rows`
   - controls how many animated/static label rows are rendered
   - current supported range: `2..8`
