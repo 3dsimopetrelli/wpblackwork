@@ -839,7 +839,7 @@
 }
 
 .bw-reviews-modal__backdrop {
-    background: rgba(9, 9, 10, 0.28) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
     backdrop-filter: blur(20px) saturate(1.12) !important;
     -webkit-backdrop-filter: blur(20px) saturate(1.12) !important;
 }
