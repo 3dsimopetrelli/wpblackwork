@@ -85,6 +85,7 @@ Visible only when `Mode = Wall`.
 - responsive `Wall Height`
 - `Bottom Gradient` on/off
 - `Gradient Color`
+- responsive `Gradient Height`
 
 ### Style > Images
 - responsive `Gap`
@@ -112,7 +113,7 @@ Visible only when `Mode = Slide`.
 ### Wall mode
 - renders a responsive CSS grid, not a masonry layout
 - preserves image aspect ratio naturally
-- uses internal vertical scrolling when the wall height is constrained
+- clips visually when the wall height is constrained; it does not create an internal mouse/trackpad scroll area
 - optional bottom gradient communicates that additional content continues below
 - no `View all` CTA is currently rendered
 

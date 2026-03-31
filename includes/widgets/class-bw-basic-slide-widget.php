@@ -419,6 +419,30 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_responsive_control(
+            'wall_gradient_height',
+            [
+                'label'      => __( 'Gradient Height', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', 'vh', '%' ],
+                'range'      => [
+                    'px' => [ 'min' => 20, 'max' => 400, 'step' => 1 ],
+                    'vh' => [ 'min' => 2, 'max' => 60, 'step' => 1 ],
+                    '%'  => [ 'min' => 2, 'max' => 60, 'step' => 1 ],
+                ],
+                'default'    => [
+                    'size' => 140,
+                    'unit' => 'px',
+                ],
+                'condition'  => [
+                    'wall_gradient' => 'yes',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-basic-slide-wall-shell' => '--bw-bs-wall-gradient-height: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
     }
 
