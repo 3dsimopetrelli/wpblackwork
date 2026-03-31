@@ -56,13 +56,15 @@
     overflow: hidden;
     background: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
+    clip-path: inset(0 round 8px);
+    isolation: isolate;
 }
 
 .bw-static-showcase-right-image img {
     width: 100%;
     height: 100%;
     display: block;
-    border-radius: 8px;
+    border-radius: inherit;
     /* object-fit set via inline style from build_image_style() */
 }
 
@@ -88,6 +90,8 @@
     box-sizing: border-box;
     background: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
+    clip-path: inset(0 round 8px);
+    isolation: isolate;
 }
 
 .bw-slide-showcase-image {
@@ -95,7 +99,7 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    border-radius: 8px;
+    border-radius: inherit;
 }
 
 .bw-static-showcase--no-crop .bw-slide-showcase-image,
