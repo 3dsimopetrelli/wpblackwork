@@ -608,22 +608,19 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         }
 
         $container_style = esc_attr(
-            '--bw-slide-showcase-text-color: ' . $meta_color . '; --bw-slide-showcase-badge-border-color: ' . $meta_color . ';'
+            '--bw-slide-showcase-text-color: ' . $meta_color . '; --bw-slide-showcase-badge-border-color: ' . $meta_color . '; --bw-static-showcase-image-radius: ' . $image_radius . ';'
         );
         $bottom_info_style = esc_attr( 'color: ' . $meta_color . ';' );
         $badge_style       = esc_attr( 'color: ' . $meta_color . '; border-color: ' . $meta_color . ';' );
 
         // Shared attributes for lazy images
-        $img_style         = $this->build_image_style( $object_fit, $image_radius );
-        $media_shell_style = esc_attr(
-            'border-radius: ' . $image_radius . '; overflow: hidden; clip-path: inset(0 round ' . $image_radius . '); transform: translateZ(0);'
-        );
+        $img_style = $this->build_image_style( $object_fit );
 
         ?>
         <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>" style="<?php echo $container_style; ?>">
             <div class="bw-static-showcase-left">
                 <?php if ( $image_id || $image_url ) : ?>
-                    <div class="bw-slide-showcase-media" style="<?php echo $media_shell_style; ?>">
+                    <div class="bw-slide-showcase-media">
                         <?php if ( $image_id ) : ?>
                             <?php echo wp_get_attachment_image( $image_id, 'large', false, [
                                 'class'   => 'bw-slide-showcase-image bw-lazy-img',
@@ -700,18 +697,22 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             <div class="bw-static-showcase-right">
                 <?php if ( ! empty( $gallery_ids ) ) : ?>
                     <?php foreach ( $gallery_ids as $gal_id ) : ?>
-                        <div class="bw-static-showcase-right-image" style="<?php echo $media_shell_style; ?>">
-                            <?php echo wp_get_attachment_image( (int) $gal_id, 'medium_large', false, [
-                                'class'   => 'bw-lazy-img',
-                                'loading' => 'lazy',
-                                'style'   => $img_style,
-                                'alt'     => $product_title,
-                            ] ); ?>
+                        <div class="bw-static-showcase-right-image">
+                            <div class="bw-static-showcase-right-media">
+                                <?php echo wp_get_attachment_image( (int) $gal_id, 'medium_large', false, [
+                                    'class'   => 'bw-lazy-img',
+                                    'loading' => 'lazy',
+                                    'style'   => $img_style,
+                                    'alt'     => $product_title,
+                                ] ); ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php else : ?>
                     <div class="bw-static-showcase-right-image bw-static-showcase-right-image--placeholder">
-                        <span class="bw-static-showcase-placeholder-text"><?php esc_html_e( 'No gallery images', 'bw-elementor-widgets' ); ?></span>
+                        <div class="bw-static-showcase-right-media bw-static-showcase-right-media--placeholder">
+                            <span class="bw-static-showcase-placeholder-text"><?php esc_html_e( 'No gallery images', 'bw-elementor-widgets' ); ?></span>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
@@ -733,12 +734,11 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
      * Returns unescaped inline style string for images.
      * Callers must escape on output: esc_attr() for direct echo, or pass raw to wp_get_attachment_image().
      */
-    private function build_image_style( $object_fit, $border_radius ) {
+    private function build_image_style( $object_fit ) {
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
-        $radius_value = '' !== $border_radius ? $border_radius : '8px';
 
-        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . '; border-radius: ' . $radius_value . '; clip-path: inset(0 round ' . $radius_value . '); display: block; transform: translateZ(0);';
+        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . '; display: block;';
     }
 
     /**
