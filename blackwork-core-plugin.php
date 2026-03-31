@@ -617,6 +617,7 @@ add_action('init', 'bw_register_product_grid_widget_assets');
 // product-grid: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_product_grid_widget_assets');
 add_action('init', 'bw_register_animated_banner_widget_assets');
+add_action('init', 'bw_register_psychadelic_banner_widget_assets');
 // animated-banner: editor only — frontend assets handled via get_style_depends()/get_script_depends()
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_animated_banner_widget_assets');
 add_action('wp_enqueue_scripts', 'bw_enqueue_smart_header_assets');
@@ -1219,6 +1220,11 @@ function bw_register_static_showcase_widget_assets()
         $js_version,
         true
     );
+}
+
+function bw_register_psychadelic_banner_widget_assets()
+{
+    bw_register_widget_assets('psychadelic-banner', [], false);
 }
 
 function bw_register_price_variation_widget_assets()

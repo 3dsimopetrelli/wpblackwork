@@ -13,6 +13,7 @@ Canonical transition note:
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
+| `bw-psychadelic-banner` | `includes/widgets/class-bw-psychadelic-banner-widget.php` | Content/UI | CSS-only psychedelic label-loop banner with responsive central PNG art, viewport-driven label sizing, and optional marquee motion |
 | `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
@@ -34,13 +35,14 @@ Canonical transition note:
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
 | `bw-slick-slider` | `includes/widgets/class-bw-slick-slider-widget.php` | Generic Slider | rationalize with slide-showcase |
 | `bw-slide-showcase` | `includes/widgets/class-bw-slide-showcase-widget.php` | Showcase Slider | rationalize with slick-slider |
-| `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase; image radius is owned only by `Border Radius Immagini` with a shared default of `8px` across all three media surfaces and is applied directly to media wrappers + images at render time; `Content Padding` is the overlay-offset authority for the large-image text/footer block |
+| `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase; image radius is owned only by `Border Radius Immagini` with a shared default of `8px` across all three media surfaces and is applied directly to media wrappers + images at render time; `Content Padding` is the overlay-offset authority for the large-image text/footer block; right-column inner-corner radius still has an open rendering inconsistency and is not considered solved |
 | `bw-tags` | `includes/widgets/class-bw-tags-widget.php` | Taxonomy/UI | non-slider |
 
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-big-text` -> `BW-UI Big Text` (visible title)
 - `bw-product-slider` -> `BW-UI Product Slider` (visible title)
+- `bw-psychadelic-banner` -> `BW-UI Psychadelic Banner` (visible title)
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
 - `bw-title-product` -> `BW Title Product` (visible title)

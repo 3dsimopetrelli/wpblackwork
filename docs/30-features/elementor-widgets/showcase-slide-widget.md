@@ -262,6 +262,10 @@ Below `800px` viewport width:
 
 ### `BW Static Showcase`
 - reference for showcase metabox field usage and showcase content structure
+- current maintenance note:
+  - `Border Radius Immagini` is still the intended authority
+  - `Content Padding` now owns the large-image overlay offsets
+  - the right-column inner-corner radius issue is still open and should not be treated as solved
 
 ## Runtime Notes
 - Asset registration is centralized in `blackwork-core-plugin.php`.
