@@ -18,7 +18,6 @@
     height: 600px;
     display: flex;
     overflow: hidden;
-    border-radius: 16px;
     box-sizing: border-box;
     --bw-slide-showcase-text-color: #ffffff;
     --bw-slide-showcase-badge-border-color: #ffffff;
@@ -56,12 +55,14 @@
     width: 100%;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
 }
 
 .bw-static-showcase-right-image img {
     width: 100%;
     height: 100%;
     display: block;
+    border-radius: 8px;
     /* object-fit set via inline style from build_image_style() */
 }
 
@@ -86,6 +87,7 @@
     overflow: hidden;
     box-sizing: border-box;
     background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
 }
 
 .bw-slide-showcase-image {
@@ -93,6 +95,7 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    border-radius: 8px;
 }
 
 .bw-static-showcase--no-crop .bw-slide-showcase-image,

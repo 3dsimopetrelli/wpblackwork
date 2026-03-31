@@ -192,37 +192,22 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             'default'      => 'yes',
         ] );
 
-        $this->add_responsive_control( 'border_radius', [
-            'label'      => __( 'Border Radius Container', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em' ],
-            'default'    => [
-                'top' => 16,
-                'right' => 16,
-                'bottom' => 16,
-                'left' => 16,
-                'unit' => 'px',
-                'isLinked' => true,
-            ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-static-showcase-container' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
         $this->add_responsive_control( 'images_border_radius', [
             'label'       => __( 'Border Radius Immagini', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::DIMENSIONS,
             'size_units'  => [ 'px', '%', 'em' ],
             'default'     => [
-                'top'      => 0,
-                'right'    => 0,
-                'bottom'   => 0,
-                'left'     => 0,
+                'top'      => 8,
+                'right'    => 8,
+                'bottom'   => 8,
+                'left'     => 8,
                 'unit'     => 'px',
                 'isLinked' => true,
             ],
             'selectors'   => [
+                '{{WRAPPER}} .bw-slide-showcase-media' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-slide-showcase-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-static-showcase-right-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-static-showcase-right-image img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
             'description' => __( 'Applica lo stesso border radius a tutte e tre le immagini del widget.', 'bw-elementor-widgets' ),
