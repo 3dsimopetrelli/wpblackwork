@@ -17,7 +17,11 @@
     width: 100%;
     height: 600px;
     display: flex;
-    overflow: hidden;
+    overflow: hidden !important;
+    border-radius: 8px !important;
+    clip-path: inset(0 round 8px);
+    isolation: isolate;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
     box-sizing: border-box;
     --bw-slide-showcase-text-color: #ffffff;
     --bw-slide-showcase-badge-border-color: #ffffff;
@@ -33,8 +37,10 @@
     flex: 0 0 75%;
     width: 75%;
     height: 100%;
-    overflow: hidden;
+    overflow: hidden !important;
     background: rgba(0, 0, 0, 0.05);
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
     --bw-static-showcase-content-top: 50px;
     --bw-static-showcase-content-right: 50px;
     --bw-static-showcase-content-bottom: 50px;
@@ -51,43 +57,46 @@
     flex-direction: column;
     gap: 8px;
     padding: 0;
-    overflow: hidden;
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-}
-
-.bw-static-showcase-right-image {
-    position: relative;
-    flex: 1;
-    width: 100%;
-    display: block;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    clip-path: inset(0 round 8px);
+    overflow: hidden !important;
+    border-radius: 8px !important;
+    clip-path: inset(0 round 8px) !important;
     isolation: isolate;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
-.bw-static-showcase-right-image img {
+.bw-static-showcase-container .bw-static-showcase-right-image {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    display: block;
+    overflow: hidden !important;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px !important;
+    clip-path: inset(0 round 8px) !important;
+    isolation: isolate;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.bw-static-showcase-container .bw-static-showcase-right-image img {
     width: 100%;
     height: 100%;
     display: block;
-    border-radius: inherit;
-    overflow: hidden;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-clip: padding-box;
     /* object-fit set via inline style from build_image_style() */
 }
 
-.bw-static-showcase-right-image:first-child,
-.bw-static-showcase-right-image:first-child img {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+.bw-static-showcase-container .bw-static-showcase-right-image:first-child,
+.bw-static-showcase-container .bw-static-showcase-right-image:first-child img {
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
 }
 
-.bw-static-showcase-right-image:last-child,
-.bw-static-showcase-right-image:last-child img {
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+.bw-static-showcase-container .bw-static-showcase-right-image:last-child,
+.bw-static-showcase-container .bw-static-showcase-right-image:last-child img {
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
 }
 
 .bw-static-showcase-right-image--placeholder {
@@ -105,24 +114,26 @@
 }
 
 /* Main image in left section */
-.bw-slide-showcase-media {
+.bw-static-showcase-container .bw-slide-showcase-media {
     position: absolute;
     inset: 0;
-    overflow: hidden;
+    overflow: hidden !important;
     box-sizing: border-box;
     background: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    clip-path: inset(0 round 8px);
+    border-radius: 8px !important;
+    clip-path: inset(0 round 8px) !important;
     isolation: isolate;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
-.bw-slide-showcase-image {
+.bw-static-showcase-container .bw-slide-showcase-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    border-radius: inherit;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background-clip: padding-box;
 }
 
 .bw-static-showcase--no-crop .bw-slide-showcase-image,
@@ -303,12 +314,15 @@
 @media (max-width: 768px) {
     .bw-static-showcase-container {
         flex-direction: column;
+        border-radius: 8px !important;
     }
 
     .bw-static-showcase-left {
         flex: 0 0 70%;
         width: 100%;
         height: 70%;
+        border-top-right-radius: 8px !important;
+        border-bottom-left-radius: 0 !important;
     }
 
     .bw-static-showcase-right {
@@ -316,9 +330,9 @@
         width: 100%;
         height: 30%;
         flex-direction: row;
-        border-top-right-radius: 0;
-        border-bottom-left-radius: 8px;
-        border-bottom-right-radius: 8px;
+        border-top-right-radius: 0 !important;
+        border-bottom-left-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
     }
 
     .bw-slide-showcase-content {
