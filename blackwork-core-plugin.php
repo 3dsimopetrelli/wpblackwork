@@ -1389,7 +1389,7 @@ function bw_register_basic_slide_widget_assets()
     wp_register_script(
         'bw-basic-slide-script',
         plugin_dir_url(__FILE__) . 'assets/js/bw-basic-slide.js',
-        ['jquery', 'embla-js', 'bw-embla-core-js'],
+        ['jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js'],
         $js_version,
         true
     );

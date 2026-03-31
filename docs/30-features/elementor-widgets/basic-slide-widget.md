@@ -55,6 +55,8 @@ blackwork
 Visible only when `Mode = Slide`.
 
 - `Infinite Loop`
+- `Autoplay`
+- `Autoplay Speed`
 - `Touch Drag`
 - `Mouse / Trackpad Drag`
 - `Slide Alignment`
@@ -70,6 +72,8 @@ Each breakpoint row currently supports:
 - `Show Dots`
 - `Center Mode`
 - `Variable Width`
+  - current authority for proportional mixed-width strips
+  - when enabled with a fixed image height, each slide width follows the image ratio
 - `Slide Width (px)` when variable width is off
 - `Image Height Mode`
   - `Scale / Original Ratio`
@@ -107,8 +111,10 @@ Visible only when `Mode = Slide`.
   - dots visibility
   - image height behavior
 - JS re-initializes Embla `slidesToScroll` / alignment when the active breakpoint changes
+- desktop horizontal two-finger trackpad gestures are intercepted through the same wheel-driven pattern used by the other BW Embla sliders
 - first visible image is promoted with `fetchpriority="high"` and `decoding="sync"`
 - first visible slide group is eagerly loaded based on the largest configured breakpoint
+- autoplay is supported through `embla-autoplay-js`
 
 ### Wall mode
 - renders a responsive CSS grid, not a masonry layout

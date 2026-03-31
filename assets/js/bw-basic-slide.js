@@ -16,6 +16,7 @@
             this.mode = this.$wrapper.data('mode') || 'slide';
             this.config = this.$wrapper.data('config') || {};
             this.emblaCore = null;
+            this._wheelHandler = null;
             this._sortedBreakpoints = [];
             this._lastBreakpointIndex = undefined;
             this.initialized = false;
@@ -55,6 +56,8 @@
                 return;
             }
 
+            this.$wrapper.addClass('loading');
+
             const hCfg = this.config.horizontal || {};
             const enableTouch = hCfg.enableTouchDrag !== false;
             const enableMouse = hCfg.enableMouseDrag !== false;
@@ -70,6 +73,15 @@
                 watchDrag = (_api, evt) => evt.pointerType !== 'mouse';
             }
 
+            const autoplayOpts = hCfg.autoplay ? {
+                delay: hCfg.autoplaySpeed || 3000,
+                playOnInit: true,
+                stopOnInteraction: true,
+                stopOnMouseEnter: true,
+                stopOnFocusIn: true,
+                jump: false,
+            } : false;
+
             this.emblaCore = new BWEmblaCore(viewport, {
                 loop: hCfg.infinite === true,
                 align: hCfg.align || 'start',
@@ -83,6 +95,7 @@
                 nextBtn: this.$wrapper.find('.bw-bs-arrow-next')[0],
                 dotsContainer: this.$wrapper.find('.bw-bs-dots-container')[0],
                 dotsPosition: 'center',
+                autoplay: autoplayOpts,
             });
 
             const api = this.emblaCore.init();
@@ -92,6 +105,9 @@
                 return;
             }
 
+            if (enableMouse) {
+                this.attachWheelHandler();
+            }
             this.updateEmblaBreakpointOptions();
             $(window).on(`resize.bwbs-${this.widgetId}`, debounce(() => {
                 this.updateEmblaBreakpointOptions();
@@ -138,6 +154,77 @@
             return -1;
         }
 
+        attachWheelHandler() {
+            const wrapper = this.$wrapper[0];
+            let wheelEndTimer = null;
+
+            this._wheelHandler = (evt) => {
+                if (!wrapper.contains(evt.target)) {
+                    return;
+                }
+
+                if (Math.abs(evt.deltaX) <= Math.abs(evt.deltaY)) {
+                    return;
+                }
+
+                const emblaApi = this.emblaCore?.api();
+                if (!emblaApi || emblaApi.isDragging?.()) {
+                    return;
+                }
+
+                evt.preventDefault();
+
+                let dx = evt.deltaX;
+                if (evt.deltaMode === 1) {
+                    dx *= 20;
+                }
+                if (evt.deltaMode === 2) {
+                    dx *= 200;
+                }
+                dx *= 3;
+
+                const engine = emblaApi.internalEngine();
+                const snaps = engine.scrollSnaps;
+                const newTarget = engine.target.get() - dx;
+
+                engine.target.set(
+                    engine.options.loop
+                        ? newTarget
+                        : Math.max(
+                            Math.min.apply(null, snaps),
+                            Math.min(Math.max.apply(null, snaps), newTarget)
+                        )
+                );
+                engine.animation.start();
+
+                clearTimeout(wheelEndTimer);
+                wheelEndTimer = setTimeout(() => {
+                    const api = this.emblaCore?.api();
+                    if (!api) {
+                        return;
+                    }
+
+                    const eng = api.internalEngine();
+                    const target = eng.target.get();
+                    const snapList = eng.scrollSnaps;
+                    let bestIndex = 0;
+                    let bestDistance = Infinity;
+
+                    for (let i = 0; i < snapList.length; i++) {
+                        const distance = Math.abs(snapList[i] - target);
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            bestIndex = i;
+                        }
+                    }
+
+                    api.scrollTo(bestIndex);
+                }, 300);
+            };
+
+            window.addEventListener('wheel', this._wheelHandler, { passive: false });
+        }
+
         updateEmblaBreakpointOptions() {
             if (!this.emblaCore) {
                 return;
@@ -163,6 +250,13 @@
                 align,
                 containScroll: (bp?.centerMode || bp?.variableWidth || align !== 'start') ? false : 'trimSnaps',
             });
+        }
+
+        destroy() {
+            if (this._wheelHandler) {
+                window.removeEventListener('wheel', this._wheelHandler);
+                this._wheelHandler = null;
+            }
         }
     }
 

@@ -26,7 +26,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
     }
 
     public function get_script_depends() {
-        return [ 'embla-js', 'bw-embla-core-js', 'bw-basic-slide-script' ];
+        return [ 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js', 'bw-basic-slide-script' ];
     }
 
     public function get_style_depends() {
@@ -116,6 +116,33 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'autoplay',
+            [
+                'label'        => __( 'Autoplay', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw' ),
+                'label_off'    => __( 'No', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $this->add_control(
+            'autoplay_speed',
+            [
+                'label'     => __( 'Autoplay Speed (ms)', 'bw' ),
+                'type'      => Controls_Manager::NUMBER,
+                'default'   => 3000,
+                'min'       => 1000,
+                'max'       => 10000,
+                'step'      => 250,
+                'condition' => [
+                    'autoplay' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'touch_drag',
             [
                 'label'        => __( 'Touch Drag', 'bw' ),
@@ -124,6 +151,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
+                'description'  => __( 'Allow swipe drag on touch devices.', 'bw' ),
             ]
         );
 
@@ -136,6 +164,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
                 'label_off'    => __( 'No', 'bw' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
+                'description'  => __( 'Allow mouse drag and horizontal two-finger trackpad gestures on desktop.', 'bw' ),
             ]
         );
 
@@ -237,12 +266,13 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         $repeater->add_control(
             'variable_width',
             [
-                'label'        => __( 'Variable Width', 'bw' ),
+                'label'        => __( 'Variable / Proportional Width', 'bw' ),
                 'type'         => Controls_Manager::SWITCHER,
                 'label_on'     => __( 'Yes', 'bw' ),
                 'label_off'    => __( 'No', 'bw' ),
                 'return_value' => 'yes',
                 'default'      => '',
+                'description'  => __( 'When enabled, each slide width follows the image proportion. Use a fixed height for editorial mixed-width strips.', 'bw' ),
             ]
         );
 
@@ -687,6 +717,8 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             'mode' => 'slide',
             'horizontal' => [
                 'infinite'        => ( $settings['infinite_loop'] ?? 'yes' ) === 'yes',
+                'autoplay'        => ( $settings['autoplay'] ?? '' ) === 'yes',
+                'autoplaySpeed'   => absint( $settings['autoplay_speed'] ?? 3000 ),
                 'align'           => $settings['slide_align'] ?? 'start',
                 'enableTouchDrag' => ( $settings['touch_drag'] ?? 'yes' ) === 'yes',
                 'enableMouseDrag' => ( $settings['mouse_drag'] ?? 'yes' ) === 'yes',
@@ -771,7 +803,12 @@ class BW_Basic_Slide_Widget extends Widget_Base {
 
         if ( $variable_width ) {
             $rule .= $sel_slide . '{width:auto;}';
-            $rule .= $sel_media . '{width:auto;height:' . $height_value . ';}';
+            if ( 'auto' === $height_mode || '' === $height_value ) {
+                $rule .= $sel_media . '{display:inline-flex;width:auto;height:auto;}';
+                $rule .= $sel_img . '{width:auto;height:auto;max-width:none;object-fit:contain;}';
+                return $rule;
+            }
+            $rule .= $sel_media . '{display:inline-flex;width:auto;height:' . $height_value . ';}';
             $rule .= $sel_img . '{width:auto;height:100%;max-width:none;' . ( 'cover' === $height_mode ? 'object-fit:cover;' : 'object-fit:contain;' ) . '}';
             return $rule;
         }

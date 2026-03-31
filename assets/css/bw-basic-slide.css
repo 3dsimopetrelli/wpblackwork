@@ -7,6 +7,18 @@
     width: 100%;
 }
 
+.bw-basic-slide-wrapper .bw-embla-img,
+.bw-basic-slide-wrapper .bw-lazy-img {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: opacity;
+}
+
+.bw-basic-slide-wrapper .bw-embla-img.is-loaded,
+.bw-basic-slide-wrapper .bw-lazy-img.is-loaded {
+    opacity: 1;
+}
+
 .bw-basic-slide-wrapper *,
 .bw-basic-slide-wrapper *::before,
 .bw-basic-slide-wrapper *::after {
@@ -53,6 +65,7 @@
     height: auto;
     max-width: 100%;
     border-radius: inherit;
+    object-position: center;
 }
 
 .bw-basic-slide-mode-slide .bw-bs-arrows-container {
