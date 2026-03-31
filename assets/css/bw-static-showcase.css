@@ -89,12 +89,16 @@
 
 .bw-static-showcase-container .bw-static-showcase-right-image:first-child,
 .bw-static-showcase-container .bw-static-showcase-right-image:first-child img {
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
 }
 
 .bw-static-showcase-container .bw-static-showcase-right-image:last-child,
 .bw-static-showcase-container .bw-static-showcase-right-image:last-child img {
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
     border-bottom-left-radius: 8px !important;
     border-bottom-right-radius: 8px !important;
 }
