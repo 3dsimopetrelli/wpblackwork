@@ -615,7 +615,9 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
 
         // Shared attributes for lazy images
         $img_style         = $this->build_image_style( $object_fit, $image_radius );
-        $media_shell_style = esc_attr( 'border-radius: ' . $image_radius . '; overflow: hidden;' );
+        $media_shell_style = esc_attr(
+            'border-radius: ' . $image_radius . '; overflow: hidden; clip-path: inset(0 round ' . $image_radius . '); transform: translateZ(0);'
+        );
 
         ?>
         <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $container_classes ) ) ); ?>" style="<?php echo $container_style; ?>">
@@ -736,7 +738,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
         $radius_value = '' !== $border_radius ? $border_radius : '8px';
 
-        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . '; border-radius: ' . $radius_value . '; display: block;';
+        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . '; border-radius: ' . $radius_value . '; clip-path: inset(0 round ' . $radius_value . '); display: block; transform: translateZ(0);';
     }
 
     /**
