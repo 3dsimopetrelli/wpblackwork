@@ -153,6 +153,24 @@ class BW_Psychadelic_Banner_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'row_count',
+            [
+                'label'   => __( 'Rows', 'bw' ),
+                'type'    => Controls_Manager::SELECT,
+                'default' => '5',
+                'options' => [
+                    '2' => '2',
+                    '3' => '3',
+                    '4' => '4',
+                    '5' => '5',
+                    '6' => '6',
+                    '7' => '7',
+                    '8' => '8',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'animation_enabled',
             [
                 'label'        => __( 'Animation', 'bw' ),
@@ -161,6 +179,25 @@ class BW_Psychadelic_Banner_Widget extends Widget_Base {
                 'label_off'    => __( 'Off', 'bw' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'animation_speed',
+            [
+                'label'       => __( 'Animation Speed', 'bw' ),
+                'type'        => Controls_Manager::SLIDER,
+                'range'       => [
+                    'px' => [ 'min' => 10, 'max' => 100, 'step' => 1 ],
+                ],
+                'default'     => [
+                    'size' => 55,
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Higher value = faster loop motion.', 'bw' ),
+                'condition'   => [
+                    'animation_enabled' => 'yes',
+                ],
             ]
         );
 
@@ -400,14 +437,19 @@ class BW_Psychadelic_Banner_Widget extends Widget_Base {
         $image_id        = isset( $settings['center_image']['id'] ) ? absint( $settings['center_image']['id'] ) : 0;
         $image_url       = isset( $settings['center_image']['url'] ) ? esc_url_raw( (string) $settings['center_image']['url'] ) : '';
         $animation_class = ( isset( $settings['animation_enabled'] ) && 'yes' === $settings['animation_enabled'] ) ? 'is-animated' : 'is-static';
+        $row_count       = isset( $settings['row_count'] ) ? max( 2, min( 8, absint( $settings['row_count'] ) ) ) : 5;
+        $base_duration   = $this->get_animation_base_duration( $settings );
 
         if ( empty( $labels ) ) {
             $labels = [ 'Psychadelic', 'Banner', 'Blackwork', 'Archive' ];
         }
 
-        $rows = $this->build_rows( $labels, 5 );
+        $rows = $this->build_rows( $labels, $row_count );
         ?>
-        <div class="bw-psychadelic-banner <?php echo esc_attr( $animation_class ); ?>">
+        <div
+            class="bw-psychadelic-banner <?php echo esc_attr( $animation_class ); ?>"
+            style="--bw-pb-base-duration: <?php echo esc_attr( $base_duration ); ?>s;"
+        >
             <div class="bw-psychadelic-banner__background" aria-hidden="true">
                 <?php foreach ( $rows as $row_index => $row_labels ) : ?>
                     <div class="bw-psychadelic-banner__row <?php echo 0 === $row_index % 2 ? 'is-forward' : 'is-reverse'; ?>">
@@ -497,5 +539,13 @@ class BW_Psychadelic_Banner_Widget extends Widget_Base {
         }
 
         return $markup;
+    }
+
+    private function get_animation_base_duration( $settings ) {
+        $speed = isset( $settings['animation_speed']['size'] ) ? absint( $settings['animation_speed']['size'] ) : 55;
+        $speed = max( 10, min( 100, $speed ) );
+
+        // Map a friendly "speed" editor control to marquee duration seconds.
+        return max( 10, 54 - ( $speed * 0.4 ) );
     }
 }

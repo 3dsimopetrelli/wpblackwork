@@ -52,8 +52,14 @@ blackwork
 - `Banner Height`
   - responsive
   - supports `px | vh | %`
+- `Rows`
+  - controls how many animated/static label rows are rendered
+  - current supported range: `2..8`
 - `Animation`
   - `On | Off`
+- `Animation Speed`
+  - visible only when animation is enabled
+  - higher value = faster marquee motion
 
 ### Style
 - `Background Color`
@@ -74,6 +80,7 @@ blackwork
 
 ## Rendering Behavior
 - the widget builds 5 horizontal rows
+- the widget builds a configurable number of horizontal rows (`2..8`)
 - each row uses the same label list with a rotated starting point
 - when `Animation = On`:
   - each row renders a duplicated label group
@@ -104,7 +111,6 @@ Implementation note:
 
 ## Current Limitations
 - label rows are presentation-only and not interactive filter controls
-- animation speed is currently fixed in CSS and not yet exposed as an editor control
 - the widget assumes short-to-medium label lengths; extremely long labels can visually dominate a row
 
 ## Related Documentation

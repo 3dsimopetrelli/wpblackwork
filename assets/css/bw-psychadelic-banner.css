@@ -9,6 +9,7 @@
     --bw-pb-pill-gap: 18px;
     --bw-pb-row-gap: 20px;
     --bw-pb-label-radius: 999px;
+    --bw-pb-base-duration: 32s;
     position: relative;
     display: block;
     width: 100%;
@@ -73,19 +74,19 @@
 }
 
 .bw-psychadelic-banner.is-animated .bw-psychadelic-banner__row.is-forward .bw-psychadelic-banner__track {
-    animation: bwPsychadelicBannerForward 28s linear infinite;
+    animation: bwPsychadelicBannerForward var(--bw-pb-base-duration) linear infinite;
 }
 
 .bw-psychadelic-banner.is-animated .bw-psychadelic-banner__row.is-reverse .bw-psychadelic-banner__track {
-    animation: bwPsychadelicBannerReverse 30s linear infinite;
+    animation: bwPsychadelicBannerReverse calc(var(--bw-pb-base-duration) + 2s) linear infinite;
 }
 
 .bw-psychadelic-banner.is-animated .bw-psychadelic-banner__row:nth-child(2n) .bw-psychadelic-banner__track {
-    animation-duration: 34s;
+    animation-duration: calc(var(--bw-pb-base-duration) + 4s);
 }
 
 .bw-psychadelic-banner.is-animated .bw-psychadelic-banner__row:nth-child(3n) .bw-psychadelic-banner__track {
-    animation-duration: 38s;
+    animation-duration: calc(var(--bw-pb-base-duration) + 8s);
 }
 
 .bw-psychadelic-banner.is-static .bw-psychadelic-banner__background {
