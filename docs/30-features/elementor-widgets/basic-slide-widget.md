@@ -70,6 +70,7 @@ Each breakpoint row currently supports:
 - `Slides to Scroll`
 - `Show Arrows`
 - `Show Dots`
+- `Start Offset Left`
 - `Center Mode`
 - `Variable Width`
   - current authority for proportional mixed-width strips

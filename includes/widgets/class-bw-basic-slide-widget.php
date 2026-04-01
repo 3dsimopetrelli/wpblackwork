@@ -252,6 +252,27 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         );
 
         $repeater->add_control(
+            'start_offset_left',
+            [
+                'label'       => __( 'Start Offset Left', 'bw' ),
+                'type'        => Controls_Manager::SLIDER,
+                'size_units'  => [ 'px' ],
+                'range'       => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 240,
+                        'step' => 1,
+                    ],
+                ],
+                'default'     => [
+                    'size' => 0,
+                    'unit' => 'px',
+                ],
+                'description' => __( 'Adds left breathing room before the first visible slide without changing the card ratio.', 'bw' ),
+            ]
+        );
+
+        $repeater->add_control(
             'center_mode',
             [
                 'label'        => __( 'Center Mode', 'bw' ),
@@ -340,6 +361,10 @@ class BW_Basic_Slide_Widget extends Widget_Base {
                         'slides_to_scroll' => 1,
                         'show_arrows'      => 'yes',
                         'show_dots'        => '',
+                        'start_offset_left'=> [
+                            'size' => 0,
+                            'unit' => 'px',
+                        ],
                         'image_height_mode'=> 'auto',
                     ],
                     [
@@ -348,6 +373,10 @@ class BW_Basic_Slide_Widget extends Widget_Base {
                         'slides_to_scroll' => 1,
                         'show_arrows'      => 'yes',
                         'show_dots'        => '',
+                        'start_offset_left'=> [
+                            'size' => 0,
+                            'unit' => 'px',
+                        ],
                         'image_height_mode'=> 'auto',
                     ],
                     [
@@ -356,6 +385,10 @@ class BW_Basic_Slide_Widget extends Widget_Base {
                         'slides_to_scroll' => 1,
                         'show_arrows'      => '',
                         'show_dots'        => 'yes',
+                        'start_offset_left'=> [
+                            'size' => 0,
+                            'unit' => 'px',
+                        ],
                         'image_height_mode'=> 'auto',
                     ],
                 ],
@@ -736,6 +769,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         $sel_img     = $prefix . ' .bw-bs-image';
         $sel_arrows  = $prefix . ' .bw-bs-arrows-container';
         $sel_dots    = $prefix . ' .bw-bs-dots-container';
+        $sel_viewport= $prefix . ' .bw-bs-embla-viewport';
 
         if ( empty( $breakpoints ) ) {
             return;
@@ -749,7 +783,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         );
 
         $css = '<style>';
-        $css .= $this->build_slide_breakpoint_rule( $breakpoints[0], $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots );
+        $css .= $this->build_slide_breakpoint_rule( $breakpoints[0], $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots, $sel_viewport );
 
         foreach ( $breakpoints as $breakpoint ) {
             $bp_px = absint( $breakpoint['breakpoint'] ?? 0 );
@@ -758,7 +792,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             }
 
             $css .= '@media (max-width:' . $bp_px . 'px){';
-            $css .= $this->build_slide_breakpoint_rule( $breakpoint, $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots );
+            $css .= $this->build_slide_breakpoint_rule( $breakpoint, $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots, $sel_viewport );
             $css .= '}';
         }
 
@@ -768,13 +802,14 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         echo $css;
     }
 
-    private function build_slide_breakpoint_rule( array $bp, $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots ) {
+    private function build_slide_breakpoint_rule( array $bp, $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots, $sel_viewport ) {
         $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
         $variable_width = ( $bp['variable_width'] ?? '' ) === 'yes';
         $slide_width    = absint( $bp['slide_width'] ?? 0 );
         $height_mode    = sanitize_key( $bp['image_height_mode'] ?? 'auto' );
         $show_arrows    = ( $bp['show_arrows'] ?? 'yes' ) === 'yes';
         $show_dots      = ( $bp['show_dots'] ?? '' ) === 'yes';
+        $start_offset_left = $bp['start_offset_left'] ?? null;
         $height_value   = '';
 
         if ( ! empty( $bp['image_height']['size'] ) ) {
@@ -792,6 +827,11 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         }
 
         $rule  = $sel_slide . '{flex:0 0 ' . $slide_size . ';}';
+        if ( ! empty( $start_offset_left['size'] ) ) {
+            $rule .= $sel_viewport . '{box-sizing:border-box;padding-left:' . (float) $start_offset_left['size'] . ( $start_offset_left['unit'] ?? 'px' ) . ';}';
+        } else {
+            $rule .= $sel_viewport . '{box-sizing:border-box;padding-left:0;}';
+        }
         $rule .= $sel_arrows . '{display:' . ( $show_arrows ? 'flex' : 'none' ) . ';}';
         $rule .= $sel_dots . '{display:' . ( $show_dots ? 'flex' : 'none' ) . ';}';
 
