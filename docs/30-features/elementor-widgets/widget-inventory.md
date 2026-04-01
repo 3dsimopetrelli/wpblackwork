@@ -271,7 +271,8 @@ Important runtime note:
     - Embla-based horizontal gallery
     - gallery-only source
     - shared image resolution selector
-    - breakpoint repeater for slides-to-show / scroll, arrows, dots, center mode, variable width, slide width, and image height behavior
+    - breakpoint repeater for slides-to-show / scroll, arrows, dots, `Start Offset Left`, center mode, variable width, slide width, and image height behavior
+    - `Start Offset Left` supports `px | % | vw`
     - eager/lazy image loading seeded from the desktop visible-count contract
   - `Mode = Wall`:
     - CSS grid image wall, not masonry

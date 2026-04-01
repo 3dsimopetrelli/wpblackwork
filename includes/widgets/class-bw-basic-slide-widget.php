@@ -648,7 +648,10 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         <div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
             <?php
             if ( 'slide' === $mode ) {
-                $this->render_slide_breakpoint_css( $settings );
+                $inline_css = $this->render_slide_breakpoint_css( $settings );
+                if ( '' !== $inline_css ) {
+                    wp_add_inline_style( 'bw-basic-slide-style', $inline_css );
+                }
                 $this->render_slide_mode( $gallery, $settings );
             } else {
                 $this->render_wall_mode( $gallery, $settings );
@@ -782,7 +785,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
         $sel_viewport= $prefix . ' .bw-bs-embla-viewport';
 
         if ( empty( $breakpoints ) ) {
-            return;
+            return '';
         }
 
         usort(
@@ -792,7 +795,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             }
         );
 
-        $css = '<style>';
+        $css = '';
         $css .= $this->build_slide_breakpoint_rule( $breakpoints[0], $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots, $sel_viewport );
 
         foreach ( $breakpoints as $breakpoint ) {
@@ -806,10 +809,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             $css .= '}';
         }
 
-        $css .= '</style>';
-
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        echo $css;
+        return $css;
     }
 
     private function build_slide_breakpoint_rule( array $bp, $sel_slide, $sel_media, $sel_img, $sel_arrows, $sel_dots, $sel_viewport ) {

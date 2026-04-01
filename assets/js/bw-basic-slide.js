@@ -155,6 +155,10 @@
         }
 
         attachWheelHandler() {
+            if (this._wheelHandler) {
+                return;
+            }
+
             const wrapper = this.$wrapper[0];
             let wheelEndTimer = null;
 
