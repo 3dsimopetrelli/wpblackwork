@@ -650,7 +650,7 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             if ( 'slide' === $mode ) {
                 $inline_css = $this->render_slide_breakpoint_css( $settings );
                 if ( '' !== $inline_css ) {
-                    wp_add_inline_style( 'bw-basic-slide-style', $inline_css );
+                    echo '<style>' . $inline_css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 }
                 $this->render_slide_mode( $gallery, $settings );
             } else {

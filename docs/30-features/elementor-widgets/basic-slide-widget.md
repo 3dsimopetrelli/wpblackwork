@@ -131,7 +131,7 @@ Visible only when `Mode = Slide`.
 - first visible image is promoted with `fetchpriority="high"` and `decoding="sync"`
 - first visible slide group is eagerly loaded based on the largest configured breakpoint
 - autoplay is supported through `embla-autoplay-js`
-- per-instance breakpoint CSS is generated during render and attached to the widget style handle through `wp_add_inline_style()`
+- per-instance breakpoint CSS is generated during render and emitted inline inside the widget markup so breakpoint sizing is available immediately on frontend refresh and inside the Elementor preview lifecycle
 
 ### Wall mode
 - renders a responsive CSS grid, not a masonry layout

@@ -1010,17 +1010,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'data-dots-position'  => $settings['dots_position'] ?? 'center',
         ] );
 
-        $inline_css = '';
-        if ( $settings['layout_mode'] === 'horizontal' ) {
-            $inline_css .= $this->render_breakpoint_css( $settings );
-        } else {
-            $inline_css .= $this->render_vertical_responsive_css( $settings );
-        }
-
-        if ( '' !== $inline_css ) {
-            wp_add_inline_style( 'bw-presentation-slide-style', $inline_css );
-        }
-
         ?>
         <div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
             <?php
@@ -1148,8 +1137,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $is_center_align = ( ( $settings['slide_align'] ?? 'start' ) === 'center' );
         $last_index      = count( $images ) - 1;
 
+        $inline_css = $this->render_breakpoint_css( $settings );
+
         ?>
         <div class="bw-ps-horizontal">
+            <?php if ( '' !== $inline_css ) : ?>
+                <style><?php echo $inline_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></style>
+            <?php endif; ?>
             <!-- Embla viewport: overflow:hidden -->
             <div class="bw-embla-viewport bw-ps-embla-viewport">
                 <!-- Embla container: display:flex -->
@@ -1331,8 +1325,12 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
      * Render vertical layout
      */
     protected function render_vertical_layout( $images, $settings ) {
+        $inline_css = $this->render_vertical_responsive_css( $settings );
         ?>
         <div class="bw-ps-vertical">
+            <?php if ( '' !== $inline_css ) : ?>
+                <style><?php echo $inline_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></style>
+            <?php endif; ?>
             <?php if ( $settings['enable_thumbnails'] === 'yes' ) : ?>
                 <div class="bw-ps-thumbnails">
                     <?php foreach ( $images as $index => $image ) :
