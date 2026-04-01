@@ -61,6 +61,7 @@ Design is fixed — no user configuration:
 - Body scroll lock is handled in an iOS-safe way through fixed-body state while the modal is open.
 - Popup image height is bounded to the viewport via `max-height: calc(100dvh - header - body padding)` so tall portrait images never exceed the visible viewport.
 - Properly removed from DOM in `destroy()` to prevent orphaned overlays on Elementor re-render.
+- Popup images now render with `class="bw-embla-img"` so they participate in the same fade-in contract as the main gallery surfaces.
 
 ### Popup Trigger Hardening
 - Popup opening is guarded by a real `pointerdown -> pointerup` sequence on the same target.
@@ -127,10 +128,15 @@ Used by both `get_popup_title()` and `get_images_for_render()`.
 
 - Custom cursor is desktop-only (`display:none !important` at ≤768px).
 - Arrow button cursor (`cursor:pointer`) is explicitly restored via CSS override so `bw-ps-hide-cursor` does not suppress it.
+- Shimmer removal now has both:
+  - class-based fallback (`.bw-ps-image.is-loaded`)
+  - `:has(img.is-loaded)` enhancement
+  so older browsers do not keep the loading skeleton forever.
 - **Breakpoints are sorted descending** (largest → smallest) when emitting CSS — required for correct `@media max-width` cascade. JS `_sortedBreakpoints` is still sorted ascending for `_updateImageHeightControls()` and `_updateEmblaBreakpointOptions()` (first-match-break semantics remain).
 - Selector cache (`_$horizontal`, `_$images`) must be assigned **before** `emblaCore.init()` because `onSelect` fires during init.
 - Desktop vertical mode is intentionally not Embla-driven; it remains a custom elevator layout with thumbnail-triggered scroll.
 - `showArrows` and `showDots` have been removed from the JS `data-config` payload — arrow/dots visibility is now a CSS-only concern.
+- The desktop wheel/trackpad gesture path still relies on Embla internal engine access for fluid snapping behavior; this remains a family-level technical caveat and was not changed in the current hardening pass.
 
 ## Fixes Log
 

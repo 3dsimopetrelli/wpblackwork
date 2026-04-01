@@ -1028,9 +1028,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Get popup title - use product name if in product context
-     */
-    /**
      * Risolve il prodotto WooCommerce nel contesto corrente.
      * Prima prova la global $product, poi bw_tbl_resolve_product_context_id.
      * Restituisce WC_Product|null.
@@ -1463,6 +1460,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                                 [
                                     'loading'  => 'lazy',
                                     'decoding' => 'async',
+                                    'class'    => 'bw-embla-img',
                                 ]
                             );
                             ?>

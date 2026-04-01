@@ -513,6 +513,8 @@
         ──────────────────────────────────────────── */
 
         _attachWheelHandler() {
+            if (this._wheelHandler) return;
+
             const wrapper = this.$wrapper[0];
             let _wheelEndTimer = null;
 
@@ -940,7 +942,11 @@
                 const ease = 0.18;
                 state.curX += (state.targX - state.curX) * ease;
                 state.curY += (state.targY - state.curY) * ease;
-                $cursor.css({ left: `${state.curX}px`, top: `${state.curY}px` });
+                const cursorEl = $cursor[0];
+                if (cursorEl) {
+                    cursorEl.style.setProperty('--bw-ps-cursor-x', `${state.curX}px`);
+                    cursorEl.style.setProperty('--bw-ps-cursor-y', `${state.curY}px`);
+                }
                 if (state.running) {
                     this._cursorRafId = requestAnimationFrame(animateCursor);
                 }
