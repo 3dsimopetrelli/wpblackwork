@@ -71,6 +71,7 @@ Each breakpoint row currently supports:
 - `Show Arrows`
 - `Show Dots`
 - `Start Offset Left`
+  - supports `px | % | vw`
 - `Center Mode`
 - `Variable Width`
   - current authority for proportional mixed-width strips

@@ -256,12 +256,22 @@ class BW_Basic_Slide_Widget extends Widget_Base {
             [
                 'label'       => __( 'Start Offset Left', 'bw' ),
                 'type'        => Controls_Manager::SLIDER,
-                'size_units'  => [ 'px' ],
+                'size_units'  => [ 'px', '%', 'vw' ],
                 'range'       => [
                     'px' => [
                         'min'  => 0,
                         'max'  => 240,
                         'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 40,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 30,
+                        'step' => 0.5,
                     ],
                 ],
                 'default'     => [
