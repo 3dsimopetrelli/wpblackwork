@@ -1010,6 +1010,17 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             'data-dots-position'  => $settings['dots_position'] ?? 'center',
         ] );
 
+        $inline_css = '';
+        if ( $settings['layout_mode'] === 'horizontal' ) {
+            $inline_css .= $this->render_breakpoint_css( $settings );
+        } else {
+            $inline_css .= $this->render_vertical_responsive_css( $settings );
+        }
+
+        if ( '' !== $inline_css ) {
+            wp_add_inline_style( 'bw-presentation-slide-style', $inline_css );
+        }
+
         ?>
         <div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
             <?php
@@ -1137,9 +1148,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $is_center_align = ( ( $settings['slide_align'] ?? 'start' ) === 'center' );
         $last_index      = count( $images ) - 1;
 
-        // CSS inline scoped per i breakpoint (slide sizes)
-        $this->render_breakpoint_css( $settings );
-
         ?>
         <div class="bw-ps-horizontal">
             <!-- Embla viewport: overflow:hidden -->
@@ -1197,7 +1205,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Genera un blocco <style> inline scoped per breakpoint:
+     * Genera CSS scoped per breakpoint:
      * slide sizes, visibilità frecce e visibilità dots.
      *
      * PERCHÉ CSS E NON JS per frecce/dots:
@@ -1220,7 +1228,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     protected function render_breakpoint_css( $settings ) {
         $breakpoints = ! empty( $settings['breakpoints'] ) ? $settings['breakpoints'] : [];
         if ( empty( $breakpoints ) ) {
-            return;
+            return '';
         }
 
         // Ordine discendente: largest → smallest, per cascata CSS corretta.
@@ -1234,7 +1242,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $sel_arrows  = $el_prefix . ' .bw-ps-arrows-container';
         $sel_dots    = $el_prefix . ' .bw-ps-dots-container';
 
-        $css = '<style>';
+        $css = '';
         foreach ( $breakpoints as $bp ) {
             $bp_px          = absint( $bp['breakpoint'] );
             $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
@@ -1266,10 +1274,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             $css .= $sel_dots   . '{display:' . ( $show_dots   ? 'flex' : 'none' ) . ';}';
             $css .= '}';
         }
-        $css .= '</style>';
-
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        echo $css;
+        return $css;
     }
 
     /**
@@ -1289,7 +1294,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     protected function render_vertical_responsive_css( $settings ) {
         $breakpoint = absint( $settings['responsive_breakpoint'] ?? 1024 );
         if ( $breakpoint <= 0 ) {
-            return;
+            return '';
         }
 
         $widget_id  = $this->get_id();
@@ -1300,7 +1305,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $enable_responsive = ( $settings['enable_responsive_mode'] ?? '' ) === 'yes';
 
-        $css = '<style>';
+        $css = '';
 
         if ( $enable_responsive ) {
             // Sotto il breakpoint: mostra responsive, nascondi desktop
@@ -1319,17 +1324,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             $css .= $sel_resp . '{display:none!important;}';
         }
 
-        $css .= '</style>';
-
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        echo $css;
+        return $css;
     }
 
     /**
      * Render vertical layout
      */
     protected function render_vertical_layout( $images, $settings ) {
-        $this->render_vertical_responsive_css( $settings );
         ?>
         <div class="bw-ps-vertical">
             <?php if ( $settings['enable_thumbnails'] === 'yes' ) : ?>

@@ -83,11 +83,11 @@
     width: 100%;
 }
 
-/* Slide: dimensione di default 100% — override via breakpoint CSS inline in PHP */
+/* Slide: dimensione di default 100% — override via breakpoint CSS generato in PHP */
 .bw-ps-slide {
     padding: 10px;
     outline: none;
-    /* flex size viene impostato dal <style> inline generato dal PHP per breakpoint */
+    /* flex size viene impostato dal CSS per-breakpoint attaccato al handle del widget */
 }
 
 /* ========================================

@@ -15,6 +15,7 @@ This pass intentionally addressed only low-risk, implementation-safe items:
 - popup viewport height fallback
 - duplicate wheel-listener guard
 - custom cursor movement path optimization
+- responsive per-instance CSS delivery moved off widget-markup `<style>` tags and onto the widget style handle
 - PHP docblock cleanup
 
 This pass intentionally did **not** replace the Embla `internalEngine()` usage inside the horizontal wheel/trackpad gesture path. That dependency remains a slider-family technical caveat and should be handled consistently across widgets, not only here.
@@ -58,6 +59,14 @@ This pass intentionally did **not** replace the Embla `internalEngine()` usage i
 
 ### 7. PHP cleanup
 - Removed the mismatched popup-title docblock that was incorrectly attached above `get_product_context()`.
+
+### 8. Responsive CSS delivery hardening
+- `render_breakpoint_css()` and `render_vertical_responsive_css()` now return raw CSS strings instead of echoing `<style>` tags into the widget markup.
+- `render()` attaches that CSS through `wp_add_inline_style( 'bw-presentation-slide-style', ... )`.
+- Result:
+  - widget HTML no longer contains inline `<style>` blocks for breakpoint behavior
+  - responsive visibility/size behavior stays identical
+  - the widget is friendlier to stricter markup/output expectations
 
 ## Validation
 - `php -l includes/widgets/class-bw-presentation-slide-widget.php` -> PASS

@@ -203,7 +203,8 @@
 
             if (!api) return;
 
-            // Frecce e dots: visibilità gestita da CSS @media inline (PHP render_breakpoint_css).
+            // Frecce e dots: visibilità gestita da CSS @media generato in PHP
+            // e attaccato al handle del widget via wp_add_inline_style().
             // Nessuna funzione JS necessaria — CSS risponde istantaneamente senza race conditions.
 
             // Image-height mode + opzioni Embla (ancora JS: non gestibili solo da CSS)
