@@ -465,6 +465,8 @@
     --bw-ps-cursor-x: 0px;
     --bw-ps-cursor-y: 0px;
     position: fixed;
+    top: 0;
+    left: 0;
     pointer-events: none;
     z-index: 99998;
     display: none;
