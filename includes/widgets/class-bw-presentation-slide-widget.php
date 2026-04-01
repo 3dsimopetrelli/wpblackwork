@@ -1002,8 +1002,13 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ],
         ];
 
+        $wrapper_classes = 'bw-ps-wrapper';
+        if ( $settings['layout_mode'] === 'horizontal' ) {
+            $wrapper_classes .= ' loading';
+        }
+
         $this->add_render_attribute( 'wrapper', [
-            'class'               => 'bw-ps-wrapper',
+            'class'               => $wrapper_classes,
             'data-widget-id'      => $widget_id,
             'data-layout-mode'    => $settings['layout_mode'],
             'data-config'         => wp_json_encode( $config ),
