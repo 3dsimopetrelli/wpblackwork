@@ -277,7 +277,7 @@ Important runtime note:
   - `Mode = Wall`:
     - CSS grid image wall, not masonry
     - responsive columns
-    - responsive wall height with internal overflow scroll
+    - responsive wall height with visual clipping only; no internal mouse/trackpad scroll surface
     - optional bottom fade gradient to suggest more content below
     - no `View all` button in the current contract
 - `bw-reviews`:

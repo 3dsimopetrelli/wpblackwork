@@ -65,6 +65,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `bw-product-grid` -> canonical wall/query-grid widget
   - `bw-product-slider` -> canonical current product slider (visible title: `BW-UI Product Slider`)
   - `bw-presentation-slide` -> specialized presentation/gallery slider
+  - `bw-basic-slide` -> implemented lightweight generic image-gallery widget with `Slide` and `Wall` contracts
   - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)
   - `bw-related-products` -> current best product-card reuse reference
 - Reference docs:

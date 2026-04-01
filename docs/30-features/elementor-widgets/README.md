@@ -37,6 +37,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with compact inline trust summary, variation-bound license disclosure, and direct-checkout shortcut
 - `trust-box-widget.md`: BW Trust Box widget — standalone trust/support stack with curated review slider, fixed review box, digital product info cards, and FAQ CTA
+- `basic-slide-widget.md`: `BW-UI Basic Slide` — lightweight dual-mode image widget with Embla `Slide` mode, responsive `Wall` mode, lazy/eager image-loading policy, and optional bottom gradient
 - `big-text-widget.md`: `BW-UI Big Text` — premium editorial statement widget with controlled line length, fluid `clamp()` scaling, automatic balance mode, and optional manual editorial line grouping
 - `hero-slide-widget.md`: `BW-UI Hero Slide` — premium static hero widget with future-ready `Slide` mode surface, centered copy, background image, and glass CTA button grid
 - `mosaic-slider-widget.md`: `BW-UI Mosaic Slider` — Embla-based mixed-content slider with 4 desktop mosaic variants, auto-scale/square modes, responsive partial-slide reveal, and shared product-card reuse
@@ -60,6 +61,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
   - current runtime keeps the overlay above the image through an explicit widget-local stacking contract (`image z-index: 0`, overlay `z-index: 1`)
+- `bw-basic-slide` -> implemented lightweight generic image-gallery widget
+  - current contract is dual-mode:
+    - `Slide`: Embla carousel with autoplay, touch/mouse drag, breakpoint repeater, optional proportional-width strips, and `Start Offset Left`
+    - `Wall`: responsive clipped image wall with optional bottom gradient and no internal scroll area
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
   - current widget-local extension also supports tablet/mobile suppression of overlay CTA actions without mutating the shared component globally
