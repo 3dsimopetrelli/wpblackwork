@@ -141,6 +141,16 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                 return;
             }
 
+            // Rate limit BEFORE any async operations (API calls) to prevent race condition.
+            // Must be set immediately after input validation to prevent two requests from
+            // both passing the rate limit check if they arrive within milliseconds.
+            if ( $this->is_rate_limited( $email ) ) {
+                $this->log_event( 'warning', 'Widget subscribe blocked by cooldown.', $email, $source_key, 'rate_limited' );
+                $this->send_response( false, 'rate_limited', $this->get_message( $channel_settings, 'rate_limited_message', __( 'Please wait a moment before trying again.', 'bw' ) ), 429 );
+                return;
+            }
+            $this->touch_rate_limit( $email );
+
             $api_key = isset( $general_settings['api_key'] ) ? sanitize_text_field( (string) $general_settings['api_key'] ) : '';
             if ( '' === $api_key ) {
                 $this->log_event( 'error', 'Missing Brevo API key for subscription widget.', $email, $source_key, 'missing_settings' );
@@ -158,12 +168,6 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
             }
 
             $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
-            if ( $this->is_rate_limited( $email ) ) {
-                $this->log_event( 'warning', 'Widget subscribe blocked by cooldown.', $email, $source_key, 'rate_limited' );
-                $this->send_response( false, 'rate_limited', $this->get_message( $channel_settings, 'rate_limited_message', __( 'Please wait a moment before trying again.', 'bw' ) ), 429 );
-                return;
-            }
-            $this->touch_rate_limit( $email );
 
             $existing_contact = $client->get_contact( $email );
             if ( ! empty( $existing_contact['success'] ) && ! empty( $existing_contact['data'] ) && is_array( $existing_contact['data'] ) ) {
@@ -184,7 +188,9 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
 
                 if ( in_array( $list_id, $contact_list_ids, true ) ) {
                     $this->log_event( 'info', 'Widget contact already exists in configured list.', $email, $source_key, 'already_subscribed' );
-                    $this->send_response( true, 'already_subscribed', $this->get_message( $channel_settings, 'already_subscribed_message', __( 'You are already subscribed.', 'bw' ) ) );
+                    // Return success so form doesn't show error, but code is 'already_subscribed'
+                    // so JS knows not to reset the form (UX: user sees they were already subscribed)
+                    $this->send_response( true, 'already_subscribed', $this->get_message( $channel_settings, 'already_subscribed_message', __( 'You are already subscribed. (No further action needed.)', 'bw' ) ) );
                     return;
                 }
             } elseif ( isset( $existing_contact['code'] ) && 404 !== (int) $existing_contact['code'] ) {

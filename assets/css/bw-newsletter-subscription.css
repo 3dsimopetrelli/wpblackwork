@@ -99,6 +99,11 @@ input.bw-newsletter-subscription-input:focus {
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
+/* Floating label animation: move label up on focus or input fill.
+   :focus-within works on all modern browsers (IE edge case only).
+   :has(:not(:placeholder-shown)) is a modern enhancement for when user types
+   (provides visual feedback even if field loses focus). Fallback to :focus-within
+   works on Safari < 15.4 and all other browsers without :has() support. */
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:has(.bw-newsletter-subscription-input:not(:placeholder-shown)) .bw-newsletter-subscription-label,
 .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
