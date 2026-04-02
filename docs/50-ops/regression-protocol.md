@@ -91,13 +91,22 @@ Wave-specific checks:
   - `Blackwork Site -> Reviews Settings` saves correctly across all tabs
   - WooCommerce native product reviews/comments are suppressed when Reviews is enabled
   - review submit works for supported policy combinations
+  - confirmation-email success path returns success only when the confirmation email is actually sent
+  - confirmation-email failure path returns error and does not leave a stuck `pending_confirmation` review behind
   - email confirmation path transitions to approved or pending moderation according to settings
   - rejected reviews do not appear on frontend
   - trashed reviews do not appear on frontend and remain visible in admin trash views
   - verified badge appears only for true verified purchases
+  - guest reviewers can submit only when guest reviews are allowed and `verified_buyers_only` is disabled
+  - guest users cannot access the write-review path when `verified_buyers_only` is enabled, and direct POST returns a coherent login-required response
+  - create/edit modal submit timeout or network failure always clears loading state and re-enables controls
+  - edit-prefill timeout or network failure re-enables the clicked trigger and shows failure feedback
   - widget sort and load-more remain deterministic
+  - sort/load-more timeout or network failure clears loading state and restores controls
   - global fallback mode shows global summary/list only when current product has no approved reviews
   - global fallback cards show reviewed product image/name; normal product cards do not
+  - multi-widget pages render exactly one modal instance and no duplicate modal title IDs
+  - multi-widget confirmation notice behavior is validated against the correct widget context
 
 ## BW Price Variation Review / Checkout Additions
 - Scope:

@@ -1476,6 +1476,44 @@ Progress Status:
   - [Task Closure Summary](../tasks/task-close-template.md)
   - [Brevo Mail Marketing Architecture](../40-integrations/brevo/brevo-mail-marketing-architecture.md)
 
+### Risk ID: R-REVIEWS-01
+- Domain: Reviews / Modal Flow / Multi-Widget Targeting
+- Source: Final validation review after modal singleton hardening
+- Surface Anchor: `assets/js/bw-reviews.js`, `includes/modules/reviews/frontend/class-bw-reviews-widget-renderer.php`
+- Description: The reviews system now uses one canonical modal per page, but confirmation notices still resolve against the first widget in the runtime registry. On pages with multiple review widgets, the confirmation notice can attach to the wrong widget context.
+- Invariant Threatened: Review confirmation feedback should appear in the correct widget context on multi-widget pages.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Open
+- Current Mitigation: Modal DOM duplication and duplicate IDs were removed by moving to one canonical modal instance per page.
+- Monitoring Status: Monitoring / Manual validation pending
+- Recommended Mitigation: Validate multi-widget confirmation targeting before launch and add widget-context targeting in a follow-up fix if real pages rely on mixed widget layouts.
+- Task Reference: `Reviews system + modal flow` final validation review
+- Date: `2026-04-02`
+- Linked Documents:
+  - [Reviews Final Validation Summary](../tasks/BW-TASK-20260402-reviews-system-final-validation-summary.md)
+  - [Reviews System Guide](../30-features/reviews/reviews-system-guide.md)
+
+### Risk ID: R-REVIEWS-02
+- Domain: Reviews / Modal Accessibility
+- Source: Final validation review after modal flow hardening
+- Surface Anchor: `assets/js/bw-reviews.js`, `includes/modules/reviews/frontend/templates/modal.php`
+- Description: The reviews modal now has safer timeout/failure recovery and single-instance ownership, but keyboard accessibility is still incomplete because focus is not trapped inside the dialog and focus is not restored to the opener on close.
+- Invariant Threatened: The modal should remain keyboard-safe and accessible across create/edit flows.
+- Impact: Low
+- Likelihood: Medium
+- Risk Level: Low
+- Status: Open
+- Current Mitigation: Escape-to-close and baseline modal controls remain in place, and core create/edit behavior is stable.
+- Monitoring Status: Monitoring / Post-launch improvement
+- Recommended Mitigation: Add focus trap and focus-restore behavior in a dedicated accessibility follow-up after launch.
+- Task Reference: `Reviews system + modal flow` final validation review
+- Date: `2026-04-02`
+- Linked Documents:
+  - [Reviews Final Validation Summary](../tasks/BW-TASK-20260402-reviews-system-final-validation-summary.md)
+  - [Reviews Widget Documentation](../30-features/elementor-widgets/reviews-widget.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.

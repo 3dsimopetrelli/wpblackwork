@@ -78,6 +78,13 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
                 return $this->error_response( 'guest_disabled', __( 'Guest reviews are currently disabled.', 'bw' ) );
             }
 
+            if ( ! empty( $submission_settings['verified_buyers_only'] ) && ! $is_logged_in ) {
+                return $this->error_response(
+                    'login_required',
+                    __( 'You must be logged in to submit a verified purchase review.', 'bw' )
+                );
+            }
+
             $product_id = isset( $payload['product_id'] ) ? absint( $payload['product_id'] ) : 0;
             $rating     = isset( $payload['rating'] ) ? absint( $payload['rating'] ) : 0;
             $content    = isset( $payload['content'] ) ? wp_kses_post( wp_unslash( (string) $payload['content'] ) ) : '';
@@ -185,7 +192,17 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
 
             if ( 'pending_confirmation' === $status ) {
                 $raw_token = $this->confirmation_service->prepare_confirmation( $review_id );
-                $this->email_service->send_confirmation_email( $review, $raw_token );
+                $email_sent = '' !== $raw_token && $this->email_service->send_confirmation_email( $review, $raw_token );
+
+                if ( ! $email_sent ) {
+                    $this->cleanup_failed_confirmation_submission( $review_id );
+
+                    return $this->error_response(
+                        'confirmation_email_failed',
+                        __( 'We could not send the confirmation email right now. Please try again.', 'bw' )
+                    );
+                }
+
                 $this->brevo_service->sync_for_event( $review, 'submission' );
 
                 return [
@@ -371,6 +388,22 @@ if ( ! class_exists( 'BW_Review_Submission_Service' ) ) {
             $display_name = trim( preg_replace( '/\s+/', ' ', trim( $first_name . ' ' . $last_name ) ) );
 
             return '' !== $display_name ? $display_name : __( 'Anonymous', 'bw' );
+        }
+
+        /**
+         * Remove a freshly created review when confirmation delivery fails.
+         *
+         * @param int $review_id Review ID.
+         *
+         * @return void
+         */
+        private function cleanup_failed_confirmation_submission( $review_id ) {
+            $review_id = absint( $review_id );
+            if ( $review_id <= 0 ) {
+                return;
+            }
+
+            $this->repository->delete_review( $review_id );
         }
 
         /**

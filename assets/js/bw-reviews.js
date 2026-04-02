@@ -42,6 +42,7 @@
     };
 
     const STEP_ORDER = ['rating', 'content', 'identity', 'done'];
+    const REQUEST_TIMEOUT = 15000;
     const CONFIRMATION_MESSAGES = {
         confirmed_approved: 'confirmedLive',
         confirmed_pending: 'confirmedPending',
@@ -55,6 +56,7 @@
                 url: url,
                 type: 'POST',
                 dataType: 'json',
+                timeout: REQUEST_TIMEOUT,
                 data: data,
             });
         }
@@ -389,14 +391,19 @@
 
             request.done((response) => {
                 if (!response || !response.success || !response.data) {
-                    this.showMessage(this.getString('validation', 'Please complete the required fields.'));
+                    this.showMessage(this.getString('submitFailed', 'We could not submit your review right now. Please try again.'));
                     return;
                 }
 
                 this.handleSuccessfulSubmission(response.data);
             }).fail((xhr) => {
-                const data = xhr && xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data : null;
-                const message = data && data.message ? data.message : this.getString('validation', 'Please complete the required fields.');
+                const message = this.getRequestErrorMessage(
+                    xhr,
+                    'submitTimeout',
+                    'The request took too long. Please try again.',
+                    'submitFailed',
+                    'We could not submit your review right now. Please try again.'
+                );
                 this.showMessage(message);
             }).always(() => {
                 this.state.isSubmitting = false;
@@ -610,6 +617,21 @@
 
             return fallback;
         }
+
+        getRequestErrorMessage(xhr, timeoutKey, timeoutFallback, genericKey, genericFallback) {
+            const data = xhr && xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data : null;
+            const textStatus = xhr && xhr.statusText ? String(xhr.statusText).toLowerCase() : '';
+
+            if (data && data.message) {
+                return String(data.message);
+            }
+
+            if (textStatus === 'timeout') {
+                return this.getString(timeoutKey, timeoutFallback);
+            }
+
+            return this.getString(genericKey, genericFallback);
+        }
     }
 
     class WidgetController {
@@ -622,6 +644,7 @@
             this.ajaxClient = ajaxClient;
             this.modalController = modalController;
             this.pendingListRequest = null;
+            this.editPrefillRequest = null;
             this.lastRequestToken = 0;
             this.programmaticScrollLockUntil = 0;
             this.state = {
@@ -696,7 +719,7 @@
                 }
 
                 if (this.state.ownedReviewId && this.config.canEditOwnReview) {
-                    this.openEditModal(this.state.ownedReviewId);
+                    this.openEditModal(this.state.ownedReviewId, $(event.currentTarget));
                 } else {
                     this.modalController.openCreate(this);
                 }
@@ -704,13 +727,17 @@
 
             this.$root.on('click' + this.namespace, SELECTORS.editButton, (event) => {
                 event.preventDefault();
-                this.openEditModal(parseInt($(event.currentTarget).data('reviewEdit'), 10) || 0);
+                this.openEditModal(parseInt($(event.currentTarget).data('reviewEdit'), 10) || 0, $(event.currentTarget));
             });
         }
 
         destroy() {
             if (this.pendingListRequest && this.pendingListRequest.abort) {
                 this.pendingListRequest.abort();
+            }
+
+            if (this.editPrefillRequest && this.editPrefillRequest.abort) {
+                this.editPrefillRequest.abort();
             }
 
             this.$root.off(this.namespace);
@@ -1019,6 +1046,15 @@
 
             this.pendingListRequest.done((response) => {
                 if (requestToken !== this.lastRequestToken || !response || !response.success || !response.data) {
+                    if (requestToken === this.lastRequestToken) {
+                        this.showRuntimeError(this.getRequestErrorMessage(
+                            null,
+                            'loadTimeout',
+                            'Loading reviews took too long. Please try again.',
+                            'loadFailed',
+                            'We could not load reviews right now. Please try again.'
+                        ));
+                    }
                     return;
                 }
 
@@ -1035,6 +1071,18 @@
                 this.state.shownCount = Number(response.data.shownCount || 0);
                 this.state.hasMore = !!response.data.hasMore;
                 this.syncFooter();
+            }).fail((xhr, textStatus) => {
+                if (requestToken !== this.lastRequestToken || textStatus === 'abort') {
+                    return;
+                }
+
+                this.showRuntimeError(this.getRequestErrorMessage(
+                    xhr,
+                    'loadTimeout',
+                    'Loading reviews took too long. Please try again.',
+                    'loadFailed',
+                    'We could not load reviews right now. Please try again.'
+                ));
             }).always(() => {
                 if (requestToken !== this.lastRequestToken) {
                     return;
@@ -1091,17 +1139,46 @@
             }, 980);
         }
 
-        openEditModal(reviewId) {
+        openEditModal(reviewId, $trigger) {
             if (!reviewId || !this.config.canEditOwnReview) {
                 return;
             }
 
-            this.ajaxClient.getEditReview(this.config, reviewId).done((response) => {
+            $trigger = $trigger && $trigger.jquery ? $trigger : $();
+
+            if (this.editPrefillRequest && this.editPrefillRequest.abort) {
+                this.editPrefillRequest.abort();
+            }
+
+            if ($trigger.length) {
+                $trigger.prop('disabled', true).attr('aria-busy', 'true');
+            }
+
+            this.editPrefillRequest = this.ajaxClient.getEditReview(this.config, reviewId).done((response) => {
                 if (!response || !response.success || !response.data || !this.modalController) {
+                    this.showRuntimeError(this.getString('editLoadFailed', 'We could not load your review right now. Please try again.'));
                     return;
                 }
 
                 this.modalController.openEdit(this, response.data);
+            }).fail((xhr, textStatus) => {
+                if (textStatus === 'abort') {
+                    return;
+                }
+
+                this.showRuntimeError(this.getRequestErrorMessage(
+                    xhr,
+                    'editLoadTimeout',
+                    'Loading your review took too long. Please try again.',
+                    'editLoadFailed',
+                    'We could not load your review right now. Please try again.'
+                ));
+            }).always(() => {
+                this.editPrefillRequest = null;
+
+                if ($trigger.length) {
+                    $trigger.prop('disabled', false).removeAttr('aria-busy');
+                }
             });
         }
 
@@ -1158,6 +1235,27 @@
             }
 
             return fallback;
+        }
+
+        getRequestErrorMessage(xhr, timeoutKey, timeoutFallback, genericKey, genericFallback) {
+            const data = xhr && xhr.responseJSON && xhr.responseJSON.data ? xhr.responseJSON.data : null;
+            const textStatus = xhr && xhr.statusText ? String(xhr.statusText).toLowerCase() : '';
+
+            if (data && data.message) {
+                return String(data.message);
+            }
+
+            if (textStatus === 'timeout') {
+                return this.getString(timeoutKey, timeoutFallback);
+            }
+
+            return this.getString(genericKey, genericFallback);
+        }
+
+        showRuntimeError(message) {
+            if (message) {
+                window.alert(message);
+            }
         }
     }
 

@@ -19,7 +19,7 @@ Canonical transition note:
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
 | `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants; status `Almost ready`, quality `~9.5/10`, phase `Final manual validation` |
-| `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces |
+| `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces; status `Almost ready`, quality `~9/10`, phase `Final manual validation` |
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
 | `bw-product-grid` | `includes/widgets/class-bw-product-grid-widget.php` | Query Grid | canonical wall/query-grid widget |

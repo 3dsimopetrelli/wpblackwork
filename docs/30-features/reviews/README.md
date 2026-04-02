@@ -9,6 +9,21 @@ It covers:
 - the `Blackwork Site -> Reviews` and `Reviews Settings` admin surfaces
 - the runtime submission / confirmation / moderation flow
 
+## Current Status
+- Status: `Almost ready`
+- Quality: `~9/10`
+- Phase: `Final manual validation`
+- Completed fixes:
+  - confirmation email hardening (`pending_confirmation` no longer returns false success)
+  - modal timeout/failure recovery
+  - single modal instance per page
+  - verified-buyers vs guest-review policy alignment
+- Remaining manual validation:
+  - multi-widget confirmation targeting
+  - modal accessibility (`focus trap` / `focus restore`)
+- Final reference:
+  - `docs/tasks/BW-TASK-20260402-reviews-system-final-validation-summary.md`
+
 ## Documents
 - `reviews-system-guide.md`: module authority, settings, data flow, admin model, frontend/runtime contract
 

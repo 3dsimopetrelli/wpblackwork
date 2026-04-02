@@ -12,6 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
     class BW_Reviews_Widget_Renderer {
         /**
+         * Track whether the shared modal markup has already been rendered.
+         *
+         * @var bool
+         */
+        private static $modal_rendered = false;
+
+        /**
          * @var BW_Reviews_Repository
          */
         private $repository;
@@ -162,7 +169,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 ],
                 'ownedReviewId'       => is_array( $owned_review ) ? absint( $owned_review['id'] ) : 0,
                 'submissionPolicy'    => [
-                    'allowGuests'           => ! empty( $submission['allow_guests'] ),
+                    'allowGuests'           => ! empty( $submission['allow_guests'] ) && empty( $submission['verified_buyers_only'] ),
                     'loggedInOnly'          => ! empty( $submission['logged_in_only'] ),
                     'verifiedBuyersOnly'    => ! empty( $submission['verified_buyers_only'] ),
                     'requireConfirmation'   => ! empty( $submission['require_email_confirmation'] ),
@@ -199,7 +206,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && absint( $summary['approved_count'] ) > 0,
                 'review_source'        => $review_source,
                 'config'               => $config,
-                'render_modal'         => true,
+                'render_modal'         => $this->should_render_modal(),
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
                 'modal_title_edit'     => __( 'Edit your review', 'bw' ),
                 'empty_title'          => __( 'No reviews yet', 'bw' ),
@@ -324,6 +331,10 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
             $submission = BW_Reviews_Settings::get_submission_settings();
 
             if ( ! is_user_logged_in() && ! empty( $submission['logged_in_only'] ) ) {
+                return false;
+            }
+
+            if ( ! is_user_logged_in() && ! empty( $submission['verified_buyers_only'] ) ) {
                 return false;
             }
 
@@ -475,6 +486,21 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
 
             extract( $vars, EXTR_SKIP );
             include $template_path;
+        }
+
+        /**
+         * Render the shared modal markup only once per page request.
+         *
+         * @return bool
+         */
+        private function should_render_modal() {
+            if ( self::$modal_rendered ) {
+                return false;
+            }
+
+            self::$modal_rendered = true;
+
+            return true;
         }
     }
 }

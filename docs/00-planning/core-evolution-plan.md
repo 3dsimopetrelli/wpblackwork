@@ -58,6 +58,20 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
 
 ## Tier 1 – UX & Runtime
 
+### Reviews System / Modal Flow Validation
+- Status: Almost ready — final manual validation pending
+- Risk classification: High
+- Short description: Reviews system + modal flow audit and blocker hardening are complete; component is ready pending final validation of multi-widget confirmation targeting and remaining modal accessibility gaps.
+- Reference docs:
+  - `docs/30-features/reviews/reviews-system-guide.md`
+  - `docs/30-features/elementor-widgets/reviews-widget.md`
+  - `docs/tasks/BW-TASK-20260402-reviews-system-final-validation-summary.md`
+- Acceptance:
+  - confirmation-email flow is validated for both success and send-failure paths
+  - multi-widget pages confirm correct shared-modal behavior
+  - verified-buyers-only vs guest policy behavior is validated
+  - modal accessibility gaps are accepted or scheduled explicitly before launch
+
 ### Elementor Widgets Audit/Rebuild Program
 - Status: In progress (documentation baseline established)
 - Risk classification: High (runtime coupling + maintainability)

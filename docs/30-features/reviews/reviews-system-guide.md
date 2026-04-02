@@ -10,6 +10,19 @@ It was designed to:
 - support a premium custom frontend widget
 - preserve WooCommerce as the authority for product/order/customer truth
 
+## Current Readiness
+- Status: `Almost ready`
+- Quality: `~9/10`
+- Phase: `Final manual validation`
+- Completed hardening in current runtime:
+  - confirmation-email flow no longer reports success when delivery fails
+  - modal/runtime requests now have timeout-based recovery
+  - modal rendering is page-level singleton markup
+  - verified-buyers-only now explicitly disables guest review submission paths
+- Remaining validation:
+  - multi-widget confirmation targeting
+  - modal accessibility (`focus trap` / `focus restore`)
+
 ## Runtime Authority
 
 Primary module root:
@@ -252,10 +265,20 @@ Single reusable modal with steps:
 3. identity
 4. done
 
+Current runtime contract:
+- one canonical modal instance is rendered per page
+- all widget instances target the shared modal controller
+- submit, update, edit-prefill, and list-load requests are timeout-bounded
+- failure paths must clear loading/submitting state before returning control to the user
+
 Identity step rules:
 - logged-in users: readonly identity summary
 - guests: first name / last name / email
 - privacy checkbox required
+
+Policy note:
+- when `verified_buyers_only` is enabled, guest submission is explicitly unavailable
+- verified-purchase enforcement remains unchanged for logged-in users
 
 ## Brevo Integration
 
