@@ -971,7 +971,7 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             return;
         }
 
-        // Popup title calcolato solo se il popup è abilitato
+        // Compute popup title only when popup is enabled
         $popup_title = $settings['enable_popup'] === 'yes' ? $this->get_popup_title() : '';
 
         // Build configuration for JavaScript
@@ -1002,13 +1002,8 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             ],
         ];
 
-        $wrapper_classes = 'bw-ps-wrapper';
-        if ( $settings['layout_mode'] === 'horizontal' ) {
-            $wrapper_classes .= ' loading';
-        }
-
         $this->add_render_attribute( 'wrapper', [
-            'class'               => $wrapper_classes,
+            'class'               => 'bw-ps-wrapper',
             'data-widget-id'      => $widget_id,
             'data-layout-mode'    => $settings['layout_mode'],
             'data-config'         => wp_json_encode( $config ),
@@ -1033,9 +1028,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Risolve il prodotto WooCommerce nel contesto corrente.
-     * Prima prova la global $product, poi bw_tbl_resolve_product_context_id.
-     * Restituisce WC_Product|null.
+     * Resolve the current WooCommerce product context.
+     * Tries global $product first, then bw_tbl_resolve_product_context_id.
+     * Returns WC_Product|null.
      */
     protected function get_product_context() {
         global $product;
@@ -1058,6 +1053,9 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         return null;
     }
 
+    /**
+     * Get popup title — uses product name when in a product context.
+     */
     protected function get_popup_title() {
         $context_product = $this->get_product_context();
 
@@ -1142,27 +1140,25 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $is_center_align = ( ( $settings['slide_align'] ?? 'start' ) === 'center' );
         $last_index      = count( $images ) - 1;
 
-        $inline_css = $this->render_breakpoint_css( $settings );
+        // Inline CSS scoped to widget ID for breakpoint slide sizes
+        $this->render_breakpoint_css( $settings );
 
         ?>
         <div class="bw-ps-horizontal">
-            <?php if ( '' !== $inline_css ) : ?>
-                <style><?php echo $inline_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></style>
-            <?php endif; ?>
             <!-- Embla viewport: overflow:hidden -->
             <div class="bw-embla-viewport bw-ps-embla-viewport">
                 <!-- Embla container: display:flex -->
                 <div class="bw-embla-container">
                     <?php foreach ( $images as $index => $image ) :
-                        // Eager set: solo le slide VISIBILI al caricamento iniziale.
-                        // - indice 0 (centro/prima) + indice 1 (destra) sempre eager.
-                        // - Con loop+center, l'ultima slide è visibile a SINISTRA → eager
-                        //   + fetchpriority="high" così scarica in parallelo con slide 0.
-                        // Tutte le altre slide usano render_lazy_img(): NO src, solo data-bw-src.
-                        // Il JS le attiverà via _loadAdjacentSlides() quando sono "vicine".
-                        // NON usiamo loading="lazy" per le altre slide perché overflow:hidden
-                        // non impedisce il download in tutti i browser, causando il caricamento
-                        // sequenziale di 1000 slide prima che l'ultima (visibile a sx) arrivi.
+                        // Eager set: only slides VISIBLE on initial load.
+                        // - index 0 (center/first) + index 1 (right) are always eager.
+                        // - With loop+center, the last slide is visible on the LEFT → eager
+                        //   + fetchpriority="high" so it downloads in parallel with slide 0.
+                        // All other slides use render_lazy_img(): NO src, only data-bw-src.
+                        // JS activates download via _loadAdjacentSlides() when slides are "nearby".
+                        // We do NOT use loading="lazy" for other slides because overflow:hidden
+                        // does not reliably prevent download in all browsers, causing sequential
+                        // loading of all slides before the last one (visible on the left) arrives.
                         $is_first       = ( 0 === $index );
                         $is_loop_center = $is_loop && $is_center_align && ( $index === $last_index );
                         $is_eager       = ( $index < 2 ) || $is_loop_center;
@@ -1204,33 +1200,33 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Genera CSS scoped per breakpoint:
-     * slide sizes, visibilità frecce e visibilità dots.
+     * Emit a scoped inline <style> block for breakpoint rules:
+     * slide sizes, arrow visibility, and dots visibility.
      *
-     * PERCHÉ CSS E NON JS per frecce/dots:
-     * Il vecchio approccio JS (_updateArrowsVisibility) leggeva $(window).width()
-     * in un listener resize con 150 ms di debounce. Nell'editor Elementor questo
-     * crea una race condition: il widget si re-inizializza via element_ready e
-     * chiama la funzione mentre l'iframe è ancora in transizione, leggendo la
-     * larghezza sbagliata. Risultato: stato instabile, frecce visibili quando
-     * dovrebbero essere nascoste (o viceversa), necessità di publish + refresh.
+     * WHY CSS INSTEAD OF JS for arrows/dots:
+     * The old JS approach (_updateArrowsVisibility) read $(window).width() in a
+     * resize listener with 150 ms debounce. In the Elementor editor this creates a
+     * race condition: the widget re-initialises via element_ready and calls the
+     * function while the iframe is still transitioning, reading the wrong width.
+     * Result: unstable state — arrows visible when they should be hidden (or vice
+     * versa), requiring a publish + refresh to fix.
      *
-     * Con CSS @media max-width la visibilità risponde istantaneamente al viewport,
-     * senza JS, senza debounce, senza race condition, funziona anche nell'editor.
+     * With CSS @media max-width, visibility responds instantly to the viewport,
+     * with no JS, no debounce, no race condition — and it works in the editor too.
      *
-     * ORDINE DI EMISSIONE: breakpoint dal più grande al più piccolo.
-     * Le regole @media max-width si sovrappongono (es. max-width:400px è incluso
-     * in max-width:2000px). Con l'ordine discendente, il breakpoint più piccolo
-     * arriva DOPO nel foglio di stile e override correttamente quello più grande,
-     * grazie alla normale cascata CSS (stessa specificità, vince l'ultima).
+     * EMISSION ORDER: largest breakpoint first, smallest last.
+     * @media max-width rules overlap (e.g. max-width:400px is a subset of
+     * max-width:2000px). Descending order ensures the smallest breakpoint appears
+     * LATER in the stylesheet and correctly overrides larger ones thanks to normal
+     * CSS cascade (same specificity — last declaration wins).
      */
     protected function render_breakpoint_css( $settings ) {
         $breakpoints = ! empty( $settings['breakpoints'] ) ? $settings['breakpoints'] : [];
         if ( empty( $breakpoints ) ) {
-            return '';
+            return;
         }
 
-        // Ordine discendente: largest → smallest, per cascata CSS corretta.
+        // Descending order: largest → smallest, for correct CSS cascade.
         usort( $breakpoints, function ( $a, $b ) {
             return absint( $b['breakpoint'] ) - absint( $a['breakpoint'] );
         } );
@@ -1241,15 +1237,15 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         $sel_arrows  = $el_prefix . ' .bw-ps-arrows-container';
         $sel_dots    = $el_prefix . ' .bw-ps-dots-container';
 
-        $css = '';
+        $css = '<style>';
         foreach ( $breakpoints as $bp ) {
             $bp_px          = absint( $bp['breakpoint'] );
             $slides_to_show = max( 1, absint( $bp['slides_to_show'] ?? 1 ) );
             $variable_width = ( $bp['variable_width'] ?? '' ) === 'yes';
             $slide_width    = absint( $bp['slide_width'] ?? 0 );
-            // Switcher OFF → '' (stringa vuota); ON → 'yes'.
-            // Default 'yes' per show_arrows (frecce visibili se non impostato).
-            // Default ''  per show_dots   (dots nascosti se non impostato).
+            // Switcher OFF → '' (empty string); ON → 'yes'.
+            // Default 'yes' for show_arrows (arrows visible when not set).
+            // Default ''  for show_dots   (dots hidden when not set).
             $show_arrows    = ( $bp['show_arrows'] ?? 'yes' ) === 'yes';
             $show_dots      = ( $bp['show_dots']   ?? '' )    === 'yes';
 
@@ -1273,27 +1269,30 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             $css .= $sel_dots   . '{display:' . ( $show_dots   ? 'flex' : 'none' ) . ';}';
             $css .= '}';
         }
-        return $css;
+        $css .= '</style>';
+
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo $css;
     }
 
     /**
-     * Genera CSS scoped per il breakpoint responsivo del layout verticale.
+     * Emit scoped CSS for the vertical layout's responsive breakpoint.
      *
-     * Il CSS statico in bw-presentation-slide.css hardcoda 1024px per il
-     * vertical switch desktop→responsive. Se l'utente configura un breakpoint
-     * diverso, il CSS statico e il JS si discordano: il CSS mostra la versione
-     * responsive (senza Embla inizializzata) a dimensioni diverse da quelle
-     * attese dal JS. Questo metodo emette regole scoped con il breakpoint
-     * corretto, con specificità più alta di quella statica (.elementor-element-X
-     * vs selettore generico), sovrascrivendo il 1024px fisso.
+     * The static CSS in bw-presentation-slide.css hard-codes 1024px for the
+     * vertical desktop→responsive switch. If the user configures a different
+     * breakpoint, the static CSS and JS fall out of sync: the CSS shows the
+     * responsive layout (without Embla initialised) at sizes the JS doesn't
+     * expect. This method emits scoped rules using the correct breakpoint with
+     * higher specificity than the static rule (.elementor-element-X vs generic
+     * selector), overriding the hard-coded 1024px.
      *
-     * Emette sia max-width (responsive visible) sia min-width (desktop visible)
-     * per coprire tutti i casi, inclusa la discesa da 27" a mobile.
+     * Emits both max-width (show responsive) and min-width (show desktop) to
+     * cover all cases, including scaling down from a 27" monitor to mobile.
      */
     protected function render_vertical_responsive_css( $settings ) {
         $breakpoint = absint( $settings['responsive_breakpoint'] ?? 1024 );
         if ( $breakpoint <= 0 ) {
-            return '';
+            return;
         }
 
         $widget_id  = $this->get_id();
@@ -1304,38 +1303,38 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
 
         $enable_responsive = ( $settings['enable_responsive_mode'] ?? '' ) === 'yes';
 
-        $css = '';
+        $css = '<style>';
 
         if ( $enable_responsive ) {
-            // Sotto il breakpoint: mostra responsive, nascondi desktop
+            // Below breakpoint: show responsive layout, hide desktop layout
             $css .= '@media (max-width:' . $breakpoint . 'px){';
             $css .= $sel_thumbs . ',' . $sel_main . '{display:none!important;}';
             $css .= $sel_resp . '{display:block!important;}';
             $css .= '}';
-            // Sopra il breakpoint: mostra desktop, nascondi responsive
-            // (sovrascrive il 1024px fisso del CSS statico se bp < 1024)
+            // Above breakpoint: show desktop layout, hide responsive layout
+            // (overrides the hard-coded 1024px in static CSS when bp < 1024)
             $css .= '@media (min-width:' . ( $breakpoint + 1 ) . 'px){';
             $css .= $sel_resp . '{display:none!important;}';
             $css .= '}';
         } else {
-            // Responsive mode disabilitato: il div responsive resta sempre nascosto,
-            // anche a ≤1024px dove il CSS statico lo mostrerebbe con display:block !important
+            // Responsive mode disabled: keep the responsive div permanently hidden,
+            // even at ≤1024px where the static CSS would show it with display:block !important
             $css .= $sel_resp . '{display:none!important;}';
         }
 
-        return $css;
+        $css .= '</style>';
+
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo $css;
     }
 
     /**
      * Render vertical layout
      */
     protected function render_vertical_layout( $images, $settings ) {
-        $inline_css = $this->render_vertical_responsive_css( $settings );
+        $this->render_vertical_responsive_css( $settings );
         ?>
         <div class="bw-ps-vertical">
-            <?php if ( '' !== $inline_css ) : ?>
-                <style><?php echo $inline_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></style>
-            <?php endif; ?>
             <?php if ( $settings['enable_thumbnails'] === 'yes' ) : ?>
                 <div class="bw-ps-thumbnails">
                     <?php foreach ( $images as $index => $image ) :
@@ -1477,24 +1476,24 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
     }
 
     /**
-     * Render un <img> placeholder senza src per le slide del carousel non-eager.
+     * Render a src-less <img> placeholder for non-eager carousel slides.
      *
-     * Il browser NON scarica queste immagini al parse-time: usa data-bw-src /
-     * data-bw-srcset / data-bw-sizes al posto di src/srcset/sizes. Il JS
-     * attiva il download solo quando la slide è "vicina" a quella corrente.
+     * The browser does NOT download these images at parse time: data-bw-src /
+     * data-bw-srcset / data-bw-sizes replace src/srcset/sizes. JS activates the
+     * download only when the slide is "close" to the current one.
      *
-     * Perché non loading="lazy": loading="lazy" all'interno di un container
-     * overflow:hidden non è rispettato da tutti i browser — molti scaricano
-     * comunque le immagini fuori schermo, causando il caricamento sequenziale
-     * di tutte le slide prima dell'ultima (visibile a sinistra in loop+center).
+     * Why not loading="lazy": loading="lazy" inside an overflow:hidden container
+     * is not respected by all browsers — many download off-screen images anyway,
+     * causing sequential loading of all slides before the last one
+     * (visible on the left in loop+center mode) finishes.
      *
-     * BWEmblaCore.initImageLoading() gestisce il fade-in correttamente:
-     * senza src, img.naturalWidth === 0, quindi attacca un listener su 'load'
-     * che viene eseguito quando il JS imposta img.src.
+     * BWEmblaCore.initImageLoading() handles the fade-in correctly: without a
+     * src, img.naturalWidth === 0, so it attaches a 'load' listener that fires
+     * when JS sets img.src.
      *
      * @param  int          $image_id  WordPress attachment ID
-     * @param  string|array $size      Image size (stringa o array [w,h])
-     * @return string                  HTML tag <img> (non escaped — il caller deve phpcs:ignore)
+     * @param  string|array $size      Image size (string or array [w,h])
+     * @return string                  HTML <img> tag (unescaped — caller must phpcs:ignore)
      */
     protected function render_lazy_img( $image_id, $size ) {
         $src_data = wp_get_attachment_image_src( $image_id, $size );
