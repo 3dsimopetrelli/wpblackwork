@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
     class BW_MailMarketing_Subscription_Channel {
         const RATE_LIMIT_WINDOW = 45;
+        const IP_BURST_WINDOW = 600;
+        const IP_BURST_MAX_ATTEMPTS = 10;
 
         /**
          * @var BW_MailMarketing_Subscription_Channel|null
@@ -159,37 +161,47 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
 
             $client = new BW_Brevo_Client( $api_key, BW_Mail_Marketing_Settings::API_BASE_URL );
             if ( $this->is_rate_limited( $email ) ) {
-                $this->log_event( 'warning', 'Widget subscribe blocked by cooldown.', $email, $source_key, 'rate_limited' );
+                $this->log_event( 'warning', 'Widget subscribe blocked by email cooldown.', $email, $source_key, 'rate_limited' );
                 $this->send_response( false, 'rate_limited', $this->get_message( $channel_settings, 'rate_limited_message', __( 'Please wait a moment before trying again.', 'bw' ) ), 429 );
                 return;
             }
+
+            if ( $this->is_ip_rate_limited() ) {
+                $this->log_event( 'warning', 'Widget subscribe blocked by IP burst limit.', $email, $source_key, 'rate_limited' );
+                $this->send_response( false, 'rate_limited', $this->get_message( $channel_settings, 'rate_limited_message', __( 'Please wait a moment before trying again.', 'bw' ) ), 429 );
+                return;
+            }
+
             $this->touch_rate_limit( $email );
+            $this->touch_ip_rate_limit();
 
-            $existing_contact = $client->get_contact( $email );
-            if ( ! empty( $existing_contact['success'] ) && ! empty( $existing_contact['data'] ) && is_array( $existing_contact['data'] ) ) {
-                $contact_data = $existing_contact['data'];
-                $contact_list_ids = isset( $contact_data['listIds'] ) && is_array( $contact_data['listIds'] ) ? array_map( 'absint', $contact_data['listIds'] ) : [];
-                $is_blacklisted = ! empty( $contact_data['emailBlacklisted'] );
-                $list_unsubscribed = isset( $contact_data['listUnsubscribed'] ) && is_array( $contact_data['listUnsubscribed'] )
-                    ? array_map( 'absint', $contact_data['listUnsubscribed'] )
-                    : [];
-                $is_list_unsubscribed = in_array( $list_id, $list_unsubscribed, true );
-                $no_auto_resubscribe = ! empty( $general_settings['resubscribe_policy'] ) && 'no_auto_resubscribe' === $general_settings['resubscribe_policy'];
+            $no_auto_resubscribe = ! empty( $general_settings['resubscribe_policy'] ) && 'no_auto_resubscribe' === $general_settings['resubscribe_policy'];
+            if ( $no_auto_resubscribe ) {
+                $existing_contact = $client->get_contact( $email );
+                if ( ! empty( $existing_contact['success'] ) && ! empty( $existing_contact['data'] ) && is_array( $existing_contact['data'] ) ) {
+                    $contact_data = $existing_contact['data'];
+                    $contact_list_ids = isset( $contact_data['listIds'] ) && is_array( $contact_data['listIds'] ) ? array_map( 'absint', $contact_data['listIds'] ) : [];
+                    $is_blacklisted = ! empty( $contact_data['emailBlacklisted'] );
+                    $list_unsubscribed = isset( $contact_data['listUnsubscribed'] ) && is_array( $contact_data['listUnsubscribed'] )
+                        ? array_map( 'absint', $contact_data['listUnsubscribed'] )
+                        : [];
+                    $is_list_unsubscribed = in_array( $list_id, $list_unsubscribed, true );
 
-                if ( $no_auto_resubscribe && ( $is_blacklisted || $is_list_unsubscribed ) ) {
-                    $this->log_event( 'info', 'Skipping widget subscribe: contact is unsubscribed/blocklisted.', $email, $source_key, 'skipped' );
-                    $this->send_response( false, 'generic_failure', __( 'This contact cannot be resubscribed automatically.', 'bw' ), 400 );
-                    return;
+                    if ( $is_blacklisted || $is_list_unsubscribed ) {
+                        $this->log_event( 'info', 'Skipping widget subscribe: contact is unsubscribed/blocklisted.', $email, $source_key, 'skipped' );
+                        $this->send_response( false, 'generic_failure', __( 'This contact cannot be resubscribed automatically.', 'bw' ), 400 );
+                        return;
+                    }
+
+                    if ( in_array( $list_id, $contact_list_ids, true ) ) {
+                        $this->log_event( 'info', 'Widget contact already exists in configured list.', $email, $source_key, 'already_subscribed' );
+                        $this->send_response( true, 'already_subscribed', $this->get_message( $channel_settings, 'already_subscribed_message', __( 'You are already subscribed.', 'bw' ) ) );
+                        return;
+                    }
+                } elseif ( isset( $existing_contact['code'] ) && 404 !== (int) $existing_contact['code'] ) {
+                    $lookup_error = ! empty( $existing_contact['error'] ) ? sanitize_text_field( (string) $existing_contact['error'] ) : 'Unknown contact lookup error.';
+                    $this->log_event( 'warning', 'Widget contact lookup warning: ' . $lookup_error, $email, $source_key, 'lookup_warning' );
                 }
-
-                if ( in_array( $list_id, $contact_list_ids, true ) ) {
-                    $this->log_event( 'info', 'Widget contact already exists in configured list.', $email, $source_key, 'already_subscribed' );
-                    $this->send_response( true, 'already_subscribed', $this->get_message( $channel_settings, 'already_subscribed_message', __( 'You are already subscribed.', 'bw' ) ) );
-                    return;
-                }
-            } elseif ( isset( $existing_contact['code'] ) && 404 !== (int) $existing_contact['code'] ) {
-                $lookup_error = ! empty( $existing_contact['error'] ) ? sanitize_text_field( (string) $existing_contact['error'] ) : 'Unknown contact lookup error.';
-                $this->log_event( 'warning', 'Widget contact lookup warning: ' . $lookup_error, $email, $source_key, 'lookup_warning' );
             }
 
             $consent_at = current_time( 'mysql' );
@@ -242,27 +254,49 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                 $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], $attributes, $sender );
                 if ( empty( $result['success'] ) && class_exists( 'BW_MailMarketing_Service' ) && BW_MailMarketing_Service::is_unknown_attribute_error( $result ) ) {
                     $attribute_warning = isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Brevo rejected custom attributes.', 'bw' );
-                    $this->log_event( 'warning', 'BW_BREVO_ATTR_INVALID: Retrying DOI widget submit without marketing attributes.', $email, $source_key, 'warning' );
-                    $result = $client->send_double_opt_in(
-                        $email,
-                        $template_id,
-                        $redirect_url,
-                        [ $list_id ],
-                        BW_MailMarketing_Service::strip_marketing_attributes( $attributes ),
-                        $sender
-                    );
+                    $fallback_attributes = BW_MailMarketing_Service::strip_marketing_attributes( $attributes );
+
+                    if ( BW_MailMarketing_Service::fallback_drops_required_subscription_attributes( $attributes, $fallback_attributes ) ) {
+                        $this->log_event( 'error', 'BW_BREVO_ATTR_INVALID: DOI widget submit aborted because fallback would drop required consent/source metadata.', $email, $source_key, 'error' );
+                    } else {
+                        $this->log_event( 'warning', 'BW_BREVO_ATTR_INVALID: Retrying DOI widget submit without non-critical marketing attributes.', $email, $source_key, 'warning' );
+                        $result = $client->send_double_opt_in(
+                            $email,
+                            $template_id,
+                            $redirect_url,
+                            [ $list_id ],
+                            $fallback_attributes,
+                            $sender
+                        );
+                    }
+
                     if ( empty( $result['success'] ) && BW_MailMarketing_Service::is_unknown_attribute_error( $result ) ) {
-                        $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], [], $sender );
+                        if ( BW_MailMarketing_Service::fallback_drops_required_subscription_attributes( $attributes, [] ) ) {
+                            $this->log_event( 'error', 'BW_BREVO_ATTR_INVALID: DOI widget submit aborted because empty-attribute fallback would drop required consent/source metadata.', $email, $source_key, 'error' );
+                        } else {
+                            $result = $client->send_double_opt_in( $email, $template_id, $redirect_url, [ $list_id ], [], $sender );
+                        }
                     }
                 }
             } else {
                 $result = $client->upsert_contact( $email, $attributes, [ $list_id ] );
                 if ( empty( $result['success'] ) && class_exists( 'BW_MailMarketing_Service' ) && BW_MailMarketing_Service::is_unknown_attribute_error( $result ) ) {
                     $attribute_warning = isset( $result['error'] ) ? sanitize_text_field( (string) $result['error'] ) : __( 'Brevo rejected custom attributes.', 'bw' );
-                    $this->log_event( 'warning', 'BW_BREVO_ATTR_INVALID: Retrying widget submit without marketing attributes.', $email, $source_key, 'warning' );
-                    $result = $client->upsert_contact( $email, BW_MailMarketing_Service::strip_marketing_attributes( $attributes ), [ $list_id ] );
+                    $fallback_attributes = BW_MailMarketing_Service::strip_marketing_attributes( $attributes );
+
+                    if ( BW_MailMarketing_Service::fallback_drops_required_subscription_attributes( $attributes, $fallback_attributes ) ) {
+                        $this->log_event( 'error', 'BW_BREVO_ATTR_INVALID: Widget submit aborted because fallback would drop required consent/source metadata.', $email, $source_key, 'error' );
+                    } else {
+                        $this->log_event( 'warning', 'BW_BREVO_ATTR_INVALID: Retrying widget submit without non-critical marketing attributes.', $email, $source_key, 'warning' );
+                        $result = $client->upsert_contact( $email, $fallback_attributes, [ $list_id ] );
+                    }
+
                     if ( empty( $result['success'] ) && BW_MailMarketing_Service::is_unknown_attribute_error( $result ) ) {
-                        $result = $client->upsert_contact( $email, [], [ $list_id ] );
+                        if ( BW_MailMarketing_Service::fallback_drops_required_subscription_attributes( $attributes, [] ) ) {
+                            $this->log_event( 'error', 'BW_BREVO_ATTR_INVALID: Widget submit aborted because empty-attribute fallback would drop required consent/source metadata.', $email, $source_key, 'error' );
+                        } else {
+                            $result = $client->upsert_contact( $email, [], [ $list_id ] );
+                        }
                     }
                 }
             }
@@ -342,14 +376,9 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
                 ? BW_Mail_Marketing_Settings::get_subscription_settings()
                 : [];
 
-            $privacy_url = ! empty( $channel_settings['privacy_url'] )
-                ? esc_url_raw( (string) $channel_settings['privacy_url'] )
-                : ( function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '' );
-
             return [
                 'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
                 'consentRequired' => ! isset( $channel_settings['consent_required'] ) || ! empty( $channel_settings['consent_required'] ),
-                'privacyUrl'      => $privacy_url,
                 'messages'        => [
                     'emptyEmail'        => $this->get_message( $channel_settings, 'empty_email_message', __( 'Please enter your email address.', 'bw' ) ),
                     'invalidEmail'      => $this->get_message( $channel_settings, 'invalid_email_message', __( 'Please enter a valid email address.', 'bw' ) ),
@@ -409,6 +438,15 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
         }
 
         /**
+         * Rate limit key for broad IP burst protection.
+         *
+         * @return string
+         */
+        private function get_ip_rate_limit_key() {
+            return 'bw_mm_sub_ip_rl_' . md5( $this->get_request_ip() );
+        }
+
+        /**
          * Check whether the current submit should be cooled down.
          *
          * @param string $email Normalized email.
@@ -420,6 +458,15 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
         }
 
         /**
+         * Check whether the current IP exceeded the burst threshold.
+         *
+         * @return bool
+         */
+        private function is_ip_rate_limited() {
+            return absint( get_transient( $this->get_ip_rate_limit_key() ) ) >= self::IP_BURST_MAX_ATTEMPTS;
+        }
+
+        /**
          * Touch cooldown transient before remote calls.
          *
          * @param string $email Normalized email.
@@ -428,6 +475,17 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
          */
         private function touch_rate_limit( $email ) {
             set_transient( $this->get_rate_limit_key( $email ), 1, self::RATE_LIMIT_WINDOW );
+        }
+
+        /**
+         * Track a broad burst counter for the current IP.
+         *
+         * @return void
+         */
+        private function touch_ip_rate_limit() {
+            $key = $this->get_ip_rate_limit_key();
+            $attempts = absint( get_transient( $key ) );
+            set_transient( $key, $attempts + 1, self::IP_BURST_WINDOW );
         }
 
         /**
@@ -475,11 +533,12 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
 
             $logger = wc_get_logger();
             $context = [
-                'source'  => 'bw-brevo',
-                'email'   => sanitize_email( (string) $email ),
-                'context' => 'subscription_widget',
-                'channel' => sanitize_key( (string) $channel_source ),
-                'result'  => sanitize_key( (string) $result ),
+                'source'         => 'bw-brevo',
+                'email_masked'   => $this->mask_email_for_log( $email ),
+                'email_fingerprint' => $this->get_email_fingerprint( $email ),
+                'context'        => 'subscription_widget',
+                'channel'        => sanitize_key( (string) $channel_source ),
+                'result'         => sanitize_key( (string) $result ),
             ];
 
             if ( 'error' === $level ) {
@@ -493,6 +552,53 @@ if ( ! class_exists( 'BW_MailMarketing_Subscription_Channel' ) ) {
             }
 
             $logger->info( $message, $context );
+        }
+
+        /**
+         * Mask subscriber email for operational logs.
+         *
+         * Keeps enough shape for debugging without storing the full raw address.
+         *
+         * @param string $email Submitted email.
+         *
+         * @return string
+         */
+        private function mask_email_for_log( $email ) {
+            $email = sanitize_email( (string) $email );
+            if ( '' === $email || false === strpos( $email, '@' ) ) {
+                return 'unknown';
+            }
+
+            $parts = explode( '@', $email, 2 );
+            $local = isset( $parts[0] ) ? (string) $parts[0] : '';
+            $domain = isset( $parts[1] ) ? (string) $parts[1] : '';
+
+            $local_length = function_exists( 'mb_strlen' ) ? mb_strlen( $local, 'UTF-8' ) : strlen( $local );
+            if ( $local_length <= 1 ) {
+                $masked_local = '*';
+            } elseif ( 2 === $local_length ) {
+                $masked_local = substr( $local, 0, 1 ) . '*';
+            } else {
+                $masked_local = substr( $local, 0, 1 ) . '***' . substr( $local, -1 );
+            }
+
+            return $masked_local . '@' . $domain;
+        }
+
+        /**
+         * Stable short fingerprint for correlating repeated attempts without logging PII.
+         *
+         * @param string $email Submitted email.
+         *
+         * @return string
+         */
+        private function get_email_fingerprint( $email ) {
+            $email = sanitize_email( (string) $email );
+            if ( '' === $email ) {
+                return 'unknown';
+            }
+
+            return substr( hash( 'sha256', strtolower( $email ) ), 0, 12 );
         }
 
         /**

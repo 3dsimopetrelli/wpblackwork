@@ -1438,6 +1438,44 @@ Progress Status:
 - Linked Documents:
   - [R-SEC-30-R-SEC-31-cart-popup-xss-hardening-closure](../tasks/R-SEC-30-R-SEC-31-cart-popup-xss-hardening-closure.md)
 
+### Risk ID: R-BREVO-32
+- Domain: Brevo / Newsletter Subscription Widget UX Semantics
+- Source: Final widget validation review after conditional pre-lookup optimization
+- Surface Anchor: `includes/integrations/brevo/class-bw-mailmarketing-subscription-channel.php`, `assets/js/bw-newsletter-subscription.js`
+- Description: After making Brevo pre-lookup conditional on `resubscribe_policy`, the widget may no longer emit explicit `already_subscribed` responses in all non-policy-sensitive paths. This can change frontend UX semantics, including whether the form resets after a successful idempotent upsert.
+- Invariant Threatened: Existing-contact UX semantics should remain predictable and match the documented widget contract when the user is already subscribed.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Open
+- Current Mitigation: Code-level optimization is isolated and policy-sensitive lookup behavior remains intact for `no_auto_resubscribe`.
+- Monitoring Status: Monitoring / Manual verification pending
+- Recommended Mitigation: Validate `already_subscribed` behavior manually against the current optimized path before production closure.
+- Task Reference: `Newsletter Subscription / Brevo` final review
+- Date: `2026-04-02`
+- Linked Documents:
+  - [Task Closure Summary](../tasks/task-close-template.md)
+  - [Brevo Subscribe Spec](../40-integrations/brevo/subscribe.md)
+
+### Risk ID: R-BREVO-33
+- Domain: Brevo / Newsletter Subscription Metadata Integrity
+- Source: Final widget validation review after metadata fallback hardening
+- Surface Anchor: `includes/integrations/brevo/class-bw-mailmarketing-service.php`, `includes/integrations/brevo/class-bw-mailmarketing-subscription-channel.php`
+- Description: The widget now fails safely when fallback would drop required audit attributes. If the real Brevo production schema does not match the enforced required keys, valid submissions may fail until the live attribute model is confirmed.
+- Invariant Threatened: Required consent/source audit metadata must remain valid, present, and schema-compatible in the real provider account.
+- Impact: Medium
+- Likelihood: Medium
+- Risk Level: Medium
+- Status: Open
+- Current Mitigation: Runtime enforces controlled fallback and blocks false-success states when required metadata would be lost.
+- Monitoring Status: Monitoring / Manual verification pending
+- Recommended Mitigation: Validate the required Brevo attribute set against the production Brevo schema before launch.
+- Task Reference: `Newsletter Subscription / Brevo` final review
+- Date: `2026-04-02`
+- Linked Documents:
+  - [Task Closure Summary](../tasks/task-close-template.md)
+  - [Brevo Mail Marketing Architecture](../40-integrations/brevo/brevo-mail-marketing-architecture.md)
+
 ## 4) Governance Rules
 - All Tier 0 changes must be reviewed against this register before implementation.
 - Risks cannot be marked `Resolved` without audit confirmation evidence.

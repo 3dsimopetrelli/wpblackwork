@@ -177,6 +177,8 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - `bw-newsletter-subscription` added as the governed subscription widget for site-wide Brevo capture
   - runtime logic delegated to `BW_MailMarketing_Subscription_Channel`
   - admin behavior delegated to `Mail Marketing -> Subscription`
+  - current review status: `Almost ready` (`~9.5/10`), pending final manual validation only
+  - final reference: `docs/tasks/task-close-template.md`
 
 ## BW Product Grid Stabilization (2026)
 - A dedicated stabilization wave was completed on `BW Product Grid` to harden runtime behavior and remove residual drift before further feature work.

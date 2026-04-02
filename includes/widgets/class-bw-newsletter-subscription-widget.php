@@ -62,25 +62,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label_on'     => __( 'On', 'bw' ),
                 'label_off'    => __( 'Off', 'bw' ),
                 'return_value' => 'yes',
-                'default'      => 'yes',
-                'condition'    => [
-                    'style_variant' => 'footer',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'section_show_name_field',
-            [
-                'label'        => __( 'Show name field', 'bw' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'On', 'bw' ),
-                'label_off'    => __( 'Off', 'bw' ),
-                'return_value' => 'yes',
                 'default'      => '',
-                'condition'    => [
-                    'style_variant' => 'section',
-                ],
             ]
         );
 
@@ -342,15 +324,11 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             return;
         }
 
-        if ( wp_style_is( 'bw-newsletter-subscription-style', 'registered' ) ) {
-            wp_enqueue_style( 'bw-newsletter-subscription-style' );
-        }
-
-        if ( wp_script_is( 'bw-newsletter-subscription-script', 'registered' ) ) {
-            wp_enqueue_script( 'bw-newsletter-subscription-script' );
-        }
-
         $widget_settings = $this->get_settings_for_display();
+        $raw_widget_settings = $this->get_data( 'settings' );
+        if ( ! is_array( $raw_widget_settings ) ) {
+            $raw_widget_settings = [];
+        }
         $settings = BW_Mail_Marketing_Settings::get_subscription_settings();
         $is_editor = class_exists( '\Elementor\Plugin' )
             && \Elementor\Plugin::$instance->editor
@@ -360,9 +338,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             $style_variant = 'footer';
         }
 
-        $show_name_field = 'section' === $style_variant
-            ? ( isset( $widget_settings['section_show_name_field'] ) && 'yes' === $widget_settings['section_show_name_field'] )
-            : ( ! isset( $widget_settings['show_name_field'] ) || 'yes' === $widget_settings['show_name_field'] );
+        $show_name_field = $this->resolve_show_name_field_visibility( $widget_settings, $raw_widget_settings, $style_variant );
         $name_label   = ! empty( $settings['name_label'] ) ? $settings['name_label'] : __( 'Name', 'bw' );
         $email_label  = ! empty( $settings['email_label'] ) ? $settings['email_label'] : __( 'Email address', 'bw' );
         $consent_text = ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' );
@@ -390,7 +366,10 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $button_text = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'Subscribe', 'bw' );
         $section_title = isset( $widget_settings['section_title'] ) ? wp_kses_post( $widget_settings['section_title'] ) : __( 'Step Inside the Archive', 'bw' );
         $section_subtitle = isset( $widget_settings['section_subtitle'] ) ? wp_kses_post( $widget_settings['section_subtitle'] ) : __( 'Get free sample files, early access to new collections, and rare finds from our archive.', 'bw' );
-        $section_background_color = ! empty( $widget_settings['section_background_color'] ) ? sanitize_hex_color( $widget_settings['section_background_color'] ) : '#050505';
+        $section_background_color = '#050505';
+        if ( ! empty( $widget_settings['section_background_color'] ) ) {
+            $section_background_color = $this->sanitize_widget_color_value( $widget_settings['section_background_color'], '#050505' );
+        }
         $section_height = 72;
         if ( isset( $widget_settings['section_height']['size'] ) && '' !== $widget_settings['section_height']['size'] ) {
             $section_height = max( 40, min( 140, (int) $widget_settings['section_height']['size'] ) );
@@ -592,5 +571,78 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             </form>
         </div>
         <?php
+    }
+
+    /**
+     * Resolve name field visibility from canonical + legacy widget settings.
+     *
+     * Backward compatibility:
+     * - legacy footer widgets used `show_name_field`
+     * - legacy section widgets used `section_show_name_field`
+     * - unsaved/legacy section widgets without either key should remain hidden
+     *
+     * @param array  $widget_settings     Settings merged for display.
+     * @param array  $raw_widget_settings Raw saved widget settings.
+     * @param string $style_variant       Active style variant.
+     *
+     * @return bool
+     */
+    private function resolve_show_name_field_visibility( $widget_settings, $raw_widget_settings, $style_variant ) {
+        $widget_settings = is_array( $widget_settings ) ? $widget_settings : [];
+        $raw_widget_settings = is_array( $raw_widget_settings ) ? $raw_widget_settings : [];
+
+        if ( array_key_exists( 'show_name_field', $raw_widget_settings ) ) {
+            return isset( $widget_settings['show_name_field'] ) && 'yes' === $widget_settings['show_name_field'];
+        }
+
+        if ( array_key_exists( 'section_show_name_field', $raw_widget_settings ) ) {
+            return isset( $widget_settings['section_show_name_field'] ) && 'yes' === $widget_settings['section_show_name_field'];
+        }
+
+        if ( 'section' === $style_variant ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Sanitize Elementor color control values for safe inline CSS usage.
+     *
+     * Accepts the formats the control can realistically emit for this widget:
+     * - hex / hex8
+     * - rgb()
+     * - rgba()
+     * - transparent
+     *
+     * Falls back to the provided default when the value is not recognized.
+     *
+     * @param string $value    Raw color value.
+     * @param string $fallback Fallback color.
+     *
+     * @return string
+     */
+    private function sanitize_widget_color_value( $value, $fallback ) {
+        $value = is_string( $value ) ? trim( $value ) : '';
+        $fallback = is_string( $fallback ) && '' !== trim( $fallback ) ? trim( $fallback ) : '#050505';
+
+        if ( '' === $value ) {
+            return $fallback;
+        }
+
+        $hex_color = sanitize_hex_color( $value );
+        if ( is_string( $hex_color ) && '' !== $hex_color ) {
+            return $hex_color;
+        }
+
+        if ( preg_match( '/^rgba?\(\s*(\d{1,3}\s*,\s*){2}\d{1,3}(?:\s*,\s*(0|1|0?\.\d+))?\s*\)$/i', $value ) ) {
+            return preg_replace( '/\s+/', '', $value );
+        }
+
+        if ( 'transparent' === strtolower( $value ) ) {
+            return 'transparent';
+        }
+
+        return $fallback;
     }
 }

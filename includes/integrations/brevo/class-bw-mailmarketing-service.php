@@ -278,6 +278,45 @@ if ( ! class_exists( 'BW_MailMarketing_Service' ) ) {
         }
 
         /**
+         * Required subscription audit keys that must not be lost during fallback.
+         *
+         * @return string[]
+         */
+        public static function get_required_subscription_attribute_keys() {
+            return [
+                'SOURCE',
+                'CONSENT_SOURCE',
+                'CONSENT_STATUS',
+                'CONSENT_AT',
+            ];
+        }
+
+        /**
+         * Determine whether a fallback payload drops required subscription metadata.
+         *
+         * Only keys present in the original payload are enforced, so callers can safely use
+         * this with partial payloads without inventing requirements that were never set.
+         *
+         * @param array $original_attributes Original attributes payload.
+         * @param array $fallback_attributes Fallback attributes payload.
+         *
+         * @return bool
+         */
+        public static function fallback_drops_required_subscription_attributes( $original_attributes, $fallback_attributes ) {
+            if ( ! is_array( $original_attributes ) || ! is_array( $fallback_attributes ) ) {
+                return false;
+            }
+
+            foreach ( self::get_required_subscription_attribute_keys() as $required_key ) {
+                if ( array_key_exists( $required_key, $original_attributes ) && ! array_key_exists( $required_key, $fallback_attributes ) ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
          * Detect Brevo unknown-attribute errors.
          *
          * @param array $result Brevo response payload.

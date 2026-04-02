@@ -18,7 +18,7 @@ Canonical transition note:
 | `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
-| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants, still owned by Mail Marketing settings |
+| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants; status `Almost ready`, quality `~9.5/10`, phase `Final manual validation` |
 | `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces |
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
@@ -241,6 +241,23 @@ Important runtime note:
   - `Style Section` adds hero-style content/media controls plus a dedicated conditional Style tab for typography, colors, overlay, glow, and content positioning
   - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
   - public submit handled through nonce-protected server-side AJAX endpoint
+  - completed hardening/cleanup wave:
+    - abuse throttling
+    - metadata-safe fallback rules
+    - PII-safe logs
+    - JS-driven floating-label stability
+    - submit timeout/failure recovery
+    - unified name-field control model
+    - simplified asset loading contract
+    - staged CSS cleanup
+    - conditional Brevo pre-lookup by resubscribe policy
+  - current status:
+    - `Almost ready`
+    - quality `~9.5/10`
+    - phase `Final manual validation`
+  - final manual validations still required:
+    - `already_subscribed` behavior after conditional pre-lookup optimization
+    - required Brevo audit attributes against the real production schema
 - `bw-psychadelic-banner`:
   - decorative editorial banner widget with CSS-only marquee rows and optional central PNG art
   - content controls:
@@ -341,6 +358,7 @@ Important runtime note:
 - `bw-newsletter-subscription` is a hybrid case:
   - declares normal Elementor style/script depends
   - also has channel-level runtime pre-enqueue logic for Theme Builder Lite footer injection
+  - render-time enqueue duplication has been removed; only the two canonical asset-loading paths remain
 - Slider handles are registered centrally and consumed per widget:
   - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
 - `bw-product-slider-script`, `bw-presentation-slide-script`

@@ -377,13 +377,16 @@ Esito: ✅ Fully implemented
 - [x] Public write path is rate-limited
 - [x] Public write path is deterministic
 - [x] Public write path keeps provider detail server-side
+- [x] Code-level hardening / cleanup / staged CSS cleanup complete
+- [ ] Validate `already_subscribed` behavior after conditional pre-lookup optimization
+- [ ] Validate required Brevo audit attributes against the real production Brevo schema
 - [ ] Full live E2E verification with Brevo on staging/local documented here
 
-Esito: ⚠️ Partially implemented
+Esito: ⚠️ Almost ready
 
 Dettaglio:
 - Static/code-level hardening is complete.
-- Missing evidence is live browser/API execution documentation, not missing implementation.
+- Remaining gap is final manual validation, not missing implementation.
 
 ---
 

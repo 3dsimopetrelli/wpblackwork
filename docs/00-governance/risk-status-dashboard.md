@@ -686,6 +686,26 @@ Last governance-aligned updates:
 - Supabase-adjacent blast radius: No.
 - Recommended next step: Keep checkout/non-checkout runtime suppression checks in regression protocol.
 
+### R-BREVO-32 — Already subscribed behavior drift after lookup optimization
+- Area: Brevo / Newsletter Subscription Widget
+- Priority: Medium
+- Status: Open
+- Summary: Conditional pre-lookup optimization reduced provider calls, but the explicit `already_subscribed` UX now requires manual confirmation in non-policy-sensitive paths.
+- What has been completed: Lookup-before-write is now limited to `no_auto_resubscribe` enforcement paths, reducing one provider round trip from the normal path.
+- What is still pending: Manual validation of `already_subscribed` response semantics and form-reset behavior.
+- Supabase-adjacent blast radius: No.
+- Recommended next step: Run live validation against an email already present in the target list.
+
+### R-BREVO-33 — Brevo attribute schema mismatch
+- Area: Brevo / Newsletter Subscription Metadata
+- Priority: Medium
+- Status: Open
+- Summary: Metadata hardening now blocks false-success fallback, but the required audit attributes must still be confirmed against the real production Brevo schema.
+- What has been completed: Required consent/source metadata is now non-droppable during fallback, preventing degraded-success subscriptions.
+- What is still pending: Production schema validation for required attributes.
+- Supabase-adjacent blast radius: No.
+- Recommended next step: Verify the required attribute set directly in the production Brevo account before launch.
+
 ## 5. Recommended next wave
 1. `R-AUTH-04` — Core Supabase auth surface still open; requires a dedicated, controlled hardening wave.
 2. `R-PAY-08` — Complete Google Pay runtime convergence to close partial mitigation state.

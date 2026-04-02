@@ -1,6 +1,7 @@
 (function () {
     var config = window.bwMailMarketingSubscription || {};
     var messages = config.messages || {};
+    var REQUEST_TIMEOUT = 15000;
 
     function getMessage(key, fallback) {
         if (messages[key]) {
@@ -28,6 +29,64 @@
         }
 
         field.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+    }
+
+    function syncFieldState(field) {
+        var wrapper;
+        var value;
+
+        if (!field || !field.classList || !field.classList.contains('bw-newsletter-subscription-input')) {
+            return;
+        }
+
+        wrapper = field.closest('.bw-newsletter-subscription-field');
+        if (!wrapper) {
+            return;
+        }
+
+        value = typeof field.value === 'string' ? field.value.trim() : '';
+        wrapper.classList.toggle('is-filled', value !== '');
+    }
+
+    function syncFormFieldStates(form) {
+        if (!form) {
+            return;
+        }
+
+        form.querySelectorAll('.bw-newsletter-subscription-input').forEach(syncFieldState);
+    }
+
+    function syncFormsInNode(node) {
+        if (!node || node.nodeType !== 1) {
+            return;
+        }
+
+        if (node.matches && node.matches('.bw-newsletter-subscription-form')) {
+            syncFormFieldStates(node);
+        }
+
+        if (node.querySelectorAll) {
+            node.querySelectorAll('.bw-newsletter-subscription-form').forEach(syncFormFieldStates);
+        }
+    }
+
+    function bootstrapLateInjectedForms() {
+        if (typeof window.MutationObserver !== 'function' || !document.body) {
+            return;
+        }
+
+        (new window.MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (!mutation.addedNodes || !mutation.addedNodes.length) {
+                    return;
+                }
+
+                Array.prototype.forEach.call(mutation.addedNodes, syncFormsInNode);
+            });
+        })).observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     }
 
     function clearValidationState(form) {
@@ -137,10 +196,28 @@
         return fallback;
     }
 
+    function createTimeoutController(timeoutMs) {
+        var controller = typeof window.AbortController === 'function' ? new window.AbortController() : null;
+        var timerId = window.setTimeout(function () {
+            if (controller) {
+                controller.abort();
+            }
+        }, timeoutMs);
+
+        return {
+            signal: controller ? controller.signal : undefined,
+            cleanup: function () {
+                window.clearTimeout(timerId);
+            }
+        };
+    }
+
     function handleSubmit(form, event) {
         var ajaxUrl = config.ajaxUrl || '';
         var nonce = form.getAttribute('data-nonce') || '';
         var formData;
+        var timeoutControl;
+        var request;
 
         event.preventDefault();
 
@@ -165,11 +242,26 @@
         setBusy(form, true);
         setMessage(form, 'loading', getMessage('loading', 'Submitting...'));
 
-        fetch(ajaxUrl, {
+        timeoutControl = createTimeoutController(REQUEST_TIMEOUT);
+        request = fetch(ajaxUrl, {
             method: 'POST',
             credentials: 'same-origin',
-            body: formData
-        })
+            body: formData,
+            signal: timeoutControl.signal
+        });
+
+        if (!timeoutControl.signal) {
+            request = Promise.race([
+                request,
+                new Promise(function (_, reject) {
+                    window.setTimeout(function () {
+                        reject(new Error('timeout'));
+                    }, REQUEST_TIMEOUT);
+                })
+            ]);
+        }
+
+        request
             .then(function (response) {
                 return parseResponse(response).then(function (payload) {
                     if (!payload || typeof payload.success !== 'boolean' || !payload.data || typeof payload.data.code !== 'string') {
@@ -192,6 +284,7 @@
 
                     if (!payload.data || payload.data.code !== 'already_subscribed') {
                         form.reset();
+                        syncFormFieldStates(form);
                     }
 
                     return;
@@ -212,6 +305,7 @@
                 setMessage(form, 'error', getMessage('networkFailure', 'Something went wrong. Please try again.'));
             })
             .finally(function () {
+                timeoutControl.cleanup();
                 setBusy(form, false);
             });
     }
@@ -236,4 +330,19 @@
 
         handleSubmit(form, event);
     });
+
+    document.addEventListener('input', function (event) {
+        syncFieldState(event.target);
+    });
+
+    document.addEventListener('change', function (event) {
+        syncFieldState(event.target);
+    });
+
+    document.addEventListener('focusout', function (event) {
+        syncFieldState(event.target);
+    });
+
+    document.querySelectorAll('.bw-newsletter-subscription-form').forEach(syncFormFieldStates);
+    bootstrapLateInjectedForms();
 }());

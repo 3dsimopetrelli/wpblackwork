@@ -5,6 +5,14 @@
 
 It reuses the shared Brevo/Mail Marketing subscription channel and only changes presentation at widget level. Submit flow, validation, consent enforcement, and response handling remain centralized.
 
+## Status
+- Status: `Almost ready`
+- Quality: `~9.5/10`
+- Phase: `Final manual validation`
+- Summary:
+  - full audit, hardening, cleanup, staged CSS cleanup, and first submit-path optimization are complete
+  - remaining work is limited to final manual validation of `already_subscribed` behavior after conditional pre-lookup and confirmation of required Brevo audit attributes against the real production schema
+
 ## Runtime Authority
 Widget file:
 - `includes/widgets/class-bw-newsletter-subscription-widget.php`
@@ -86,7 +94,7 @@ Style-tab controls:
 Implementation note:
 - `Style Section` changes only layout/visual treatment
 - the form still submits through the exact same AJAX action and consent flow as `Style Footer`
-- the name field is controlled separately per style so legacy footer instances keep their current behavior
+- the name field now uses one canonical control model with legacy saved-value compatibility preserved in render
 
 ## Rendering Behavior
 Common runtime output:
@@ -158,14 +166,15 @@ Runtime-ready message keys already supported:
    - consent flag
 4. Server validates again.
 5. Cooldown gate runs before Brevo write.
-6. Brevo contact lookup checks:
+6. Existing-contact lookup runs only when the active resubscribe policy requires contact-state inspection (`no_auto_resubscribe`).
+7. When lookup is active, the runtime checks:
    - already subscribed to list
    - blocklisted/unsubscribed semantics
-7. Effective mode is resolved:
+8. Effective mode is resolved:
    - single opt-in
    - double opt-in
-8. Brevo call executes server-side.
-9. Frontend receives a structured safe JSON response.
+9. Brevo call executes server-side.
+10. Frontend receives a structured safe JSON response.
 
 ## Response Code Contract
 Stable response codes:
@@ -198,6 +207,25 @@ Normal Elementor path:
 Custom footer exception:
 - Theme Builder Lite footer templates can be injected late in `wp_footer`
 - the channel runtime pre-enqueues widget assets during `wp_enqueue_scripts` when the active footer contains `bw-newsletter-subscription`
+- render-time enqueue duplication has been removed; the asset model is now:
+  - widget dependency handles for normal Elementor placement
+  - runtime footer detection only for late-injected footer placement
+
+## Completed Hardening / Cleanup Highlights
+- endpoint abuse protection hardened with email cooldown and IP burst throttling
+- Brevo fallback hardened so required consent/source metadata cannot be silently dropped
+- Woo logs hardened to avoid raw subscriber email exposure
+- floating-label state moved from `:has()` dependency to JS-managed `.is-filled` state
+- client submit timeout and failure recovery added
+- late-injected forms now receive initial field-state sync
+- unused runtime payload `privacyUrl` removed
+- name-field control model unified with backward compatibility
+- background color control/render behavior aligned
+- staged CSS cleanup completed across utility selectors, shared rules, low-conflict specificity, and section-variant structure
+
+## Remaining Manual Validations
+- validate `already_subscribed` behavior after conditional pre-lookup optimization
+- validate required Brevo audit attributes against the real production Brevo schema
 
 ## Current Limitations
 - the widget remains a governed design system surface, not a free-form style builder
@@ -210,3 +238,4 @@ Custom footer exception:
 - `docs/40-integrations/brevo/subscribe.md`
 - `docs/40-integrations/brevo/brevo-architecture-map.md`
 - `docs/40-integrations/brevo/mail-marketing-qa-checklist.md`
+- `docs/tasks/task-close-template.md`

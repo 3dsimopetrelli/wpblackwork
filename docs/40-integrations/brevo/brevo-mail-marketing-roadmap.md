@@ -1,6 +1,6 @@
 # 🚀 Blackwork -- Brevo Mail Marketing Roadmap
 
-*Last updated: 2026-02-24*
+*Last updated: 2026-04-02*
 
 Legend:
 
@@ -133,5 +133,10 @@ channel
 
 Checkout opt-in + Brevo sync is fully operational and GDPR-safe.
 
-Next strategic priority: → Complete Brevo attribute model + Welcome
-automation.
+Elementor `Newsletter Subscription / Brevo` widget status:
+- audit complete
+- hardening and cleanup complete
+- ready pending final manual validation
+- final reference: `docs/tasks/task-close-template.md`
+
+Next strategic priority: → complete final Brevo schema validation and then continue with broader attribute-model and automation work.
