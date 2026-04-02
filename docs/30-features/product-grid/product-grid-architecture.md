@@ -30,15 +30,15 @@ Controls are registered across four private methods:
 |--------|----------|
 | `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
-| `register_filter_controls()` | `Show Filters`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
-| `register_query_controls()` | Post type, parent category, subcategory (multi-select), specific IDs, order by, order direction |
+| `register_filter_controls()` | `Show Filters`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
+| `register_query_controls()` | Post type, parent category (multi-select), subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
 
 ```
 render()
-├── render_wrapper_start()   — outer wrapper + data-filter-breakpoint
-├── render_filters()         — category / subcategory / tag filter rows + mobile panel
+├── render_wrapper_start()   — outer wrapper + responsive filter runtime attributes
+├── render_filters()         — legacy inline rows OR responsive discovery drawer shell
 └── render_posts()           — WP_Query + grid HTML + render_post_item() per post
     └── render_post_item()   — delegates to BW_Product_Card_Component or generic fallback
 ```
@@ -66,6 +66,8 @@ The outer `.bw-product-grid-wrapper` is a second wrapper-level contract:
 | Attribute | Source in PHP | Used by |
 |-----------|---------------|---------|
 | `data-filter-breakpoint` | hardcoded `900` | CSS first paint + `toggleResponsiveFilters()` |
+| `data-responsive-filter-mode` | `enable_responsive_filter_mode` | CSS/JS branch between legacy inline filters and discovery drawer mode |
+| `data-drawer-side` | `responsive_filter_drawer_side` (`left` / `right`) | CSS drawer-side placement + slide-in direction |
 
 There is currently no Elementor control for the filter breakpoint.
 
@@ -82,7 +84,8 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-post-type` | `$settings['post_type']` | filter/AJAX calls |
 | `data-layout-mode` | masonry_effect control | `initGrid()` |
 | `data-columns-desktop/tablet/mobile` | controls | `setItemWidths()` |
-| `data-gap-desktop/tablet/mobile` | controls | CSS vars / layout |
+| `data-gap-x-desktop/tablet/mobile` | `Grid > Post Gap Horizontal` | CSS vars + masonry width/gutter |
+| `data-gap-y-desktop/tablet/mobile` | `Grid > Post Gap Vertical` | CSS vars + masonry row spacing |
 | `data-breakpoint-tablet-min/max`, `data-breakpoint-mobile-max` | hardcoded defaults | `getCurrentDevice()` |
 | `data-image-size` | `$image_size` (default `large`) | `filterPosts()` AJAX payload |
 | `data-image-mode` | `$image_mode` (default `proportional`) | `filterPosts()` AJAX payload |
@@ -131,16 +134,35 @@ Important nuance for later maintenance:
 
 ---
 
-### 3.6 Responsive filter first-paint contract
+### 3.6 Responsive filter surfaces
 
-The widget renders both filter surfaces in PHP:
-- desktop inline rows: `.bw-fpw-filters`
-- mobile trigger + slide-out panel: `.bw-fpw-mobile-filter`
+The widget currently has two filter surface families:
 
-To avoid a mobile first-paint flash of desktop filter labels, visibility is now decided in two layers:
+- legacy inline path:
+  - desktop inline rows: `.bw-fpw-filters`
+  - classic mobile trigger/panel below the hardcoded breakpoint
+- responsive discovery path (`Enable Responsive Filter Mode = yes`):
+  - desktop + mobile share a discovery toolbar and the same drawer shell
+  - inline desktop rows are suppressed
+  - drawer shell can open from `left` or `right` via `Drawer Opening`
+
+Responsive discovery PHP shell authority:
+- toolbar result count + reset action
+- global search input (`Search in collection...`)
+- filter trigger pill
+- drawer shell regions:
+  - header
+  - scrollable body
+  - sticky footer CTA
+
+Drawer body content is data-bootstrapped in PHP and rendered live in JS from centralized state.
+
+### 3.7 Responsive filter first-paint contract
+
+To avoid a mobile first-paint flash of desktop filter labels, visibility is decided in two layers:
 - CSS first-paint authority:
-  - `@media (max-width: 899px)` immediately hides `.bw-fpw-filters`
-  - `@media (max-width: 899px)` immediately shows `.bw-fpw-mobile-filter`
+  - legacy mode: `@media (max-width: 899px)` hides `.bw-fpw-filters` and shows `.bw-fpw-mobile-filter`
+  - discovery mode: wrapper-level `data-responsive-filter-mode="yes"` hides legacy inline rows immediately
 - JS runtime authority:
   - `toggleResponsiveFilters()` still adds/removes `.bw-fpw-mobile-filters-enabled`
   - JS remains responsible for panel open/close and resize cleanup
@@ -157,10 +179,25 @@ done via `elementorFrontend.hooks.addAction`.
 
 ### 4.2 Per-widget state objects
 
-Each live widget instance owns two state objects keyed by `widgetId`:
+Each live widget instance owns two main state objects keyed by `widgetId`:
 
 ```
-filterState[widgetId]       = { category, subcategories[], tags[] }
+filterState[widgetId]       = {
+                                category,
+                                subcategories[],
+                                tags[],
+                                search,
+                                appliedSearch,
+                                resultCount,
+                                options: { types[], tags[] },
+                                labels:  { types{}, tags{} },
+                                ui: {
+                                  showTypes,
+                                  showTags,
+                                  optionSearches: { types, tags },
+                                  openGroups:     { types, tags }
+                                }
+                              }
 widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
                                 perPage, currentPage, nextPage,
                                 loadedCount, nextOffset, hasMore,
@@ -168,8 +205,20 @@ widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
                                 isLoading, observer }
 ```
 
-`filterState` is initialised by `initFilterState()` (once per widget) and
-reset only when `destroyWidgetState()` is called.
+In discovery drawer mode the same `filterState` is the single source of truth for:
+- drawer checkboxes
+- global discovery search
+  - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
+- quick filters / selected pills
+- result count
+- reset actions
+
+The responsive drawer shell is intentionally style-only and does not alter filter behaviour:
+- overlay uses a light veil plus blur so page context remains visible behind the drawer
+- the drawer itself is a detached dark-glass panel with large radius and tight viewport margins
+- header, close control, and footer CTA follow the same floating-surface language used by other mobile navigation surfaces
+
+`filterState` is initialised by `initFilterState()` (once per widget) and reset only when `destroyWidgetState()` is called.
 
 `widgetPagingState` is updated on every AJAX response via
 `updateWidgetPagingState()`.  `getWidgetPagingState()` automatically
@@ -246,12 +295,17 @@ on `window.innerWidth` vs. the grid's breakpoint data-attributes.
 `isInMobileMode(widgetId)` returns true when the wrapper has the class
 `bw-fpw-mobile-filters-enabled` (set by `toggleResponsiveFilters()`).
 
-In mobile mode a slide-out panel replaces the inline filter bar.
-The visual trigger for that panel is a pill-style button with:
-- white background
-- black border
-- left-aligned `Filters` label
-- green circular icon shell on the right
+In responsive discovery mode the toolbar + drawer currently behaves as follows:
+- desktop above `800px`:
+  - search/filter controls are compact pill triggers that expand on hover/focus
+- responsive mode at `800px` and below:
+  - search/filter controls become always-open, full-width controls
+  - quick filters collapse to selected-only pills to reduce noise
+- drawer shell reuses the cart-popup visual language
+- drawer-side is wrapper-configurable (`left` / `right`)
+- accordion group labels are currently:
+  - `Categories`
+  - `Style / Subject`
 
 The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
@@ -280,10 +334,19 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 ### 5.3 bw_fpw_filter_posts
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
-- Input: `widget_id`, `post_type`, `category`, `subcategories[]`, `tags[]`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
-- Returns: `{ html, tags_html, available_tags[], has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
+- Input: `widget_id`, `post_type`, `category`, `subcategories[]`, `tags[]`, `search`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
+- Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
 - Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
+
+Current search behavior:
+- search term is normalized server-side
+- matching uses title, excerpt, content, slug, and taxonomy term names
+- a native WP `s` query is also merged into the matching-post-ID set
+
+Current empty-state copy:
+- active refinements/search -> `No results found.`
+- empty archive baseline -> `There is nothing in this archive yet.`
 
 ### 5.4 bw_fpw_refresh_nonce
 

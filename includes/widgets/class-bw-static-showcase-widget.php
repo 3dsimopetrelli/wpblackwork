@@ -129,25 +129,9 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 'isLinked' => true,
             ],
             'selectors'  => [
-                '{{WRAPPER}} .bw-static-showcase-left' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-static-showcase-left' => '--bw-static-showcase-content-top: {{TOP}}{{UNIT}}; --bw-static-showcase-content-right: {{RIGHT}}{{UNIT}}; --bw-static-showcase-content-bottom: {{BOTTOM}}{{UNIT}}; --bw-static-showcase-content-left: {{LEFT}}{{UNIT}};',
             ],
-        ] );
-
-        $this->add_responsive_control( 'right_column_padding', [
-            'label'      => __( 'Right Column Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'default'    => [
-                'top'    => 0,
-                'right'  => 0,
-                'bottom' => 0,
-                'left'   => 0,
-                'unit'   => 'px',
-                'isLinked' => true,
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-static-showcase-right' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
+            'description' => __( 'Controlla gli offset del blocco titolo/testo e della fascia footer sopra l\'immagine grande.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'right_column_gap', [
@@ -192,37 +176,22 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
             'default'      => 'yes',
         ] );
 
-        $this->add_responsive_control( 'border_radius', [
-            'label'      => __( 'Border Radius Container', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em' ],
-            'default'    => [
-                'top' => 16,
-                'right' => 16,
-                'bottom' => 16,
-                'left' => 16,
-                'unit' => 'px',
-                'isLinked' => true,
-            ],
-            'selectors' => [
-                '{{WRAPPER}} .bw-static-showcase-container' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
         $this->add_responsive_control( 'images_border_radius', [
             'label'       => __( 'Border Radius Immagini', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::DIMENSIONS,
             'size_units'  => [ 'px', '%', 'em' ],
             'default'     => [
-                'top'      => 0,
-                'right'    => 0,
-                'bottom'   => 0,
-                'left'     => 0,
+                'top'      => 8,
+                'right'    => 8,
+                'bottom'   => 8,
+                'left'     => 8,
                 'unit'     => 'px',
                 'isLinked' => true,
             ],
             'selectors'   => [
+                '{{WRAPPER}} .bw-slide-showcase-media' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-slide-showcase-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .bw-static-showcase-right-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 '{{WRAPPER}} .bw-static-showcase-right-image img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
             'description' => __( 'Applica lo stesso border radius a tutte e tre le immagini del widget.', 'bw-elementor-widgets' ),
@@ -627,6 +596,11 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $has_cta           = ! empty( $btn_url ) && ! empty( $button_text );
 
         $object_fit = $image_crop ? 'cover' : 'contain';
+        $image_radius = $this->build_border_radius_value(
+            isset( $settings['images_border_radius'] ) && is_array( $settings['images_border_radius'] )
+                ? $settings['images_border_radius']
+                : []
+        );
 
         $container_classes = [ 'bw-static-showcase-container' ];
         if ( ! $image_crop ) {
@@ -634,7 +608,7 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         }
 
         $container_style = esc_attr(
-            '--bw-slide-showcase-text-color: ' . $meta_color . '; --bw-slide-showcase-badge-border-color: ' . $meta_color . ';'
+            '--bw-slide-showcase-text-color: ' . $meta_color . '; --bw-slide-showcase-badge-border-color: ' . $meta_color . '; --bw-static-showcase-image-radius: ' . $image_radius . ';'
         );
         $bottom_info_style = esc_attr( 'color: ' . $meta_color . ';' );
         $badge_style       = esc_attr( 'color: ' . $meta_color . '; border-color: ' . $meta_color . ';' );
@@ -724,17 +698,21 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                 <?php if ( ! empty( $gallery_ids ) ) : ?>
                     <?php foreach ( $gallery_ids as $gal_id ) : ?>
                         <div class="bw-static-showcase-right-image">
-                            <?php echo wp_get_attachment_image( (int) $gal_id, 'medium_large', false, [
-                                'class'   => 'bw-lazy-img',
-                                'loading' => 'lazy',
-                                'style'   => $img_style,
-                                'alt'     => $product_title,
-                            ] ); ?>
+                            <div class="bw-static-showcase-right-media">
+                                <?php echo wp_get_attachment_image( (int) $gal_id, 'medium_large', false, [
+                                    'class'   => 'bw-lazy-img',
+                                    'loading' => 'lazy',
+                                    'style'   => $img_style,
+                                    'alt'     => $product_title,
+                                ] ); ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php else : ?>
                     <div class="bw-static-showcase-right-image bw-static-showcase-right-image--placeholder">
-                        <span class="bw-static-showcase-placeholder-text"><?php esc_html_e( 'No gallery images', 'bw-elementor-widgets' ); ?></span>
+                        <div class="bw-static-showcase-right-media bw-static-showcase-right-media--placeholder">
+                            <span class="bw-static-showcase-placeholder-text"><?php esc_html_e( 'No gallery images', 'bw-elementor-widgets' ); ?></span>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
@@ -759,7 +737,35 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
     private function build_image_style( $object_fit ) {
         $allowed_fits = [ 'cover', 'contain', 'fill', 'none', 'scale-down' ];
         $fit_value    = in_array( $object_fit, $allowed_fits, true ) ? $object_fit : 'cover';
-        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . ';';
+
+        return 'height: 100%; width: 100%; object-fit: ' . $fit_value . '; display: block;';
+    }
+
+    /**
+     * Builds a CSS border-radius shorthand from Elementor dimensions.
+     */
+    private function build_border_radius_value( $radius_settings ) {
+        if ( ! is_array( $radius_settings ) ) {
+            return '8px';
+        }
+
+        $unit = isset( $radius_settings['unit'] ) && '' !== $radius_settings['unit']
+            ? sanitize_text_field( (string) $radius_settings['unit'] )
+            : 'px';
+
+        $top    = isset( $radius_settings['top'] ) && '' !== $radius_settings['top'] ? (string) $radius_settings['top'] : '8';
+        $right  = isset( $radius_settings['right'] ) && '' !== $radius_settings['right'] ? (string) $radius_settings['right'] : $top;
+        $bottom = isset( $radius_settings['bottom'] ) && '' !== $radius_settings['bottom'] ? (string) $radius_settings['bottom'] : $top;
+        $left   = isset( $radius_settings['left'] ) && '' !== $radius_settings['left'] ? (string) $radius_settings['left'] : $right;
+
+        return sprintf(
+            '%1$s%5$s %2$s%5$s %3$s%5$s %4$s%5$s',
+            esc_attr( $top ),
+            esc_attr( $right ),
+            esc_attr( $bottom ),
+            esc_attr( $left ),
+            esc_attr( $unit )
+        );
     }
 
 }

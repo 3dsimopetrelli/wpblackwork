@@ -207,6 +207,16 @@ The widget stays intentionally thin. Business rules remain inside the Reviews mo
 - show-more pagination
 - optional global fallback when the current product has no approved reviews
 
+### Modal presentation contract
+The review flow modal is a dedicated runtime surface with its own styling contract:
+- fullscreen blurred backdrop
+- centered floating dialog on desktop
+- dark-glass shell with large radius and detached shadow
+- modal-only typography and CTA treatment
+- multi-step footer with progress bars and back/next actions
+
+This contract is intentionally isolated from the external review grid/cards so modal restyling can happen without changing the surrounding widget shell.
+
 ### Review card contract
 Normal product mode:
 - reviewer name

@@ -73,12 +73,15 @@ Current behavior:
 - products are rendered in the exact order provided
 - only published WooCommerce products are queried
 - if a product has no showcase image meta, the featured image is used as fallback
+- products without either a showcase image or a featured image are skipped from the live slider
 
 ## Controls Direction
 
-### Content
+### Query
 - `Query`
   - `Product IDs`
+
+### Slider Settings
 - `Slider Settings`
   - `Infinite Loop`
   - `Autoplay`
@@ -87,7 +90,9 @@ Current behavior:
   - `Drag Free`
   - `Touch Drag`
   - `Slide Alignment`
-  - `Responsive Breakpoints`
+
+### Responsive Breakpoints
+- `Responsive Breakpoints`
   - breakpoint px
   - slides to show
   - slides to scroll
@@ -100,9 +105,9 @@ Current behavior:
   - classic photo size
   - variable width
   - slide width
-    - image height mode
-    - image height
-    - image width
+  - image height mode
+  - image height
+  - image width
 
 #### Breakpoint Layout Contract
 The breakpoint repeater now supports three different width-authority modes:
@@ -153,8 +158,13 @@ These presets change slide width only. They do not alter the 3:2 ratio.
 - it is implemented at the viewport layer rather than as image/card margin, so Embla snapping remains coherent
 
 ### Style
+- `Text`
+  - title typography
+  - subtitle typography
+  - labels typography
+  - physical info typography
 - `Link Button`
-  - CTA pill typography
+  - CTA text pill typography only
 - `Images`
   - border radius
   - spacing between slides
@@ -190,6 +200,20 @@ The widget reuses the current Embla slider image-height contract:
 Responsive image-height changes are managed in JavaScript based on the breakpoint repeater settings.
 
 When a fixed `frame ratio` is enabled, the ratio becomes the primary card-shape authority and the widget stops using the legacy image-height/image-width contract for that breakpoint.
+
+### Render Contract
+Each slide is rendered as:
+- image/media layer
+- absolute overlay layer
+- copy block (`title` + `description`)
+- footer branch:
+  - digital -> badge pills
+  - physical -> plain text lines
+- detached CTA pair:
+  - green circular arrow
+  - green text pill
+
+The overlay remains inside the image card; this widget does not render a separate text panel layout.
 
 ### Navigation Arrows
 Arrows follow the same lightweight Embla-family pattern already used in `BW Product Slider` / `BW Presentation Slide`.
@@ -238,17 +262,34 @@ Below `800px` viewport width:
 
 ### `BW Static Showcase`
 - reference for showcase metabox field usage and showcase content structure
+- current maintenance note:
+  - `Border Radius Immagini` is still the intended authority
+  - `Content Padding` now owns the large-image overlay offsets
+  - the right-column inner-corner radius issue is still open and should not be treated as solved
 
 ## Runtime Notes
 - Asset registration is centralized in `blackwork-core-plugin.php`.
 - The widget title is `BW-UI Showcase Slide`, so it participates in the Elementor panel black BW-UI family styling.
 - The widget does not introduce popup, AJAX, or review dependencies.
 - The widget uses `BWEmblaCore` and does not own a popup runtime.
-- First render stability is partially handled server-side:
+- First render stability is handled in the current runtime by:
   - breakpoint CSS is emitted from PHP before JS boot
   - initial image height mode / image height / image width are seeded into CSS custom properties when legacy image controls are active
   - fixed frame ratio and start-offset rules are emitted in breakpoint CSS so Elementor/frontend first paint matches the configured layout more closely
+- Layering contract:
+  - `.bw-showcase-slide-media` is an isolated stacking context
+  - `.bw-showcase-slide-image` / `.bw-showcase-slide-image-el` stay on `z-index: 0`
+  - `.bw-showcase-slide-overlay` is explicitly rendered above them on `z-index: 1`
+  - this prevents late image-state/theme rules from covering title/description/footer copy
+- Loading policy:
+  - first visible slide image uses `fetchpriority="high"` and `decoding="sync"`
+  - the second slide image is also promoted to eager loading
+  - the loop-center clone is promoted as eager when needed to avoid loop-center blanking
 - The custom glass cursor is stateful:
   - side slides show left/right navigation arrows
   - the active center slide shows a neutral dot cursor, not a navigation arrow
   - cursor direction is recalculated from live card position vs viewport center, not only from the slide index
+- Mobile CTA runtime:
+  - below `800px`, the green CTA pair is hidden with CSS
+  - the whole slide becomes the tap target if a CTA URL exists
+  - pointerdown/up distance checks protect Embla drag interactions from accidental navigation

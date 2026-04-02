@@ -43,7 +43,7 @@
 
 .bw-ms-desktop-slide {
     flex: 0 0 100%;
-    padding-inline: var(--bw-ms-column-gap, 18px);
+    padding-inline: 0;
 }
 
 .bw-ms-mobile-slide {

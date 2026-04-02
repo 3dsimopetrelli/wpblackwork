@@ -78,7 +78,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'label'       => __( 'Categoria padre', 'bw-elementor-widgets' ),
                 'type'        => Controls_Manager::SELECT2,
                 'label_block' => true,
-                'multiple'    => false,
+                'multiple'    => true,
                 'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : [],
                 'condition'   => [ 'post_type' => 'product' ],
             ]
@@ -91,12 +91,12 @@ class BW_Product_Slider_Widget extends Widget_Base {
                 'type'        => Controls_Manager::SELECT2,
                 'label_block' => true,
                 'multiple'    => true,
-                'options'     => [],
+                'options'     => function_exists( 'bw_get_product_categories_options' ) ? bw_get_product_categories_options() : [],
                 'condition'   => [
                     'post_type'        => 'product',
                     'parent_category!' => '',
                 ],
-                'description' => __( 'Seleziona una o più sottocategorie della categoria padre scelta.', 'bw-elementor-widgets' ),
+                'description' => __( 'Seleziona una o più sottocategorie. Se presenti, hanno priorita sulle categorie padre selezionate.', 'bw-elementor-widgets' ),
             ]
         );
 
@@ -683,7 +683,7 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     'unit' => 'px',
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-ps-arrow' => 'font-size: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-ps-arrow svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -1054,12 +1054,13 @@ class BW_Product_Slider_Widget extends Widget_Base {
                     'operator' => 'IN',
                 ];
             } elseif ( ! empty( $settings['parent_category'] ) ) {
+                $parents = is_array( $settings['parent_category'] ) ? $settings['parent_category'] : [ $settings['parent_category'] ];
                 $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ absint( $settings['parent_category'] ) ],
+                    'taxonomy'         => 'product_cat',
+                    'field'            => 'term_id',
+                    'terms'            => array_map( 'absint', $parents ),
                     'include_children' => true,
-                    'operator' => 'IN',
+                    'operator'         => 'IN',
                 ];
             }
 
@@ -1199,8 +1200,18 @@ class BW_Product_Slider_Widget extends Widget_Base {
             </div>
 
             <div class="bw-ps-arrows-container">
-                <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">&#8592;</button>
-                <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">&#8594;</button>
+                <button class="bw-ps-arrow bw-ps-arrow-prev" aria-label="<?php esc_attr_e( 'Previous', 'bw-elementor-widgets' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M6 8L2 12L6 16"/>
+                        <path d="M2 12H22"/>
+                    </svg>
+                </button>
+                <button class="bw-ps-arrow bw-ps-arrow-next" aria-label="<?php esc_attr_e( 'Next', 'bw-elementor-widgets' ); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M18 8L22 12L18 16"/>
+                        <path d="M2 12H22"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- Container dots: BWEmblaCore injects <ul> here -->

@@ -280,15 +280,35 @@ Implementation note:
 ### Elementor widget controls
 Current widget controls:
 
+- `Style`
+
+`Style Footer`:
 - `Show name field`
-- `Consent text`
-- `Name float label`
-- `Email float label`
+
+`Style Section`:
+- `Show name field`
+- `Title`
+- `Subtitle`
+- `Background Color`
+- `Section Height`
+- `Background Image`
+- `Background Image Position`
+- `Background Image Fit`
+- `Content Position`
+- `Title Typography`
+- `Title Color`
+- `Subtitle Typography`
+- `Subtitle Color`
+- `Privacy Typography`
+- `Privacy Color`
+- `Overlay Color`
+- `Glow Color`
+- `Overlay Opacity`
 
 Design contract:
 
-- The widget is intentionally fixed-design.
-- Elementor controls are limited to content overrides.
+- The widget keeps a governed design contract with two presentation variants.
+- Elementor controls are limited to style selection plus section-layout copy/media controls.
 - Brevo behavior is owned by `Mail Marketing -> Subscription`, not by per-instance style controls.
 
 ## 3.4 WooCommerce Order Admin -> Newsletter Status Panel
@@ -413,7 +433,7 @@ Sequence:
    - `privacy=1`
 5. Server validates again and normalizes email deterministically.
 6. Cooldown gate runs before Brevo write.
-7. Existing contact lookup prevents duplicate list-write when already subscribed.
+7. Existing contact lookup runs only when the active resubscribe policy requires existing-contact inspection (`no_auto_resubscribe`).
 8. Effective mode is resolved:
    - `single_opt_in`
    - `double_opt_in`
@@ -439,14 +459,15 @@ Single opt-in path uses:
 
 Widget-specific precheck:
 
-- if existing contact is already in the resolved list:
+- if the active resubscribe policy requires contact-state inspection and the existing contact is already in the resolved list:
   - no new write is sent
   - response code is `already_subscribed`
+- final manual validation is still required for the post-optimization `already_subscribed` UX when pre-lookup is skipped
 
 ## 4.8 Email Unsubscribed / Blocklisted
 Current enforced behavior:
 
-- pre-check `get_contact($email)`
+- policy-based pre-check `get_contact($email)` only when resubscribe policy requires it
 - if `emailBlacklisted` is true and resubscribe policy is `no_auto_resubscribe`:
   - skip subscription
   - log with `bw-brevo`
@@ -472,6 +493,7 @@ Current behavior:
 
 - the widget channel scans the active footer template for `bw-newsletter-subscription`
 - when present, assets are enqueued early during `wp_enqueue_scripts`
+- render-time enqueue duplication has been removed; standard widget placement relies on dependency handles only
 
 Purpose:
 
@@ -646,6 +668,11 @@ Observability improvements:
 ---
 
 # 10. Change Log
+## v1.5 - 2026-04-02
+- Recorded the final widget review state as `Almost ready`, pending only manual validation of `already_subscribed` behavior after conditional pre-lookup and confirmation of required Brevo audit attributes against the live schema.
+- Updated widget submit-flow docs to reflect policy-based conditional pre-lookup instead of unconditional lookup-before-write.
+- Documented metadata hardening and the simplified two-path asset-loading model (normal widget dependencies + footer runtime detection).
+
 ## v1.4 - 2026-03-17
 - Closed the Elementor subscription widget documentation wave across Brevo, Elementor, and admin architecture docs.
 - Documented the hardened public widget endpoint: nonce protection, deterministic response codes, server-side normalization, cooldown rate limiting, safe error exposure, and custom footer asset loading.

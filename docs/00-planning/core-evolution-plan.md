@@ -38,19 +38,23 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Audit output is linkable from planning/governance docs
 
 ### Mail Marketing / Brevo Validation
-- Status: Backlog
+- Status: Almost ready — final manual validation pending
 - Risk classification: High
-- Short description: Validate consent-gated mail marketing behavior and Brevo integration boundaries against governance invariants.
+- Short description: Consent-gated mail marketing and the Elementor Brevo subscription widget have completed audit, hardening, cleanup, staged CSS cleanup, and a first submit-path optimization; only final manual validation remains before closure.
 - Reference docs:
   - `docs/40-integrations/brevo/brevo-architecture-map.md`
+  - `docs/40-integrations/brevo/subscribe.md`
   - `docs/60-adr/ADR-004-consent-gate-doctrine.md`
   - `docs/00-governance/system-normative-charter.md`
+  - `docs/tasks/task-close-template.md`
 - Acceptance:
   - Consent gate behavior is validated end-to-end
   - Non-blocking commerce invariant is confirmed
   - Local authority over consent remains intact
   - Retry/observability paths are documented
-  - Validation findings are captured in ops/audit docs
+  - Final manual validation completed for:
+    - `already_subscribed` behavior after conditional pre-lookup optimization
+    - required Brevo audit attributes against the real production schema
 
 ## Tier 1 – UX & Runtime
 
@@ -65,6 +69,7 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - `bw-product-grid` -> canonical wall/query-grid widget
   - `bw-product-slider` -> canonical current product slider (visible title: `BW-UI Product Slider`)
   - `bw-presentation-slide` -> specialized presentation/gallery slider
+  - `bw-basic-slide` -> implemented lightweight generic image-gallery widget with `Slide` and `Wall` contracts
   - `bw-slick-slider` + `bw-slide-showcase` -> rationalization path under review (`bw-slick-slider` visible title: `BW-UI Product Slider`)
   - `bw-related-products` -> current best product-card reuse reference
 - Reference docs:

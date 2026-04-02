@@ -32,6 +32,7 @@ Mobile-oriented sections:
 - Mobile center logo
 - Mobile right area (search + cart/account compact rendering)
 - Mobile glass panel in `Hero Overlap`
+- Mobile navigation glass card with lower CTA/footer zone
 
 Normative rules:
 - Dual-block structure MUST be treated as presentation duplication only.
@@ -53,6 +54,11 @@ Close triggers:
 Overlay placement:
 - Mobile overlay node MUST be relocated to `<body>` at init time.
 - This relocation is required to preserve viewport-fixed behavior independent of transformed ancestors.
+
+Visual composition:
+- Mobile navigation panel MAY use a floating card treatment with rounded corners, subtle blur/veil overlay, and a minimal viewport margin.
+- The lower CTA/footer area MAY remain visually separated from the scrollable menu list, but MUST stay inside the same mobile navigation panel surface.
+- Legal footer links inside the mobile panel MUST remain reachable and visually legible even when Elementor Kit/global anchor styles are active.
 
 Scroll-lock behavior:
 - When off-canvas is open, body lock class (`bw-navigation-mobile-open`) MUST be applied.

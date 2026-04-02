@@ -47,18 +47,22 @@
     overflow: hidden;
     border-radius: inherit;
     background: rgba(0, 0, 0, 0.05);
+    isolation: isolate;
 }
 
 .bw-showcase-slide-image {
     position: relative;
     overflow: hidden;
     border-radius: inherit;
+    z-index: 0;
 }
 
 .bw-showcase-slide-image-el {
     display: block;
     width: 100%;
     height: auto;
+    position: relative;
+    z-index: 0;
 }
 
 .bw-showcase-slide-horizontal.bw-ps-height-fixed .bw-showcase-slide-image-el {
@@ -90,6 +94,7 @@
 .bw-showcase-slide-overlay {
     position: absolute;
     inset: 0;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -256,6 +261,16 @@
     transition: opacity 0.3s ease;
     user-select: none;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bw-ss-arrow svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
 }
 
 .bw-ss-arrow:hover,

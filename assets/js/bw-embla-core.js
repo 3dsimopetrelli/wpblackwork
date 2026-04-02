@@ -259,6 +259,10 @@
             // initial opacity:0 frame; the second triggers the fade to opacity:1.
             function reveal() {
                 img.classList.add('is-loaded');
+                var presentationShell = img.closest('.bw-ps-image');
+                if (presentationShell) {
+                    presentationShell.classList.add('is-loaded');
+                }
             }
 
             if (img.complete && img.naturalWidth > 0) {

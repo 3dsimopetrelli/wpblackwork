@@ -27,6 +27,8 @@
 - Mosaic Slider: hardened image loading and first reveal by promoting only the active viewport primary images, demoting hidden fallback markup to lazy, and waiting for the first image decode-ready state before reveal.
 - Header: added `Hero Overlap` mode with page targeting, dedicated admin tab, fixed-overlay startup, transparent wrapper, and reuse of the existing dark-zone detection for white-on-dark hero starts.
 - Header: hardened `Hero Overlap` boot and visuals by fixing empty admin tabs, removing first-paint jump, enabling mobile glass from overlay start, syncing mobile icon dark-zone color behavior with the logo, keeping desktop `Search` text black on the green pill, and removing the temporary glass border.
+- Header: responsive icon controls now support inline `SVG code` for mobile hamburger, search, and cart icons; inline SVG takes precedence over uploaded media attachments.
+- Header: mobile navigation redesigned as a cart-popup-style glass card with simplified reveal, bottom `Login or Join` CTA, and legal footer row for `Privacy Policy` / `Terms Policy`.
 - Hero Slide: added new `BW-UI Hero Slide` Elementor widget with static-first hero rendering, responsive height/max-width controls, background image layer, and future-ready `Slide` mode surface.
 - Hero Slide: title sanitization now allows inline `style` on `<span>`, so custom underline treatments entered in Elementor WYSIWYG render correctly on the frontend.
 - Mosaic Slider: added new `BW-UI Mosaic Slider` Elementor widget with desktop 5-item asymmetric mosaic pages, mobile linear Embla fallback, and shared `BW_Product_Card_Component` reuse for product results.

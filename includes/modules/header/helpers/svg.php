@@ -4,8 +4,40 @@ if (!defined('ABSPATH')) {
 }
 
 if (!function_exists('bw_header_get_icon_markup')) {
-    function bw_header_get_icon_markup($attachment_id, $fallback_svg, $class)
+    function bw_header_get_icon_markup($attachment_id, $custom_svg_markup, $fallback_svg, $class)
     {
+        $custom_svg_markup = function_exists('bw_header_sanitize_svg_markup')
+            ? bw_header_sanitize_svg_markup($custom_svg_markup)
+            : '';
+
+        if ($custom_svg_markup !== '') {
+            if (preg_match('/<svg\b[^>]*\bclass="/i', $custom_svg_markup)) {
+                $custom_svg_markup = preg_replace(
+                    '/<svg\b([^>]*)\bclass="([^"]*)"/i',
+                    '<svg$1class="$2 ' . esc_attr($class) . '"',
+                    $custom_svg_markup,
+                    1
+                );
+            } else {
+                $custom_svg_markup = preg_replace(
+                    '/<svg\b/i',
+                    '<svg class="' . esc_attr($class) . '"',
+                    $custom_svg_markup,
+                    1
+                );
+            }
+
+            if (stripos($custom_svg_markup, 'aria-hidden=') === false) {
+                $custom_svg_markup = preg_replace('/<svg\b/i', '<svg aria-hidden="true"', $custom_svg_markup, 1);
+            }
+
+            if (stripos($custom_svg_markup, 'focusable=') === false) {
+                $custom_svg_markup = preg_replace('/<svg\b/i', '<svg focusable="false"', $custom_svg_markup, 1);
+            }
+
+            return $custom_svg_markup;
+        }
+
         $attachment_id = absint($attachment_id);
         if ($attachment_id > 0) {
             $mime = get_post_mime_type($attachment_id);

@@ -203,7 +203,8 @@
 
             if (!api) return;
 
-            // Frecce e dots: visibilità gestita da CSS @media inline (PHP render_breakpoint_css).
+            // Frecce e dots: visibilità gestita da CSS @media generato in PHP
+            // e attaccato al handle del widget via wp_add_inline_style().
             // Nessuna funzione JS necessaria — CSS risponde istantaneamente senza race conditions.
 
             // Image-height mode + opzioni Embla (ancora JS: non gestibili solo da CSS)
@@ -513,6 +514,8 @@
         ──────────────────────────────────────────── */
 
         _attachWheelHandler() {
+            if (this._wheelHandler) return;
+
             const wrapper = this.$wrapper[0];
             let _wheelEndTimer = null;
 
@@ -940,7 +943,11 @@
                 const ease = 0.18;
                 state.curX += (state.targX - state.curX) * ease;
                 state.curY += (state.targY - state.curY) * ease;
-                $cursor.css({ left: `${state.curX}px`, top: `${state.curY}px` });
+                const cursorEl = $cursor[0];
+                if (cursorEl) {
+                    cursorEl.style.setProperty('--bw-ps-cursor-x', `${state.curX}px`);
+                    cursorEl.style.setProperty('--bw-ps-cursor-y', `${state.curY}px`);
+                }
                 if (state.running) {
                     this._cursorRafId = requestAnimationFrame(animateCursor);
                 }

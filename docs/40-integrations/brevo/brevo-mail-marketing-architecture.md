@@ -161,14 +161,36 @@ Widget slug and file:
 - `includes/widgets/class-bw-newsletter-subscription-widget.php`
 
 Current editor controls:
+- `Style`
+
+`Style Footer` controls:
 - `Show name field`
-- `Consent text`
-- `Name float label`
-- `Email float label`
+
+`Style Section` controls:
+- `Show name field`
+- `Title`
+- `Subtitle`
+- `Background Color`
+- `Section Height`
+- `Background Image`
+- `Background Image Position`
+- `Background Image Fit`
+
+`Style Section` style-tab controls:
+- `Content Position`
+- `Title Typography`
+- `Title Color`
+- `Subtitle Typography`
+- `Subtitle Color`
+- `Privacy Typography`
+- `Privacy Color`
+- `Overlay Color`
+- `Glow Color`
+- `Overlay Opacity`
 
 Current control strategy:
-- The widget keeps design and behavior intentionally fixed.
-- Elementor controls are limited to content overrides only.
+- The widget keeps behavior fixed and exposes only governed presentation variants.
+- Elementor controls are limited to layout/copy overrides for the section variant.
 - Channel logic, Brevo list behavior, and default copy authority remain in `Mail Marketing -> Subscription`.
 
 ## Attribute model (centralized map)
@@ -297,12 +319,14 @@ Rate limiting:
 - transient-based cooldown
 - keyed by normalized email + request IP hash
 - cooldown window: `45` seconds
+- additional IP burst throttle limits repeated submissions across multiple emails from the same origin bucket
 
 Already subscribed handling:
-- existing contact lookup runs before write
-- if the contact is already in the configured list:
+- existing contact lookup now runs only when the active resubscribe policy requires existing-contact inspection
+- in the policy-sensitive path, if the contact is already in the configured list:
   - no second write is made
   - frontend receives `already_subscribed`
+- manual validation remains required for the post-optimization `already_subscribed` UX when lookup is intentionally skipped
 
 Error exposure policy:
 - raw Brevo/provider errors stay in server logs only
@@ -349,6 +373,9 @@ Current behavior:
 Result:
 - editor/footer/frontend rendering now shares the same asset availability model
 - the widget no longer renders unstyled in custom footer runtime due to late enqueue timing
+- runtime asset loading is now intentionally reduced to:
+  - widget dependency handles for normal Elementor placement
+  - footer detection pre-enqueue for late Theme Builder Lite injection only
 
 ## Error handling
 Order paths:
@@ -366,6 +393,9 @@ Unknown attribute behavior:
 - retry with stripped marketing attributes
 - retry again with empty attributes if needed
 - keep checkout/order placement non-blocking
+- controlled hardening rule:
+  - required audit attributes (`SOURCE`, `CONSENT_SOURCE`, `CONSENT_STATUS`, `CONSENT_AT`) must not be silently dropped during fallback
+  - if fallback would remove those fields, the widget fails safely instead of reporting success
 - keep widget submit deterministic and safe
 
 

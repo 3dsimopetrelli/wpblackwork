@@ -13,10 +13,12 @@ Canonical transition note:
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
+| `bw-basic-slide` | `includes/widgets/class-bw-basic-slide-widget.php` | Gallery / Slider | dual-mode image widget: Embla `Slide` mode or responsive `Wall` mode with optional bottom gradient |
+| `bw-psychadelic-banner` | `includes/widgets/class-bw-psychadelic-banner-widget.php` | Content/UI | CSS-only psychedelic label-loop banner with responsive central PNG art, viewport-driven label sizing, and optional marquee motion |
 | `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
-| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | fixed-design Brevo subscription widget governed by Mail Marketing settings |
+| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants; status `Almost ready`, quality `~9.5/10`, phase `Final manual validation` |
 | `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces |
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
@@ -34,13 +36,15 @@ Canonical transition note:
 | `bw-related-products` | `includes/widgets/class-bw-related-products-widget.php` | Product Grid | usa `BW_Product_Card_Component`; griglia proporzionale; colonne desktop configurabili; tablet/mobile fissi a 2 |
 | `bw-slick-slider` | `includes/widgets/class-bw-slick-slider-widget.php` | Generic Slider | rationalize with slide-showcase |
 | `bw-slide-showcase` | `includes/widgets/class-bw-slide-showcase-widget.php` | Showcase Slider | rationalize with slick-slider |
-| `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase |
+| `bw-static-showcase` | `includes/widgets/class-bw-static-showcase-widget.php` | Showcase Static | non-slick static showcase; image radius is owned only by `Border Radius Immagini` with a shared default of `8px` across all three media surfaces and is applied directly to media wrappers + images at render time; `Content Padding` is the overlay-offset authority for the large-image text/footer block; right-column inner-corner radius still has an open rendering inconsistency and is not considered solved |
 | `bw-tags` | `includes/widgets/class-bw-tags-widget.php` | Taxonomy/UI | non-slider |
 
 ## Visible editor titles (selected canonical mappings)
 - `bw-slick-slider` -> `BW-UI Product Slider` (visible title)
 - `bw-big-text` -> `BW-UI Big Text` (visible title)
+- `bw-basic-slide` -> `BW-UI Basic Slide` (visible title)
 - `bw-product-slider` -> `BW-UI Product Slider` (visible title)
+- `bw-psychadelic-banner` -> `BW-UI Psychadelic Banner` (visible title)
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
 - `bw-title-product` -> `BW Title Product` (visible title)
@@ -121,6 +125,8 @@ Important runtime note:
     - `Disable Hover Actions on Tablet & Mobile`
   - `Filter Settings`:
     - `Show Filters` is the current filtered/simple-grid switch
+    - `Enable Responsive Filter Mode`
+    - `Drawer Opening` (`left` / `right`)
     - default category
     - show categories / subcategories / tags
     - filter bar titles
@@ -131,8 +137,12 @@ Important runtime note:
     - description color / typography / padding
     - price color / typography / padding
   - filter runtime:
-    - desktop inline filter rows + mobile slide-out filter panel
-    - mobile trigger uses a white rounded pill with green icon shell
+    - legacy path still supports desktop inline filter rows + classic mobile slide-out panel
+    - responsive drawer mode promotes the drawer interaction to desktop too
+    - discovery toolbar includes global search, result count, reset, selected quick-filter pills, and drawer trigger
+    - drawer shell reuses cart-popup visual language and now supports `left` or `right` opening
+    - accordion labels in the responsive drawer are currently `Categories` and `Style / Subject`
+    - mobile trigger/search use the white rounded pill + green icon shell treatment
     - mobile first paint is CSS-managed to avoid desktop-filter flash before JS init
   - internal fixed/runtime-only values:
     - `image_size = large`
@@ -187,11 +197,20 @@ Important runtime note:
     - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
     - `bw-presentation-slide-script`
   - shared Embla base styles/classes in `bw-embla-core.css`; widget-local CSS owns popup, cursor, arrows, dots, elevator layout, responsive skin
-- `bw-showcase-slide` controls/runtime (audit state 2026-03-25):
+- `bw-showcase-slide` controls/runtime (audit state 2026-03-29):
   - visible title: `BW-UI Showcase Slide`
   - manual product ID composition sourced from the showcase metabox
   - horizontal Embla-only runtime; no popup surface
+  - slide content authority:
+    - title: `_bw_showcase_title` with product-title fallback
+    - description: `_bw_showcase_description`
+    - image: `_bw_showcase_image`, fallback `_product_showcase_image`, then featured image
+    - text color: `_bw_texts_color`
+    - CTA text/link: `_product_button_text`, `_product_button_link`, fallback permalink
   - `Style > Link Button` now exposes responsive typography for the green CTA text pill only
+  - `Style > Text` exposes typography groups for title, subtitle, labels, and physical-info lines
+  - `Style > Images` owns border radius, spacing between slides, and image size
+  - `Style > Custom Cursor` exposes the cursor on/off switch
   - horizontal breakpoint repeater now supports:
     - slides to scroll
     - show arrows / show dots
@@ -204,14 +223,80 @@ Important runtime note:
     - `Free / Existing Controls` -> legacy width/image-height contract
     - fixed frame ratio -> ratio-locked card with fit-mode authority
     - `Classic Photo (3:2)` -> curated width presets with the next slide intentionally peeking into view
+  - image/layering contract:
+    - first slide image gets `fetchpriority="high"` / `decoding="sync"`
+    - second slide image is also promoted to eager loading
+    - showcase media uses an isolated stacking context
+    - image stays at `z-index: 0`
+    - overlay stays above it at `z-index: 1`
+  - mobile CTA contract:
+    - below `800px`, the detached green CTA pair is hidden
+    - the whole slide becomes the tap target when a CTA URL exists
 - `bw-product-grid`: supports filtered/simple grid mode via `Show Filters = yes/no`.
   - `Desktop Columns` currently supports `3`, `4`, `5`, `6`
   - `Style > Text` now exposes content gap plus title/description/price color, typography, and padding controls
 - `bw-newsletter-subscription`:
-  - fixed-design widget
-  - minimal editor controls only
+  - governed widget with two presentation variants: `Style Footer` and `Style Section`
+  - `Style Footer` keeps the minimal legacy footer surface
+  - `Style Section` adds hero-style content/media controls plus a dedicated conditional Style tab for typography, colors, overlay, glow, and content positioning
   - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
   - public submit handled through nonce-protected server-side AJAX endpoint
+  - completed hardening/cleanup wave:
+    - abuse throttling
+    - metadata-safe fallback rules
+    - PII-safe logs
+    - JS-driven floating-label stability
+    - submit timeout/failure recovery
+    - unified name-field control model
+    - simplified asset loading contract
+    - staged CSS cleanup
+    - conditional Brevo pre-lookup by resubscribe policy
+  - current status:
+    - `Almost ready`
+    - quality `~9.5/10`
+    - phase `Final manual validation`
+  - final manual validations still required:
+    - `already_subscribed` behavior after conditional pre-lookup optimization
+    - required Brevo audit attributes against the real production schema
+- `bw-psychadelic-banner`:
+  - decorative editorial banner widget with CSS-only marquee rows and optional central PNG art
+  - content controls:
+    - `Labels List`
+    - `Center PNG`
+    - responsive `Center Image Position`
+    - responsive `Center Image Width`
+    - responsive `Banner Height`
+    - responsive `Inner Padding`
+    - `Rows` (`2..8`)
+    - `Animation` on/off
+    - `Animation Speed`
+  - style controls:
+    - `Background Color`
+    - label text / border / background colors
+    - typography group for family/weight/transform
+    - viewport-driven label sizing via `vw`, `vh`, `min`, `max`
+    - label padding / radius
+    - rows gap / labels gap
+  - runtime:
+    - no JS dependency
+    - animated mode duplicates label groups for infinite marquee motion
+    - static mode disables motion and wraps labels visibly
+    - central image is rendered in a non-interactive overlay layer above the label field
+- `bw-basic-slide`:
+  - dual-mode image gallery widget
+  - `Mode = Slide`:
+    - Embla-based horizontal gallery
+    - gallery-only source
+    - shared image resolution selector
+    - breakpoint repeater for slides-to-show / scroll, arrows, dots, `Start Offset Left`, center mode, variable width, slide width, and image height behavior
+    - `Start Offset Left` supports `px | % | vw`
+    - eager/lazy image loading seeded from the desktop visible-count contract
+  - `Mode = Wall`:
+    - CSS grid image wall, not masonry
+    - responsive columns
+    - responsive wall height with visual clipping only; no internal mouse/trackpad scroll surface
+    - optional bottom fade gradient to suggest more content below
+    - no `View all` button in the current contract
 - `bw-reviews`:
   - minimal editor controls only (`product_id` override)
   - business/data authority delegated to `includes/modules/reviews/`
@@ -273,6 +358,7 @@ Important runtime note:
 - `bw-newsletter-subscription` is a hybrid case:
   - declares normal Elementor style/script depends
   - also has channel-level runtime pre-enqueue logic for Theme Builder Lite footer injection
+  - render-time enqueue duplication has been removed; only the two canonical asset-loading paths remain
 - Slider handles are registered centrally and consumed per widget:
   - `embla-js`, `embla-autoplay-js`, `bw-embla-core-js`, `bw-embla-core-css`
 - `bw-product-slider-script`, `bw-presentation-slide-script`

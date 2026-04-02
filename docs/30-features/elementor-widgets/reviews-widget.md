@@ -107,6 +107,7 @@ Supports:
 - create review
 - edit owned review
 - confirmation notice state
+- isolated modal-only visual shell, restylable without changing external review cards/list surfaces
 
 ## AJAX Contract
 
@@ -126,7 +127,7 @@ Current V1 implementation includes:
 - premium dark card layout
 - animated breakdown accordion
 - show-more reveal animation
-- premium modal shell
+- premium modal shell with floating dark-glass surface, green CTA, centered multi-step review flow, and modal-scoped typography
 - owner edit path
 
 The widget intentionally avoids:

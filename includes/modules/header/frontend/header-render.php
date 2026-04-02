@@ -139,16 +139,19 @@ if (!function_exists('bw_header_render_frontend')) {
         $logo_html = bw_header_get_logo_markup(isset($settings['logo_attachment_id']) ? $settings['logo_attachment_id'] : 0, $settings);
         $hamburger_icon = bw_header_get_icon_markup(
             isset($settings['icons']['mobile_hamburger_attachment_id']) ? $settings['icons']['mobile_hamburger_attachment_id'] : 0,
+            isset($settings['icons']['mobile_hamburger_svg_code']) ? $settings['icons']['mobile_hamburger_svg_code'] : '',
             bw_header_default_hamburger_svg(),
             'bw-navigation__toggle-icon-image'
         );
         $search_icon = bw_header_get_icon_markup(
             isset($settings['icons']['mobile_search_attachment_id']) ? $settings['icons']['mobile_search_attachment_id'] : 0,
+            isset($settings['icons']['mobile_search_svg_code']) ? $settings['icons']['mobile_search_svg_code'] : '',
             bw_header_default_search_icon_svg(),
             'bw-search-button__icon-image'
         );
         $cart_icon = bw_header_get_icon_markup(
             isset($settings['icons']['mobile_cart_attachment_id']) ? $settings['icons']['mobile_cart_attachment_id'] : 0,
+            isset($settings['icons']['mobile_cart_svg_code']) ? $settings['icons']['mobile_cart_svg_code'] : '',
             bw_header_default_cart_svg(),
             'bw-navshop__cart-icon-image'
         );

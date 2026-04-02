@@ -28,6 +28,11 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
 - `Presentation Slider Family`
   - `bw-presentation-slide` as specialized gallery/presentation runtime
   - audit status (2026-03-20): active implementation is widget-local Embla runtime for horizontal and responsive-vertical flows; desktop vertical remains a non-Embla elevator layout
+- `Basic Gallery Family`
+  - `bw-basic-slide` as lightweight generic image-gallery surface
+  - `Slide` mode uses Embla-family runtime with gallery-only content authority
+  - `Wall` mode remains a CSS grid, not a masonry/query surface
+  - intended role: simple reusable image-gallery widget without presentation-popup, product-card, or showcase-metabox complexity
 - `Hero / Banner Family`
   - `bw-hero-slide` as the static-first premium hero surface
   - V1 intentionally avoids slider runtime
@@ -72,6 +77,12 @@ This wave focused on:
 
 This wave did not introduce new user-facing features; it was a bounded cleanup and consistency pass ahead of future UI refinement and feature work.
 
+Follow-up reality update (2026-03-29):
+- `BW Product Grid` has since gained a governed responsive discovery-drawer surface
+- the discovery surface is still owned by the widget/runtime itself, not by a shared filter-shell abstraction
+- the drawer shell now supports configurable opening side (`left` / `right`) at widget-control level
+- this does not change the architectural direction: a future shared filter-shell abstraction remains possible, but current authority is still `bw-product-grid`
+
 ### Loading Policy and Animation Sequencing Hardening
 This hardening wave also corrected loading-policy propagation and animation sequencing without changing the widget architecture.
 
@@ -114,6 +125,7 @@ Implemented direction note for `bw-showcase-slide`:
 - borrows slider settings and responsive breakpoint structure from the Embla slider family
 - keeps content authority aligned to the showcase metabox and CTA contract
 - excludes popup settings from day one so the widget surface stays focused
+- current runtime also owns an explicit widget-local image/overlay stacking contract so showcase copy cannot be covered by late image-state rules
 
 Expected outcomes:
 - one core lifecycle (`init`, `reinit`, `destroy`) per scope

@@ -37,6 +37,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $this->register_filter_controls();
         $this->register_query_controls();
         $this->register_rebuild_layout_controls();
+        $this->register_grid_controls();
         $this->register_style_controls();
     }
 
@@ -143,6 +144,65 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => '',
             'description'  => __( 'Hide hover overlays and secondary hover media below desktop widths.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->end_controls_section();
+    }
+
+    private function register_grid_controls() {
+        $this->start_controls_section( 'layout_grid_section', [
+            'label' => __( 'Grid', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ] );
+
+        $this->add_responsive_control( 'grid_horizontal_gap', [
+            'label'          => __( 'Post Gap Horizontal', 'bw-elementor-widgets' ),
+            'type'           => Controls_Manager::SLIDER,
+            'size_units'     => [ 'px' ],
+            'range'          => [
+                'px' => [
+                    'min'  => 0,
+                    'max'  => 80,
+                    'step' => 1,
+                ],
+            ],
+            'default'        => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'tablet_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'mobile_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+        ] );
+
+        $this->add_responsive_control( 'grid_vertical_gap', [
+            'label'          => __( 'Post Gap Vertical', 'bw-elementor-widgets' ),
+            'type'           => Controls_Manager::SLIDER,
+            'size_units'     => [ 'px' ],
+            'range'          => [
+                'px' => [
+                    'min'  => 0,
+                    'max'  => 80,
+                    'step' => 1,
+                ],
+            ],
+            'default'        => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'tablet_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
+            'mobile_default' => [
+                'size' => 10,
+                'unit' => 'px',
+            ],
         ] );
 
         $this->end_controls_section();
@@ -288,12 +348,64 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => '',
-            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the left-side drawer shell.', 'bw-elementor-widgets' ),
+            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the drawer shell.', 'bw-elementor-widgets' ),
             'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
-        // Get product categories for the dropdown
+        $this->add_control( 'responsive_filter_drawer_side', [
+            'label'       => __( 'Drawer Opening', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => [
+                'left'  => __( 'Left', 'bw-elementor-widgets' ),
+                'right' => __( 'Right', 'bw-elementor-widgets' ),
+            ],
+            'default'     => 'left',
+            'condition'   => [
+                'show_filters'                  => 'yes',
+                'enable_responsive_filter_mode' => 'yes',
+            ],
+            'description' => __( 'Choose which side the responsive filter drawer opens from.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->register_filter_controls_categories_section();
+    }
+
+    private function get_responsive_filter_drawer_side( $settings ) {
+        $side = isset( $settings['responsive_filter_drawer_side'] ) ? sanitize_key( $settings['responsive_filter_drawer_side'] ) : 'left';
+
+        return in_array( $side, [ 'left', 'right' ], true ) ? $side : 'left';
+    }
+
+    private function get_responsive_slider_size( $settings, $control_name, $default = 0 ) {
+        $values = [
+            'desktop' => $default,
+            'tablet'  => $default,
+            'mobile'  => $default,
+        ];
+
+        foreach ( $values as $device => $fallback ) {
+            $setting_key = 'desktop' === $device ? $control_name : $control_name . '_' . $device;
+            $raw_value   = $settings[ $setting_key ] ?? null;
+
+            if ( is_array( $raw_value ) && isset( $raw_value['size'] ) && '' !== $raw_value['size'] ) {
+                $values[ $device ] = max( 0, (int) $raw_value['size'] );
+                continue;
+            }
+
+            if ( is_numeric( $raw_value ) ) {
+                $values[ $device ] = max( 0, (int) $raw_value );
+                continue;
+            }
+
+            $values[ $device ] = $fallback;
+        }
+
+        return $values;
+    }
+
+    private function register_filter_controls_categories_section() {
         $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
+
         $product_categories = get_terms(
             [
                 'taxonomy'   => 'product_cat',
@@ -313,7 +425,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'options'     => $category_options,
             'default'     => 'all',
             'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'show_categories', [
@@ -414,7 +526,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label'       => __( 'Categoria padre', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::SELECT2,
             'label_block' => true,
-            'multiple'    => false,
+            'multiple'    => true,
             'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : [],
             'condition'   => [ 'post_type' => 'product' ],
         ] );
@@ -424,12 +536,12 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'type'        => Controls_Manager::SELECT2,
             'label_block' => true,
             'multiple'    => true,
-            'options'     => [],
+            'options'     => function_exists( 'bw_get_product_categories_options' ) ? bw_get_product_categories_options() : [],
             'condition'   => [
                 'post_type'        => 'product',
                 'parent_category!' => '',
             ],
-            'description' => __( 'Seleziona una o più sottocategorie della categoria padre scelta.', 'bw-elementor-widgets' ),
+            'description' => __( 'Seleziona una o più sottocategorie. Se presenti, hanno priorita sulle categorie padre selezionate.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'specific_ids', [
@@ -491,8 +603,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
         $responsive_breakpoint = 900;
         $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
+        $drawer_side            = $this->get_responsive_filter_drawer_side( $settings );
 
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '">';
+        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '" data-drawer-side="' . esc_attr( $drawer_side ) . '">';
     }
 
     private function render_wrapper_end( $settings ) {
@@ -687,6 +800,42 @@ class BW_Product_Grid_Widget extends Widget_Base {
         return isset( $settings['enable_responsive_filter_mode'] ) && 'yes' === $settings['enable_responsive_filter_mode'];
     }
 
+    private function get_discovery_search_label( $settings ) {
+        $default_label = __( 'Search in collections...', 'bw-elementor-widgets' );
+        $taxonomy      = ( isset( $settings['post_type'] ) && 'product' === sanitize_key( $settings['post_type'] ) )
+            ? 'product_cat'
+            : 'category';
+
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 0;
+
+        if ( $default_category > 0 ) {
+            $term = get_term( $default_category, $taxonomy );
+            if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
+                return sprintf(
+                    /* translators: %s is the current category label used by the Product Grid search input. */
+                    __( 'Search in %s...', 'bw-elementor-widgets' ),
+                    $term->name
+                );
+            }
+        }
+
+        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
+        if ( 1 === count( $parent_categories ) ) {
+            $term = get_term( reset( $parent_categories ), $taxonomy );
+            if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
+                return sprintf(
+                    /* translators: %s is the current category label used by the Product Grid search input. */
+                    __( 'Search in %s...', 'bw-elementor-widgets' ),
+                    $term->name
+                );
+            }
+        }
+
+        return $default_label;
+    }
+
     private function render_responsive_filter_drawer_shell( $settings, $widget_id ) {
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
             ? absint( $settings['default_category'] )
@@ -699,7 +848,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $drawer_title        = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
-        $global_search_label  = __( 'Search in collection...', 'bw-elementor-widgets' );
+        $global_search_label  = $this->get_discovery_search_label( $settings );
         $reset_filters_label  = __( 'Reset filters', 'bw-elementor-widgets' );
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
@@ -862,14 +1011,19 @@ class BW_Product_Grid_Widget extends Widget_Base {
         if ( ! in_array( $desktop_columns, [ 3, 4, 5, 6 ], true ) ) {
             $desktop_columns = 4;
         }
-        $gap_desktop_size = 10;
+        $grid_horizontal_gap = $this->get_responsive_slider_size( $settings, 'grid_horizontal_gap', 10 );
+        $grid_vertical_gap   = $this->get_responsive_slider_size( $settings, 'grid_vertical_gap', 10 );
+        $gap_desktop_size    = $grid_horizontal_gap['desktop'];
+        $gap_tablet_size     = $grid_horizontal_gap['tablet'];
+        $gap_mobile_size     = $grid_horizontal_gap['mobile'];
+        $row_gap_desktop     = $grid_vertical_gap['desktop'];
+        $row_gap_tablet      = $grid_vertical_gap['tablet'];
+        $row_gap_mobile      = $grid_vertical_gap['mobile'];
         $breakpoint_tablet_min = 768;
         $breakpoint_tablet_max = 1024;
         $columns_tablet = 2;
-        $gap_tablet_size = 10;
         $breakpoint_mobile_max = 767;
         $columns_mobile = 2;
-        $gap_mobile_size = 10;
 
         $container_max_width = isset( $settings['container_max_width'] ) ? absint( $settings['container_max_width'] ) : 2000;
         if ( $container_max_width < 800 ) {
@@ -896,8 +1050,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
-        $parent_category = isset( $settings['parent_category'] ) ? absint( $settings['parent_category'] ) : 0;
-        $subcategories   = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
+        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
+        $subcategories     = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
 
         // Get default category setting for filtering
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
@@ -955,11 +1109,12 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     'field'    => 'term_id',
                     'terms'    => $subcategories,
                 ];
-            } elseif ( $parent_category > 0 ) {
+            } elseif ( ! empty( $parent_categories ) ) {
                 $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ $parent_category ],
+                    'taxonomy'         => 'product_cat',
+                    'field'            => 'term_id',
+                    'terms'            => $parent_categories,
+                    'include_children' => true,
                 ];
             }
 
@@ -979,7 +1134,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $result_count      = $responsive_filter_mode ? (int) $query->found_posts : max( 0, $query->post_count );
 
         $wrapper_classes = [ 'bw-product-grid' ];
-        $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-gap:' . $gap_desktop_size . 'px;';
+        $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-column-gap:' . $gap_desktop_size . 'px; --bw-fpw-grid-row-gap:' . $row_gap_desktop . 'px; --bw-fpw-grid-column-gap-tablet:' . $gap_tablet_size . 'px; --bw-fpw-grid-row-gap-tablet:' . $row_gap_tablet . 'px; --bw-fpw-grid-column-gap-mobile:' . $gap_mobile_size . 'px; --bw-fpw-grid-row-gap-mobile:' . $row_gap_mobile . 'px;';
         $wrapper_attributes = [
             'class'                         => implode( ' ', $wrapper_classes ),
             'style'                         => $wrapper_style,
@@ -992,14 +1147,17 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-widget-id'              => $widget_id,
             'data-post-type'              => $post_type,
             'data-columns-desktop'        => $desktop_columns,
-            'data-gap-desktop'            => $gap_desktop_size,
+            'data-gap-x-desktop'          => $gap_desktop_size,
+            'data-gap-y-desktop'          => $row_gap_desktop,
             'data-breakpoint-tablet-min'  => $breakpoint_tablet_min,
             'data-breakpoint-tablet-max'  => $breakpoint_tablet_max,
             'data-columns-tablet'         => $columns_tablet,
-            'data-gap-tablet'             => $gap_tablet_size,
+            'data-gap-x-tablet'           => $gap_tablet_size,
+            'data-gap-y-tablet'           => $row_gap_tablet,
             'data-breakpoint-mobile-max'  => $breakpoint_mobile_max,
             'data-columns-mobile'         => $columns_mobile,
-            'data-gap-mobile'             => $gap_mobile_size,
+            'data-gap-x-mobile'           => $gap_mobile_size,
+            'data-gap-y-mobile'           => $row_gap_mobile,
             'data-image-size'             => $image_size,
             'data-image-mode'             => $image_mode,
             'data-hover-effect'           => $hover_effect ? 'yes' : 'no',

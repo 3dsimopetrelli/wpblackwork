@@ -383,6 +383,21 @@
             ];
 
             $horizontal.removeClass(heightClasses.join(' ')).addClass(`bw-ps-height-${heightMode}`);
+            $slides.css({
+                flex: '',
+                maxWidth: '',
+            });
+            $media.css('aspect-ratio', '');
+            $imageWraps.css({
+                display: '',
+                height: '',
+            });
+            $images.css({
+                width: '',
+                height: '',
+                objectFit: '',
+                objectPosition: '',
+            });
 
             if (frameRatio) {
                 $media.css('aspect-ratio', frameRatio);
@@ -396,27 +411,11 @@
                     objectFit: frameRatioFit === 'contain' ? 'contain' : 'cover',
                     objectPosition: 'center',
                 });
-                $slides.css({
-                    flex: '',
-                    maxWidth: '',
-                });
                 return;
             }
 
-            $media.css('aspect-ratio', '');
-            $imageWraps.css({
-                display: '',
-                height: '',
-            });
-            $images.css({
-                objectFit: '',
-                objectPosition: '',
-            });
-
             if (heightMode !== 'auto' && imageHeight?.size != null && imageHeight?.unit) {
                 $images.css('height', `${imageHeight.size}${imageHeight.unit}`);
-            } else {
-                $images.css('height', '');
             }
 
             if (['contain', 'cover'].includes(heightMode) && imageWidth?.size != null && imageWidth?.unit) {
@@ -427,18 +426,8 @@
                     });
                     $images.css('width', '100%');
                 } else {
-                    $slides.css({
-                        flex: '',
-                        maxWidth: '',
-                    });
                     $images.css('width', `${imageWidth.size}${imageWidth.unit}`);
                 }
-            } else {
-                $slides.css({
-                    flex: '',
-                    maxWidth: '',
-                });
-                $images.css('width', '');
             }
 
         }
