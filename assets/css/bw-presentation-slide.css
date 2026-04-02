@@ -16,11 +16,11 @@
 .bw-ps-image {
     position: relative;
     overflow: hidden;
-    /* Colore base che si vede prima che l'immagine sia scaricata */
+    /* Base color shown while image is downloading */
     background-color: #e8e8e8;
 }
 
-/* Shimmer skeleton: gradiente animato mentre l'immagine è in download */
+/* Shimmer skeleton: animated gradient while image downloads */
 .bw-ps-image::before {
     content: '';
     position: absolute;
@@ -37,9 +37,13 @@
     pointer-events: none;
 }
 
-/* Rimuove lo shimmer non appena l'immagine è stata caricata */
-.bw-ps-image.is-loaded::before,
+/* Hide shimmer once image has loaded (modern browsers using :has()) */
 .bw-ps-image:has(img.is-loaded)::before {
+    display: none;
+}
+
+/* Fallback for older browsers: class on container set by JS */
+.bw-ps-image.is-loaded::before {
     display: none;
 }
 
@@ -48,20 +52,21 @@
     100% { background-position: -200% 0; }
 }
 
+/* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
     .bw-ps-image::before {
         animation: none;
     }
 }
 
-/* Le immagini usano la classe .bw-embla-img da bw-embla-core.css
-   per il fade-in; qui aggiungiamo solo le regole cosmetiche */
+/* Images use .bw-embla-img class from bw-embla-core.css for fade-in;
+   here we add cosmetic rules only */
 .bw-ps-image img {
     display: block;
     width: 100%;
     height: auto;
     transition: transform 0.3s ease;
-    /* Garantisce che l'img sia sopra lo shimmer ::before */
+    /* Ensure image appears above the shimmer ::before pseudo-element */
     position: relative;
     z-index: 2;
 }
@@ -83,11 +88,11 @@
     width: 100%;
 }
 
-/* Slide: dimensione di default 100% — override via breakpoint CSS generato in PHP */
+/* Slide: dimensione di default 100% — override via breakpoint CSS inline in PHP */
 .bw-ps-slide {
     padding: 10px;
     outline: none;
-    /* flex size viene impostato dal CSS per-breakpoint attaccato al handle del widget */
+    /* flex size viene impostato dal <style> inline generato dal PHP per breakpoint */
 }
 
 /* ========================================
@@ -345,12 +350,6 @@
     min-height: 100vh;
 }
 
-@supports (min-height: 100dvh) {
-    .bw-ps-popup {
-        min-height: 100dvh;
-    }
-}
-
 .bw-ps-popup-header {
     position: sticky;
     top: 0;
@@ -461,12 +460,9 @@
    CUSTOM CURSOR — design fisso glassmorphism
    ======================================== */
 .bw-ps-custom-cursor {
-    --cursor-scale: 0;
-    --bw-ps-cursor-x: 0px;
-    --bw-ps-cursor-y: 0px;
     position: fixed;
-    top: 0;
     left: 0;
+    top: 0;
     pointer-events: none;
     z-index: 99998;
     display: none;
@@ -475,22 +471,24 @@
     width: 88px;
     height: 88px;
     border-radius: 50%;
-    /* Frosted glass: fill leggero + blur forte sul contenuto sottostante */
+    /* Frosted glass: light fill + strong blur on content behind */
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(0, 0, 0, 0.28);
-    transform: translate3d(var(--bw-ps-cursor-x), var(--bw-ps-cursor-y), 0) translate(-50%, -50%) scale(var(--cursor-scale));
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity   0.15s ease;
+    /* Position via JS (translate), scale via CSS class (pop-in animation) */
+    translate: 0px 0px;
+    scale: 0;
+    transition: scale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.15s ease;
     opacity: 0;
     backdrop-filter: blur(14px) saturate(1.8);
     -webkit-backdrop-filter: blur(14px) saturate(1.8);
-    will-change: transform;
+    will-change: translate, scale;
 }
 
 .bw-ps-custom-cursor.active {
     display: flex;
     opacity: 1;
-    --cursor-scale: 1;
+    scale: 1;
 }
 
 /* Freccia ← per la slide a sinistra */
