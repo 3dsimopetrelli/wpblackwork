@@ -1299,15 +1299,73 @@
         $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').toggleClass('has-value', hasValue);
     }
 
+    function getDiscoveryDrawerBody(widgetId) {
+        return document.querySelector('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel__body--drawer');
+    }
+
+    function syncDiscoveryDrawerStickyState(widgetId) {
+        var body = getDiscoveryDrawerBody(widgetId);
+        var chips;
+
+        if (!body) {
+            return;
+        }
+
+        chips = body.querySelector('.bw-fpw-active-chips--drawer[data-widget-id="' + widgetId + '"]');
+
+        if (!chips) {
+            return;
+        }
+
+        chips.classList.toggle('is-stuck', body.scrollTop > 2);
+    }
+
+    function ensureDiscoveryDrawerBodyListener(widgetId) {
+        var body = getDiscoveryDrawerBody(widgetId);
+
+        if (!body || body.getAttribute('data-sticky-chip-listener-bound') === 'yes') {
+            return;
+        }
+
+        body.addEventListener('scroll', function () {
+            syncDiscoveryDrawerStickyState(widgetId);
+        }, { passive: true });
+        body.setAttribute('data-sticky-chip-listener-bound', 'yes');
+    }
+
+    function preserveDiscoveryDrawerScrollPosition(widgetId, renderCallback) {
+        var body = getDiscoveryDrawerBody(widgetId);
+        var previousScrollTop;
+
+        if (!body) {
+            renderCallback();
+            return;
+        }
+
+        previousScrollTop = body.scrollTop;
+        renderCallback();
+
+        body.scrollTop = previousScrollTop;
+
+        window.requestAnimationFrame(function () {
+            body.scrollTop = previousScrollTop;
+            syncDiscoveryDrawerStickyState(widgetId);
+        });
+    }
+
     function renderDiscoveryUi(widgetId) {
         if (!isDiscoveryDrawerMode(widgetId)) {
             return;
         }
 
-        renderDiscoverySearch(widgetId);
-        renderDiscoveryResultCount(widgetId);
-        renderDiscoveryActiveChips(widgetId);
-        renderDiscoveryDrawerGroups(widgetId);
+        ensureDiscoveryDrawerBodyListener(widgetId);
+
+        preserveDiscoveryDrawerScrollPosition(widgetId, function () {
+            renderDiscoverySearch(widgetId);
+            renderDiscoveryResultCount(widgetId);
+            renderDiscoveryActiveChips(widgetId);
+            renderDiscoveryDrawerGroups(widgetId);
+        });
     }
 
     function syncDiscoveryResponse(widgetId, data) {
@@ -3163,6 +3221,8 @@
 
             if (isResponsiveFilterDrawerMode(widgetId)) {
                 lockDrawerBodyScroll();
+                ensureDiscoveryDrawerBodyListener(widgetId);
+                syncDiscoveryDrawerStickyState(widgetId);
             }
         }
     }
@@ -3176,6 +3236,7 @@
             $panel.attr('aria-hidden', 'true');
 
             if (isResponsiveFilterDrawerMode(widgetId)) {
+                syncDiscoveryDrawerStickyState(widgetId);
                 unlockDrawerBodyScrollIfSafe();
             }
         }
