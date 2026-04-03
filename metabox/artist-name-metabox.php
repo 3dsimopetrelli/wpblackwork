@@ -13,14 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Register the Artist Name metabox.
  */
 function bw_add_artist_name_metabox() {
-    add_meta_box(
-        'bw_artist_name',
-        __( 'Nome Artista', 'bw' ),
-        'bw_render_artist_name_metabox',
-        'product',
-        'side',
-        'default'
-    );
+    // Artist is now managed inside the Product Details metabox.
+    // Avoid registering a second field with the same meta key on the product form.
+    return;
 }
 add_action( 'add_meta_boxes', 'bw_add_artist_name_metabox' );
 

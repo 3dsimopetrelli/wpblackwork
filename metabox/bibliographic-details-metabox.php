@@ -57,6 +57,7 @@ function bw_get_digital_product_fields() {
         '_digital_assets_list'  => __( 'Assets List', 'bw' ),
         '_digital_file_size'    => __( 'File size', 'bw' ),
         '_digital_formats'      => __( 'Formats included', 'bw' ),
+        '_bw_artist_name'       => __( 'Artist', 'bw' ),
         '_digital_source'       => __( 'Source', 'bw' ),
         '_digital_publisher'    => __( 'Publisher', 'bw' ),
         '_digital_year'         => __( 'Year', 'bw' ),
