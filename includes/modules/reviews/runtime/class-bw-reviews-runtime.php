@@ -211,6 +211,7 @@ if ( ! class_exists( 'BW_Reviews_Runtime' ) ) {
                 ! is_array( $review )
                 || absint( $review['user_id'] ) !== $current_uid
                 || empty( $moderation['allow_review_editing'] )
+                || empty( $moderation['editing_logged_in_owners_only'] )
             ) {
                 wp_send_json_error(
                     [
