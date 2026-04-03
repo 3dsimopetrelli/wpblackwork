@@ -1078,20 +1078,28 @@
         });
     }
 
+    function buildDiscoveryChipHtml(chip, widgetId) {
+        return '<div class="bw-fpw-active-chip bw-fpw-quick-filter is-selected" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '">' +
+            '<span class="bw-fpw-active-chip__label bw-fpw-quick-filter__label">' + escapeHtml(chip.name) + '</span>' +
+            '<button class="bw-fpw-active-chip__remove bw-fpw-quick-filter__remove" type="button" aria-label="Remove ' + escapeHtml(chip.name) + '" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '"></button>' +
+            '</div>';
+    }
+
     function renderDiscoveryActiveChips(widgetId) {
         var activeChips = getDiscoveryActiveChips(widgetId);
         var html = '';
+        var containers;
 
         activeChips.forEach(function (chip) {
-            html += '<div class="bw-fpw-active-chip bw-fpw-quick-filter is-selected" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '">';
-            html += '<span class="bw-fpw-active-chip__label bw-fpw-quick-filter__label">' + escapeHtml(chip.name) + '</span>';
-            html += '<button class="bw-fpw-active-chip__remove bw-fpw-quick-filter__remove" type="button" aria-label="Remove ' + escapeHtml(chip.name) + '" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '"></button>';
-            html += '</div>';
+            html += buildDiscoveryChipHtml(chip, widgetId);
         });
 
-        $('.bw-fpw-active-chips[data-widget-id="' + widgetId + '"], .bw-fpw-quick-filters[data-widget-id="' + widgetId + '"]')
-            .html(html)
-            .toggleClass('is-empty', activeChips.length === 0);
+        containers = document.querySelectorAll('.bw-fpw-active-chips[data-widget-id="' + widgetId + '"]');
+
+        containers.forEach(function (container) {
+            container.innerHTML = html;
+            container.classList.remove('is-empty');
+        });
     }
 
     function getResolvedYearDraft(state) {

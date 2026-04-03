@@ -727,6 +727,18 @@ body.bw-cart-popup-no-scroll {
   display: none;
 }
 
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 16px 8px;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip {
+  transform: scale(0.95);
+  transform-origin: left center;
+}
+
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filter {
   display: inline-flex;
   align-items: center;
