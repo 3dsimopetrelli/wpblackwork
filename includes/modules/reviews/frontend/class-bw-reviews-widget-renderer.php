@@ -162,18 +162,13 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                     'continue'                 => __( 'Continue', 'bw' ),
                     'dislike'                  => __( 'Dislike it', 'bw' ),
                     'love'                     => __( 'Love it!', 'bw' ),
+                    'thankYou'                 => __( 'Thank you', 'bw' ),
                 ],
                 'identity'            => [
                     'displayName' => $current_user instanceof WP_User ? $current_user->display_name : '',
                     'email'       => $current_user instanceof WP_User ? $current_user->user_email : '',
                 ],
                 'ownedReviewId'       => is_array( $owned_review ) ? absint( $owned_review['id'] ) : 0,
-                'submissionPolicy'    => [
-                    'allowGuests'           => ! empty( $submission['allow_guests'] ) && empty( $submission['verified_buyers_only'] ),
-                    'loggedInOnly'          => ! empty( $submission['logged_in_only'] ),
-                    'verifiedBuyersOnly'    => ! empty( $submission['verified_buyers_only'] ),
-                    'requireConfirmation'   => ! empty( $submission['require_email_confirmation'] ),
-                ],
             ];
 
             return [
@@ -353,7 +348,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
         private function can_edit_reviews() {
             $moderation = BW_Reviews_Settings::get_moderation_settings();
 
-            return ! empty( $moderation['allow_review_editing'] );
+            return ! empty( $moderation['allow_review_editing'] ) && ! empty( $moderation['editing_logged_in_owners_only'] );
         }
 
         /**

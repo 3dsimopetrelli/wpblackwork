@@ -257,9 +257,9 @@
             this.state.mode = 'confirmation_notice';
             this.state.step = 'done';
             this.open();
-            this.$doneTitle.text('Thank you');
+            this.$doneTitle.text(this.getString('thankYou', 'Thank you'));
             this.$doneMessage.text(message);
-            this.$title.text('Thank you');
+            this.$title.text(this.getString('thankYou', 'Thank you'));
             this.$subtitle.prop('hidden', true).text('');
             this.syncStateToUi();
         }
@@ -419,9 +419,9 @@
 
             this.state.step = 'done';
             this.state.dirty = false;
-            this.$title.text('Thank you');
+            this.$title.text(this.getString('thankYou', 'Thank you'));
             this.$subtitle.prop('hidden', true).text('');
-            this.$doneTitle.text('Thank you');
+            this.$doneTitle.text(this.getString('thankYou', 'Thank you'));
             this.$doneMessage.text(String(data.message || ''));
             this.clearMessage();
             this.syncStateToUi();
@@ -505,7 +505,7 @@
                 ? this.getString('editReview', 'Edit your review')
                 : this.getString('writeReview', 'Write a review');
 
-            this.$title.text('done' === this.state.step || isConfirmation ? 'Thank you' : modalTitle);
+            this.$title.text('done' === this.state.step || isConfirmation ? this.getString('thankYou', 'Thank you') : modalTitle);
             this.$subtitle.prop('hidden', true).text('');
         }
 

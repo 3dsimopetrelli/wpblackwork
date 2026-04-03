@@ -56,8 +56,8 @@ if ( ! class_exists( 'BW_Review_Email_Service' ) ) {
             $button  = (string) $settings['confirmation_button_label'];
 
             $message  = '<html><body>';
-            $message .= '<h2>' . esc_html( $heading ) . '</h2>';
-            $message .= '<p>' . esc_html( $body ) . '</p>';
+            $message .= '<h2>' . wp_kses_post( $heading ) . '</h2>';
+            $message .= '<p>' . wp_kses_post( $body ) . '</p>';
             $message .= '<p><a href="' . esc_url( $confirm_url ) . '">' . esc_html( $button ) . '</a></p>';
             $message .= '</body></html>';
 
