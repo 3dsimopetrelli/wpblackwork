@@ -2296,26 +2296,35 @@ function bw_fpw_build_year_index($context_slug)
     $years = [];
     $post_year_map = [];
 
-    foreach ((array) $query->posts as $product_id) {
-        $product_id = absint($product_id);
-        if ($product_id <= 0) {
-            continue;
+    // Collect valid IDs first, then bulk-load canonical year meta in a single query
+    // to avoid N+1 DB hits (no per-product get_post_meta or sync writes here).
+    $product_ids = array_values(array_filter(array_map('absint', (array) $query->posts)));
+
+    if (!empty($product_ids)) {
+        global $wpdb;
+        $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
+        $ids_in = implode(',', $product_ids); // safe: all values are absint
+        $rows   = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id IN ($ids_in)",
+                $canonical_year_key
+            )
+        );
+
+        foreach ((array) $rows as $row) {
+            $pid  = absint($row->post_id);
+            $year = bw_fpw_extract_year_int($row->meta_value);
+            if ($pid <= 0 || null === $year) {
+                continue;
+            }
+
+            if (!isset($years[$year])) {
+                $years[$year] = 0;
+            }
+
+            $years[$year]++;
+            $post_year_map[$pid] = $year;
         }
-
-        // Keep canonical filter meta in sync while building the context index.
-        bw_fpw_sync_product_filter_meta($product_id);
-
-        $year = bw_fpw_extract_year_int(get_post_meta($product_id, bw_fpw_get_canonical_year_meta_key(), true));
-        if (null === $year) {
-            continue;
-        }
-
-        if (!isset($years[$year])) {
-            $years[$year] = 0;
-        }
-
-        $years[$year]++;
-        $post_year_map[$product_id] = $year;
     }
 
     if (!empty($years)) {
@@ -2449,37 +2458,6 @@ function bw_fpw_has_active_refinement_filters($subcategories = [], $tags = [], $
 function bw_fpw_get_empty_state_message($subcategories = [], $tags = [], $search = '')
 {
     return 'No results found.';
-}
-
-function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
-{
-    $normalized_search = bw_fpw_normalize_search_value($search);
-
-    if ('' === $normalized_search) {
-        return true;
-    }
-
-    $haystacks = [
-        get_the_title($post_id),
-        get_post_field('post_excerpt', $post_id),
-        wp_strip_all_tags((string) get_post_field('post_content', $post_id)),
-        get_post_field('post_name', $post_id),
-    ];
-
-    $taxonomy_terms = wp_get_object_terms($post_id, [$taxonomy, $tag_taxonomy], ['fields' => 'names']);
-    if (!is_wp_error($taxonomy_terms) && !empty($taxonomy_terms)) {
-        $haystacks = array_merge($haystacks, $taxonomy_terms);
-    }
-
-    foreach ($haystacks as $haystack) {
-        $normalized_haystack = bw_fpw_normalize_search_value((string) $haystack);
-
-        if ('' !== $normalized_haystack && false !== strpos($normalized_haystack, $normalized_search)) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search, $year_from = null, $year_to = null)
@@ -3055,7 +3033,10 @@ function bw_fpw_filter_posts_inner()
         // Category and tag filtering is already handled by tax_query above,
         // so we pass 'all'/'[]' here to avoid a complex JOIN that can silently return
         // empty when there is a category mismatch between the SQL and the term hierarchy.
-        $matching_post_ids = bw_fpw_get_matching_post_ids($post_type, 'all', [], [], $search);
+        // Pass year bounds so the search SQL already filters by year, reducing the post__in set
+        // before WP_Query applies its own meta_query. Category/tag are deliberately omitted here
+        // (handled by tax_query above) to avoid JOIN complexity on the term hierarchy.
+        $matching_post_ids = bw_fpw_get_matching_post_ids($post_type, 'all', [], [], $search, $year_from, $year_to);
 
         if (empty($matching_post_ids)) {
             $query_args['post__in'] = [0];
