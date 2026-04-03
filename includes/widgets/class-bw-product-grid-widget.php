@@ -376,6 +376,54 @@ class BW_Product_Grid_Widget extends Widget_Base {
         return in_array( $side, [ 'left', 'right' ], true ) ? $side : 'left';
     }
 
+    private function resolve_product_grid_context_slug( $settings, $runtime_category = 0 ) {
+        $post_type = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+
+        if ( 'product' !== $post_type || ! function_exists( 'bw_fpw_resolve_product_family_slug_from_term_id' ) ) {
+            return '';
+        }
+
+        $runtime_category = absint( $runtime_category );
+        if ( $runtime_category > 0 ) {
+            return (string) bw_fpw_resolve_product_family_slug_from_term_id( $runtime_category, 'product_cat' );
+        }
+
+        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+            ? absint( $settings['default_category'] )
+            : 0;
+
+        if ( $default_category > 0 ) {
+            return (string) bw_fpw_resolve_product_family_slug_from_term_id( $default_category, 'product_cat' );
+        }
+
+        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
+        if ( 1 === count( $parent_categories ) ) {
+            return (string) bw_fpw_resolve_product_family_slug_from_term_id( (int) reset( $parent_categories ), 'product_cat' );
+        }
+
+        if ( count( $parent_categories ) > 1 ) {
+            $resolved_slugs = [];
+
+            foreach ( $parent_categories as $category_id ) {
+                $slug = (string) bw_fpw_resolve_product_family_slug_from_term_id( $category_id, 'product_cat' );
+                if ( '' !== $slug ) {
+                    $resolved_slugs[ $slug ] = true;
+                }
+            }
+
+            if ( 1 === count( $resolved_slugs ) ) {
+                $resolved_keys = array_keys( $resolved_slugs );
+                return (string) reset( $resolved_keys );
+            }
+
+            if ( count( $resolved_slugs ) > 1 ) {
+                return 'mixed';
+            }
+        }
+
+        return '';
+    }
+
     private function get_responsive_slider_size( $settings, $control_name, $default = 0 ) {
         $values = [
             'desktop' => $default,
@@ -854,11 +902,22 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
         $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
         $search_icon_html      = '<svg class="bw-fpw-discovery-search__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
+        $context_slug          = $this->resolve_product_grid_context_slug( $settings );
+        $year_ui               = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : [
+            'supported'    => false,
+            'context'      => $context_slug ?: 'mixed',
+            'min'          => null,
+            'max'          => null,
+            'quick_ranges' => [],
+        ];
         $bootstrap_payload     = [
             'show_types' => $show_subcategories,
             'show_tags'  => $show_tags,
+            'show_years' => ! empty( $year_ui['supported'] ),
+            'context'    => $context_slug ?: 'mixed',
             'types'      => array_values( $initial_types ),
             'tags'       => array_values( $initial_tags ),
+            'year'       => $year_ui,
         ];
         ?>
         <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
@@ -909,7 +968,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                 </div>
             </div>
 
-            <div class="bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+            <div class="bw-fpw-active-chips bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
         </div>
 
         <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
@@ -1052,6 +1111,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
         $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
         $subcategories     = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
+        $context_slug      = $this->resolve_product_grid_context_slug( $settings );
 
         // Get default category setting for filtering
         $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
@@ -1146,6 +1206,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-masonry-effect'         => $masonry_effect,
             'data-widget-id'              => $widget_id,
             'data-post-type'              => $post_type,
+            'data-context-slug'           => $context_slug,
             'data-columns-desktop'        => $desktop_columns,
             'data-gap-x-desktop'          => $gap_desktop_size,
             'data-gap-y-desktop'          => $row_gap_desktop,

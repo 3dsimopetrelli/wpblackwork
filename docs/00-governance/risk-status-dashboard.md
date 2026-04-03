@@ -25,6 +25,8 @@ This dashboard complements the full risk register but is optimized for fast orie
 | R-WOO-24 | WooCommerce templates | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | High | 2026-03-09 |
 | R-SEC-22 | SVG pipeline | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | High | 2026-03-10 |
 | R-ADM-21 | Admin settings integrity | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | High | 2026-03-10 |
+| R-REVIEWS-01 | Reviews confirmation targeting | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Medium | 2026-04-02 |
+| R-REVIEWS-02 | Reviews modal accessibility | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Low | 2026-04-02 |
 | R-ADM-19 | Admin asset scoping | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Medium | 2026-03-09 |
 | R-PAY-08 | Payment webhook architecture | <span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">PARTIAL</span> | Critical | 2026-03-09 |
 | R-MF-01 | Media folders counts pipeline | <span style="background:#95a5a6;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">WATCHLIST</span> | Medium-High | 2026-03-09 |
@@ -35,17 +37,18 @@ The Risk Status Dashboard provides a single-glance overview of all governance ri
 It complements the full risk register but is optimized for quick orientation when starting new work sessions or opening new engineering chats.
 
 ## 1. Executive snapshot
-- Total risks: 56
+- Total risks: 58
 - Resolved: 9
 - Mitigated: 26
 - Partial Mitigation Complete: 2
-- Open: 18
+- Open: 20
 - Watchlist / Deferred: 1
 
 Snapshot integrity rule:
 - Executive snapshot counts MUST be synchronized with the totals derived from the rows in **Risk summary table**.
 
 Last governance-aligned updates:
+- 2026-04-02: Reviews system + modal flow moved to `Almost ready` after blocker fixes: confirmation-email false-success handling closed, timeout/failure recovery added for submit/edit/list flows, modal rendering consolidated to one canonical page-level instance, and verified-buyers-only policy now explicitly disables guest write paths. Remaining manual validation risks recorded as `R-REVIEWS-01` and `R-REVIEWS-02`. Reference: `docs/tasks/BW-TASK-20260402-reviews-system-final-validation-summary.md`.
 - 2026-03-19: `BW-TASK-20260319-PS-01` closed — BW Presentation Slide full hardening: glassmorphism cursor redesign (single toggle, 10+ controls removed), three bug fixes (orphaned popup overlay in `destroy()`, selector cache race before `emblaCore.init()`, system cursor hidden over arrow buttons). Feature docs created at `docs/30-features/presentation-slide/`. No Tier 0 surface affected.
 - 2026-03-16: `R-SEC-30` resolved — XSS hardening in `renderCartItems()`: `item.name` and `item.permalink` now HTML-escaped via `_escHtml()`/`_escUrl()` helpers on `BW_CartPopup`; `javascript:` and `data:` URI schemes blocked in href.
 - 2026-03-16: `R-SEC-31` resolved — coupon code XSS hardening in `updateTotals()`: `code` → `safeCode` via `_escHtml()` before `<b>` text node and `data-code` attribute injection.
@@ -142,6 +145,8 @@ Last governance-aligned updates:
 | R-TBL-03 | Custom fonts Elementor visibility | Theme Builder Lite | Medium | <span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">RESOLVED</span> | Closed with Elementor font integration | None | Historical resolved risk |
 | R-PERF-28 | Stripe enqueue duplication | Performance / Payments | Low | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Canonical Stripe enqueue path shipped | Monitoring | Non-Supabase |
 | R-PERF-29 | Cart popup runtime scope/load drift | Performance / Cart Popup | Low | <span style="background:#3498db;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">MITIGATED</span> | Runtime-needed guard + checkout suppression setting shipped | Monitoring | Non-Supabase |
+| R-REVIEWS-01 | Confirmation notice attaches to wrong widget | Reviews / Modal Flow | Medium | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Canonical single-modal architecture shipped | Manual validation on multi-widget pages; future targeting fix if needed | Non-Supabase |
+| R-REVIEWS-02 | Modal accessibility incomplete | Reviews / Accessibility | Low | <span style="background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">OPEN</span> | Modal timeout recovery + single instance shipped | Post-launch focus trap and focus-restore improvement | Non-Supabase |
 
 ## 4. Detailed risk notes
 
@@ -705,6 +710,26 @@ Last governance-aligned updates:
 - What is still pending: Production schema validation for required attributes.
 - Supabase-adjacent blast radius: No.
 - Recommended next step: Verify the required attribute set directly in the production Brevo account before launch.
+
+### R-REVIEWS-01 — Confirmation notice attaches to wrong widget
+- Area: Reviews / Modal Flow
+- Priority: Medium
+- Status: Open
+- Summary: The reviews system now uses one canonical modal per page, but confirmation notices still resolve against the first widget runtime context on multi-widget pages.
+- What has been completed: Duplicate modal DOM and duplicate IDs were removed by switching to a shared page-level modal instance.
+- What is still pending: Manual validation on pages with multiple review widgets and, if needed, a follow-up targeting fix.
+- Supabase-adjacent blast radius: No.
+- Recommended next step: Test confirmation success/expired/invalid flows on a page that renders multiple review widgets.
+
+### R-REVIEWS-02 — Modal accessibility incomplete
+- Area: Reviews / Accessibility
+- Priority: Low
+- Status: Open
+- Summary: Modal create/edit flows are now stable under timeout/failure conditions, but keyboard accessibility is still incomplete because focus is not trapped and not restored to the opener.
+- What has been completed: Timeout-based request hardening, failure recovery, and canonical single-modal ownership were implemented.
+- What is still pending: Focus trap and focus-restore behavior.
+- Supabase-adjacent blast radius: No.
+- Recommended next step: Schedule a post-launch accessibility pass for the reviews modal.
 
 ## 5. Recommended next wave
 1. `R-AUTH-04` — Core Supabase auth surface still open; requires a dedicated, controlled hardening wave.

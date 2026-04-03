@@ -82,6 +82,7 @@ values in JS — always add a matching data-attribute in PHP first.
 |-----------|---------------|------------|
 | `data-widget-id` | `$this->get_id()` | all state lookups |
 | `data-post-type` | `$settings['post_type']` | filter/AJAX calls |
+| `data-context-slug` | resolved product-family context (`digital-collections` / `books` / `prints` / `mixed`) | Years bootstrap + AJAX context payload |
 | `data-layout-mode` | masonry_effect control | `initGrid()` |
 | `data-columns-desktop/tablet/mobile` | controls | `setItemWidths()` |
 | `data-gap-x-desktop/tablet/mobile` | `Grid > Post Gap Horizontal` | CSS vars + masonry width/gutter |
@@ -150,6 +151,7 @@ Responsive discovery PHP shell authority:
 - toolbar result count + reset action
 - global search input (`Search in collection...`)
 - filter trigger pill
+- active-chip row above the grid (active filters only)
 - drawer shell regions:
   - header
   - scrollable body
@@ -188,14 +190,19 @@ filterState[widgetId]       = {
                                 tags[],
                                 search,
                                 appliedSearch,
+                                year: { from, to },
+                                yearBounds: { min, max },
+                                yearQuickRanges[],
                                 resultCount,
                                 options: { types[], tags[] },
                                 labels:  { types{}, tags{} },
                                 ui: {
                                   showTypes,
                                   showTags,
+                                  showYears,
                                   optionSearches: { types, tags },
-                                  openGroups:     { types, tags }
+                                  openGroups:     { types, tags, years },
+                                  yearDraft:      { from, to }
                                 }
                               }
 widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
@@ -209,7 +216,8 @@ In discovery drawer mode the same `filterState` is the single source of truth fo
 - drawer checkboxes
 - global discovery search
   - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
-- quick filters / selected pills
+- active-only chips above the grid
+- year slider, year inputs, and year quick ranges
 - result count
 - reset actions
 
@@ -300,12 +308,13 @@ In responsive discovery mode the toolbar + drawer currently behaves as follows:
   - search/filter controls are compact pill triggers that expand on hover/focus
 - responsive mode at `800px` and below:
   - search/filter controls become always-open, full-width controls
-  - quick filters collapse to selected-only pills to reduce noise
+  - active chips keep their remove control always visible
 - drawer shell reuses the cart-popup visual language
 - drawer-side is wrapper-configurable (`left` / `right`)
 - accordion group labels are currently:
   - `Categories`
   - `Style / Subject`
+  - `Years` (only when the widget resolves to a supported product-family context)
 
 The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
@@ -334,19 +343,42 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 ### 5.3 bw_fpw_filter_posts
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
-- Input: `widget_id`, `post_type`, `category`, `subcategories[]`, `tags[]`, `search`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
+- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
 - Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
 - Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
 
 Current search behavior:
 - search term is normalized server-side
-- matching uses title, excerpt, content, slug, and taxonomy term names
-- a native WP `s` query is also merged into the matching-post-ID set
+- matching uses title, slug, excerpt, content, taxonomy term names, and filter meta
+- canonical filter meta searched server-side:
+  - `_bw_filter_year_int`
+  - `_bw_filter_author_text`
+- source meta fallback is still checked during migration/backfill support:
+  - `_digital_year`, `_bw_biblio_year`, `_print_year`
+  - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`
+
+Current Year filter behavior:
+- discovery drawer only
+- backed by canonical numeric meta `_bw_filter_year_int`
+- range semantics:
+  - `BETWEEN` when both bounds exist
+  - `>=` when only `year_from` exists
+  - `<=` when only `year_to` exists
+- slider commits only on release; direct inputs commit on debounce / blur / Enter
 
 Current empty-state copy:
 - active refinements/search -> `No results found.`
 - empty archive baseline -> `There is nothing in this archive yet.`
+
+Canonical filter meta:
+- Year: `_bw_filter_year_int`
+- Author: `_bw_filter_author_text`
+
+These values are derived from editorial source meta and kept in sync on product save/meta/category/status changes. A per-context Year index transient is used to bootstrap:
+- slider bounds
+- quick ranges
+- drawer visibility for supported product-family contexts (`digital-collections`, `books`, `prints`)
 
 ### 5.4 bw_fpw_refresh_nonce
 

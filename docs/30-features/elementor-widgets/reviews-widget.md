@@ -6,6 +6,21 @@
 
 It is a thin adapter on top of the custom Reviews module and must not own business logic.
 
+## Current Status
+- Status: `Almost ready`
+- Quality: `~9/10`
+- Phase: `Final manual validation`
+- Completed fixes:
+  - confirmation email hardening (no false success)
+  - modal timeout/failure recovery
+  - single page-level modal instance
+  - verified-buyers vs guest policy alignment
+- Remaining manual validation:
+  - multi-widget confirmation targeting
+  - modal accessibility (`focus trap` / `focus restore`)
+- Final reference:
+  - `docs/tasks/BW-TASK-20260402-reviews-system-final-validation-summary.md`
+
 ## Widget Contract
 
 Slug:
@@ -108,6 +123,10 @@ Supports:
 - edit owned review
 - confirmation notice state
 - isolated modal-only visual shell, restylable without changing external review cards/list surfaces
+
+Current runtime note:
+- modal markup is rendered once per page and shared across widget instances
+- modal requests use timeout-bounded failure recovery
 
 ## AJAX Contract
 

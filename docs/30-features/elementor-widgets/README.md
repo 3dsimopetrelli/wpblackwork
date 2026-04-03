@@ -34,7 +34,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 - `product-details-widget.md`: `BW-SP Product Details` — single-product details/compatibility/info-box widget backed by the existing WooCommerce Product Details metabox
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
-- `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, and optional global fallback mode
+- `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, optional global fallback mode, and current state `Almost ready` / `~9/10` / `Final manual validation`
 - `price-variation-widget.md`: BW-SP Price Variation widget — pricing/licensing selector with compact inline trust summary, variation-bound license disclosure, and direct-checkout shortcut
 - `trust-box-widget.md`: BW Trust Box widget — standalone trust/support stack with curated review slider, fixed review box, digital product info cards, and FAQ CTA
 - `basic-slide-widget.md`: `BW-UI Basic Slide` — lightweight dual-mode image widget with Embla `Slide` mode, responsive `Wall` mode, lazy/eager image-loading policy, and optional bottom gradient

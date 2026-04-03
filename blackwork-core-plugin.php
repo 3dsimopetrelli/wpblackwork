@@ -1826,7 +1826,7 @@ function bw_fpw_get_tags()
     wp_send_json_success($tags);
 }
 
-function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories)
+function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from = null, $year_to = null)
 {
     $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, []);
 
@@ -1844,6 +1844,33 @@ function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcatego
 
     if (!empty($tax_query)) {
         $query_args['tax_query'] = $tax_query;
+    }
+
+    if (null !== $year_from || null !== $year_to) {
+        $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
+
+        if (null !== $year_from && null !== $year_to) {
+            $query_args['meta_query'] = [[
+                'key' => $canonical_year_key,
+                'value' => [(int) $year_from, (int) $year_to],
+                'compare' => 'BETWEEN',
+                'type' => 'NUMERIC',
+            ]];
+        } elseif (null !== $year_from) {
+            $query_args['meta_query'] = [[
+                'key' => $canonical_year_key,
+                'value' => (int) $year_from,
+                'compare' => '>=',
+                'type' => 'NUMERIC',
+            ]];
+        } else {
+            $query_args['meta_query'] = [[
+                'key' => $canonical_year_key,
+                'value' => (int) $year_to,
+                'compare' => '<=',
+                'type' => 'NUMERIC',
+            ]];
+        }
     }
 
     $query = new WP_Query($query_args);
@@ -1881,6 +1908,500 @@ function bw_fpw_normalize_search_value($search)
     $search = preg_replace('/\s+/', ' ', trim($search));
 
     return is_string($search) ? $search : '';
+}
+
+function bw_fpw_get_supported_product_family_slugs()
+{
+    return ['digital-collections', 'books', 'prints'];
+}
+
+function bw_fpw_get_canonical_year_meta_key()
+{
+    return '_bw_filter_year_int';
+}
+
+function bw_fpw_get_canonical_author_meta_key()
+{
+    return '_bw_filter_author_text';
+}
+
+function bw_fpw_get_product_filter_source_meta_map()
+{
+    return [
+        'digital-collections' => [
+            'year_keys' => ['_digital_year'],
+            'author_keys' => ['_bw_artist_name'],
+        ],
+        'books' => [
+            'year_keys' => ['_bw_biblio_year'],
+            'author_keys' => ['_bw_biblio_author', '_bw_artist_name'],
+        ],
+        'prints' => [
+            'year_keys' => ['_print_year'],
+            'author_keys' => ['_print_artist', '_bw_artist_name'],
+        ],
+    ];
+}
+
+function bw_fpw_get_all_filter_source_year_meta_keys()
+{
+    return ['_digital_year', '_bw_biblio_year', '_print_year'];
+}
+
+function bw_fpw_get_all_filter_source_author_meta_keys()
+{
+    return ['_bw_biblio_author', '_print_artist', '_bw_artist_name'];
+}
+
+function bw_fpw_get_all_filter_relevant_meta_keys()
+{
+    return array_values(
+        array_unique(
+            array_merge(
+                bw_fpw_get_all_filter_source_year_meta_keys(),
+                bw_fpw_get_all_filter_source_author_meta_keys(),
+                [bw_fpw_get_canonical_year_meta_key(), bw_fpw_get_canonical_author_meta_key()]
+            )
+        )
+    );
+}
+
+function bw_fpw_normalize_context_slug($context_slug)
+{
+    if (!is_string($context_slug)) {
+        return '';
+    }
+
+    $normalized = sanitize_title(wp_unslash($context_slug));
+
+    if ('mixed' === $normalized) {
+        return 'mixed';
+    }
+
+    return in_array($normalized, bw_fpw_get_supported_product_family_slugs(), true) ? $normalized : '';
+}
+
+function bw_fpw_is_supported_context_slug($context_slug)
+{
+    return in_array(bw_fpw_normalize_context_slug($context_slug), bw_fpw_get_supported_product_family_slugs(), true);
+}
+
+function bw_fpw_resolve_product_family_slug_from_term_id($term_id, $taxonomy = 'product_cat')
+{
+    $term_id = absint($term_id);
+    if ($term_id <= 0) {
+        return '';
+    }
+
+    $term = get_term($term_id, $taxonomy);
+    if (!$term instanceof WP_Term || is_wp_error($term)) {
+        return '';
+    }
+
+    $supported = bw_fpw_get_supported_product_family_slugs();
+    $lineage = array_reverse(get_ancestors($term_id, $taxonomy, 'taxonomy'));
+    $lineage[] = $term_id;
+
+    foreach ($lineage as $candidate_id) {
+        $candidate = get_term((int) $candidate_id, $taxonomy);
+        if ($candidate instanceof WP_Term && !is_wp_error($candidate) && in_array($candidate->slug, $supported, true)) {
+            return $candidate->slug;
+        }
+    }
+
+    return '';
+}
+
+function bw_fpw_resolve_product_family_slug_from_product($post_id)
+{
+    $post_id = absint($post_id);
+    if ($post_id <= 0 || 'product' !== get_post_type($post_id)) {
+        return '';
+    }
+
+    $term_ids = wp_get_post_terms($post_id, 'product_cat', ['fields' => 'ids']);
+    if (is_wp_error($term_ids) || empty($term_ids)) {
+        return '';
+    }
+
+    $slugs = [];
+    foreach ($term_ids as $term_id) {
+        $slug = bw_fpw_resolve_product_family_slug_from_term_id((int) $term_id, 'product_cat');
+        if ('' !== $slug) {
+            $slugs[$slug] = true;
+        }
+    }
+
+    $resolved = array_keys($slugs);
+    if (1 === count($resolved)) {
+        return $resolved[0];
+    }
+
+    return count($resolved) > 1 ? 'mixed' : '';
+}
+
+function bw_fpw_extract_year_int($value)
+{
+    if (is_int($value) || is_float($value)) {
+        $year = (int) $value;
+        return $year > 0 ? $year : null;
+    }
+
+    if (!is_string($value)) {
+        return null;
+    }
+
+    $value = trim($value);
+    if ('' === $value) {
+        return null;
+    }
+
+    if (preg_match('/(?<!\d)(\d{3,4})(?!\d)/', $value, $matches)) {
+        $year = (int) $matches[1];
+        return $year > 0 ? $year : null;
+    }
+
+    return null;
+}
+
+function bw_fpw_normalize_author_text($value)
+{
+    if (!is_string($value)) {
+        return '';
+    }
+
+    return trim(sanitize_text_field(wp_unslash($value)));
+}
+
+function bw_fpw_get_context_source_meta_map($context_slug)
+{
+    $map = bw_fpw_get_product_filter_source_meta_map();
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+
+    return isset($map[$normalized]) ? $map[$normalized] : null;
+}
+
+function bw_fpw_get_candidate_source_meta_keys($context_slug, $kind)
+{
+    $kind = 'author' === $kind ? 'author_keys' : 'year_keys';
+    $map = bw_fpw_get_context_source_meta_map($context_slug);
+
+    if (is_array($map) && !empty($map[$kind])) {
+        return $map[$kind];
+    }
+
+    return 'author_keys' === $kind
+        ? bw_fpw_get_all_filter_source_author_meta_keys()
+        : bw_fpw_get_all_filter_source_year_meta_keys();
+}
+
+function bw_fpw_compute_canonical_year_for_product($post_id)
+{
+    $context_slug = bw_fpw_resolve_product_family_slug_from_product($post_id);
+    $meta_keys = bw_fpw_get_candidate_source_meta_keys($context_slug, 'year');
+
+    foreach ($meta_keys as $meta_key) {
+        $year = bw_fpw_extract_year_int(get_post_meta($post_id, $meta_key, true));
+        if (null !== $year) {
+            return $year;
+        }
+    }
+
+    return null;
+}
+
+function bw_fpw_compute_canonical_author_for_product($post_id)
+{
+    $context_slug = bw_fpw_resolve_product_family_slug_from_product($post_id);
+    $meta_keys = bw_fpw_get_candidate_source_meta_keys($context_slug, 'author');
+
+    foreach ($meta_keys as $meta_key) {
+        $author = bw_fpw_normalize_author_text((string) get_post_meta($post_id, $meta_key, true));
+        if ('' !== $author) {
+            return $author;
+        }
+    }
+
+    return '';
+}
+
+function bw_fpw_sync_product_filter_meta($post_id)
+{
+    static $sync_in_progress = [];
+
+    $post_id = absint($post_id);
+    if ($post_id <= 0 || 'product' !== get_post_type($post_id)) {
+        return;
+    }
+
+    if (!empty($sync_in_progress[$post_id])) {
+        return;
+    }
+
+    $sync_in_progress[$post_id] = true;
+
+    $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
+    $canonical_author_key = bw_fpw_get_canonical_author_meta_key();
+
+    $year = bw_fpw_compute_canonical_year_for_product($post_id);
+    $author = bw_fpw_compute_canonical_author_for_product($post_id);
+
+    if (null !== $year) {
+        update_post_meta($post_id, $canonical_year_key, (int) $year);
+    } else {
+        delete_post_meta($post_id, $canonical_year_key);
+    }
+
+    if ('' !== $author) {
+        update_post_meta($post_id, $canonical_author_key, $author);
+    } else {
+        delete_post_meta($post_id, $canonical_author_key);
+    }
+
+    unset($sync_in_progress[$post_id]);
+}
+
+function bw_fpw_clear_grid_transient_cache()
+{
+    global $wpdb;
+
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_bw_fpw_%'
+            OR option_name LIKE '_transient_timeout_bw_fpw_%'"
+    );
+}
+
+function bw_fpw_get_year_index_transient_key($context_slug)
+{
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    return 'bw_fpw_year_index_' . ($normalized ?: 'unknown');
+}
+
+function bw_fpw_clear_year_index_transients($context_slug = '')
+{
+    global $wpdb;
+
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    if ('' !== $normalized) {
+        $transient_key = bw_fpw_get_year_index_transient_key($normalized);
+        delete_transient($transient_key);
+        return;
+    }
+
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_bw_fpw_year_index_%'
+            OR option_name LIKE '_transient_timeout_bw_fpw_year_index_%'"
+    );
+}
+
+function bw_fpw_get_context_root_term_id($context_slug)
+{
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    if ('' === $normalized) {
+        return 0;
+    }
+
+    $term = get_term_by('slug', $normalized, 'product_cat');
+    return $term instanceof WP_Term ? (int) $term->term_id : 0;
+}
+
+function bw_fpw_build_year_quick_ranges($years_map)
+{
+    if (!is_array($years_map) || empty($years_map)) {
+        return [];
+    }
+
+    $years = array_keys($years_map);
+    $years = array_map('intval', $years);
+    sort($years, SORT_NUMERIC);
+
+    $distinct_years = array_values(array_unique($years));
+    $total = count($distinct_years);
+    if (0 === $total) {
+        return [];
+    }
+
+    $bucket_count = min(4, $total);
+    $bucket_size = (int) ceil($total / $bucket_count);
+    $ranges = [];
+
+    for ($index = 0; $index < $bucket_count; $index++) {
+        $start_offset = $index * $bucket_size;
+        if (!isset($distinct_years[$start_offset])) {
+            break;
+        }
+
+        $end_offset = min($total - 1, (($index + 1) * $bucket_size) - 1);
+        $from = (int) $distinct_years[$start_offset];
+        $to = (int) $distinct_years[$end_offset];
+
+        $ranges[] = [
+            'key' => $from . '-' . $to,
+            'label' => $from === $to ? (string) $from : $from . '–' . $to,
+            'from' => $from,
+            'to' => $to,
+        ];
+    }
+
+    return $ranges;
+}
+
+function bw_fpw_build_year_index($context_slug)
+{
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+    if (!bw_fpw_is_supported_context_slug($context_slug)) {
+        return [
+            'context' => $context_slug ?: 'mixed',
+            'supported' => false,
+            'min_year' => null,
+            'max_year' => null,
+            'years' => [],
+            'post_year_map' => [],
+            'quick_ranges' => [],
+        ];
+    }
+
+    $root_term_id = bw_fpw_get_context_root_term_id($context_slug);
+    if ($root_term_id <= 0) {
+        return [
+            'context' => $context_slug,
+            'supported' => false,
+            'min_year' => null,
+            'max_year' => null,
+            'years' => [],
+            'post_year_map' => [],
+            'quick_ranges' => [],
+        ];
+    }
+
+    $query = new WP_Query([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'no_found_rows' => true,
+        'ignore_sticky_posts' => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
+        'tax_query' => [[
+            'taxonomy' => 'product_cat',
+            'field' => 'term_id',
+            'terms' => [$root_term_id],
+            'include_children' => true,
+        ]],
+    ]);
+
+    $years = [];
+    $post_year_map = [];
+
+    foreach ((array) $query->posts as $product_id) {
+        $product_id = absint($product_id);
+        if ($product_id <= 0) {
+            continue;
+        }
+
+        // Keep canonical filter meta in sync while building the context index.
+        bw_fpw_sync_product_filter_meta($product_id);
+
+        $year = bw_fpw_extract_year_int(get_post_meta($product_id, bw_fpw_get_canonical_year_meta_key(), true));
+        if (null === $year) {
+            continue;
+        }
+
+        if (!isset($years[$year])) {
+            $years[$year] = 0;
+        }
+
+        $years[$year]++;
+        $post_year_map[$product_id] = $year;
+    }
+
+    if (!empty($years)) {
+        ksort($years, SORT_NUMERIC);
+    }
+
+    $year_keys = array_keys($years);
+    $min_year = !empty($year_keys) ? (int) reset($year_keys) : null;
+    $max_year = !empty($year_keys) ? (int) end($year_keys) : null;
+
+    return [
+        'context' => $context_slug,
+        'supported' => !empty($years),
+        'min_year' => $min_year,
+        'max_year' => $max_year,
+        'years' => $years,
+        'post_year_map' => $post_year_map,
+        'quick_ranges' => bw_fpw_build_year_quick_ranges($years),
+    ];
+}
+
+function bw_fpw_get_year_index($context_slug)
+{
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+    if (!bw_fpw_is_supported_context_slug($context_slug)) {
+        return [
+            'context' => $context_slug ?: 'mixed',
+            'supported' => false,
+            'min_year' => null,
+            'max_year' => null,
+            'years' => [],
+            'post_year_map' => [],
+            'quick_ranges' => [],
+        ];
+    }
+
+    $transient_key = bw_fpw_get_year_index_transient_key($context_slug);
+    $cached = get_transient($transient_key);
+
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $index = bw_fpw_build_year_index($context_slug);
+    set_transient($transient_key, $index, 30 * MINUTE_IN_SECONDS);
+
+    return $index;
+}
+
+function bw_fpw_get_year_filter_ui($context_slug)
+{
+    $index = bw_fpw_get_year_index($context_slug);
+
+    return [
+        'supported' => !empty($index['supported']),
+        'context' => isset($index['context']) ? (string) $index['context'] : 'mixed',
+        'min' => isset($index['min_year']) ? $index['min_year'] : null,
+        'max' => isset($index['max_year']) ? $index['max_year'] : null,
+        'quick_ranges' => isset($index['quick_ranges']) && is_array($index['quick_ranges']) ? array_values($index['quick_ranges']) : [],
+    ];
+}
+
+function bw_fpw_normalize_year_bound($value)
+{
+    if (null === $value || '' === $value) {
+        return null;
+    }
+
+    return bw_fpw_extract_year_int(is_scalar($value) ? (string) $value : '');
+}
+
+function bw_fpw_normalize_year_range($from, $to)
+{
+    $normalized_from = bw_fpw_normalize_year_bound($from);
+    $normalized_to = bw_fpw_normalize_year_bound($to);
+
+    if (null !== $normalized_from && null !== $normalized_to && $normalized_from > $normalized_to) {
+        $temp = $normalized_from;
+        $normalized_from = $normalized_to;
+        $normalized_to = $temp;
+    }
+
+    return [
+        'from' => $normalized_from,
+        'to' => $normalized_to,
+    ];
 }
 
 function bw_fpw_build_tax_query($post_type, $category = 'all', $subcategories = [], $tags = [])
@@ -1961,7 +2482,7 @@ function bw_fpw_post_matches_search($post_id, $search, $taxonomy, $tag_taxonomy)
     return false;
 }
 
-function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search)
+function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search, $year_from = null, $year_to = null)
 {
     global $wpdb;
 
@@ -2014,6 +2535,21 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         $wheres[] = "tt_tag.term_id IN ({$ids_in})";
     }
 
+    if (null !== $year_from || null !== $year_to) {
+        $canonical_year_key = esc_sql(bw_fpw_get_canonical_year_meta_key());
+        $year_meta_where = "pm_year.meta_key = '{$canonical_year_key}'";
+
+        if (null !== $year_from && null !== $year_to) {
+            $year_meta_where .= ' AND CAST(pm_year.meta_value AS UNSIGNED) BETWEEN ' . (int) $year_from . ' AND ' . (int) $year_to;
+        } elseif (null !== $year_from) {
+            $year_meta_where .= ' AND CAST(pm_year.meta_value AS UNSIGNED) >= ' . (int) $year_from;
+        } else {
+            $year_meta_where .= ' AND CAST(pm_year.meta_value AS UNSIGNED) <= ' . (int) $year_to;
+        }
+
+        $wheres[] = "p.ID IN (SELECT pm_year.post_id FROM {$wpdb->postmeta} pm_year WHERE {$year_meta_where})";
+    }
+
     // ---- Text search via SQL LIKE — single query, no PHP post-processing needed ----
     // LOWER() ensures case-insensitive matching regardless of DB collation.
     // The search term is already accent-normalized by bw_fpw_normalize_search_value.
@@ -2022,9 +2558,14 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         $like_sql    = "'" . esc_sql($like) . "'";
         $tax_sql     = "'" . esc_sql($taxonomy) . "'";
         $tag_tax_sql = "'" . esc_sql($tag_taxonomy) . "'";
+        $canonical_year_meta_sql = "'" . esc_sql(bw_fpw_get_canonical_year_meta_key()) . "'";
+        $canonical_author_meta_sql = "'" . esc_sql(bw_fpw_get_canonical_author_meta_key()) . "'";
+        $source_year_keys_sql = "'" . implode("','", array_map('esc_sql', bw_fpw_get_all_filter_source_year_meta_keys())) . "'";
+        $source_author_keys_sql = "'" . implode("','", array_map('esc_sql', bw_fpw_get_all_filter_source_author_meta_keys())) . "'";
         $wheres[]    = "(LOWER(p.post_title) LIKE {$like_sql}"
                      . " OR LOWER(p.post_name) LIKE {$like_sql}"
                      . " OR LOWER(p.post_excerpt) LIKE {$like_sql}"
+                     . " OR LOWER(p.post_content) LIKE {$like_sql}"
                      . " OR p.ID IN ("
                      . "   SELECT tr2.object_id"
                      . "   FROM {$wpdb->term_relationships} tr2"
@@ -2034,6 +2575,12 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
                      . "     ON t2.term_id = tt2.term_id"
                      . "   WHERE tt2.taxonomy IN ({$tax_sql}, {$tag_tax_sql})"
                      . "   AND LOWER(t2.name) LIKE {$like_sql}"
+                     . " )"
+                     . " OR p.ID IN ("
+                     . "   SELECT pm.post_id"
+                     . "   FROM {$wpdb->postmeta} pm"
+                     . "   WHERE pm.meta_key IN ({$canonical_year_meta_sql}, {$canonical_author_meta_sql}, {$source_year_keys_sql}, {$source_author_keys_sql})"
+                     . "   AND LOWER(pm.meta_value) LIKE {$like_sql}"
                      . "))";
     }
 
@@ -2093,12 +2640,12 @@ function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
     return array_values($results);
 }
 
-function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategories = [], $search = '')
+function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategories = [], $search = '', $year_from = null, $year_to = null)
 {
     $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
     $normalized_search = bw_fpw_normalize_search_value($search);
 
-    if (('all' === $category || empty($category)) && '' === $normalized_search) {
+    if (('all' === $category || empty($category)) && '' === $normalized_search && null === $year_from && null === $year_to) {
         $terms = get_terms(
             [
                 'taxonomy' => $tag_taxonomy,
@@ -2124,17 +2671,17 @@ function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategor
     }
 
     $post_ids = '' === $normalized_search
-        ? bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories)
-        : bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, [], $normalized_search);
+        ? bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from, $year_to)
+        : bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, [], $normalized_search, $year_from, $year_to);
 
     return bw_fpw_collect_tags_from_posts($tag_taxonomy, $post_ids);
 }
 
-function bw_fpw_get_available_subcategories_data($post_type, $category = 'all', $tags = [], $search = '')
+function bw_fpw_get_available_subcategories_data($post_type, $category = 'all', $tags = [], $search = '', $year_from = null, $year_to = null)
 {
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
     $normalized_search = bw_fpw_normalize_search_value($search);
-    $post_ids = bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search);
+    $post_ids = bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search, $year_from, $year_to);
 
     if (empty($post_ids)) {
         return [];
@@ -2236,13 +2783,16 @@ function bw_fpw_generate_cache_key($params)
     $params = is_array($params) ? $params : [];
 
     $canonical_payload = [
-        'schema' => 'v3',
+        'schema' => 'v4',
         'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
+        'context_slug' => isset($params['context_slug']) ? (string) $params['context_slug'] : '',
         'category' => isset($params['category']) ? (string) $params['category'] : 'all',
         'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
         'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
         'search' => bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : ''),
+        'year_from' => bw_fpw_normalize_year_bound(isset($params['year_from']) ? $params['year_from'] : null),
+        'year_to' => bw_fpw_normalize_year_bound(isset($params['year_to']) ? $params['year_to'] : null),
         'image_toggle' => !empty($params['image_toggle']) ? 1 : 0,
         'image_size' => isset($params['image_size']) ? (string) $params['image_size'] : 'large',
         'image_mode' => isset($params['image_mode']) ? (string) $params['image_mode'] : 'proportional',
@@ -2287,13 +2837,62 @@ function bw_fpw_clear_grid_transients($post_id)
     if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
         return;
     }
-    global $wpdb;
-    $wpdb->query(
-        "DELETE FROM {$wpdb->options}
-         WHERE option_name LIKE '_transient_bw_fpw_%'
-            OR option_name LIKE '_transient_timeout_bw_fpw_%'"
-    );
+
+    bw_fpw_clear_grid_transient_cache();
+    bw_fpw_clear_year_index_transients();
+
+    if ('product' === get_post_type($post_id)) {
+        bw_fpw_sync_product_filter_meta($post_id);
+    }
 }
+
+function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $meta_key, $meta_value = '')
+{
+    $object_id = absint($object_id);
+    if ($object_id <= 0 || 'product' !== get_post_type($object_id)) {
+        return;
+    }
+
+    if (!in_array($meta_key, bw_fpw_get_all_filter_relevant_meta_keys(), true)) {
+        return;
+    }
+
+    if (in_array($meta_key, [bw_fpw_get_canonical_year_meta_key(), bw_fpw_get_canonical_author_meta_key()], true)) {
+        return;
+    }
+
+    bw_fpw_sync_product_filter_meta($object_id);
+    bw_fpw_clear_grid_transient_cache();
+    bw_fpw_clear_year_index_transients();
+}
+add_action('added_post_meta', 'bw_fpw_handle_product_filter_meta_change', 10, 4);
+add_action('updated_post_meta', 'bw_fpw_handle_product_filter_meta_change', 10, 4);
+add_action('deleted_post_meta', 'bw_fpw_handle_product_filter_meta_change', 10, 4);
+
+function bw_fpw_handle_product_filter_term_change($object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids)
+{
+    $object_id = absint($object_id);
+    if ($object_id <= 0 || 'product' !== get_post_type($object_id) || 'product_cat' !== $taxonomy) {
+        return;
+    }
+
+    bw_fpw_sync_product_filter_meta($object_id);
+    bw_fpw_clear_grid_transient_cache();
+    bw_fpw_clear_year_index_transients();
+}
+add_action('set_object_terms', 'bw_fpw_handle_product_filter_term_change', 10, 6);
+
+function bw_fpw_handle_product_filter_status_change($new_status, $old_status, $post)
+{
+    if (!$post instanceof WP_Post || 'product' !== $post->post_type || $new_status === $old_status) {
+        return;
+    }
+
+    bw_fpw_sync_product_filter_meta($post->ID);
+    bw_fpw_clear_grid_transient_cache();
+    bw_fpw_clear_year_index_transients();
+}
+add_action('transition_post_status', 'bw_fpw_handle_product_filter_status_change', 10, 3);
 
 function bw_fpw_ajax_refresh_nonce()
 {
@@ -2316,10 +2915,17 @@ function bw_fpw_filter_posts_inner()
 
     $widget_id = bw_fpw_normalize_widget_id(isset($_POST['widget_id']) ? wp_unslash($_POST['widget_id']) : '');
     $post_type = bw_fpw_normalize_post_type(isset($_POST['post_type']) ? wp_unslash($_POST['post_type']) : bw_fpw_get_default_post_type());
+    $context_slug = bw_fpw_normalize_context_slug(isset($_POST['context_slug']) ? wp_unslash($_POST['context_slug']) : '');
     $category = bw_fpw_normalize_term_selector(isset($_POST['category']) ? wp_unslash($_POST['category']) : 'all');
     $subcategories = bw_fpw_normalize_int_array(isset($_POST['subcategories']) ? wp_unslash($_POST['subcategories']) : [], 50);
     $tags = bw_fpw_normalize_int_array(isset($_POST['tags']) ? wp_unslash($_POST['tags']) : [], 50);
     $search = bw_fpw_normalize_search_query(isset($_POST['search']) ? wp_unslash($_POST['search']) : '');
+    $normalized_year_range = bw_fpw_normalize_year_range(
+        isset($_POST['year_from']) ? wp_unslash($_POST['year_from']) : null,
+        isset($_POST['year_to']) ? wp_unslash($_POST['year_to']) : null
+    );
+    $year_from = $normalized_year_range['from'];
+    $year_to = $normalized_year_range['to'];
     $image_toggle = bw_fpw_normalize_bool(isset($_POST['image_toggle']) ? wp_unslash($_POST['image_toggle']) : null, false);
     $image_size = bw_fpw_normalize_image_size(isset($_POST['image_size']) ? wp_unslash($_POST['image_size']) : 'large');
     $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
@@ -2363,10 +2969,13 @@ function bw_fpw_filter_posts_inner()
         $cache_key_params = [
             'widget_id' => $widget_id,
             'post_type' => $post_type,
+            'context_slug' => $context_slug,
             'category' => $category,
             'subcategories' => $subcategories,
             'tags' => $tags,
             'search' => $search,
+            'year_from' => $year_from,
+            'year_to' => $year_to,
             'image_toggle' => $image_toggle,
             'image_size' => $image_size,
             'image_mode' => $image_mode,
@@ -2409,6 +3018,36 @@ function bw_fpw_filter_posts_inner()
     $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, $tags);
     if (!empty($tax_query)) {
         $query_args['tax_query'] = $tax_query;
+    }
+
+    if (null !== $year_from || null !== $year_to) {
+        $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
+        $meta_query = isset($query_args['meta_query']) && is_array($query_args['meta_query']) ? $query_args['meta_query'] : [];
+
+        if (null !== $year_from && null !== $year_to) {
+            $meta_query[] = [
+                'key' => $canonical_year_key,
+                'value' => [(int) $year_from, (int) $year_to],
+                'compare' => 'BETWEEN',
+                'type' => 'NUMERIC',
+            ];
+        } elseif (null !== $year_from) {
+            $meta_query[] = [
+                'key' => $canonical_year_key,
+                'value' => (int) $year_from,
+                'compare' => '>=',
+                'type' => 'NUMERIC',
+            ];
+        } else {
+            $meta_query[] = [
+                'key' => $canonical_year_key,
+                'value' => (int) $year_to,
+                'compare' => '<=',
+                'type' => 'NUMERIC',
+            ];
+        }
+
+        $query_args['meta_query'] = $meta_query;
     }
 
     if ('' !== $search) {
@@ -2652,10 +3291,23 @@ function bw_fpw_filter_posts_inner()
 
     $html = ob_get_clean();
 
-    $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search);
-    $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search);
+    $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search, $year_from, $year_to);
+    $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search, $year_from, $year_to);
     $available_tags = wp_list_pluck($related_tags, 'term_id');
     $result_count = (int) $query->found_posts;
+    $effective_context_slug = $context_slug;
+
+    if ('' === $effective_context_slug && 'product' === $post_type && 'all' !== $category) {
+        $effective_context_slug = bw_fpw_resolve_product_family_slug_from_term_id(absint($category), 'product_cat');
+    }
+
+    $year_ui = 'product' === $post_type ? bw_fpw_get_year_filter_ui($effective_context_slug) : [
+        'supported' => false,
+        'context' => $effective_context_slug ?: 'mixed',
+        'min' => null,
+        'max' => null,
+        'quick_ranges' => [],
+    ];
 
     $response_data = [
         'html' => $html,
@@ -2675,6 +3327,7 @@ function bw_fpw_filter_posts_inner()
             'types' => array_values($available_types),
             'tags' => array_values($related_tags),
             'result_count' => $result_count,
+            'year' => $year_ui,
         ],
     ];
 
