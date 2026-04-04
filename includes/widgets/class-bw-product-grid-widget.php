@@ -341,6 +341,15 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'description'  => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
         ] );
 
+        $this->add_control( 'default_category', [
+            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => $category_options,
+            'default'     => 'all',
+            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes' ],
+        ] );
+
         $this->add_control( 'enable_responsive_filter_mode', [
             'label'        => __( 'Filter Mode', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SELECT,
@@ -481,15 +490,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
             }
         }
 
-        $this->add_control( 'default_category', [
-            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT,
-            'options'     => $category_options,
-            'default'     => 'all',
-            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'    => [ 'show_filters' => 'yes' ],
-        ] );
-
         $this->add_control( 'show_categories', [
             'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -497,14 +497,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_categories_title', [
             'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_categories' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_categories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_subcategories', [
@@ -514,14 +514,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_subcategories_title', [
             'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_tags', [
@@ -531,14 +531,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_tags_title', [
             'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Tags', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_all_button', [
@@ -548,7 +548,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes', 'show_categories' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'show_categories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_search', [
