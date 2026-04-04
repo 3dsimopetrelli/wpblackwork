@@ -2430,12 +2430,19 @@
             }, 150);
         }
 
+        // Read active year range from filterState so tags are scoped to the current year filter.
+        var tagState = filterState[widgetId];
+        var tagYearFrom = tagState && tagState.year && tagState.year.from !== null ? tagState.year.from : null;
+        var tagYearTo   = tagState && tagState.year && tagState.year.to   !== null ? tagState.year.to   : null;
+
         // Check cache first
         var cacheKey = getCacheKey('tags', {
             category_id: categoryId,
             post_type: postType,
             subcategories: subcategories || [],
-            widget_id: widgetId
+            widget_id: widgetId,
+            year_from: tagYearFrom,
+            year_to: tagYearTo
         });
 
         var cachedResponse = getCachedData(cacheKey);
@@ -2454,6 +2461,8 @@
                 category_id: categoryId,
                 post_type: postType,
                 subcategories: subcategories || [],
+                year_from: tagYearFrom !== null ? tagYearFrom : '',
+                year_to: tagYearTo   !== null ? tagYearTo   : '',
                 nonce: bwProductGridAjax.nonce
             },
             success: function (response) {
