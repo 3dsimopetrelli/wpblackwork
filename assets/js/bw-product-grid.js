@@ -992,37 +992,37 @@
                 order: null
             },
             recent: {
-                triggerLabel: 'Recently added',
+                triggerLabel: 'Latest',
                 menuLabel: 'Recently added',
                 orderBy: 'date',
                 order: 'DESC'
             },
             oldest: {
-                triggerLabel: 'Oldest added',
+                triggerLabel: 'Earliest',
                 menuLabel: 'Oldest added',
                 orderBy: 'date',
                 order: 'ASC'
             },
             title_asc: {
-                triggerLabel: 'Alphabetical A to Z',
+                triggerLabel: 'A–Z',
                 menuLabel: 'Alphabetical A to Z',
                 orderBy: 'title',
                 order: 'ASC'
             },
             title_desc: {
-                triggerLabel: 'Alphabetical Z to A',
+                triggerLabel: 'Z–A',
                 menuLabel: 'Alphabetical Z to A',
                 orderBy: 'title',
                 order: 'DESC'
             },
             year_asc: {
-                triggerLabel: 'Year, oldest first',
+                triggerLabel: 'Year ↑',
                 menuLabel: 'Year, oldest first',
                 orderBy: 'date',
                 order: 'ASC'
             },
             year_desc: {
-                triggerLabel: 'Year, newest first',
+                triggerLabel: 'Year ↓',
                 menuLabel: 'Year, newest first',
                 orderBy: 'date',
                 order: 'DESC'

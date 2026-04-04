@@ -763,30 +763,33 @@ body.bw-cart-popup-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown {
-  min-width: 220px;
-  max-width: min(100%, 300px);
+  min-width: 188px;
+  max-width: min(100%, 248px);
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  min-height: 58px;
-  padding: 5px 18px;
+  min-height: 48px;
+  padding: 4px 8px 4px 18px;
   border-radius: 999px;
-  border: 2px solid #111111;
-  background: #f5f5f2;
+  border: 1.5px solid rgba(17, 17, 17, 0.88);
+  background: #f4f4f1;
   color: #111111;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown:focus-visible,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort.is-open .bw-fpw-sort-trigger--dropdown {
+  background: #f6f6f3;
+  border-color: #111111;
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger__label {
@@ -795,17 +798,21 @@ body.bw-cart-popup-no-scroll {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger__chevron {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.05);
   color: rgba(17, 17, 17, 0.76);
   transition: transform 0.18s ease;
 }
@@ -815,8 +822,8 @@ body.bw-cart-popup-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger__chevron-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   stroke: currentColor;
 }
 
