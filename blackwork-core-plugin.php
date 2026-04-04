@@ -3626,104 +3626,139 @@ function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
 
 function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategories = [], $search = '', $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [])
 {
-    $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
-    $normalized_search = bw_fpw_normalize_search_value($search);
+    return bw_fpw_get_cached_derived_filter_dataset(
+        'related_tags',
+        [
+            'post_type' => $post_type,
+            'category' => $category,
+            'subcategories' => $subcategories,
+            'search' => $search,
+            'year_from' => $year_from,
+            'year_to' => $year_to,
+            'context_slug' => $context_slug,
+            'advanced_filters' => $advanced_filters,
+        ],
+        static function () use ($post_type, $category, $subcategories, $search, $year_from, $year_to, $context_slug, $advanced_filters) {
+            $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+            $normalized_search = bw_fpw_normalize_search_value($search);
 
-    if (('all' === $category || empty($category)) && '' === $normalized_search && null === $year_from && null === $year_to && !bw_fpw_has_active_advanced_filter_selections($advanced_filters)) {
-        $terms = get_terms(
-            [
-                'taxonomy' => $tag_taxonomy,
-                'hide_empty' => true,
-            ]
-        );
+            if (('all' === $category || empty($category)) && '' === $normalized_search && null === $year_from && null === $year_to && !bw_fpw_has_active_advanced_filter_selections($advanced_filters)) {
+                $terms = get_terms(
+                    [
+                        'taxonomy' => $tag_taxonomy,
+                        'hide_empty' => true,
+                    ]
+                );
 
-        if (empty($terms) || is_wp_error($terms)) {
-            return [];
+                if (empty($terms) || is_wp_error($terms)) {
+                    return [];
+                }
+
+                $results = [];
+
+                foreach ($terms as $term) {
+                    $results[] = [
+                        'term_id' => (int) $term->term_id,
+                        'name' => $term->name,
+                        'count' => (int) $term->count,
+                    ];
+                }
+
+                return $results;
+            }
+
+            $post_ids = '' === $normalized_search
+                ? bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from, $year_to, $context_slug, $advanced_filters)
+                : bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, [], $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
+
+            return bw_fpw_collect_tags_from_posts($tag_taxonomy, $post_ids);
         }
-
-        $results = [];
-
-        foreach ($terms as $term) {
-            $results[] = [
-                'term_id' => (int) $term->term_id,
-                'name' => $term->name,
-                'count' => (int) $term->count,
-            ];
-        }
-
-        return $results;
-    }
-
-    $post_ids = '' === $normalized_search
-        ? bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from, $year_to, $context_slug, $advanced_filters)
-        : bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, [], $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
-
-    return bw_fpw_collect_tags_from_posts($tag_taxonomy, $post_ids);
+    );
 }
 
 function bw_fpw_get_available_subcategories_data($post_type, $category = 'all', $tags = [], $search = '', $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [])
 {
-    $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
-    $normalized_search = bw_fpw_normalize_search_value($search);
-    $post_ids = '' === $normalized_search
-        // Apply the same post-count cap used by the tags path to prevent unbounded wp_get_object_terms calls.
-        ? bw_fpw_get_candidate_post_ids_without_search($post_type, $category, [], $tags, $year_from, $year_to, $context_slug, $advanced_filters, bw_fpw_get_tag_source_posts_limit())
-        : bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
-
-    if (empty($post_ids)) {
-        return [];
-    }
-
-    $terms = wp_get_object_terms(
-        $post_ids,
-        $taxonomy,
+    return bw_fpw_get_cached_derived_filter_dataset(
+        'available_subcategories',
         [
-            'fields' => 'all_with_object_id',
-        ]
-    );
+            'post_type' => $post_type,
+            'category' => $category,
+            'tags' => $tags,
+            'search' => $search,
+            'year_from' => $year_from,
+            'year_to' => $year_to,
+            'context_slug' => $context_slug,
+            'advanced_filters' => $advanced_filters,
+        ],
+        static function () use ($post_type, $category, $tags, $search, $year_from, $year_to, $context_slug, $advanced_filters) {
+            $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+            $normalized_search = bw_fpw_normalize_search_value($search);
+            $post_ids = '' === $normalized_search
+                // Apply the same post-count cap used by the tags path to prevent unbounded wp_get_object_terms calls.
+                ? bw_fpw_get_candidate_post_ids_without_search($post_type, $category, [], $tags, $year_from, $year_to, $context_slug, $advanced_filters, bw_fpw_get_tag_source_posts_limit())
+                : bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
 
-    if (empty($terms) || is_wp_error($terms)) {
-        return [];
-    }
-
-    $results = [];
-    $parent_category_id = 'all' !== $category ? absint($category) : 0;
-
-    foreach ($terms as $term) {
-        $term_id = (int) $term->term_id;
-        $term_parent = (int) $term->parent;
-
-        if ('all' === $category) {
-            if ($term_parent <= 0) {
-                continue;
-            }
-        } elseif ($term_parent !== $parent_category_id) {
-            continue;
-        }
-
-        if (!isset($results[$term_id])) {
-            $results[$term_id] = [
-                'term_id' => $term_id,
-                'name' => $term->name,
-                'count' => 0,
-            ];
-        }
-
-        $results[$term_id]['count']++;
-    }
-
-    usort(
-        $results,
-        static function ($a, $b) {
-            if ($a['count'] === $b['count']) {
-                return strcmp($a['name'], $b['name']);
+            if (empty($post_ids)) {
+                return [];
             }
 
-            return $b['count'] <=> $a['count'];
+            $terms = wp_get_object_terms(
+                $post_ids,
+                $taxonomy,
+                [
+                    'fields' => 'all_with_object_id',
+                ]
+            );
+
+            if (empty($terms) || is_wp_error($terms)) {
+                return [];
+            }
+
+            $results = [];
+            $parent_category_id = 'all' !== $category ? absint($category) : 0;
+
+            foreach ($terms as $term) {
+                $term_id = (int) $term->term_id;
+                $term_parent = (int) $term->parent;
+
+                if ('all' === $category) {
+                    if ($term_parent <= 0) {
+                        continue;
+                    }
+                } elseif ($term_parent !== $parent_category_id) {
+                    continue;
+                }
+
+                if (!isset($results[$term_id])) {
+                    $results[$term_id] = [
+                        'term_id' => $term_id,
+                        'name' => $term->name,
+                        'count' => 0,
+                    ];
+                }
+
+                $results[$term_id]['count']++;
+            }
+
+            usort(
+                $results,
+                static function ($a, $b) {
+                    if ($a['count'] === $b['count']) {
+                        return strcmp($a['name'], $b['name']);
+                    }
+
+                    return $b['count'] <=> $a['count'];
+                }
+            );
+
+            return array_values($results);
         }
     );
+}
 
-    return array_values($results);
+function bw_fpw_get_derived_filter_dataset_cache_ttl()
+{
+    return bw_fpw_get_client_response_cache_ttl();
 }
 
 function bw_fpw_render_tag_markup($tags)
@@ -3771,6 +3806,75 @@ function bw_fpw_normalize_token_array_for_cache_key($values)
     sort($normalized, SORT_NATURAL | SORT_FLAG_CASE);
 
     return array_values($normalized);
+}
+
+function bw_fpw_normalize_advanced_filters_for_cache_key($filters)
+{
+    $normalized = bw_fpw_normalize_advanced_filter_selections($filters);
+
+    foreach ($normalized as $group_key => $values) {
+        $normalized[$group_key] = bw_fpw_normalize_token_array_for_cache_key($values);
+    }
+
+    return $normalized;
+}
+
+function bw_fpw_build_derived_filter_dataset_transient_key($dataset, $params)
+{
+    $dataset = sanitize_key((string) $dataset);
+    $context_slug = bw_fpw_normalize_context_slug(isset($params['context_slug']) ? $params['context_slug'] : '');
+    $normalized_year_range = bw_fpw_normalize_year_range(
+        isset($params['year_from']) ? $params['year_from'] : null,
+        isset($params['year_to']) ? $params['year_to'] : null
+    );
+    $canonical_payload = [
+        'schema' => 'v1',
+        'dataset' => $dataset,
+        'post_type' => bw_fpw_normalize_post_type(isset($params['post_type']) ? $params['post_type'] : bw_fpw_get_default_post_type()),
+        'context_slug' => $context_slug,
+        'cache_gen' => bw_fpw_get_cache_generation($context_slug),
+        'category' => bw_fpw_normalize_term_selector(isset($params['category']) ? $params['category'] : 'all'),
+        'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
+        'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
+        'search' => bw_fpw_normalize_search_value(isset($params['search']) ? (string) $params['search'] : ''),
+        'year_from' => $normalized_year_range['from'],
+        'year_to' => $normalized_year_range['to'],
+        'advanced' => bw_fpw_normalize_advanced_filters_for_cache_key(isset($params['advanced_filters']) ? $params['advanced_filters'] : []),
+    ];
+    $payload_json = wp_json_encode($canonical_payload);
+
+    if (!is_string($payload_json) || '' === $payload_json) {
+        $payload_json = wp_json_encode(['fallback' => $canonical_payload]);
+    }
+
+    return 'bw_fpw_dataset_' . $dataset . '_' . hash('sha256', (string) $payload_json);
+}
+
+function bw_fpw_get_cached_derived_filter_dataset($dataset, $params, $builder)
+{
+    static $request_cache = [];
+
+    $transient_key = bw_fpw_build_derived_filter_dataset_transient_key($dataset, $params);
+
+    if (array_key_exists($transient_key, $request_cache)) {
+        return $request_cache[$transient_key];
+    }
+
+    $cached = get_transient($transient_key);
+
+    if (is_array($cached)) {
+        $request_cache[$transient_key] = $cached;
+
+        return $cached;
+    }
+
+    $result = is_callable($builder) ? call_user_func($builder) : [];
+    $result = is_array($result) ? array_values($result) : [];
+
+    $request_cache[$transient_key] = $result;
+    set_transient($transient_key, $result, bw_fpw_get_derived_filter_dataset_cache_ttl());
+
+    return $result;
 }
 
 function bw_fpw_generate_cache_key($params)
