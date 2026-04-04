@@ -185,7 +185,155 @@ Runtime sorting is implemented as one shared stateful feature:
 - `year_asc` / `year_desc` sort on canonical `_bw_filter_year_int`
 - widgets configured with `specific_ids` do not expose runtime sorting, so curated `post__in` order remains authoritative
 
-### 3.7 Responsive filter first-paint contract
+### 3.7 Runtime Sort (Order By)
+
+#### Feature overview
+
+Runtime Sort is the user-facing Product Grid ordering control.
+
+- scope: responsive discovery toolbar only
+- purpose: change the real backend order of the current result set
+- nature: runtime user control, not only editor-defined query setup
+
+#### Elementor controls
+
+- `Show Order By`
+  - switcher
+  - enables the runtime sort feature
+- `Order By Trigger Style`
+  - select
+  - values: `icon`, `dropdown`
+  - shown only when `Show Order By = yes`
+
+The feature is intended for responsive discovery mode. No legacy inline placement is implemented in v1.
+
+#### Runtime state
+
+Shared client-side source of truth:
+
+- `filterState[widgetId].sortKey`
+
+Supported values:
+
+- `default`
+- `recent`
+- `oldest`
+- `title_asc`
+- `title_desc`
+- `year_asc`
+- `year_desc`
+
+Both trigger modes read and update the same state key.
+
+#### Trigger modes
+
+`icon`
+- circular green trigger
+- arrow-up-down icon
+- opens the shared floating sort menu
+
+`dropdown`
+- soft rounded pill
+- current selected short label
+- chevron on the right
+- opens the same shared floating sort menu
+
+Only the trigger UI differs. State, menu logic, AJAX, and backend mapping remain shared.
+
+#### Label system
+
+Trigger labels are short:
+
+- `default` -> `Default`
+- `recent` -> `Latest`
+- `oldest` -> `Earliest`
+- `title_asc` -> `A–Z`
+- `title_desc` -> `Z–A`
+- `year_asc` -> `Year ↑`
+- `year_desc` -> `Year ↓`
+
+Menu labels remain full:
+
+- `Default order`
+- `Recently added`
+- `Oldest added`
+- `Alphabetical A to Z`
+- `Alphabetical Z to A`
+- `Year, oldest first`
+- `Year, newest first`
+
+This keeps the trigger compact and the menu explicit.
+
+#### Backend mapping
+
+`sort_key` is authoritative when present.
+
+- `default` -> widget defaults (`order_by` + `order`)
+- `recent` -> `date DESC`
+- `oldest` -> `date ASC`
+- `title_asc` -> `title ASC`
+- `title_desc` -> `title DESC`
+- `year_asc` -> canonical `_bw_filter_year_int ASC`
+- `year_desc` -> canonical `_bw_filter_year_int DESC`
+
+Year sorting uses canonical meta and not raw editorial year fields.
+
+#### Default order
+
+`Default` means the widget’s Elementor query defaults.
+
+It is not a hardcoded fallback to `date DESC`.
+
+#### Interaction with the rest of Product Grid
+
+- filters are preserved
+- Years filter is preserved
+- advanced filters are preserved
+- search ON/OFF is compatible
+- sort is not represented as a chip
+- `Reset filters` does not reset sort
+
+#### Infinite scroll
+
+Sort changes:
+
+- reset paging
+- force replace-mode refresh
+- restart from page 1
+- prevent mixed ordering between old and new appended results
+
+#### specific_ids
+
+When `specific_ids` is active:
+
+- runtime sort is disabled
+- no sort trigger is rendered
+
+Reason:
+- preserve editorial `post__in` ordering
+
+#### UI layering
+
+The floating sort menu uses dedicated layering rules:
+
+- the toolbar establishes a stacking context
+- `.bw-fpw-sort.is-open` elevates the active sort control
+- the menu has its own z-index
+- the panel sits above product cards and overlay actions
+- the open menu remains clickable
+
+#### Limitations (v1)
+
+- responsive discovery toolbar only
+- not implemented in legacy inline mode
+- no chip integration
+- no reset integration
+
+#### Status
+
+Runtime Sort is implemented, integrated with Product Grid architecture, and ready for final browser QA.
+
+### 3.8 Responsive filter first-paint contract
 
 To avoid a mobile first-paint flash of desktop filter labels, visibility is decided in two layers:
 - CSS first-paint authority:

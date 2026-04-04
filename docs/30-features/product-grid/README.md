@@ -56,6 +56,157 @@ Current notable UI/runtime deltas:
 - `Grid` exposes independent responsive `Post Gap Horizontal` and `Post Gap Vertical` controls for column and row spacing
 - under `800px` the discovery controls switch to always-open full-width pills and active chips keep their remove control always visible
 
+## Runtime Sort (Order By)
+
+### Feature overview
+
+Runtime Sort is the user-facing sort control for the Product Grid.
+
+- it appears in the responsive discovery toolbar only
+- it changes the real backend ordering of the current result set
+- it is user-driven runtime behavior, not just the editor-defined default query
+
+### Elementor controls
+
+- `Show Order By`
+  - switcher
+  - available in the filter settings area
+  - intended for responsive discovery mode
+- `Order By Trigger Style`
+  - select
+  - values: `icon`, `dropdown`
+  - shown only when `Show Order By = yes`
+
+### Runtime state
+
+The runtime sort uses one shared state key:
+
+- `filterState[widgetId].sortKey`
+
+Supported values:
+
+- `default`
+- `recent`
+- `oldest`
+- `title_asc`
+- `title_desc`
+- `year_asc`
+- `year_desc`
+
+This is the single source of truth for both trigger modes.
+
+### Trigger modes
+
+`icon`
+- circular green button
+- arrow-up-down icon
+- opens the shared floating sort menu
+
+`dropdown`
+- soft light pill
+- dynamic selected label
+- chevron on the right
+- opens the same shared floating sort menu
+
+Only the trigger UI changes. Sort logic, menu logic, AJAX, and backend mapping stay shared.
+
+### Labels
+
+Trigger labels are compact:
+
+- `default` -> `Default`
+- `recent` -> `Latest`
+- `oldest` -> `Earliest`
+- `title_asc` -> `A–Z`
+- `title_desc` -> `Z–A`
+- `year_asc` -> `Year ↑`
+- `year_desc` -> `Year ↓`
+
+Menu labels stay explicit:
+
+- `Default order`
+- `Recently added`
+- `Oldest added`
+- `Alphabetical A to Z`
+- `Alphabetical Z to A`
+- `Year, oldest first`
+- `Year, newest first`
+
+This keeps the trigger compact and the menu readable.
+
+### Backend mapping
+
+The backend remains authoritative.
+
+- `default` -> widget defaults (`order_by` + `order`)
+- `recent` -> `date DESC`
+- `oldest` -> `date ASC`
+- `title_asc` -> `title ASC`
+- `title_desc` -> `title DESC`
+- `year_asc` -> `_bw_filter_year_int ASC`
+- `year_desc` -> `_bw_filter_year_int DESC`
+
+Year sorting uses canonical meta, not raw editorial year fields.
+
+### Default order
+
+`Default` means the widget’s Elementor query settings.
+
+It is not hardcoded to `date DESC`.
+
+### Interaction with the rest of the system
+
+- filters -> preserved
+- Years -> preserved
+- advanced filters -> preserved
+- search ON/OFF -> compatible
+- chips -> sort is not included
+- reset filters -> does not reset sort
+
+### Infinite scroll
+
+Changing sort:
+
+- resets paging
+- uses replace mode
+- restarts from page 1
+- prevents mixed ordering between old and new result sets
+
+### specific_ids
+
+If the widget uses `specific_ids`:
+
+- runtime sort is disabled
+- the trigger is not rendered
+
+Reason:
+- preserve editorial `post__in` ordering
+
+### UI / layering
+
+The sort dropdown menu has dedicated layering rules:
+
+- `.bw-fpw-sort.is-open` elevates the sort layer
+- the menu has its own z-index
+- it sits above product cards and card overlays
+- it remains clickable when open
+
+### Limitations (v1)
+
+- available only in the responsive discovery toolbar
+- not implemented in legacy inline mode
+- not included in active chips
+- not reset by `Reset filters`
+
+### Final status
+
+Runtime Sort is:
+
+- implemented
+- integrated with the Product Grid architecture
+- stable at code level
+- ready for browser QA
+
 ## Documents
 
 - [Architecture Map](product-grid-architecture.md) — full PHP/JS/AJAX architecture reference
