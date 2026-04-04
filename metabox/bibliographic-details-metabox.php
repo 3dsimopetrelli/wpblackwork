@@ -354,8 +354,105 @@ function bw_render_bibliographic_details_metabox( $post ) {
             font-size: 11px;
             font-weight: 400;
             text-transform: none;
+            cursor: pointer;
+            transition: color 0.15s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .bw-meta-key-hint:hover,
+        .bw-meta-key-hint:focus {
+            color: #555;
+            outline: none;
+        }
+        .bw-meta-key-hint.is-copied {
+            color: #4caf50;
         }
     </style>
+    <script>
+        (function() {
+            if (window.bwMetaKeyHintCopyBound) {
+                return;
+            }
+
+            window.bwMetaKeyHintCopyBound = true;
+
+            function fallbackCopy(text) {
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', 'readonly');
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                textarea.style.pointerEvents = 'none';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                try {
+                    document.execCommand('copy');
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+
+            function copyMetaKey(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text).catch(function() {
+                        fallbackCopy(text);
+                    });
+                }
+
+                fallbackCopy(text);
+                return Promise.resolve();
+            }
+
+            function showCopiedState(element) {
+                if (!element) {
+                    return;
+                }
+
+                if (element.bwMetaKeyHintReset) {
+                    clearTimeout(element.bwMetaKeyHintReset);
+                }
+
+                if (!element.dataset.originalText) {
+                    element.dataset.originalText = element.textContent;
+                }
+
+                element.textContent = 'Copied!';
+                element.classList.add('is-copied');
+
+                element.bwMetaKeyHintReset = window.setTimeout(function() {
+                    element.textContent = element.dataset.metaKey || element.dataset.originalText || '';
+                    element.classList.remove('is-copied');
+                    element.bwMetaKeyHintReset = null;
+                }, 1000);
+            }
+
+            function handleMetaKeyHintInteraction(event) {
+                var hint = event.target.closest('.bw-meta-key-hint');
+                if (!hint) {
+                    return;
+                }
+
+                if ('keydown' === event.type && 'Enter' !== event.key && ' ' !== event.key) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                var metaKey = hint.dataset.metaKey || hint.textContent.trim();
+                if (!metaKey) {
+                    return;
+                }
+
+                copyMetaKey(metaKey).then(function() {
+                    showCopiedState(hint);
+                });
+            }
+
+            document.addEventListener('click', handleMetaKeyHintInteraction);
+            document.addEventListener('keydown', handleMetaKeyHintInteraction);
+        }());
+    </script>
     <div class="bw-biblio-section bw-biblio-section-digital">
         <h4 class="bw-biblio-section-title"><?php esc_html_e( 'Digital Product Details', 'bw' ); ?></h4>
         <div class="bw-biblio-section-subtitle"><?php esc_html_e( 'Collection content', 'bw' ); ?></div>
@@ -371,7 +468,7 @@ function bw_render_bibliographic_details_metabox( $post ) {
                     <th scope="row">
                         <label for="<?php echo esc_attr( $field_id ); ?>">
                             <?php echo esc_html( $field_label ); ?>
-                            <span class="bw-meta-key-hint"><?php echo esc_html( $field_hint ); ?></span>
+                            <span class="bw-meta-key-hint" data-meta-key="<?php echo esc_attr( $field_hint ); ?>" tabindex="0"><?php echo esc_html( $field_hint ); ?></span>
                         </label>
                     </th>
                     <td>
@@ -403,7 +500,12 @@ function bw_render_bibliographic_details_metabox( $post ) {
             <tbody>
             <?php foreach ( bw_get_product_compatibility_fields() as $meta_key => $label ) : ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <th scope="row">
+                        <label for="<?php echo esc_attr( $meta_key ); ?>">
+                            <?php echo esc_html( $label ); ?>
+                            <span class="bw-meta-key-hint" data-meta-key="<?php echo esc_attr( $meta_key ); ?>" tabindex="0"><?php echo esc_html( $meta_key ); ?></span>
+                        </label>
+                    </th>
                     <td>
                         <label>
                             <input
@@ -435,7 +537,7 @@ function bw_render_bibliographic_details_metabox( $post ) {
                     <th scope="row">
                         <label for="<?php echo esc_attr( $field_id ); ?>">
                             <?php echo esc_html( $field_label ); ?>
-                            <span class="bw-meta-key-hint"><?php echo esc_html( $meta_key ); ?></span>
+                            <span class="bw-meta-key-hint" data-meta-key="<?php echo esc_attr( $meta_key ); ?>" tabindex="0"><?php echo esc_html( $meta_key ); ?></span>
                         </label>
                     </th>
                     <td>
@@ -466,7 +568,7 @@ function bw_render_bibliographic_details_metabox( $post ) {
                     <th scope="row">
                         <label for="<?php echo esc_attr( $field_id ); ?>">
                             <?php echo esc_html( $field_label ); ?>
-                            <span class="bw-meta-key-hint"><?php echo esc_html( $meta_key ); ?></span>
+                            <span class="bw-meta-key-hint" data-meta-key="<?php echo esc_attr( $meta_key ); ?>" tabindex="0"><?php echo esc_html( $meta_key ); ?></span>
                         </label>
                     </th>
                     <td>
