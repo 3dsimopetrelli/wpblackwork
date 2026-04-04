@@ -22,6 +22,7 @@ Current notable UI/runtime deltas:
   - optional desktop `Visible Filters` row reuses the same discovery state and backend filtering for:
     - `Categories` (current `types` group / subcategory-type group)
     - `Artists`
+    - `Style / Subject` (current `tags` group)
     - `Source`
     - `Year`
   - `Visible Filters` is desktop-only; mobile and tablet still use the `Filters` drawer
@@ -88,6 +89,8 @@ V1 visible groups:
   - this means the current `types` group already used by discovery
   - it does not introduce a new parent-category filtering system
 - `Artists`
+- `Style / Subject`
+  - this means the current `tags` group already used by discovery
 - `Source`
 - `Year`
 
@@ -98,6 +101,7 @@ Visible filter panels:
 - reuse token-group search/count/selection logic for:
   - `Categories`
   - `Artists`
+  - `Style / Subject`
   - `Source`
 - reuse the existing Year UI for:
   - slider

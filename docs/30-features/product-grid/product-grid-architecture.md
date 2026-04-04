@@ -455,6 +455,8 @@ Desktop visible filters are a second UI surface over the same state, not a secon
   - `Categories`
     - implemented as the existing `types` group
   - `Artists`
+  - `Style / Subject`
+    - implemented as the existing `tags` group
   - `Source`
   - `Year`
 - `Filters` button remains visible as the full-panel entry point
