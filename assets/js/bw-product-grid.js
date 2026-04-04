@@ -452,6 +452,7 @@
     var discoverySearchTimers = {};
     var yearInputCommitTimers = {};
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    var CACHE_MAX_ENTRIES = 80;
 
     function getCacheKey(action, params) {
         return action + '_' + JSON.stringify(params);
@@ -472,11 +473,41 @@
         return cached.data;
     }
 
+    function pruneAjaxCache() {
+        var now = new Date().getTime();
+        var keys = Object.keys(ajaxCache);
+
+        keys.forEach(function (key) {
+            var cached = ajaxCache[key];
+
+            if (!cached || now - cached.timestamp > CACHE_DURATION) {
+                delete ajaxCache[key];
+            }
+        });
+
+        keys = Object.keys(ajaxCache);
+
+        if (keys.length <= CACHE_MAX_ENTRIES) {
+            return;
+        }
+
+        keys
+            .sort(function (a, b) {
+                return ajaxCache[a].timestamp - ajaxCache[b].timestamp;
+            })
+            .slice(0, keys.length - CACHE_MAX_ENTRIES)
+            .forEach(function (key) {
+                delete ajaxCache[key];
+            });
+    }
+
     function setCachedData(cacheKey, data) {
+        pruneAjaxCache();
         ajaxCache[cacheKey] = {
             data: data,
             timestamp: new Date().getTime()
         };
+        pruneAjaxCache();
     }
 
     function parseInteger(value, fallback) {
@@ -917,6 +948,7 @@
                         technique: false
                     },
                     searchEnabled: searchEnabled,
+                    lastFilterUiSignature: '',
                     yearDraft: {
                         from: null,
                         to: null
@@ -1396,6 +1428,18 @@
                 from: state.year.from,
                 to: state.year.to
             };
+        }
+    }
+
+    function getDiscoveryFilterUiSignature(filterUi) {
+        if (!filterUi) {
+            return '';
+        }
+
+        try {
+            return JSON.stringify(filterUi) || '';
+        } catch (error) {
+            return '';
         }
     }
 
@@ -2113,22 +2157,35 @@
         });
     }
 
-    function syncDiscoveryResponse(widgetId, data) {
+    function syncDiscoveryResponse(widgetId, data, options) {
         var state = filterState[widgetId];
+        var previousResultCount;
+        var nextSignature;
+        var shouldRender = false;
+
+        options = options || {};
 
         if (!state || !isDiscoveryDrawerMode(widgetId) || !data) {
             return;
         }
 
         if (data.filter_ui) {
+            previousResultCount = state.resultCount;
+            nextSignature = getDiscoveryFilterUiSignature(data.filter_ui);
             updateDiscoveryOptions(widgetId, data.filter_ui);
+            shouldRender = nextSignature !== (state.ui.lastFilterUiSignature || '') || state.resultCount !== previousResultCount;
+            state.ui.lastFilterUiSignature = nextSignature;
         } else if (typeof data.result_count !== 'undefined') {
+            previousResultCount = state.resultCount;
             state.resultCount = Math.max(0, parseInteger(data.result_count, state.resultCount));
+            shouldRender = state.resultCount !== previousResultCount;
         }
 
         state.appliedSearch = isWidgetSearchEnabled(widgetId, state) ? state.search : '';
 
-        renderDiscoveryUi(widgetId);
+        if (!options.skipRender && shouldRender) {
+            renderDiscoveryUi(widgetId);
+        }
     }
 
     function toggleDiscoverySelection(widgetId, groupKey, termId) {
@@ -3286,7 +3343,9 @@
             var $responseNodes = createResponseNodes(response.data.html);
             var $responseItems = getResponseItems($responseNodes);
 
-            syncDiscoveryResponse(widgetId, response.data);
+            syncDiscoveryResponse(widgetId, response.data, {
+                skipRender: appendMode
+            });
             prepareItemsForReveal($responseItems, appendMode ? 'append' : 'initial');
 
             if (appendMode) {
@@ -4084,6 +4143,7 @@
                     searchEnabled: prevState.ui && typeof prevState.ui.searchEnabled === 'boolean'
                         ? prevState.ui.searchEnabled
                         : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
+                    lastFilterUiSignature: '',
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -4344,6 +4404,13 @@
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
 
                 updateDiscoveryOptions(widgetId, {
+                    types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
+                    tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
+                    year: bootstrapPayload.year || null,
+                    advanced: bootstrapPayload.advanced || {},
+                    result_count: state.resultCount
+                });
+                state.ui.lastFilterUiSignature = getDiscoveryFilterUiSignature({
                     types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
                     tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
                     year: bootstrapPayload.year || null,

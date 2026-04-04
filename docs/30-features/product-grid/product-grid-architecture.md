@@ -505,6 +505,11 @@ changes filters rapidly.
 produced by `getCacheKey(type, params)` (SHA-ish hash of sorted params).
 TTL: 5 minutes (`CACHE_DURATION`).
 
+Client cache is now bounded:
+- max entries: `80`
+- expired entries are removed opportunistically
+- oldest entries are evicted first once the cap is exceeded
+
 Cache is checked first in `filterPosts()`, `loadSubcategories()`, and
 `loadTags()`.  Random-order (`order_by=rand`) always skips the cache.
 
@@ -608,9 +613,21 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 - Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
 
+Append-mode note:
+- append / infinite-scroll responses are intentionally smaller
+- they return result cards + paging metadata only
+- they do not recompute:
+  - `tags_html`
+  - `available_tags`
+  - `available_types`
+  - `filter_ui`
+  - `year` UI
+  - advanced filter UI
+
 Current search behavior:
 - search term is normalized server-side
-- matching uses title, slug, excerpt, content, taxonomy term names, and filter meta
+- matching uses title, slug, excerpt, taxonomy term names, and filter meta
+- raw `post_content` is no longer part of the default Product Grid search path
 - canonical filter meta searched server-side:
   - `_bw_filter_year_int`
   - `_bw_filter_author_text`
@@ -655,6 +672,47 @@ Year index bootstraps:
 - slider bounds
 - quick ranges
 - drawer visibility for supported product-family contexts (`digital-collections`, `books`, `prints`)
+
+Index build hardening:
+- Year index rebuilds use a lightweight per-context build lock
+- advanced filter index rebuilds use the same lock pattern
+- concurrent requests briefly wait for the first builder to publish a transient before falling back to a local rebuild
+
+Advanced-filter refinement scope hardening:
+- the backend no longer resolves candidate IDs for advanced-filter UI during the default unfiltered context-root scope
+- in that state, cached per-context indexes are used directly
+- refined candidate scopes are still resolved when needed for:
+  - search
+  - active advanced filters
+  - narrowed category/tag/year scopes
+
+Large candidate safety guard:
+- candidate ID arrays destined for `post__in` are normalized and capped at `12000`
+- this protects against pathological `IN (...)` growth in very large result scopes
+- the trade-off is explicit: at extreme scale the system may prioritise query safety over perfect completeness of the tail of that request
+
+Current scalability position:
+- default browse/search/append flows are significantly lighter after this hardening pass
+- replace-mode refinement remains intentionally authoritative and therefore still carries real cost when the filter UI truly needs recomputation
+- the largest remaining risk area is still very broad candidate sets combined with expensive refinement scopes
+
+Validation already run:
+- `php -l blackwork-core-plugin.php`
+- `node -c assets/js/bw-product-grid.js`
+- `composer run lint:main`
+
+Recommended manual QA focus:
+- search + filters
+- append-mode result growth
+- visible filters + popup drawer sync
+- Years + year sort
+- Digital / Books / Prints contexts
+- search `ON/OFF`
+
+Status:
+- implemented
+- documented
+- ready for manual QA / review closure
 
 ### 5.4 bw_fpw_refresh_nonce
 
