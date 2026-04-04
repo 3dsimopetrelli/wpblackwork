@@ -562,12 +562,21 @@
     }
 
     function hasActiveDiscoveryFilters(state) {
+        var hasActiveTokenGroups = false;
+
         if (!state) {
             return false;
         }
 
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            if (!hasActiveTokenGroups && getDiscoverySelections(state, groupKey).length > 0) {
+                hasActiveTokenGroups = true;
+            }
+        });
+
         return state.subcategories.length > 0 ||
             state.tags.length > 0 ||
+            hasActiveTokenGroups ||
             hasActiveYearFilter(state) ||
             $.trim(state.search || '') !== '';
     }
@@ -822,6 +831,11 @@
                 category: initialCategory,
                 subcategories: [],
                 tags: [],
+                artists: [],
+                authors: [],
+                publishers: [],
+                sources: [],
+                techniques: [],
                 search: '',
                 appliedSearch: '',
                 year: createEmptyYearState(),
@@ -830,24 +844,49 @@
                 resultCount: 0,
                 options: {
                     types: [],
-                    tags: []
+                    tags: [],
+                    artist: [],
+                    author: [],
+                    publisher: [],
+                    source: [],
+                    technique: []
                 },
                 labels: {
                     types: {},
-                    tags: {}
+                    tags: {},
+                    artist: {},
+                    author: {},
+                    publisher: {},
+                    source: {},
+                    technique: {}
                 },
                 ui: {
                     showTypes: true,
                     showTags: true,
                     showYears: false,
+                    showArtist: false,
+                    showAuthor: false,
+                    showPublisher: false,
+                    showSource: false,
+                    showTechnique: false,
                     optionSearches: {
                         types: '',
-                        tags: ''
+                        tags: '',
+                        artist: '',
+                        author: '',
+                        publisher: '',
+                        source: '',
+                        technique: ''
                     },
                     openGroups: {
                         types: false,
                         tags: false,
-                        years: false
+                        years: false,
+                        artist: false,
+                        author: false,
+                        publisher: false,
+                        source: false,
+                        technique: false
                     },
                     yearDraft: {
                         from: null,
@@ -888,6 +927,86 @@
         return $.trim(text);
     }
 
+    function getDiscoveryTokenGroupKeys() {
+        return ['artist', 'author', 'publisher', 'source', 'technique'];
+    }
+
+    function isDiscoveryTokenGroup(groupKey) {
+        return getDiscoveryTokenGroupKeys().indexOf(groupKey) > -1;
+    }
+
+    function normalizeDiscoveryTokenValue(value) {
+        return normalizeDiscoveryText(value);
+    }
+
+    function uniqueStringArray(values) {
+        var seen = {};
+        var result = [];
+
+        (Array.isArray(values) ? values : []).forEach(function (value) {
+            var normalized = normalizeDiscoveryTokenValue(value);
+
+            if (normalized && !seen[normalized]) {
+                seen[normalized] = true;
+                result.push(normalized);
+            }
+        });
+
+        return result;
+    }
+
+    function getDiscoverySelectionStateKey(groupKey) {
+        switch (groupKey) {
+            case 'types':
+                return 'subcategories';
+            case 'tags':
+                return 'tags';
+            case 'artist':
+                return 'artists';
+            case 'author':
+                return 'authors';
+            case 'publisher':
+                return 'publishers';
+            case 'source':
+                return 'sources';
+            case 'technique':
+                return 'techniques';
+            default:
+                return '';
+        }
+    }
+
+    function getDiscoveryGroupVisibilityFlag(groupKey) {
+        switch (groupKey) {
+            case 'types':
+                return 'showTypes';
+            case 'tags':
+                return 'showTags';
+            case 'years':
+                return 'showYears';
+            case 'artist':
+                return 'showArtist';
+            case 'author':
+                return 'showAuthor';
+            case 'publisher':
+                return 'showPublisher';
+            case 'source':
+                return 'showSource';
+            case 'technique':
+                return 'showTechnique';
+            default:
+                return '';
+        }
+    }
+
+    function getDiscoveryOptionKey(groupKey, option) {
+        if (groupKey === 'types' || groupKey === 'tags') {
+            return parseInteger(option && option.term_id, 0);
+        }
+
+        return normalizeDiscoveryTokenValue(option && option.value);
+    }
+
     function getDiscoveryBootstrapPayload(widgetId) {
         var $bootstrap = $('.bw-fpw-discovery-bootstrap[data-widget-id="' + widgetId + '"]').first();
 
@@ -912,10 +1031,10 @@
         }
 
         (Array.isArray(options) ? options : []).forEach(function (option) {
-            var termId = parseInteger(option.term_id, 0);
+            var optionKey = getDiscoveryOptionKey(groupKey, option);
 
-            if (termId > 0 && option.name) {
-                state.labels[groupKey][termId] = option.name;
+            if ((isDiscoveryTokenGroup(groupKey) ? !!optionKey : optionKey > 0) && option.name) {
+                state.labels[groupKey][optionKey] = option.name;
             }
         });
     }
@@ -934,26 +1053,35 @@
     }
 
     function mergeSelectedDiscoveryOptions(state, groupKey, options) {
-        var selectedIds = groupKey === 'types' ? state.subcategories : state.tags;
+        var selectedIds = getDiscoverySelections(state, groupKey);
         var optionMap = {};
 
         sortDiscoveryOptions(options).forEach(function (option) {
-            var termId = parseInteger(option.term_id, 0);
+            var optionKey = getDiscoveryOptionKey(groupKey, option);
 
-            if (termId > 0) {
-                optionMap[termId] = {
-                    term_id: termId,
-                    name: option.name || state.labels[groupKey][termId] || '',
+            if (isDiscoveryTokenGroup(groupKey) ? !!optionKey : optionKey > 0) {
+                optionMap[String(optionKey)] = isDiscoveryTokenGroup(groupKey) ? {
+                    value: optionKey,
+                    name: option.name || state.labels[groupKey][optionKey] || '',
+                    count: Math.max(0, parseInteger(option.count, 0))
+                } : {
+                    term_id: optionKey,
+                    name: option.name || state.labels[groupKey][optionKey] || '',
                     count: Math.max(0, parseInteger(option.count, 0))
                 };
             }
         });
 
-        (Array.isArray(selectedIds) ? selectedIds : []).forEach(function (termId) {
-            if (!optionMap[termId]) {
-                optionMap[termId] = {
-                    term_id: termId,
-                    name: state.labels[groupKey][termId] || '',
+        (Array.isArray(selectedIds) ? selectedIds : []).forEach(function (selectedValue) {
+            var mapKey = String(selectedValue);
+            if (!optionMap[mapKey]) {
+                optionMap[mapKey] = isDiscoveryTokenGroup(groupKey) ? {
+                    value: selectedValue,
+                    name: state.labels[groupKey][selectedValue] || '',
+                    count: 0
+                } : {
+                    term_id: selectedValue,
+                    name: state.labels[groupKey][selectedValue] || '',
                     count: 0
                 };
             }
@@ -962,7 +1090,8 @@
         return sortDiscoveryOptions(Object.keys(optionMap).map(function (key) {
             return optionMap[key];
         })).filter(function (option) {
-            return option.term_id > 0 && option.name;
+            var optionKey = getDiscoveryOptionKey(groupKey, option);
+            return (isDiscoveryTokenGroup(groupKey) ? !!optionKey : optionKey > 0) && option.name;
         });
     }
 
@@ -982,6 +1111,28 @@
             storeDiscoveryLabels(state, 'tags', filterUi.tags);
             state.options.tags = mergeSelectedDiscoveryOptions(state, 'tags', filterUi.tags);
         }
+
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            var groupUi = filterUi.advanced && filterUi.advanced[groupKey] ? filterUi.advanced[groupKey] : null;
+            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+            var stateKey = getDiscoverySelectionStateKey(groupKey);
+
+            if (visibilityFlag) {
+                state.ui[visibilityFlag] = !!(groupUi && groupUi.supported);
+            }
+
+            if (groupUi && Array.isArray(groupUi.options)) {
+                storeDiscoveryLabels(state, groupKey, groupUi.options);
+                state.options[groupKey] = mergeSelectedDiscoveryOptions(state, groupKey, groupUi.options);
+            } else if (visibilityFlag && !state.ui[visibilityFlag]) {
+                state.options[groupKey] = [];
+                if (stateKey) {
+                    state[stateKey] = [];
+                }
+                state.ui.optionSearches[groupKey] = '';
+                state.ui.openGroups[groupKey] = false;
+            }
+        });
 
         if (typeof filterUi.result_count !== 'undefined') {
             state.resultCount = Math.max(0, parseInteger(filterUi.result_count, state.resultCount));
@@ -1012,7 +1163,8 @@
     }
 
     function getDiscoverySelections(state, groupKey) {
-        return groupKey === 'types' ? state.subcategories : state.tags;
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+        return stateKey && Array.isArray(state[stateKey]) ? state[stateKey] : [];
     }
 
     function hasDiscoverySelection(state, groupKey, termId) {
@@ -1058,16 +1210,27 @@
         state.tags.forEach(function (termId) {
             chips.push({
                 group: 'tags',
-                term_id: termId,
+                value: termId,
                 name: state.labels.tags[termId] || '',
                 selected: true
+            });
+        });
+
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            getDiscoverySelections(state, groupKey).forEach(function (tokenValue) {
+                chips.push({
+                    group: groupKey,
+                    value: tokenValue,
+                    name: state.labels[groupKey][tokenValue] || '',
+                    selected: true
+                });
             });
         });
 
         if (hasActiveYearFilter(state)) {
             chips.push({
                 group: 'years',
-                term_id: 0,
+                value: '',
                 name: getYearRangeLabel(state.year),
                 selected: true
             });
@@ -1079,9 +1242,11 @@
     }
 
     function buildDiscoveryChipHtml(chip, widgetId) {
-        return '<div class="bw-fpw-active-chip bw-fpw-quick-filter is-selected" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '">' +
+        var filterValue = typeof chip.value !== 'undefined' ? chip.value : chip.term_id;
+
+        return '<div class="bw-fpw-active-chip bw-fpw-quick-filter is-selected" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-filter-value="' + escapeHtml(filterValue == null ? '' : filterValue) + '">' +
             '<span class="bw-fpw-active-chip__label bw-fpw-quick-filter__label">' + escapeHtml(chip.name) + '</span>' +
-            '<button class="bw-fpw-active-chip__remove bw-fpw-quick-filter__remove" type="button" aria-label="Remove ' + escapeHtml(chip.name) + '" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '"></button>' +
+            '<button class="bw-fpw-active-chip__remove bw-fpw-quick-filter__remove" type="button" aria-label="Remove ' + escapeHtml(chip.name) + '" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-filter-value="' + escapeHtml(filterValue == null ? '' : filterValue) + '"></button>' +
             '</div>';
     }
 
@@ -1219,6 +1384,31 @@
                 key: 'years',
                 label: 'Years',
                 placeholder: ''
+            },
+            {
+                key: 'artist',
+                label: 'Artist',
+                placeholder: 'Search artists...'
+            },
+            {
+                key: 'author',
+                label: 'Author',
+                placeholder: 'Search authors...'
+            },
+            {
+                key: 'publisher',
+                label: 'Publisher',
+                placeholder: 'Search publishers...'
+            },
+            {
+                key: 'source',
+                label: 'Source',
+                placeholder: 'Search sources...'
+            },
+            {
+                key: 'technique',
+                label: 'Technique',
+                placeholder: 'Search techniques...'
             }
         ];
         var html = '';
@@ -1229,9 +1419,8 @@
 
         groupConfigs.forEach(function (groupConfig) {
             var groupKey = groupConfig.key;
-            var showGroup = groupKey === 'types'
-                ? state.ui.showTypes
-                : (groupKey === 'tags' ? state.ui.showTags : state.ui.showYears);
+            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+            var showGroup = visibilityFlag ? !!state.ui[visibilityFlag] : false;
 
             if (!showGroup) {
                 return;
@@ -1268,11 +1457,11 @@
 
             if (visibleOptions.length) {
                 visibleOptions.forEach(function (option) {
-                    var termId = parseInteger(option.term_id, 0);
-                    var isSelected = selectedIds.indexOf(termId) > -1;
+                    var optionValue = getDiscoveryOptionKey(groupKey, option);
+                    var isSelected = selectedIds.indexOf(optionValue) > -1;
                     var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
 
-                    html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-term-id="' + termId + '"' + (isDisabled ? ' disabled' : '') + '>';
+                    html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
                     html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
                     html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
                     html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
@@ -1388,21 +1577,29 @@
 
     function toggleDiscoverySelection(widgetId, groupKey, termId) {
         var state = getDiscoveryState(widgetId);
-        var selections = getDiscoverySelections(state, groupKey);
-        var index = selections.indexOf(termId);
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+        var selections = getDiscoverySelections(state, groupKey).slice();
+        var normalizedValue = isDiscoveryTokenGroup(groupKey)
+            ? normalizeDiscoveryTokenValue(termId)
+            : parseInteger(termId, 0);
+        var index = selections.indexOf(normalizedValue);
+
+        if (!stateKey || (isDiscoveryTokenGroup(groupKey) ? !normalizedValue : normalizedValue <= 0)) {
+            return;
+        }
 
         state.ui.openGroups[groupKey] = true;
 
         if (index > -1) {
             selections.splice(index, 1);
         } else {
-            selections.push(termId);
+            selections.push(normalizedValue);
         }
 
-        if (groupKey === 'types') {
-            state.subcategories = uniqueIntArray(selections);
+        if (isDiscoveryTokenGroup(groupKey)) {
+            state[stateKey] = uniqueStringArray(selections);
         } else {
-            state.tags = uniqueIntArray(selections);
+            state[stateKey] = uniqueIntArray(selections);
         }
     }
 
@@ -1414,14 +1611,29 @@
         state.category = defaultCategory;
         state.subcategories = [];
         state.tags = [];
+        state.artists = [];
+        state.authors = [];
+        state.publishers = [];
+        state.sources = [];
+        state.techniques = [];
         state.search = '';
         state.appliedSearch = '';
         state.year = createEmptyYearState();
         state.ui.optionSearches.types = '';
         state.ui.optionSearches.tags = '';
+        state.ui.optionSearches.artist = '';
+        state.ui.optionSearches.author = '';
+        state.ui.optionSearches.publisher = '';
+        state.ui.optionSearches.source = '';
+        state.ui.optionSearches.technique = '';
         state.ui.openGroups.types = false;
         state.ui.openGroups.tags = false;
         state.ui.openGroups.years = false;
+        state.ui.openGroups.artist = false;
+        state.ui.openGroups.author = false;
+        state.ui.openGroups.publisher = false;
+        state.ui.openGroups.source = false;
+        state.ui.openGroups.technique = false;
         state.ui.yearDraft = createEmptyYearState();
 
         if (yearInputCommitTimers[widgetId]) {
@@ -1461,14 +1673,22 @@
 
     function removeActiveDiscoveryFilter(widgetId, groupKey, termId) {
         var state = getDiscoveryState(widgetId);
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+        var normalizedValue = isDiscoveryTokenGroup(groupKey)
+            ? normalizeDiscoveryTokenValue(termId)
+            : parseInteger(termId, 0);
 
         if (groupKey === 'types') {
             state.subcategories = state.subcategories.filter(function (id) {
-                return id !== termId;
+                return id !== normalizedValue;
             });
         } else if (groupKey === 'tags') {
             state.tags = state.tags.filter(function (id) {
-                return id !== termId;
+                return id !== normalizedValue;
+            });
+        } else if (stateKey && isDiscoveryTokenGroup(groupKey)) {
+            state[stateKey] = state[stateKey].filter(function (value) {
+                return value !== normalizedValue;
             });
         } else if (groupKey === 'years') {
             state.year = createEmptyYearState();
@@ -2269,6 +2489,11 @@
         var searchTerm = state.search || '';
         var yearFrom = state.year && state.year.from !== null ? state.year.from : null;
         var yearTo = state.year && state.year.to !== null ? state.year.to : null;
+        var artistValues = uniqueStringArray(state.artists || []);
+        var authorValues = uniqueStringArray(state.authors || []);
+        var publisherValues = uniqueStringArray(state.publishers || []);
+        var sourceValues = uniqueStringArray(state.sources || []);
+        var techniqueValues = uniqueStringArray(state.techniques || []);
 
         if (!appendMode && requestPerPage === 0) {
             requestPerPage = pagingState.perPage;
@@ -2296,6 +2521,11 @@
             search: searchTerm,
             year_from: yearFrom,
             year_to: yearTo,
+            artist: artistValues,
+            author: authorValues,
+            publisher: publisherValues,
+            source: sourceValues,
+            technique: techniqueValues,
             order_by: orderBy,
             order: order,
             image_mode: imageMode,
@@ -2356,13 +2586,18 @@
                 post_type: postType,
                 context_slug: contextSlug,
                 category: state.category,
-                subcategories: state.subcategories,
-                tags: state.tags,
-                search: searchTerm,
-                year_from: yearFrom,
-                year_to: yearTo,
-                image_toggle: imageToggle,
-                image_size: imageSize,
+            subcategories: state.subcategories,
+            tags: state.tags,
+            search: searchTerm,
+            year_from: yearFrom,
+            year_to: yearTo,
+            artist: artistValues,
+            author: authorValues,
+            publisher: publisherValues,
+            source: sourceValues,
+            technique: techniqueValues,
+            image_toggle: imageToggle,
+            image_size: imageSize,
                 image_mode: imageMode,
                 hover_effect: hoverEffect,
                 open_cart_popup: openCartPopup,
@@ -2740,13 +2975,16 @@
             var $button = $(this);
             var widgetId = $button.attr('data-widget-id');
             var groupKey = $button.attr('data-group');
-            var termId = parseInteger($button.attr('data-term-id'), 0);
+            var rawValue = $button.attr('data-filter-value');
+            var selectionValue = isDiscoveryTokenGroup(groupKey)
+                ? normalizeDiscoveryTokenValue(rawValue)
+                : parseInteger(rawValue, 0);
 
-            if (!isDiscoveryDrawerMode(widgetId) || termId <= 0 || !groupKey) {
+            if (!isDiscoveryDrawerMode(widgetId) || !groupKey || (isDiscoveryTokenGroup(groupKey) ? !selectionValue : selectionValue <= 0)) {
                 return;
             }
 
-            toggleDiscoverySelection(widgetId, groupKey, termId);
+            toggleDiscoverySelection(widgetId, groupKey, selectionValue);
             renderDiscoveryUi(widgetId);
             filterPosts(widgetId);
         });
@@ -2758,13 +2996,16 @@
             var $button = $(this);
             var widgetId = $button.attr('data-widget-id');
             var groupKey = $button.attr('data-group');
-            var termId = parseInteger($button.attr('data-term-id'), 0);
+            var rawValue = $button.attr('data-filter-value');
+            var filterValue = isDiscoveryTokenGroup(groupKey)
+                ? normalizeDiscoveryTokenValue(rawValue)
+                : parseInteger(rawValue, 0);
 
             if (!widgetId || !isDiscoveryDrawerMode(widgetId)) {
                 return;
             }
 
-            removeActiveDiscoveryFilter(widgetId, groupKey, termId);
+            removeActiveDiscoveryFilter(widgetId, groupKey, filterValue);
         });
 
         $(document).on('click', '.bw-fpw-discovery-reset', function (e) {
@@ -3131,20 +3372,63 @@
                 category: defaultCategory,
                 subcategories: [],
                 tags: [],
+                artists: [],
+                authors: [],
+                publishers: [],
+                sources: [],
+                techniques: [],
                 search: '',
                 appliedSearch: '',
                 year: createEmptyYearState(),
                 yearBounds: prevState.yearBounds || createEmptyYearBounds(),
                 yearQuickRanges: prevState.yearQuickRanges || [],
                 resultCount: 0,
-                options: { types: [], tags: [] },
-                labels: prevState.labels || { types: {}, tags: {} },
+                options: {
+                    types: [],
+                    tags: [],
+                    artist: [],
+                    author: [],
+                    publisher: [],
+                    source: [],
+                    technique: []
+                },
+                labels: prevState.labels || {
+                    types: {},
+                    tags: {},
+                    artist: {},
+                    author: {},
+                    publisher: {},
+                    source: {},
+                    technique: {}
+                },
                 ui: {
                     showTypes: true,
                     showTags: true,
                     showYears: !!(prevState.ui && prevState.ui.showYears),
-                    optionSearches: { types: '', tags: '' },
-                    openGroups: { types: false, tags: false, years: false },
+                    showArtist: !!(prevState.ui && prevState.ui.showArtist),
+                    showAuthor: !!(prevState.ui && prevState.ui.showAuthor),
+                    showPublisher: !!(prevState.ui && prevState.ui.showPublisher),
+                    showSource: !!(prevState.ui && prevState.ui.showSource),
+                    showTechnique: !!(prevState.ui && prevState.ui.showTechnique),
+                    optionSearches: {
+                        types: '',
+                        tags: '',
+                        artist: '',
+                        author: '',
+                        publisher: '',
+                        source: '',
+                        technique: ''
+                    },
+                    openGroups: {
+                        types: false,
+                        tags: false,
+                        years: false,
+                        artist: false,
+                        author: false,
+                        publisher: false,
+                        source: false,
+                        technique: false
+                    },
                     yearDraft: createEmptyYearState()
                 }
             };
@@ -3330,6 +3614,7 @@
                     types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
                     tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
                     year: bootstrapPayload.year || null,
+                    advanced: bootstrapPayload.advanced || {},
                     result_count: state.resultCount
                 });
                 renderDiscoveryUi(widgetId);

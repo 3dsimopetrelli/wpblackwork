@@ -82,7 +82,7 @@ values in JS — always add a matching data-attribute in PHP first.
 |-----------|---------------|------------|
 | `data-widget-id` | `$this->get_id()` | all state lookups |
 | `data-post-type` | `$settings['post_type']` | filter/AJAX calls |
-| `data-context-slug` | resolved product-family context (`digital-collections` / `books` / `prints` / `mixed`) | Years bootstrap + AJAX context payload |
+| `data-context-slug` | resolved product-family context (`digital-collections` / `books` / `prints` / `mixed`) | Years + advanced meta-filter bootstrap and AJAX context payload |
 | `data-layout-mode` | masonry_effect control | `initGrid()` |
 | `data-columns-desktop/tablet/mobile` | controls | `setItemWidths()` |
 | `data-gap-x-desktop/tablet/mobile` | `Grid > Post Gap Horizontal` | CSS vars + masonry width/gutter |
@@ -188,20 +188,50 @@ filterState[widgetId]       = {
                                 category,
                                 subcategories[],
                                 tags[],
+                                artists[],
+                                authors[],
+                                publishers[],
+                                sources[],
+                                techniques[],
                                 search,
                                 appliedSearch,
                                 year: { from, to },
                                 yearBounds: { min, max },
                                 yearQuickRanges[],
                                 resultCount,
-                                options: { types[], tags[] },
-                                labels:  { types{}, tags{} },
+                                options: {
+                                  types[], tags[],
+                                  artist[], author[],
+                                  publisher[], source[],
+                                  technique[]
+                                },
+                                labels:  {
+                                  types{}, tags{},
+                                  artist{}, author{},
+                                  publisher{}, source{},
+                                  technique{}
+                                },
                                 ui: {
                                   showTypes,
                                   showTags,
                                   showYears,
-                                  optionSearches: { types, tags },
-                                  openGroups:     { types, tags, years },
+                                  showArtist,
+                                  showAuthor,
+                                  showPublisher,
+                                  showSource,
+                                  showTechnique,
+                                  optionSearches: {
+                                    types, tags,
+                                    artist, author,
+                                    publisher, source,
+                                    technique
+                                  },
+                                  openGroups: {
+                                    types, tags, years,
+                                    artist, author,
+                                    publisher, source,
+                                    technique
+                                  },
                                   yearDraft:      { from, to }
                                 }
                               }
@@ -217,7 +247,14 @@ In discovery drawer mode the same `filterState` is the single source of truth fo
 - global discovery search
   - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
 - active-only chips above the grid
+- active-only chips inside the drawer, under the `Filters` title
 - year slider, year inputs, and year quick ranges
+- token-based advanced meta groups:
+  - `Artist`
+  - `Author`
+  - `Publisher`
+  - `Source`
+  - `Technique`
 - result count
 - reset actions
 
@@ -315,6 +352,12 @@ In responsive discovery mode the toolbar + drawer currently behaves as follows:
   - `Categories`
   - `Style / Subject`
   - `Years` (only when the widget resolves to a supported product-family context)
+  - context-aware token groups:
+    - `Artist` -> Digital Collections + Prints
+    - `Author` -> Books
+    - `Publisher` -> Digital Collections + Books + Prints
+    - `Source` -> Digital Collections
+    - `Technique` -> Digital Collections + Prints
 
 The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
@@ -343,7 +386,7 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 ### 5.3 bw_fpw_filter_posts
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
-- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
+- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `artist[]`, `author[]`, `publisher[]`, `source[]`, `technique[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
 - Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
 - Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
@@ -354,9 +397,12 @@ Current search behavior:
 - canonical filter meta searched server-side:
   - `_bw_filter_year_int`
   - `_bw_filter_author_text`
+  - `_bw_filter_artist_text`
+  - `_bw_filter_publisher_text`
 - source meta fallback is still checked during migration/backfill support:
   - `_digital_year`, `_bw_biblio_year`, `_print_year`
-  - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`
+  - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`, `_digital_artist_name`
+  - `_digital_publisher`, `_bw_biblio_publisher`, `_print_publisher`
 
 Current Year filter behavior:
 - discovery drawer only
@@ -374,8 +420,21 @@ Current empty-state copy:
 Canonical filter meta:
 - Year: `_bw_filter_year_int`
 - Author: `_bw_filter_author_text`
+- Artist: `_bw_filter_artist_text`
+- Publisher: `_bw_filter_publisher_text`
+- Source: `_bw_filter_source_text`
+- Technique: `_bw_filter_technique_text`
 
-These values are derived from editorial source meta and kept in sync on product save/meta/category/status changes. A per-context Year index transient is used to bootstrap:
+These values are derived from editorial source meta and kept in sync on product save/meta/category/status changes. Product Grid now maintains:
+- a per-context Year index transient for bounds / quick ranges / drawer visibility
+- a per-context advanced meta-filter index transient for token option lists and refinement of:
+  - Artist
+  - Author
+  - Publisher
+  - Source
+  - Technique
+
+Year index bootstraps:
 - slider bounds
 - quick ranges
 - drawer visibility for supported product-family contexts (`digital-collections`, `books`, `prints`)

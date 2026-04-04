@@ -8,7 +8,10 @@ Current notable UI/runtime deltas:
 - `Filter Settings > Enable Responsive Filter Mode` promotes the drawer interaction to desktop too
 - `Filter Settings > Drawer Opening` lets the responsive drawer open from `left` or `right`
 - mobile filter trigger uses the new bordered white pill + green icon treatment
-- responsive drawer groups are currently labeled `Categories`, `Style / Subject`, and `Years` when the widget resolves to a supported product-family context
+- responsive drawer groups now support:
+  - taxonomy groups: `Categories`, `Style / Subject`
+  - numeric meta group: `Years`
+  - token-based meta groups: `Artist`, `Author`, `Publisher`, `Source`, `Technique`
 - responsive toolbar uses the shared discovery state:
   - global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
   - result count
@@ -19,9 +22,18 @@ Current notable UI/runtime deltas:
 - Product Grid search now also matches canonical derived filter meta:
   - `_bw_filter_year_int`
   - `_bw_filter_author_text`
+- Product Grid advanced meta filters are normalized from comma-separated editorial fields and indexed per supported context:
+  - `Artist` -> `_bw_filter_artist_text`
+  - `Author` -> `_bw_filter_author_text`
+  - `Publisher` -> `_bw_filter_publisher_text`
+  - `Source` -> `_bw_filter_source_text`
+  - `Technique` -> `_bw_filter_technique_text`
 - canonical filter meta is derived from editorial source fields:
   - Year: `_digital_year`, `_bw_biblio_year`, `_print_year`
-  - Author: `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`
+  - Author / Artist: `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`, `_digital_artist_name`
+  - Publisher: `_digital_publisher`, `_bw_biblio_publisher`, `_print_publisher`
+  - Source: `_digital_source`
+  - Technique: `_digital_technique`, `_print_technique`
 - `Layout` includes `Show Title`, `Show Description`, and `Show Price`
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
 - `Grid` exposes independent responsive `Post Gap Horizontal` and `Post Gap Vertical` controls for column and row spacing

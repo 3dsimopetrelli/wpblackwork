@@ -910,6 +910,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'max'          => null,
             'quick_ranges' => [],
         ];
+        $advanced_filter_ui    = function_exists( 'bw_fpw_get_advanced_filter_ui' ) ? bw_fpw_get_advanced_filter_ui( $context_slug ) : [];
         $bootstrap_payload     = [
             'show_types' => $show_subcategories,
             'show_tags'  => $show_tags,
@@ -918,6 +919,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'types'      => array_values( $initial_types ),
             'tags'       => array_values( $initial_tags ),
             'year'       => $year_ui,
+            'advanced'   => is_array( $advanced_filter_ui ) ? $advanced_filter_ui : [],
         ];
         ?>
         <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
