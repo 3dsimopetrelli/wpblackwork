@@ -3452,15 +3452,14 @@
     }
 
     function lockDrawerBodyScroll() {
-        $('body').addClass('bw-cart-popup-no-scroll');
+        $('body').addClass('bw-fpw-drawer-no-scroll');
     }
 
     function unlockDrawerBodyScrollIfSafe() {
         var hasOpenFilterDrawer = $('.bw-fpw-mobile-filter-panel[aria-hidden="false"]').length > 0;
-        var cartPopupActive = $('#bw-cart-popup-panel').hasClass('active') || $('#bw-cart-popup-overlay').hasClass('active');
 
-        if (!hasOpenFilterDrawer && !cartPopupActive) {
-            $('body').removeClass('bw-cart-popup-no-scroll');
+        if (!hasOpenFilterDrawer) {
+            $('body').removeClass('bw-fpw-drawer-no-scroll');
         }
     }
 
