@@ -1881,6 +1881,12 @@ function bw_fpw_get_tags()
     $category_id = bw_fpw_normalize_term_selector(isset($_POST['category_id']) ? wp_unslash($_POST['category_id']) : 'all');
     $post_type = bw_fpw_normalize_post_type(isset($_POST['post_type']) ? wp_unslash($_POST['post_type']) : bw_fpw_get_default_post_type());
     $subcategories = bw_fpw_normalize_int_array(isset($_POST['subcategories']) ? wp_unslash($_POST['subcategories']) : [], 50);
+    $normalized_year_range = bw_fpw_normalize_year_range(
+        isset($_POST['year_from']) ? wp_unslash($_POST['year_from']) : null,
+        isset($_POST['year_to'])   ? wp_unslash($_POST['year_to'])   : null
+    );
+    $year_from = $normalized_year_range['from'];
+    $year_to   = $normalized_year_range['to'];
 
     if (bw_fpw_is_throttled_request('bw_fpw_get_tags')) {
         bw_fpw_send_throttled_response('bw_fpw_get_tags');
@@ -1890,8 +1896,12 @@ function bw_fpw_get_tags()
     // Canonicalize set-like subcategory input for stable cache keys.
     $subcategories_for_key = $subcategories;
     sort($subcategories_for_key, SORT_NUMERIC);
-    $subcats_hash = md5(wp_json_encode($subcategories_for_key));
-    $transient_key = 'bw_fpw_tags_' . $post_type . '_' . $category_id . '_' . $subcats_hash;
+    $cache_params_hash = md5(wp_json_encode([
+        'subcats'    => $subcategories_for_key,
+        'year_from'  => $year_from,
+        'year_to'    => $year_to,
+    ]));
+    $transient_key = 'bw_fpw_tags_' . $post_type . '_' . $category_id . '_' . $cache_params_hash;
     $cached_result = get_transient($transient_key);
 
     if (false !== $cached_result) {
@@ -1900,7 +1910,7 @@ function bw_fpw_get_tags()
     }
 
     // Get tags using existing helper function
-    $tags = bw_fpw_get_related_tags_data($post_type, $category_id, $subcategories);
+    $tags = bw_fpw_get_related_tags_data($post_type, $category_id, $subcategories, '', $year_from, $year_to);
 
     if (empty($tags)) {
         // Cache empty result too to avoid repeated queries
@@ -3514,7 +3524,8 @@ function bw_fpw_get_available_subcategories_data($post_type, $category = 'all', 
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
     $normalized_search = bw_fpw_normalize_search_value($search);
     $post_ids = '' === $normalized_search
-        ? bw_fpw_get_candidate_post_ids_without_search($post_type, $category, [], $tags, $year_from, $year_to, $context_slug, $advanced_filters)
+        // Apply the same post-count cap used by the tags path to prevent unbounded wp_get_object_terms calls.
+        ? bw_fpw_get_candidate_post_ids_without_search($post_type, $category, [], $tags, $year_from, $year_to, $context_slug, $advanced_filters, bw_fpw_get_tag_source_posts_limit())
         : bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
 
     if (empty($post_ids)) {
@@ -3699,9 +3710,11 @@ function bw_fpw_clear_grid_transients($post_id)
         // Scope invalidation to this product's family (+ 'mixed'/'') when unambiguous.
         $slugs = ('' !== $family && 'mixed' !== $family) ? [$family] : null;
         bw_fpw_clear_grid_transient_cache($slugs);
+        bw_fpw_clear_advanced_filter_index_transients($slugs ? $slugs[0] : '');
         bw_fpw_sync_product_filter_meta($post_id);
     } else {
         bw_fpw_clear_grid_transient_cache();
+        bw_fpw_clear_advanced_filter_index_transients();
     }
 
     bw_fpw_clear_year_index_transients();
@@ -3899,7 +3912,12 @@ function bw_fpw_filter_posts_inner()
         'ignore_sticky_posts' => true,
     ];
 
-    // year_int sorting uses a numeric meta field; remap to WP_Query meta_value_num
+    foreach ((array) $sort_config['query_args'] as $query_arg_key => $query_arg_value) {
+        $query_args[$query_arg_key] = $query_arg_value;
+    }
+
+    // year_int sorting uses a numeric meta field; remap to WP_Query meta_value_num.
+    // Handles direct order_by=year_int (not via sort_key).
     if ('year_int' === $order_by) {
         $query_args['orderby']  = 'meta_value_num';
         $query_args['meta_key'] = bw_fpw_get_canonical_year_meta_key();
@@ -4233,11 +4251,6 @@ function bw_fpw_filter_posts_inner()
     // On append loads no_found_rows is true, so found_posts is 0; preserve null
     // to signal JS that the displayed count should not be overwritten.
     $result_count = $is_append ? null : (int) $query->found_posts;
-    $effective_context_slug = $context_slug;
-
-    if ('' === $effective_context_slug && 'product' === $post_type && 'all' !== $category) {
-        $effective_context_slug = bw_fpw_resolve_product_family_slug_from_term_id(absint($category), 'product_cat');
-    }
 
     $year_ui = 'product' === $post_type ? bw_fpw_get_year_filter_ui($effective_context_slug) : [
         'supported' => false,
