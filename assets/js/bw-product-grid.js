@@ -406,6 +406,7 @@
     var staggerTimersByWidget = {};
     var staggerObserversByWidget = {};
     var searchDebounceTimers = {};
+    var searchBindingsActive = false;
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -1573,6 +1574,8 @@
     }
 
     function renderDiscoveryUi(widgetId) {
+        var state = filterState[widgetId];
+
         if (!isDiscoveryDrawerMode(widgetId)) {
             return;
         }
@@ -1580,11 +1583,115 @@
         ensureDiscoveryDrawerBodyListener(widgetId);
 
         preserveDiscoveryDrawerScrollPosition(widgetId, function () {
-            renderDiscoverySearch(widgetId);
+            if (isWidgetSearchEnabled(widgetId, state)) {
+                renderDiscoverySearch(widgetId);
+            }
             renderDiscoveryResultCount(widgetId);
             renderDiscoveryActiveChips(widgetId);
             renderDiscoveryDrawerGroups(widgetId);
         });
+    }
+
+    function hasAnySearchEnabledWidget() {
+        var hasEnabled = false;
+
+        $('.bw-fpw-grid').each(function () {
+            if (($(this).attr('data-search-enabled') || 'yes') === 'yes') {
+                hasEnabled = true;
+                return false;
+            }
+        });
+
+        return hasEnabled;
+    }
+
+    function bindSearchFeatureHandlers() {
+        if (searchBindingsActive) {
+            return;
+        }
+
+        $(document).on('input.bwProductGridSearch', '.bw-fpw-discovery-search__input', function () {
+            var widgetId = $(this).attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+            var normalizedSearch;
+
+            if (!isDiscoveryDrawerMode(widgetId) || !isWidgetSearchEnabled(widgetId, state)) {
+                return;
+            }
+
+            state.search = $(this).val() || '';
+            normalizedSearch = $.trim(state.search);
+
+            renderDiscoverySearch(widgetId);
+
+            if (discoverySearchTimers[widgetId]) {
+                clearTimeout(discoverySearchTimers[widgetId]);
+            }
+
+            discoverySearchTimers[widgetId] = setTimeout(function () {
+                delete discoverySearchTimers[widgetId];
+
+                if (normalizedSearch === $.trim(state.appliedSearch || '')) {
+                    return;
+                }
+
+                filterPosts(widgetId);
+            }, 650);
+        });
+
+        $(document).on('input.bwProductGridSearch', '.bw-fpw-search-input', function () {
+            var $input = $(this);
+            var widgetId = $input.attr('data-widget-id');
+            var val;
+
+            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
+                return;
+            }
+
+            initFilterState(widgetId);
+            if (!isWidgetSearchEnabled(widgetId, filterState[widgetId])) {
+                return;
+            }
+
+            val = $.trim($input.val());
+            filterState[widgetId].search = val;
+
+            if (val.length === 1) {
+                if (searchDebounceTimers[widgetId]) {
+                    clearTimeout(searchDebounceTimers[widgetId]);
+                    delete searchDebounceTimers[widgetId];
+                }
+                return;
+            }
+
+            if (searchDebounceTimers[widgetId]) {
+                clearTimeout(searchDebounceTimers[widgetId]);
+            }
+            searchDebounceTimers[widgetId] = setTimeout(function () {
+                delete searchDebounceTimers[widgetId];
+                filterPosts(widgetId);
+            }, 250);
+        });
+
+        searchBindingsActive = true;
+    }
+
+    function unbindSearchFeatureHandlers() {
+        if (!searchBindingsActive) {
+            return;
+        }
+
+        $(document).off('.bwProductGridSearch');
+        searchBindingsActive = false;
+    }
+
+    function syncSearchFeatureBindings() {
+        if (hasAnySearchEnabledWidget()) {
+            bindSearchFeatureHandlers();
+            return;
+        }
+
+        unbindSearchFeatureHandlers();
     }
 
     function syncDiscoveryResponse(widgetId, data) {
@@ -2138,6 +2245,7 @@
         delete lastDeviceByGrid[widgetId];
         delete infiniteLoadSpacers[widgetId];
         unlockDrawerBodyScrollIfSafe();
+        syncSearchFeatureBindings();
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -2936,35 +3044,6 @@
     }
 
     function initFilters() {
-        $(document).on('input', '.bw-fpw-discovery-search__input', function () {
-            var widgetId = $(this).attr('data-widget-id');
-            var state = getDiscoveryState(widgetId);
-            var normalizedSearch;
-
-            if (!isDiscoveryDrawerMode(widgetId) || !isWidgetSearchEnabled(widgetId, state)) {
-                return;
-            }
-
-            state.search = $(this).val() || '';
-            normalizedSearch = $.trim(state.search);
-
-            renderDiscoverySearch(widgetId);
-
-            if (discoverySearchTimers[widgetId]) {
-                clearTimeout(discoverySearchTimers[widgetId]);
-            }
-
-            discoverySearchTimers[widgetId] = setTimeout(function () {
-                delete discoverySearchTimers[widgetId];
-
-                if (normalizedSearch === $.trim(state.appliedSearch || '')) {
-                    return;
-                }
-
-                filterPosts(widgetId);
-            }, 650);
-        });
-
         $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
             e.preventDefault();
 
@@ -3177,40 +3256,6 @@
             if (!isInMobileMode(widgetId)) {
                 filterPosts(widgetId);
             }
-        });
-
-        // Search input — debounced, fires filterPosts in standard (non-discovery-drawer) mode.
-        // Discovery-drawer mode is handled by its own handler above (uses discoverySearchTimers).
-        $(document).on('input', '.bw-fpw-search-input', function () {
-            var $input = $(this);
-            var widgetId = $input.attr('data-widget-id');
-            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
-                return;
-            }
-            initFilterState(widgetId);
-            if (!isWidgetSearchEnabled(widgetId, filterState[widgetId])) {
-                return;
-            }
-            var val = $.trim($input.val());
-            filterState[widgetId].search = val;
-
-            // Require at least 2 characters to start searching.
-            // Always search when the field is cleared (val === '').
-            if (val.length === 1) {
-                if (searchDebounceTimers[widgetId]) {
-                    clearTimeout(searchDebounceTimers[widgetId]);
-                    delete searchDebounceTimers[widgetId];
-                }
-                return;
-            }
-
-            if (searchDebounceTimers[widgetId]) {
-                clearTimeout(searchDebounceTimers[widgetId]);
-            }
-            searchDebounceTimers[widgetId] = setTimeout(function () {
-                delete searchDebounceTimers[widgetId];
-                filterPosts(widgetId);
-            }, 250);
         });
 
         $(document).on('click', '.bw-fpw-mobile-filter-button', function (e) {
@@ -3690,6 +3735,8 @@
                 syncInfiniteObserver(widgetId);
             });
         });
+
+        syncSearchFeatureBindings();
     }
 
     // Window resize handler
@@ -3734,6 +3781,7 @@
 
     $(function () {
         initFilters();
+        syncSearchFeatureBindings();
         handleGridResize();
 
         // Fallback: if Elementor's frontend JS fails to fire the
