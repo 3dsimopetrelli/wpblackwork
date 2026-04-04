@@ -362,6 +362,13 @@
   pointer-events: auto;
 }
 
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"].bw-fpw-mobile-panel-open .bw-fpw-sort-menu,
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"].bw-fpw-mobile-panel-open .bw-fpw-visible-filter__panel {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter-drawer {
   position: absolute;
   top: 5px;
