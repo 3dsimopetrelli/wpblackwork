@@ -889,6 +889,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             ? absint( $settings['default_category'] )
             : 'all';
         $post_type              = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+        $show_search            = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
         $show_subcategories     = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
         $show_tags              = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
         $initial_types          = $show_subcategories ? $this->get_subcategories_data( $post_type, $default_category ) : [];
@@ -915,6 +916,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'show_types' => $show_subcategories,
             'show_tags'  => $show_tags,
             'show_years' => ! empty( $year_ui['supported'] ),
+            'search_enabled' => $show_search,
             'context'    => $context_slug ?: 'mixed',
             'types'      => array_values( $initial_types ),
             'tags'       => array_values( $initial_tags ),
@@ -931,12 +933,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             </div>
 
             <div class="bw-fpw-discovery-toolbar__controls">
-                <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                    <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
-                    <span class="bw-fpw-discovery-search__icon-shell">
-                        <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    </span>
-                </label>
+                <?php if ( $show_search ) : ?>
+                    <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                        <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
+                        <span class="bw-fpw-discovery-search__icon-shell">
+                            <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </span>
+                    </label>
+                <?php endif; ?>
 
                 <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
                     <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
@@ -1109,6 +1113,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $show_title       = 'yes' === ( $settings['show_title'] ?? 'yes' );
         $show_description = 'yes' === ( $settings['show_description'] ?? 'yes' );
         $show_price       = 'yes' === ( $settings['show_price'] ?? 'yes' );
+        $show_search      = isset( $settings['show_search'] ) && 'yes' === $settings['show_search'];
 
         $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
 
@@ -1229,6 +1234,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-show-title'             => $show_title ? 'yes' : 'no',
             'data-show-description'       => $show_description ? 'yes' : 'no',
             'data-show-price'             => $show_price ? 'yes' : 'no',
+            'data-search-enabled'         => $show_search ? 'yes' : 'no',
             'data-order-by'               => $order_by,
             'data-order'                  => $order,
             'data-initial-items'          => $initial_items,

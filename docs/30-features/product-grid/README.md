@@ -15,7 +15,9 @@ Current notable UI/runtime deltas:
     - Phase 1: `Artist`, `Author`, `Publisher`
     - Phase 2: `Source`, `Technique`
 - responsive toolbar uses the shared discovery state:
-  - global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
+  - global search is a real feature flag driven by `Filter Settings > Show Search`
+  - when enabled, the global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
+  - when disabled, Product Grid skips search UI, search runtime wiring, AJAX search payload, and backend search matching work
   - result count
   - active-only chips contract above the grid
   - reset action

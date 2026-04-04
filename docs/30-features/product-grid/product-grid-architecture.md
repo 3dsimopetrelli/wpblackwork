@@ -30,7 +30,7 @@ Controls are registered across four private methods:
 |--------|----------|
 | `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
-| `register_filter_controls()` | `Show Filters`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
+| `register_filter_controls()` | `Show Filters`, `Show Search`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
 | `register_query_controls()` | Post type, parent category (multi-select), subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
@@ -95,6 +95,7 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-show-title` | `show_title` control | CSS visibility contract |
 | `data-show-description` | `show_description` control | CSS visibility contract |
 | `data-show-price` | `show_price` control | CSS visibility contract |
+| `data-search-enabled` | `show_search` control | search feature-flag gating in JS + AJAX |
 | `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
 | `data-initial-items`, `data-load-batch-size`, `data-per-page` | controls | paging state |
 | `data-current-page`, `data-next-page`, `data-next-offset` | `render_posts()` derived | paging state |
@@ -149,7 +150,7 @@ The widget currently has two filter surface families:
 
 Responsive discovery PHP shell authority:
 - toolbar result count + reset action
-- global search input (`Search in collection...`)
+- optional global search input (`Search in collection...`) when `Show Search = On`
 - filter trigger pill
 - active-chip row above the grid (active filters only)
 - drawer shell regions:
@@ -158,6 +159,14 @@ Responsive discovery PHP shell authority:
   - sticky footer CTA
 
 Drawer body content is data-bootstrapped in PHP and rendered live in JS from centralized state.
+
+`Show Search` is implemented as a real feature flag:
+- PHP skips search markup entirely when the control is `Off`
+- discovery bootstrap exposes `search_enabled`
+- grid runtime exposes `data-search-enabled`
+- JS bypasses search UI/state wiring when disabled
+- AJAX sends `search_enabled`
+- the backend forces the effective search term to `''` and skips search-term matching work
 
 ### 3.7 Responsive filter first-paint contract
 
@@ -212,6 +221,7 @@ filterState[widgetId]       = {
                                   technique{}
                                 },
                                 ui: {
+                                  searchEnabled,
                                   showTypes,
                                   showTags,
                                   showYears,
@@ -244,7 +254,7 @@ widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
 
 In discovery drawer mode the same `filterState` is the single source of truth for:
 - drawer checkboxes
-- global discovery search
+- global discovery search when `searchEnabled = true`
   - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
 - active-only chips above the grid
 - active-only chips inside the drawer, under the `Filters` title

@@ -561,12 +561,32 @@
         return !!(state && state.year && (state.year.from !== null || state.year.to !== null));
     }
 
+    function isWidgetSearchEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.searchEnabled === 'boolean') {
+            return resolvedState.ui.searchEnabled;
+        }
+
+        if (!widgetId) {
+            return true;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+
+        return ($grid.attr('data-search-enabled') || 'yes') === 'yes';
+    }
+
     function hasActiveDiscoveryFilters(state) {
         var hasActiveTokenGroups = false;
+        var searchEnabled = false;
 
         if (!state) {
             return false;
         }
+
+        searchEnabled = isWidgetSearchEnabled(null, state);
 
         getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
             if (!hasActiveTokenGroups && getDiscoverySelections(state, groupKey).length > 0) {
@@ -578,7 +598,7 @@
             state.tags.length > 0 ||
             hasActiveTokenGroups ||
             hasActiveYearFilter(state) ||
-            $.trim(state.search || '') !== '';
+            (searchEnabled && $.trim(state.search || '') !== '');
     }
 
     function disconnectInfiniteObserver(widgetId) {
@@ -820,8 +840,10 @@
     function initFilterState(widgetId) {
         if (!filterState[widgetId]) {
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+            var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
             var defaultCategory = $filters.attr('data-default-category');
             var initialCategory = 'all';
+            var searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
 
             if (defaultCategory && defaultCategory !== 'all') {
                 initialCategory = defaultCategory;
@@ -888,6 +910,7 @@
                         source: false,
                         technique: false
                     },
+                    searchEnabled: searchEnabled,
                     yearDraft: {
                         from: null,
                         to: null
@@ -1481,8 +1504,15 @@
 
     function renderDiscoverySearch(widgetId) {
         var state = filterState[widgetId];
+        var searchEnabled = isWidgetSearchEnabled(widgetId, state);
         var value = state ? state.search || '' : '';
         var hasValue = $.trim(value) !== '';
+
+        if (!searchEnabled) {
+            $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').val('');
+            $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').removeClass('has-value');
+            return;
+        }
 
         $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').val(value);
         $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').toggleClass('has-value', hasValue);
@@ -1570,7 +1600,7 @@
             state.resultCount = Math.max(0, parseInteger(data.result_count, state.resultCount));
         }
 
-        state.appliedSearch = state.search;
+        state.appliedSearch = isWidgetSearchEnabled(widgetId, state) ? state.search : '';
 
         renderDiscoveryUi(widgetId);
     }
@@ -2484,9 +2514,10 @@
         var orderBy = $grid.attr('data-order-by') || 'date';
         var order = $grid.attr('data-order') || 'DESC';
         var contextSlug = $grid.attr('data-context-slug') || '';
+        var searchEnabled = isWidgetSearchEnabled(widgetId, state);
         var requestPerPage = appendMode ? pagingState.loadBatchSize : pagingState.initialItems;
         var requestedOffset = appendMode ? Math.max(0, parseInteger(options.offset, pagingState.nextOffset > 0 ? pagingState.nextOffset : pagingState.loadedCount)) : 0;
-        var searchTerm = state.search || '';
+        var searchTerm = searchEnabled ? (state.search || '') : '';
         var yearFrom = state.year && state.year.from !== null ? state.year.from : null;
         var yearTo = state.year && state.year.to !== null ? state.year.to : null;
         var artistValues = uniqueStringArray(state.artists || []);
@@ -2518,6 +2549,7 @@
             category: state.category,
             subcategories: state.subcategories,
             tags: state.tags,
+            search_enabled: searchEnabled ? 'yes' : 'no',
             search: searchTerm,
             year_from: yearFrom,
             year_to: yearTo,
@@ -2586,18 +2618,19 @@
                 post_type: postType,
                 context_slug: contextSlug,
                 category: state.category,
-            subcategories: state.subcategories,
-            tags: state.tags,
-            search: searchTerm,
-            year_from: yearFrom,
-            year_to: yearTo,
-            artist: artistValues,
-            author: authorValues,
-            publisher: publisherValues,
-            source: sourceValues,
-            technique: techniqueValues,
-            image_toggle: imageToggle,
-            image_size: imageSize,
+                subcategories: state.subcategories,
+                tags: state.tags,
+                search_enabled: searchEnabled ? 'yes' : 'no',
+                search: searchTerm,
+                year_from: yearFrom,
+                year_to: yearTo,
+                artist: artistValues,
+                author: authorValues,
+                publisher: publisherValues,
+                source: sourceValues,
+                technique: techniqueValues,
+                image_toggle: imageToggle,
+                image_size: imageSize,
                 image_mode: imageMode,
                 hover_effect: hoverEffect,
                 open_cart_popup: openCartPopup,
@@ -2908,7 +2941,7 @@
             var state = getDiscoveryState(widgetId);
             var normalizedSearch;
 
-            if (!isDiscoveryDrawerMode(widgetId)) {
+            if (!isDiscoveryDrawerMode(widgetId) || !isWidgetSearchEnabled(widgetId, state)) {
                 return;
             }
 
@@ -3155,6 +3188,9 @@
                 return;
             }
             initFilterState(widgetId);
+            if (!isWidgetSearchEnabled(widgetId, filterState[widgetId])) {
+                return;
+            }
             var val = $.trim($input.val());
             filterState[widgetId].search = val;
 
@@ -3410,6 +3446,9 @@
                     showPublisher: !!(prevState.ui && prevState.ui.showPublisher),
                     showSource: !!(prevState.ui && prevState.ui.showSource),
                     showTechnique: !!(prevState.ui && prevState.ui.showTechnique),
+                    searchEnabled: prevState.ui && typeof prevState.ui.searchEnabled === 'boolean'
+                        ? prevState.ui.searchEnabled
+                        : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -3605,6 +3644,7 @@
             if (isDiscoveryDrawerMode(widgetId)) {
                 var bootstrapPayload = getDiscoveryBootstrapPayload(widgetId) || {};
 
+                state.ui.searchEnabled = !!bootstrapPayload.search_enabled;
                 state.ui.showTypes = !!bootstrapPayload.show_types;
                 state.ui.showTags = !!bootstrapPayload.show_tags;
                 state.ui.showYears = !!bootstrapPayload.show_years;
@@ -3618,6 +3658,21 @@
                     result_count: state.resultCount
                 });
                 renderDiscoveryUi(widgetId);
+            } else {
+                state.ui.searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
+            }
+
+            if (!state.ui.searchEnabled) {
+                state.search = '';
+                state.appliedSearch = '';
+                if (discoverySearchTimers[widgetId]) {
+                    clearTimeout(discoverySearchTimers[widgetId]);
+                    delete discoverySearchTimers[widgetId];
+                }
+                if (searchDebounceTimers[widgetId]) {
+                    clearTimeout(searchDebounceTimers[widgetId]);
+                    delete searchDebounceTimers[widgetId];
+                }
             }
 
             if (!isElementorEditor()) {

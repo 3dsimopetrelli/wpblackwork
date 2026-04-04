@@ -3481,16 +3481,21 @@ function bw_fpw_normalize_token_array_for_cache_key($values)
 function bw_fpw_generate_cache_key($params)
 {
     $params = is_array($params) ? $params : [];
+    $search_enabled = bw_fpw_normalize_bool(isset($params['search_enabled']) ? $params['search_enabled'] : null, true);
+    $search_value = $search_enabled
+        ? bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : '')
+        : '';
 
     $canonical_payload = [
-        'schema' => 'v4',
+        'schema' => 'v5',
         'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
         'context_slug' => isset($params['context_slug']) ? (string) $params['context_slug'] : '',
         'category' => isset($params['category']) ? (string) $params['category'] : 'all',
         'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
         'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
-        'search' => bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : ''),
+        'search_enabled' => $search_enabled ? 1 : 0,
+        'search' => $search_value,
         'year_from' => bw_fpw_normalize_year_bound(isset($params['year_from']) ? $params['year_from'] : null),
         'year_to' => bw_fpw_normalize_year_bound(isset($params['year_to']) ? $params['year_to'] : null),
         'artist' => bw_fpw_normalize_token_array_for_cache_key(isset($params['artist']) ? $params['artist'] : []),
@@ -3628,7 +3633,10 @@ function bw_fpw_filter_posts_inner()
     $category = bw_fpw_normalize_term_selector(isset($_POST['category']) ? wp_unslash($_POST['category']) : 'all');
     $subcategories = bw_fpw_normalize_int_array(isset($_POST['subcategories']) ? wp_unslash($_POST['subcategories']) : [], 50);
     $tags = bw_fpw_normalize_int_array(isset($_POST['tags']) ? wp_unslash($_POST['tags']) : [], 50);
-    $search = bw_fpw_normalize_search_query(isset($_POST['search']) ? wp_unslash($_POST['search']) : '');
+    $search_enabled = bw_fpw_normalize_bool(isset($_POST['search_enabled']) ? wp_unslash($_POST['search_enabled']) : null, true);
+    $search = $search_enabled
+        ? bw_fpw_normalize_search_query(isset($_POST['search']) ? wp_unslash($_POST['search']) : '')
+        : '';
     $normalized_year_range = bw_fpw_normalize_year_range(
         isset($_POST['year_from']) ? wp_unslash($_POST['year_from']) : null,
         isset($_POST['year_to']) ? wp_unslash($_POST['year_to']) : null
@@ -3689,6 +3697,7 @@ function bw_fpw_filter_posts_inner()
             'category' => $category,
             'subcategories' => $subcategories,
             'tags' => $tags,
+            'search_enabled' => $search_enabled,
             'search' => $search,
             'year_from' => $year_from,
             'year_to' => $year_to,
