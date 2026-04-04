@@ -3491,18 +3491,20 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
     }
 
     if (null !== $year_from || null !== $year_to) {
-        $canonical_year_key = esc_sql(bw_fpw_get_canonical_year_meta_key());
-        $year_meta_where = "pm_year.meta_key = '{$canonical_year_key}'";
+        $joins .= $wpdb->prepare(
+            " INNER JOIN {$wpdb->postmeta} pm_year
+                ON pm_year.post_id = p.ID
+               AND pm_year.meta_key = %s",
+            bw_fpw_get_canonical_year_meta_key()
+        );
 
         if (null !== $year_from && null !== $year_to) {
-            $year_meta_where .= ' AND CAST(pm_year.meta_value AS UNSIGNED) BETWEEN ' . (int) $year_from . ' AND ' . (int) $year_to;
+            $wheres[] = 'CAST(pm_year.meta_value AS UNSIGNED) BETWEEN ' . (int) $year_from . ' AND ' . (int) $year_to;
         } elseif (null !== $year_from) {
-            $year_meta_where .= ' AND CAST(pm_year.meta_value AS UNSIGNED) >= ' . (int) $year_from;
+            $wheres[] = 'CAST(pm_year.meta_value AS UNSIGNED) >= ' . (int) $year_from;
         } else {
-            $year_meta_where .= ' AND CAST(pm_year.meta_value AS UNSIGNED) <= ' . (int) $year_to;
+            $wheres[] = 'CAST(pm_year.meta_value AS UNSIGNED) <= ' . (int) $year_to;
         }
-
-        $wheres[] = "p.ID IN (SELECT pm_year.post_id FROM {$wpdb->postmeta} pm_year WHERE {$year_meta_where})";
     }
 
     // ---- Text search via SQL LIKE — single query, no PHP post-processing needed ----
