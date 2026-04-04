@@ -345,6 +345,15 @@ function bw_render_bibliographic_details_metabox( $post ) {
             box-sizing: border-box;
             min-height: 80px;
         }
+        .bw-meta-key-hint {
+            display: block;
+            margin-top: 2px;
+            color: #888;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: 400;
+            text-transform: none;
+        }
     </style>
     <div class="bw-biblio-section bw-biblio-section-digital">
         <h4 class="bw-biblio-section-title"><?php esc_html_e( 'Digital Product Details', 'bw' ); ?></h4>
@@ -357,7 +366,12 @@ function bw_render_bibliographic_details_metabox( $post ) {
                 $field_label = isset( $digital_admin[ $meta_key ]['label'] ) ? $digital_admin[ $meta_key ]['label'] : $label;
                 ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
+                    <th scope="row">
+                        <label for="<?php echo esc_attr( $field_id ); ?>">
+                            <?php echo esc_html( $field_label ); ?>
+                            <span class="bw-meta-key-hint"><?php echo esc_html( $meta_key ); ?></span>
+                        </label>
+                    </th>
                     <td>
                         <?php if ( '_digital_assets_list' === $meta_key ) : ?>
                             <textarea
@@ -416,7 +430,12 @@ function bw_render_bibliographic_details_metabox( $post ) {
                 $field_label = isset( $books_admin[ $meta_key ]['label'] ) ? $books_admin[ $meta_key ]['label'] : $label;
                 ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
+                    <th scope="row">
+                        <label for="<?php echo esc_attr( $field_id ); ?>">
+                            <?php echo esc_html( $field_label ); ?>
+                            <span class="bw-meta-key-hint"><?php echo esc_html( $meta_key ); ?></span>
+                        </label>
+                    </th>
                     <td>
                         <input
                             type="text"
@@ -442,7 +461,12 @@ function bw_render_bibliographic_details_metabox( $post ) {
                 $field_label = isset( $prints_admin[ $meta_key ]['label'] ) ? $prints_admin[ $meta_key ]['label'] : $label;
                 ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
+                    <th scope="row">
+                        <label for="<?php echo esc_attr( $field_id ); ?>">
+                            <?php echo esc_html( $field_label ); ?>
+                            <span class="bw-meta-key-hint"><?php echo esc_html( $meta_key ); ?></span>
+                        </label>
+                    </th>
                     <td>
                         <input
                             type="text"
