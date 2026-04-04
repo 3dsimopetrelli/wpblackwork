@@ -3888,8 +3888,7 @@ function bw_fpw_generate_cache_key($params)
     $context_slug_for_key = isset($params['context_slug']) ? (string) $params['context_slug'] : '';
 
     $canonical_payload = [
-        'schema' => 'v7',
-        'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
+        'schema' => 'v8',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
         'context_slug' => $context_slug_for_key,
         'cache_gen' => bw_fpw_get_cache_generation($context_slug_for_key),
@@ -3905,11 +3904,6 @@ function bw_fpw_generate_cache_key($params)
         'publisher' => bw_fpw_normalize_token_array_for_cache_key(isset($params['publisher']) ? $params['publisher'] : []),
         'source' => bw_fpw_normalize_token_array_for_cache_key(isset($params['source']) ? $params['source'] : []),
         'technique' => bw_fpw_normalize_token_array_for_cache_key(isset($params['technique']) ? $params['technique'] : []),
-        'image_toggle' => !empty($params['image_toggle']) ? 1 : 0,
-        'image_size' => isset($params['image_size']) ? (string) $params['image_size'] : 'large',
-        'image_mode' => isset($params['image_mode']) ? (string) $params['image_mode'] : 'proportional',
-        'hover_effect' => !empty($params['hover_effect']) ? 1 : 0,
-        'open_cart_popup' => !empty($params['open_cart_popup']) ? 1 : 0,
         'sort_key' => bw_fpw_normalize_sort_key(isset($params['sort_key']) ? $params['sort_key'] : 'default'),
         'order_by' => isset($params['order_by']) ? (string) $params['order_by'] : 'date',
         'order' => isset($params['order']) ? (string) $params['order'] : 'DESC',
@@ -3925,7 +3919,7 @@ function bw_fpw_generate_cache_key($params)
 
     $hash = hash('sha256', $payload_json);
 
-    return 'bw_fpw_' . $hash;
+    return 'bw_fpw_data_' . $hash;
 }
 
 /**
@@ -4103,11 +4097,12 @@ function bw_fpw_filter_posts_inner()
         $skip_cache = true; // Don't cache random results
     }
 
-    // PERFORMANCE: Check transient cache first (3 minutes)
-    // Skip cache for random order
+    // PERFORMANCE: Check data cache first.
+    // The cached payload intentionally excludes visual/render-only widget
+    // settings so expensive query + filter-ui work can be reused safely.
+    $cached_result = false;
     if (!$skip_cache) {
         $cache_key_params = [
-            'widget_id' => $widget_id,
             'post_type' => $post_type,
             'context_slug' => $context_slug,
             'category' => $category,
@@ -4122,11 +4117,6 @@ function bw_fpw_filter_posts_inner()
             'publisher' => $advanced_filters['publisher'],
             'source' => $advanced_filters['source'],
             'technique' => $advanced_filters['technique'],
-            'image_toggle' => $image_toggle,
-            'image_size' => $image_size,
-            'image_mode' => $image_mode,
-            'hover_effect' => $hover_effect,
-            'open_cart_popup' => $open_cart_popup,
             'sort_key' => $sort_key,
             'order_by' => $order_by,
             'order' => $order,
@@ -4137,11 +4127,6 @@ function bw_fpw_filter_posts_inner()
         $transient_key = bw_fpw_generate_cache_key($cache_key_params);
 
         $cached_result = get_transient($transient_key);
-
-        if (false !== $cached_result) {
-            wp_send_json_success($cached_result);
-            return;
-        }
     }
 
     $query_posts_per_page = $per_page > 0 ? $per_page + 1 : -1;
@@ -4219,6 +4204,17 @@ function bw_fpw_filter_posts_inner()
     $base_candidate_post_ids = [];
     $final_candidate_post_ids = [];
     $filter_ui_candidate_post_ids = null;
+    $cached_page_post_ids = [];
+    $cached_filter_ui = [];
+    $cached_tags_html = '';
+    $cached_available_tags = [];
+    $cached_available_types = [];
+    $cached_has_more = false;
+    $cached_next_page = 0;
+    $cached_loaded_count = 0;
+    $cached_next_offset = 0;
+    $cached_result_count = null;
+    $using_cached_data = false;
     $has_active_advanced_filters = bw_fpw_has_active_advanced_filter_selections($advanced_filters);
     $supports_advanced_filters = !empty(bw_fpw_get_supported_advanced_filter_groups_for_context($effective_context_slug));
     $should_build_filter_ui = !$is_append;
@@ -4274,33 +4270,70 @@ function bw_fpw_filter_posts_inner()
         }
     }
 
-    if ($has_active_advanced_filters) {
-        $final_candidate_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
+    if (is_array($cached_result)) {
+        $cached_page_post_ids = array_values(
+            array_filter(
+                array_map('absint', isset($cached_result['page_post_ids']) ? (array) $cached_result['page_post_ids'] : [])
+            )
+        );
+        $cached_filter_ui = isset($cached_result['filter_ui']) && is_array($cached_result['filter_ui']) ? $cached_result['filter_ui'] : [];
+        $cached_tags_html = isset($cached_result['tags_html']) && is_string($cached_result['tags_html']) ? $cached_result['tags_html'] : '';
+        $cached_available_tags = bw_fpw_normalize_array_for_cache_key(isset($cached_result['available_tags']) ? $cached_result['available_tags'] : []);
+        $cached_available_types = bw_fpw_normalize_array_for_cache_key(isset($cached_result['available_types']) ? $cached_result['available_types'] : []);
+        $cached_has_more = !empty($cached_result['has_more']);
+        $cached_next_page = isset($cached_result['next_page']) ? max(0, (int) $cached_result['next_page']) : 0;
+        $cached_loaded_count = isset($cached_result['loaded_count']) ? max(0, (int) $cached_result['loaded_count']) : 0;
+        $cached_next_offset = isset($cached_result['next_offset']) ? max(0, (int) $cached_result['next_offset']) : 0;
+        $cached_result_count = array_key_exists('result_count', $cached_result)
+            ? (null === $cached_result['result_count'] ? null : (int) $cached_result['result_count'])
+            : null;
+        $using_cached_data = true;
 
-        $final_candidate_post_ids = bw_fpw_prepare_post_in_values($final_candidate_post_ids);
+        $query = new WP_Query([
+            'post_type' => $post_type,
+            'post_status' => 'publish',
+            'posts_per_page' => max(1, count($cached_page_post_ids)),
+            'post__in' => !empty($cached_page_post_ids) ? $cached_page_post_ids : [0],
+            'orderby' => 'post__in',
+            'no_found_rows' => true,
+            'ignore_sticky_posts' => true,
+        ]);
 
-        if (empty($final_candidate_post_ids)) {
-            $query_args['post__in'] = [0];
-        } else {
-            $query_args['post__in'] = $final_candidate_post_ids;
+        $has_posts = !empty($cached_page_post_ids) && $query->have_posts();
+        $has_more = $cached_has_more;
+        $response_page = isset($cached_result['page']) ? max(1, (int) $cached_result['page']) : ($per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page);
+        $next_page = $cached_next_page;
+    } else {
+        if ($has_active_advanced_filters) {
+            $final_candidate_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
+
+            $final_candidate_post_ids = bw_fpw_prepare_post_in_values($final_candidate_post_ids);
+
+            if (empty($final_candidate_post_ids)) {
+                $query_args['post__in'] = [0];
+            } else {
+                $query_args['post__in'] = $final_candidate_post_ids;
+            }
+        } elseif ('' !== $search) {
+            $base_candidate_post_ids = bw_fpw_prepare_post_in_values($base_candidate_post_ids);
+
+            if (empty($base_candidate_post_ids)) {
+                $query_args['post__in'] = [0];
+            } else {
+                $query_args['post__in'] = $base_candidate_post_ids;
+            }
         }
-    } elseif ('' !== $search) {
-        $base_candidate_post_ids = bw_fpw_prepare_post_in_values($base_candidate_post_ids);
 
-        if (empty($base_candidate_post_ids)) {
-            $query_args['post__in'] = [0];
-        } else {
-            $query_args['post__in'] = $base_candidate_post_ids;
-        }
+        $query = new WP_Query($query_args);
+
+        $has_posts = $query->have_posts();
+        $has_more = $per_page > 0 && $has_posts && $query->post_count > $per_page;
+        $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
+        $next_page = $has_more ? $response_page + 1 : 0;
     }
 
-    $query = new WP_Query($query_args);
-
-    $has_posts = $query->have_posts();
-    $has_more = $per_page > 0 && $has_posts && $query->post_count > $per_page;
-    $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
-    $next_page = $has_more ? $response_page + 1 : 0;
     $rendered_posts = 0;
+    $rendered_post_ids = [];
     $image_loading = ($page > 1 || $offset > 0) ? 'lazy' : 'eager';
 
     ob_start();
@@ -4356,6 +4389,7 @@ function bw_fpw_filter_posts_inner()
                             'placeholder_classes' => 'bw-fpw-image-placeholder',
                         ]
                     );
+                    $rendered_post_ids[] = $post_id;
                     $rendered_posts++;
                     continue;
                 }
@@ -4504,6 +4538,7 @@ function bw_fpw_filter_posts_inner()
                 </div>
             </article>
             <?php
+            $rendered_post_ids[] = $post_id;
             $rendered_posts++;
         }
     } elseif (1 === $page) {
@@ -4521,9 +4556,13 @@ function bw_fpw_filter_posts_inner()
 
     $html = ob_get_clean();
 
-    // On append loads no_found_rows is true, so found_posts is 0; preserve null
-    // to signal JS that the displayed count should not be overwritten.
-    $result_count = $is_append ? null : (int) $query->found_posts;
+    if ($using_cached_data) {
+        $result_count = $cached_result_count;
+    } else {
+        // On append loads no_found_rows is true, so found_posts is 0; preserve null
+        // to signal JS that the displayed count should not be overwritten.
+        $result_count = $is_append ? null : (int) $query->found_posts;
+    }
 
     $response_data = [
         'html' => $html,
@@ -4534,43 +4573,72 @@ function bw_fpw_filter_posts_inner()
         'has_more' => $has_more,
         'next_page' => $next_page,
         'offset' => $offset,
-        'loaded_count' => $per_page > 0 ? $offset + $rendered_posts : $rendered_posts,
-        'next_offset' => $has_more ? $offset + $rendered_posts : 0,
+        'loaded_count' => $using_cached_data ? $cached_loaded_count : ($per_page > 0 ? $offset + $rendered_posts : $rendered_posts),
+        'next_offset' => $using_cached_data ? $cached_next_offset : ($has_more ? $offset + $rendered_posts : 0),
     ];
 
     if (!$is_append) {
-        $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
-        $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
-        $year_ui = 'product' === $post_type ? bw_fpw_get_year_filter_ui($effective_context_slug) : [
-            'supported' => false,
-            'context' => $effective_context_slug ?: 'mixed',
-            'min' => null,
-            'max' => null,
-            'quick_ranges' => [],
-        ];
-        $advanced_filter_ui = 'product' === $post_type
-            ? bw_fpw_get_advanced_filter_ui(
-                $effective_context_slug,
-                $needs_refined_advanced_filter_scope ? $filter_ui_candidate_post_ids : null,
-                $advanced_filters
-            )
-            : [];
+        if ($using_cached_data) {
+            $response_data['tags_html'] = $cached_tags_html;
+            $response_data['available_tags'] = $cached_available_tags;
+            $response_data['available_types'] = $cached_available_types;
+            $response_data['filter_ui'] = $cached_filter_ui;
+        } else {
+            $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
+            $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
+            $year_ui = 'product' === $post_type ? bw_fpw_get_year_filter_ui($effective_context_slug) : [
+                'supported' => false,
+                'context' => $effective_context_slug ?: 'mixed',
+                'min' => null,
+                'max' => null,
+                'quick_ranges' => [],
+            ];
+            $advanced_filter_ui = 'product' === $post_type
+                ? bw_fpw_get_advanced_filter_ui(
+                    $effective_context_slug,
+                    $needs_refined_advanced_filter_scope ? $filter_ui_candidate_post_ids : null,
+                    $advanced_filters
+                )
+                : [];
 
-        $response_data['tags_html'] = bw_fpw_render_tag_markup($related_tags);
-        $response_data['available_tags'] = wp_list_pluck($related_tags, 'term_id');
-        $response_data['available_types'] = wp_list_pluck($available_types, 'term_id');
-        $response_data['filter_ui'] = [
-            'types' => array_values($available_types),
-            'tags' => array_values($related_tags),
-            'result_count' => $result_count,
-            'year' => $year_ui,
-            'advanced' => $advanced_filter_ui,
-        ];
+            $response_data['tags_html'] = bw_fpw_render_tag_markup($related_tags);
+            $response_data['available_tags'] = wp_list_pluck($related_tags, 'term_id');
+            $response_data['available_types'] = wp_list_pluck($available_types, 'term_id');
+            $response_data['filter_ui'] = [
+                'types' => array_values($available_types),
+                'tags' => array_values($related_tags),
+                'result_count' => $result_count,
+                'year' => $year_ui,
+                'advanced' => $advanced_filter_ui,
+            ];
+        }
     }
 
-    // PERFORMANCE: Cache result for 10 minutes (skip random order)
+    // PERFORMANCE: Cache the expensive data payload, not the rendered HTML.
+    // This keeps output correct for widgets with different visual settings while
+    // allowing them to share the same filtered dataset + filter UI.
     if (!$skip_cache && isset($transient_key)) {
-        set_transient($transient_key, $response_data, bw_fpw_get_client_response_cache_ttl());
+        $data_cache_payload = [
+            'page_post_ids' => array_values($rendered_post_ids),
+            'result_count' => $result_count,
+            'has_posts' => $has_posts,
+            'page' => $response_page,
+            'per_page' => $per_page,
+            'has_more' => $has_more,
+            'next_page' => $next_page,
+            'offset' => $offset,
+            'loaded_count' => $response_data['loaded_count'],
+            'next_offset' => $response_data['next_offset'],
+        ];
+
+        if (!$is_append) {
+            $data_cache_payload['tags_html'] = isset($response_data['tags_html']) ? (string) $response_data['tags_html'] : '';
+            $data_cache_payload['available_tags'] = isset($response_data['available_tags']) ? bw_fpw_normalize_array_for_cache_key($response_data['available_tags']) : [];
+            $data_cache_payload['available_types'] = isset($response_data['available_types']) ? bw_fpw_normalize_array_for_cache_key($response_data['available_types']) : [];
+            $data_cache_payload['filter_ui'] = isset($response_data['filter_ui']) && is_array($response_data['filter_ui']) ? $response_data['filter_ui'] : [];
+        }
+
+        set_transient($transient_key, $data_cache_payload, bw_fpw_get_client_response_cache_ttl());
     }
 
     wp_send_json_success($response_data);
