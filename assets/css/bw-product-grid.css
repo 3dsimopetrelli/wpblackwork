@@ -1754,6 +1754,7 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-inputs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 10px;
   margin: 0 4px 12px 4px;
 }
@@ -1761,6 +1762,7 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input__label {
@@ -1772,18 +1774,31 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input__field {
+  display: block;
   width: 100%;
+  max-width: 100%;
   min-height: 42px;
-  padding: 0 12px;
+  box-sizing: border-box;
+  padding: 0 36px 0 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.05);
   color: #f7f6f2;
   font-size: 14px;
+  line-height: 1;
+  color-scheme: dark;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input__field::placeholder {
   color: rgba(247, 246, 242, 0.4);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input__field::-webkit-outer-spin-button,
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input__field::-webkit-inner-spin-button {
+  margin: 0;
+  opacity: 1;
+  filter: invert(1) grayscale(1) brightness(1.15);
+  cursor: pointer;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-quick-ranges {
