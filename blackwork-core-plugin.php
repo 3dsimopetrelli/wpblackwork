@@ -2940,24 +2940,37 @@ function bw_fpw_get_year_filter_ui($context_slug)
 function bw_fpw_get_advanced_filter_index_transient_key($context_slug)
 {
     $normalized = bw_fpw_normalize_context_slug($context_slug);
-    return 'bw_fpw_advanced_filter_index_' . ($normalized ?: 'unknown');
+    $generation = bw_fpw_get_advanced_filter_index_generation($normalized);
+
+    return 'bw_fpw_advanced_filter_index_' . ($normalized ?: 'unknown') . '_g' . $generation;
+}
+
+function bw_fpw_get_advanced_filter_index_generation($context_slug)
+{
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    $option_name = 'bw_fpw_advanced_filter_index_gen_' . ($normalized ?: 'unknown');
+
+    return (int) get_option($option_name, 0);
+}
+
+function bw_fpw_bump_advanced_filter_index_generation($context_slugs)
+{
+    $slugs = array_unique(array_filter(array_map('bw_fpw_normalize_context_slug', (array) $context_slugs), 'strlen'));
+
+    foreach ($slugs as $slug) {
+        $option_name = 'bw_fpw_advanced_filter_index_gen_' . ($slug ?: 'unknown');
+        update_option($option_name, (int) get_option($option_name, 0) + 1, false);
+    }
 }
 
 function bw_fpw_clear_advanced_filter_index_transients($context_slug = '')
 {
-    global $wpdb;
-
-    $normalized = bw_fpw_normalize_context_slug($context_slug);
-    if ('' !== $normalized) {
-        delete_transient(bw_fpw_get_advanced_filter_index_transient_key($normalized));
+    if (empty($context_slug)) {
+        bw_fpw_bump_advanced_filter_index_generation(bw_fpw_get_supported_product_family_slugs());
         return;
     }
 
-    $wpdb->query(
-        "DELETE FROM {$wpdb->options}
-         WHERE option_name LIKE '_transient_bw_fpw_advanced_filter_index_%'
-            OR option_name LIKE '_transient_timeout_bw_fpw_advanced_filter_index_%'"
-    );
+    bw_fpw_bump_advanced_filter_index_generation((array) $context_slug);
 }
 
 function bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug)
@@ -3513,8 +3526,6 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
     if ('' !== $normalized_search) {
         $like        = '%' . $wpdb->esc_like($normalized_search) . '%';
         $like_sql    = "'" . esc_sql($like) . "'";
-        $tax_sql     = "'" . esc_sql($taxonomy) . "'";
-        $tag_tax_sql = "'" . esc_sql($tag_taxonomy) . "'";
         $searchable_meta_keys = array_values(
             array_unique(
                 array_merge(
@@ -3531,25 +3542,24 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
             )
         );
         $searchable_meta_keys_sql = "'" . implode("','", array_map('esc_sql', $searchable_meta_keys)) . "'";
+
+        $joins .= " LEFT JOIN {$wpdb->term_relationships} tr_search
+                    ON tr_search.object_id = p.ID";
+        $joins .= " LEFT JOIN {$wpdb->term_taxonomy} tt_search
+                    ON tt_search.term_taxonomy_id = tr_search.term_taxonomy_id
+                   AND tt_search.taxonomy IN ('" . esc_sql($taxonomy) . "', '" . esc_sql($tag_taxonomy) . "')";
+        $joins .= " LEFT JOIN {$wpdb->terms} t_search
+                    ON t_search.term_id = tt_search.term_id";
+        $joins .= " LEFT JOIN {$wpdb->postmeta} pm_search
+                    ON pm_search.post_id = p.ID
+                   AND pm_search.meta_key IN ({$searchable_meta_keys_sql})";
+
         $wheres[]    = "(LOWER(p.post_title) LIKE {$like_sql}"
                      . " OR LOWER(p.post_name) LIKE {$like_sql}"
                      . " OR LOWER(p.post_excerpt) LIKE {$like_sql}"
-                     . " OR p.ID IN ("
-                     . "   SELECT tr2.object_id"
-                     . "   FROM {$wpdb->term_relationships} tr2"
-                     . "   INNER JOIN {$wpdb->term_taxonomy} tt2"
-                     . "     ON tt2.term_taxonomy_id = tr2.term_taxonomy_id"
-                     . "   INNER JOIN {$wpdb->terms} t2"
-                     . "     ON t2.term_id = tt2.term_id"
-                     . "   WHERE tt2.taxonomy IN ({$tax_sql}, {$tag_tax_sql})"
-                     . "   AND LOWER(t2.name) LIKE {$like_sql}"
-                     . " )"
-                     . " OR p.ID IN ("
-                     . "   SELECT pm.post_id"
-                     . "   FROM {$wpdb->postmeta} pm"
-                     . "   WHERE pm.meta_key IN ({$searchable_meta_keys_sql})"
-                     . "   AND LOWER(pm.meta_value) LIKE {$like_sql}"
-                     . "))";
+                     . " OR LOWER(COALESCE(t_search.name, '')) LIKE {$like_sql}"
+                     . " OR LOWER(COALESCE(pm_search.meta_value, '')) LIKE {$like_sql}"
+                     . ")";
     }
 
     $sql     = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p"
