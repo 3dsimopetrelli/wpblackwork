@@ -174,7 +174,7 @@ Drawer body content is data-bootstrapped in PHP and rendered live in JS from cen
 - PHP skips search markup entirely when the control is `Off`
 - discovery bootstrap exposes `search_enabled`
 - grid runtime exposes `data-search-enabled`
-- JS bypasses search UI/state wiring when disabled
+- JS binds search handlers only to search-enabled widget inputs and bypasses search UI/state wiring when disabled
 - AJAX sends `search_enabled`
 - the backend forces the effective search term to `''` and skips search-term matching work
 
@@ -457,7 +457,9 @@ Desktop visible filters are a second UI surface over the same state, not a secon
   - `Artists`
   - `Style / Subject`
     - implemented as the existing `tags` group
+  - `Author`
   - `Source`
+  - `Technique`
   - `Year`
 - `Filters` button remains visible as the full-panel entry point
 - visible token groups reuse:
@@ -465,10 +467,16 @@ Desktop visible filters are a second UI surface over the same state, not a secon
   - `toggleDiscoverySelection()`
   - `filterPosts()`
   - backend `filter_ui` refinement counts/options
+- active token pills use:
+  - inline count badge
+  - hover count -> `X`
+  - clear-only single-group reset on click
 - visible `Year` reuses:
   - slider
   - from/to inputs
   - quick ranges
+  - inline active range summary
+  - `X`-only clear badge
 - desktop visible-filter panel open state is tracked separately from drawer accordion state through:
   - `filterState[widgetId].ui.visibleFilterOpenGroup`
 

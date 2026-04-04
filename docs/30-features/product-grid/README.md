@@ -23,7 +23,9 @@ Current notable UI/runtime deltas:
     - `Categories` (current `types` group / subcategory-type group)
     - `Artists`
     - `Style / Subject` (current `tags` group)
+    - `Author`
     - `Source`
+    - `Technique`
     - `Year`
   - `Visible Filters` is desktop-only; mobile and tablet still use the `Filters` drawer
   - runtime sorting is backend-authoritative and shares the same AJAX flow as filters
@@ -37,7 +39,7 @@ Current notable UI/runtime deltas:
     - `year_desc`
   - `Default order` maps back to the widget query defaults (`order_by` + `order`)
   - when enabled, the global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
-  - when disabled, Product Grid skips search UI, search runtime wiring, AJAX search payload, and backend search matching work
+  - when disabled, Product Grid skips search UI, per-widget runtime search bindings, AJAX search payload, and backend search matching work
   - result count
   - active-only chips contract above the grid
   - reset action
@@ -91,7 +93,9 @@ V1 visible groups:
 - `Artists`
 - `Style / Subject`
   - this means the current `tags` group already used by discovery
+- `Author`
 - `Source`
+- `Technique`
 - `Year`
 
 Visible filter panels:
@@ -102,11 +106,21 @@ Visible filter panels:
   - `Categories`
   - `Artists`
   - `Style / Subject`
+  - `Author`
   - `Source`
+  - `Technique`
 - reuse the existing Year UI for:
   - slider
   - from/to inputs
   - quick ranges
+
+Visible pill active-state notes:
+- token groups use the shared inline count badge inside the pill
+- hovering the badge swaps the count to `X`
+- clicking the `X` clears only that group
+- `Year` stays intentionally special:
+  - the active range stays visible inline
+  - the clear badge is `X`-only instead of a numeric count
 
 Reset behaviour:
 - `Reset filters` still resets filters only

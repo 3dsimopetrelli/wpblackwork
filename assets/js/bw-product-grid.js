@@ -406,7 +406,6 @@
     var staggerTimersByWidget = {};
     var staggerObserversByWidget = {};
     var searchDebounceTimers = {};
-    var searchBindingsActive = false;
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -1163,7 +1162,7 @@
     }
 
     function getVisibleDiscoveryGroupKeys() {
-        return ['types', 'tags', 'artist', 'source', 'years'];
+        return ['types', 'artist', 'tags', 'author', 'source', 'technique', 'years'];
     }
 
     function getDiscoverySortTriggerStyle(widgetId, state) {
@@ -1993,27 +1992,34 @@
         });
     }
 
-    function hasAnySearchEnabledWidget() {
-        var hasEnabled = false;
-
-        $('.bw-fpw-grid').each(function () {
-            if (($(this).attr('data-search-enabled') || 'yes') === 'yes') {
-                hasEnabled = true;
-                return false;
-            }
-        });
-
-        return hasEnabled;
+    function getWidgetSearchBindingNamespace(widgetId) {
+        return '.bwProductGridSearch' + String(widgetId || '');
     }
 
-    function bindSearchFeatureHandlers() {
-        if (searchBindingsActive) {
+    function bindSearchFeatureHandlersForWidget(widgetId) {
+        var state;
+        var namespace;
+        var $discoveryInput;
+        var $legacyInput;
+
+        if (!widgetId) {
             return;
         }
 
-        $(document).on('input.bwProductGridSearch', '.bw-fpw-discovery-search__input', function () {
-            var widgetId = $(this).attr('data-widget-id');
-            var state = getDiscoveryState(widgetId);
+        initFilterState(widgetId);
+        state = getDiscoveryState(widgetId);
+        namespace = getWidgetSearchBindingNamespace(widgetId);
+        $discoveryInput = $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]');
+        $legacyInput = $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]');
+
+        $discoveryInput.off(namespace);
+        $legacyInput.off(namespace);
+
+        if (!isWidgetSearchEnabled(widgetId, state)) {
+            return;
+        }
+
+        $discoveryInput.on('input' + namespace, function () {
             var normalizedSearch;
 
             if (!isDiscoveryDrawerMode(widgetId) || !isWidgetSearchEnabled(widgetId, state)) {
@@ -2040,21 +2046,14 @@
             }, 650);
         });
 
-        $(document).on('input.bwProductGridSearch', '.bw-fpw-search-input', function () {
-            var $input = $(this);
-            var widgetId = $input.attr('data-widget-id');
+        $legacyInput.on('input' + namespace, function () {
             var val;
 
-            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
+            if (isDiscoveryDrawerMode(widgetId) || !isWidgetSearchEnabled(widgetId, filterState[widgetId])) {
                 return;
             }
 
-            initFilterState(widgetId);
-            if (!isWidgetSearchEnabled(widgetId, filterState[widgetId])) {
-                return;
-            }
-
-            val = $.trim($input.val());
+            val = $.trim($(this).val());
             filterState[widgetId].search = val;
 
             if (val.length === 1) {
@@ -2073,26 +2072,39 @@
                 filterPosts(widgetId);
             }, 250);
         });
-
-        searchBindingsActive = true;
     }
 
-    function unbindSearchFeatureHandlers() {
-        if (!searchBindingsActive) {
+    function unbindSearchFeatureHandlersForWidget(widgetId) {
+        var namespace;
+
+        if (!widgetId) {
             return;
         }
 
-        $(document).off('.bwProductGridSearch');
-        searchBindingsActive = false;
+        namespace = getWidgetSearchBindingNamespace(widgetId);
+        $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').off(namespace);
+        $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]').off(namespace);
     }
 
     function syncSearchFeatureBindings() {
-        if (hasAnySearchEnabledWidget()) {
-            bindSearchFeatureHandlers();
-            return;
-        }
+        var activeWidgetIds = {};
 
-        unbindSearchFeatureHandlers();
+        $('.bw-fpw-grid').each(function () {
+            var widgetId = $(this).attr('data-widget-id');
+
+            if (!widgetId) {
+                return;
+            }
+
+            activeWidgetIds[widgetId] = true;
+            bindSearchFeatureHandlersForWidget(widgetId);
+        });
+
+        Object.keys(filterState).forEach(function (widgetId) {
+            if (!activeWidgetIds[widgetId]) {
+                unbindSearchFeatureHandlersForWidget(widgetId);
+            }
+        });
     }
 
     function syncDiscoveryResponse(widgetId, data) {
@@ -2585,6 +2597,8 @@
         if (!widgetId) {
             return;
         }
+
+        unbindSearchFeatureHandlersForWidget(widgetId);
 
         // Reveal animation timers and observers
         clearStaggerTimers(widgetId);
