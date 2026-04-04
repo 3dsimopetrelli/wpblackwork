@@ -10,6 +10,133 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Determine whether the current admin screen is the product editor.
+ *
+ * @param \WP_Screen|null $screen Optional screen object.
+ * @return bool
+ */
+function bw_is_product_editor_screen( $screen = null ) {
+    if ( ! is_admin() || ! function_exists( 'get_current_screen' ) ) {
+        return false;
+    }
+
+    $screen = $screen instanceof WP_Screen ? $screen : get_current_screen();
+
+    return $screen instanceof WP_Screen
+        && 'product' === $screen->post_type
+        && 'post' === $screen->base;
+}
+
+/**
+ * Whether meta key hints should be visible for the current user.
+ *
+ * @return bool
+ */
+function bw_should_show_product_meta_keys() {
+    return '1' === (string) get_user_meta( get_current_user_id(), 'bw_show_product_meta_keys', true );
+}
+
+/**
+ * Add "Show meta keys" to Screen Options on product edit screens.
+ *
+ * @param string          $settings Existing screen settings HTML.
+ * @param \WP_Screen|null $screen Current screen.
+ * @return string
+ */
+function bw_add_product_meta_keys_screen_option( $settings, $screen ) {
+    if ( ! bw_is_product_editor_screen( $screen ) ) {
+        return $settings;
+    }
+
+    $checked = bw_should_show_product_meta_keys();
+
+    $settings .= sprintf(
+        '<fieldset class="metabox-prefs bw-screen-option-meta-keys"><legend>%1$s</legend><label for="bw-show-meta-keys-toggle"><input type="checkbox" id="bw-show-meta-keys-toggle" %2$s> %3$s</label></fieldset>',
+        esc_html__( 'Blackwork', 'bw' ),
+        checked( $checked, true, false ),
+        esc_html__( 'Show meta keys', 'bw' )
+    );
+
+    return $settings;
+}
+add_filter( 'screen_settings', 'bw_add_product_meta_keys_screen_option', 10, 2 );
+
+/**
+ * Add a body class when meta key hints should be visible.
+ *
+ * @param string $classes Existing body classes.
+ * @return string
+ */
+function bw_product_meta_keys_admin_body_class( $classes ) {
+    if ( ! bw_is_product_editor_screen() ) {
+        return $classes;
+    }
+
+    if ( bw_should_show_product_meta_keys() ) {
+        $classes .= ' bw-show-meta-keys';
+    }
+
+    return $classes;
+}
+add_filter( 'admin_body_class', 'bw_product_meta_keys_admin_body_class' );
+
+/**
+ * Print Screen Options assets for product meta key visibility.
+ */
+function bw_print_product_meta_keys_screen_option_assets() {
+    if ( ! bw_is_product_editor_screen() ) {
+        return;
+    }
+    ?>
+    <style>
+        body.post-type-product:not(.bw-show-meta-keys) .bw-meta-key-hint {
+            display: none !important;
+        }
+    </style>
+    <script>
+        jQuery(function($) {
+            var $toggle = $('#bw-show-meta-keys-toggle');
+
+            if (!$toggle.length) {
+                return;
+            }
+
+            $toggle.on('change', function() {
+                var enabled = $toggle.is(':checked');
+
+                $('body').toggleClass('bw-show-meta-keys', enabled);
+
+                $.post(ajaxurl, {
+                    action: 'bw_toggle_product_meta_keys',
+                    nonce: '<?php echo esc_js( wp_create_nonce( 'bw_toggle_product_meta_keys' ) ); ?>',
+                    enabled: enabled ? '1' : '0'
+                });
+            });
+        });
+    </script>
+    <?php
+}
+add_action( 'admin_footer', 'bw_print_product_meta_keys_screen_option_assets' );
+
+/**
+ * Persist the "Show meta keys" user preference.
+ */
+function bw_toggle_product_meta_keys_ajax() {
+    check_ajax_referer( 'bw_toggle_product_meta_keys', 'nonce' );
+
+    if ( ! current_user_can( 'edit_products' ) ) {
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'bw' ) ], 403 );
+    }
+
+    $enabled = isset( $_POST['enabled'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['enabled'] ) );
+
+    update_user_meta( get_current_user_id(), 'bw_show_product_meta_keys', $enabled ? '1' : '0' );
+
+    wp_send_json_success();
+}
+add_action( 'wp_ajax_bw_toggle_product_meta_keys', 'bw_toggle_product_meta_keys_ajax' );
+
+/**
  * List of bibliographic fields.
  *
  * @return array<string, string> Key is the meta key, value is the label.
