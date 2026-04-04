@@ -385,6 +385,20 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
+        $this->add_control( 'show_visible_filters', [
+            'label'        => __( 'Visible Filters', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'condition'    => [
+                'show_filters'                  => 'yes',
+                'enable_responsive_filter_mode' => 'yes',
+                'post_type'                     => 'product',
+            ],
+        ] );
+
         $this->add_control( 'responsive_filter_drawer_side', [
             'label'       => __( 'Drawer Opening', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::SELECT,
@@ -413,6 +427,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $style = isset( $settings['order_by_trigger_style'] ) ? sanitize_key( $settings['order_by_trigger_style'] ) : 'icon';
 
         return in_array( $style, [ 'icon', 'dropdown' ], true ) ? $style : 'icon';
+    }
+
+    private function is_visible_filters_enabled( $settings ) {
+        return isset( $settings['show_visible_filters'] )
+            && 'yes' === $settings['show_visible_filters']
+            && $this->is_responsive_filter_mode_enabled( $settings )
+            && isset( $settings['post_type'] )
+            && 'product' === sanitize_key( $settings['post_type'] );
     }
 
     private function is_runtime_sort_enabled( $settings, $include_ids = [] ) {
@@ -942,6 +964,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $show_search            = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
         $include_ids            = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
         $show_order_by          = $this->is_runtime_sort_enabled( $settings, $include_ids );
+        $show_visible_filters   = $this->is_visible_filters_enabled( $settings );
         $order_trigger_style    = $this->get_runtime_sort_trigger_style( $settings );
         $show_subcategories     = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
         $show_tags              = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
@@ -974,6 +997,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'show_years' => ! empty( $year_ui['supported'] ),
             'search_enabled' => $show_search,
             'show_order_by' => $show_order_by,
+            'show_visible_filters' => $show_visible_filters,
             'order_trigger_style' => $order_trigger_style,
             'default_sort_key' => 'default',
             'context'    => $context_slug ?: 'mixed',
@@ -1081,6 +1105,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     </div>
                 </div>
             </div>
+
+            <div class="bw-fpw-visible-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo $show_visible_filters ? 'false' : 'true'; ?>"></div>
 
             <div class="bw-fpw-active-chips bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
         </div>
@@ -1221,8 +1247,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $show_description = 'yes' === ( $settings['show_description'] ?? 'yes' );
         $show_price       = 'yes' === ( $settings['show_price'] ?? 'yes' );
         $show_search      = isset( $settings['show_search'] ) && 'yes' === $settings['show_search'];
-        $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
+        $include_ids      = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
         $show_order_by    = $this->is_runtime_sort_enabled( $settings, $include_ids );
+        $show_visible_filters = $this->is_visible_filters_enabled( $settings );
         $order_trigger_style = $this->get_runtime_sort_trigger_style( $settings );
 
         $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
@@ -1348,6 +1375,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-show-price'             => $show_price ? 'yes' : 'no',
             'data-search-enabled'         => $show_search ? 'yes' : 'no',
             'data-show-order-by'          => $show_order_by ? 'yes' : 'no',
+            'data-show-visible-filters'   => $show_visible_filters ? 'yes' : 'no',
             'data-order-trigger-style'    => $order_trigger_style,
             'data-default-sort-key'       => 'default',
             'data-order-by'               => $order_by,

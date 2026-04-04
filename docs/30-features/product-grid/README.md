@@ -5,7 +5,8 @@ Elementor widget slug: `bw-product-grid`.
 
 Current notable UI/runtime deltas:
 - `Filter Settings > Show Filters` is the current dual-mode switch for filtered vs simple grid behavior
-- `Filter Settings > Enable Responsive Filter Mode` promotes the drawer interaction to desktop too
+- `Filter Settings > Filter Mode` promotes the drawer interaction to desktop too when set to `Filter Panel`
+- `Filter Settings > Visible Filters` adds a desktop-only quick-access row above results for shared discovery groups
 - `Filter Settings > Drawer Opening` lets the responsive drawer open from `left` or `right`
 - mobile filter trigger uses the new bordered white pill + green icon treatment
 - responsive drawer groups now support:
@@ -18,6 +19,12 @@ Current notable UI/runtime deltas:
   - global search is a real feature flag driven by `Filter Settings > Show Search`
   - optional runtime `Order By` control is driven by `Filter Settings > Show Order By`
   - trigger style can be switched between `icon` and `dropdown` via `Order By Trigger Style`
+  - optional desktop `Visible Filters` row reuses the same discovery state and backend filtering for:
+    - `Categories` (current `types` group / subcategory-type group)
+    - `Artists`
+    - `Source`
+    - `Year`
+  - `Visible Filters` is desktop-only; mobile and tablet still use the `Filters` drawer
   - runtime sorting is backend-authoritative and shares the same AJAX flow as filters
   - supported runtime sort keys:
     - `default`
@@ -55,6 +62,51 @@ Current notable UI/runtime deltas:
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
 - `Grid` exposes independent responsive `Post Gap Horizontal` and `Post Gap Vertical` controls for column and row spacing
 - under `800px` the discovery controls switch to always-open full-width pills and active chips keep their remove control always visible
+
+## Visible Filters
+
+Visible Filters is an optional desktop-only quick-access surface for the discovery filters.
+
+- it appears only when:
+  - `Show Filters = On`
+  - `Filter Mode = Filter Panel`
+  - `Visible Filters = On`
+  - `post_type = product`
+- it is rendered between the toolbar controls and the active chips row
+- it keeps the existing `Filters` button visible
+- it reuses the same Product Grid filter system:
+  - `filterState[widgetId]`
+  - `filter_ui`
+  - advanced filter refinement
+  - year filtering logic
+  - chips
+  - reset
+  - infinite scroll reset
+
+V1 visible groups:
+- `Categories`
+  - this means the current `types` group already used by discovery
+  - it does not introduce a new parent-category filtering system
+- `Artists`
+- `Source`
+- `Year`
+
+Visible filter panels:
+- are desktop-only anchored floating panels
+- use the same dark-glass surface language as the drawer/sort surfaces
+- allow only one open panel at a time
+- reuse token-group search/count/selection logic for:
+  - `Categories`
+  - `Artists`
+  - `Source`
+- reuse the existing Year UI for:
+  - slider
+  - from/to inputs
+  - quick ranges
+
+Reset behaviour:
+- `Reset filters` still resets filters only
+- it does not change runtime sort
 
 ## Runtime Sort (Order By)
 

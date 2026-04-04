@@ -545,10 +545,11 @@ body.bw-cart-popup-no-scroll {
   position: relative;
   z-index: 30;
   isolation: isolate;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 640px);
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    "quick controls"
-    "summary summary";
+    "summary controls"
+    "visible visible"
+    "quick quick";
   align-items: start;
   column-gap: 24px;
   row-gap: 16px;
@@ -574,6 +575,22 @@ body.bw-cart-popup-no-scroll {
   align-self: center;
   width: 100%;
   min-width: 0;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filters {
+  grid-area: visible;
+  position: relative;
+  z-index: 35;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filters.is-hidden {
+  display: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-meta {
@@ -917,7 +934,7 @@ body.bw-cart-popup-no-scroll {
   flex-wrap: wrap;
   gap: 8px;
   width: 100%;
-  max-width: min(72%, 860px);
+  max-width: none;
   min-width: 0;
   align-self: center;
   align-content: flex-start;
@@ -1133,6 +1150,119 @@ body.bw-cart-popup-no-scroll {
   border-color: rgba(255, 255, 255, 0.18);
   opacity: 1;
   transform: scale(1);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter {
+  position: relative;
+  z-index: 40;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-open {
+  z-index: 95;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  background: #f4f4f1;
+  color: #111111;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger:hover,
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger:focus-visible,
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-open .bw-fpw-visible-filter__trigger {
+  background: #f7f7f4;
+  border-color: rgba(17, 17, 17, 0.22);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-selected .bw-fpw-visible-filter__trigger {
+  border-color: rgba(17, 17, 17, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.8);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.06);
+  color: rgba(17, 17, 17, 0.72);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter[data-group="years"] .bw-fpw-visible-filter__summary {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: rgba(17, 17, 17, 0.52);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__chevron-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.18s ease;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-open .bw-fpw-visible-filter__chevron-icon {
+  transform: rotate(180deg);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 110;
+  width: min(340px, calc(100vw - 48px));
+  min-width: 280px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(16, 16, 16, 0.9);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter[data-group="years"] .bw-fpw-visible-filter__panel {
+  width: min(420px, calc(100vw - 48px));
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel-inner {
+  padding: 12px;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-group-search {
+  margin-top: 0;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -1638,6 +1768,7 @@ body.bw-cart-popup-no-scroll {
     grid-template-columns: 1fr;
     grid-template-areas:
       "controls"
+      "visible"
       "quick"
       "summary";
     column-gap: 0;
@@ -1700,6 +1831,10 @@ body.bw-cart-popup-no-scroll {
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filters {
     max-width: none;
     gap: 10px;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filters {
+    display: none !important;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__input {
@@ -1884,6 +2019,10 @@ body.bw-cart-popup-no-scroll {
 }
 
 @media (max-width: 1024px) {
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filters {
+    display: none !important;
+  }
+
   .bw-product-grid[data-disable-hover-on-touch="yes"] .bw-product-card .bw-wallpost-overlay,
   .bw-product-grid[data-disable-hover-on-touch="yes"] .bw-product-card .overlay-buttons,
   .bw-product-grid[data-disable-hover-on-touch="yes"] .bw-product-card .bw-ss__overlay {

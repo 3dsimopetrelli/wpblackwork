@@ -894,8 +894,10 @@
                     showSource: false,
                     showTechnique: false,
                     showOrderBy: ($grid.attr('data-show-order-by') || 'no') === 'yes',
+                    showVisibleFilters: ($grid.attr('data-show-visible-filters') || 'no') === 'yes',
                     orderTriggerStyle: ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon',
                     sortMenuOpen: false,
+                    visibleFilterOpenGroup: '',
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -1074,6 +1076,94 @@
 
         $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
         return ($grid.attr('data-show-order-by') || 'no') === 'yes';
+    }
+
+    function isDiscoveryVisibleFiltersEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.showVisibleFilters === 'boolean') {
+            return resolvedState.ui.showVisibleFilters;
+        }
+
+        if (!widgetId) {
+            return false;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        return ($grid.attr('data-show-visible-filters') || 'no') === 'yes';
+    }
+
+    function getDiscoveryGroupConfigs() {
+        return [
+            {
+                key: 'types',
+                label: 'Categories',
+                visibleLabel: 'Categories',
+                placeholder: 'Search types...'
+            },
+            {
+                key: 'tags',
+                label: 'Style / Subject',
+                visibleLabel: 'Style / Subject',
+                placeholder: 'Search styles...'
+            },
+            {
+                key: 'years',
+                label: 'Years',
+                visibleLabel: 'Year',
+                placeholder: ''
+            },
+            {
+                key: 'artist',
+                label: 'Artist',
+                visibleLabel: 'Artists',
+                placeholder: 'Search artists...'
+            },
+            {
+                key: 'author',
+                label: 'Author',
+                visibleLabel: 'Author',
+                placeholder: 'Search authors...'
+            },
+            {
+                key: 'publisher',
+                label: 'Publisher',
+                visibleLabel: 'Publisher',
+                placeholder: 'Search publishers...'
+            },
+            {
+                key: 'source',
+                label: 'Source',
+                visibleLabel: 'Source',
+                placeholder: 'Search sources...'
+            },
+            {
+                key: 'technique',
+                label: 'Technique',
+                visibleLabel: 'Technique',
+                placeholder: 'Search techniques...'
+            }
+        ];
+    }
+
+    function getDiscoveryGroupConfig(groupKey) {
+        var config = null;
+
+        getDiscoveryGroupConfigs().some(function (groupConfig) {
+            if (groupConfig.key === groupKey) {
+                config = groupConfig;
+                return true;
+            }
+
+            return false;
+        });
+
+        return config;
+    }
+
+    function getVisibleDiscoveryGroupKeys() {
+        return ['types', 'artist', 'source', 'years'];
     }
 
     function getDiscoverySortTriggerStyle(widgetId, state) {
@@ -1450,19 +1540,11 @@
         return 'left:' + start + '%;width:' + Math.max(0, end - start) + '%;';
     }
 
-    function renderDiscoveryYearSection(widgetId, state) {
-        var isOpen = !!state.ui.openGroups.years || hasActiveYearFilter(state);
+    function renderDiscoveryYearPanelContent(widgetId, state) {
         var bounds = state.yearBounds || createEmptyYearBounds();
         var resolvedDraft = getResolvedYearDraft(state);
         var quickRanges = Array.isArray(state.yearQuickRanges) ? state.yearQuickRanges : [];
         var html = '';
-
-        html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
-        html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
-        html += '<span class="bw-fpw-discovery-group__title">Years</span>';
-        html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true"><svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span>';
-        html += '</button>';
-        html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
 
         if (bounds.min !== null && bounds.max !== null) {
             html += '<div class="bw-fpw-year-slider" data-widget-id="' + widgetId + '">';
@@ -1493,8 +1575,46 @@
             html += '</div>';
         }
 
+        return html;
+    }
+
+    function renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, surfaceKey) {
+        var groupKey = groupConfig.key;
+        var options = state.options[groupKey] || [];
+        var selectedIds = getDiscoverySelections(state, groupKey);
+        var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
+        var visibleOptions = options.filter(function (option) {
+            if (!termSearch) {
+                return true;
+            }
+
+            return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
+        });
+        var html = '';
+
+        html += '<label class="bw-fpw-discovery-group-search">';
+        html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
+        html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-surface="' + escapeHtml(surfaceKey || 'drawer') + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
+        html += '</label>';
+        html += '<div class="bw-fpw-discovery-options">';
+
+        if (visibleOptions.length) {
+            visibleOptions.forEach(function (option) {
+                var optionValue = getDiscoveryOptionKey(groupKey, option);
+                var isSelected = selectedIds.indexOf(optionValue) > -1;
+                var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
+
+                html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
+                html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
+                html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
+                html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
+                html += '</button>';
+            });
+        } else {
+            html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
+        }
+
         html += '</div>';
-        html += '</section>';
 
         return html;
     }
@@ -1503,98 +1623,56 @@
         var state = getDiscoveryState(widgetId);
         var resolvedDraft = getResolvedYearDraft(state);
         var normalizedLabel = getYearRangeLabel(normalizeYearRange(resolvedDraft.from, resolvedDraft.to)) || 'Any year';
-        var $group = $('.bw-fpw-discovery-group--years[data-widget-id="' + widgetId + '"]');
+        var $context = $('.bw-fpw-discovery-group--years[data-widget-id="' + widgetId + '"], .bw-fpw-visible-filter[data-widget-id="' + widgetId + '"][data-group="years"]');
 
-        if (!$group.length) {
+        if (!$context.length) {
             return;
         }
 
-        $group.find('.bw-fpw-year-slider__active').attr('style', buildYearSliderTrackStyle(resolvedDraft));
-        $group.find('.bw-fpw-year-slider__selection').text(normalizedLabel);
+        $context.find('.bw-fpw-year-slider__active').attr('style', buildYearSliderTrackStyle(resolvedDraft));
+        $context.find('.bw-fpw-year-slider__selection').text(normalizedLabel);
 
-        $group.find('.bw-fpw-year-slider__input--from').val(resolvedDraft.from !== null ? resolvedDraft.from : resolvedDraft.min);
-        $group.find('.bw-fpw-year-slider__input--to').val(resolvedDraft.to !== null ? resolvedDraft.to : resolvedDraft.max);
-        $group.find('.bw-fpw-year-input__field[data-year-field="from"]').val(state.ui.yearDraft.from !== null ? state.ui.yearDraft.from : '');
-        $group.find('.bw-fpw-year-input__field[data-year-field="to"]').val(state.ui.yearDraft.to !== null ? state.ui.yearDraft.to : '');
+        $context.find('.bw-fpw-year-slider__input--from').val(resolvedDraft.from !== null ? resolvedDraft.from : resolvedDraft.min);
+        $context.find('.bw-fpw-year-slider__input--to').val(resolvedDraft.to !== null ? resolvedDraft.to : resolvedDraft.max);
+        $context.find('.bw-fpw-year-input__field[data-year-field="from"]').val(state.ui.yearDraft.from !== null ? state.ui.yearDraft.from : '');
+        $context.find('.bw-fpw-year-input__field[data-year-field="to"]').val(state.ui.yearDraft.to !== null ? state.ui.yearDraft.to : '');
     }
 
     function renderDiscoveryDrawerGroups(widgetId) {
         var state = filterState[widgetId];
         var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
         var chevronIcon = '<svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
-        var groupConfigs = [
-            {
-                key: 'types',
-                label: 'Categories',
-                placeholder: 'Search types...'
-            },
-            {
-                key: 'tags',
-                label: 'Style / Subject',
-                placeholder: 'Search styles...'
-            },
-            {
-                key: 'years',
-                label: 'Years',
-                placeholder: ''
-            },
-            {
-                key: 'artist',
-                label: 'Artist',
-                placeholder: 'Search artists...'
-            },
-            {
-                key: 'author',
-                label: 'Author',
-                placeholder: 'Search authors...'
-            },
-            {
-                key: 'publisher',
-                label: 'Publisher',
-                placeholder: 'Search publishers...'
-            },
-            {
-                key: 'source',
-                label: 'Source',
-                placeholder: 'Search sources...'
-            },
-            {
-                key: 'technique',
-                label: 'Technique',
-                placeholder: 'Search techniques...'
-            }
-        ];
         var html = '';
 
         if (!state || !$groups.length) {
             return;
         }
 
-        groupConfigs.forEach(function (groupConfig) {
+        getDiscoveryGroupConfigs().forEach(function (groupConfig) {
             var groupKey = groupConfig.key;
             var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
             var showGroup = visibilityFlag ? !!state.ui[visibilityFlag] : false;
+            var termSearch = groupKey === 'years' ? '' : normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
+            var isOpen = groupKey === 'years'
+                ? (!!state.ui.openGroups.years || hasActiveYearFilter(state))
+                : (!!state.ui.openGroups[groupKey] || !!termSearch);
 
             if (!showGroup) {
                 return;
             }
 
             if (groupKey === 'years') {
-                html += renderDiscoveryYearSection(widgetId, state);
+                html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
+                html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
+                html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
+                html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
+                html += '</button>';
+                html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+                html += renderDiscoveryYearPanelContent(widgetId, state);
+                html += '</div>';
+                html += '</section>';
                 return;
             }
-
-            var options = state.options[groupKey] || [];
-            var selectedIds = getDiscoverySelections(state, groupKey);
-            var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
-            var visibleOptions = options.filter(function (option) {
-                if (!termSearch) {
-                    return true;
-                }
-
-                return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
-            });
-            var isOpen = !!state.ui.openGroups[groupKey] || !!termSearch;
 
             html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
             html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
@@ -1602,34 +1680,108 @@
             html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
             html += '</button>';
             html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
-            html += '<label class="bw-fpw-discovery-group-search">';
-            html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
-            html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
-            html += '</label>';
-            html += '<div class="bw-fpw-discovery-options">';
-
-            if (visibleOptions.length) {
-                visibleOptions.forEach(function (option) {
-                    var optionValue = getDiscoveryOptionKey(groupKey, option);
-                    var isSelected = selectedIds.indexOf(optionValue) > -1;
-                    var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
-
-                    html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
-                    html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
-                    html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
-                    html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
-                    html += '</button>';
-                });
-            } else {
-                html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
-            }
-
-            html += '</div>';
+            html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'drawer');
             html += '</div>';
             html += '</section>';
         });
 
         $groups.html(html);
+    }
+
+    function getDiscoveryVisibleFilterSummary(state, groupKey) {
+        if (!state) {
+            return '';
+        }
+
+        if (groupKey === 'years') {
+            return hasActiveYearFilter(state) ? (getYearRangeLabel(state.year) || '') : '';
+        }
+
+        var selected = getDiscoverySelections(state, groupKey);
+        return selected.length > 0 ? String(selected.length) : '';
+    }
+
+    function closeDiscoveryVisibleFilterPanel(widgetId) {
+        var state = filterState[widgetId];
+
+        if (!state || !state.ui || !state.ui.visibleFilterOpenGroup) {
+            return;
+        }
+
+        state.ui.visibleFilterOpenGroup = '';
+        renderDiscoveryVisibleFilters(widgetId);
+    }
+
+    function closeAllDiscoveryVisibleFilterPanels(exceptWidgetId) {
+        Object.keys(filterState).forEach(function (widgetId) {
+            if (exceptWidgetId && String(widgetId) === String(exceptWidgetId)) {
+                return;
+            }
+
+            closeDiscoveryVisibleFilterPanel(widgetId);
+        });
+    }
+
+    function renderDiscoveryVisibleFilters(widgetId) {
+        var state = filterState[widgetId];
+        var $containers = $('.bw-fpw-visible-filters[data-widget-id="' + widgetId + '"]');
+        var html = '';
+
+        if (!state || !$containers.length) {
+            return;
+        }
+
+        if (!isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+            $containers.empty().addClass('is-hidden').attr('aria-hidden', 'true');
+            return;
+        }
+
+        getVisibleDiscoveryGroupKeys().forEach(function (groupKey) {
+            var groupConfig = getDiscoveryGroupConfig(groupKey);
+            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+            var isSupported = visibilityFlag ? !!state.ui[visibilityFlag] : false;
+            var isOpen = state.ui.visibleFilterOpenGroup === groupKey;
+            var summary = getDiscoveryVisibleFilterSummary(state, groupKey);
+            var hasActiveSelection = groupKey === 'years'
+                ? hasActiveYearFilter(state)
+                : getDiscoverySelections(state, groupKey).length > 0;
+
+            if (!groupConfig || !isSupported) {
+                return;
+            }
+
+            html += '<div class="bw-fpw-visible-filter' + (isOpen ? ' is-open' : '') + (hasActiveSelection ? ' is-selected' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+            html += '<button class="bw-fpw-visible-filter__trigger" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '">';
+            html += '<span class="bw-fpw-visible-filter__label">' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '</span>';
+
+            if (summary) {
+                html += '<span class="bw-fpw-visible-filter__summary">' + escapeHtml(summary) + '</span>';
+            }
+
+            html += '<span class="bw-fpw-visible-filter__chevron" aria-hidden="true"><svg class="bw-fpw-visible-filter__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
+            html += '</button>';
+
+            if (isOpen) {
+                html += '<div class="bw-fpw-visible-filter__panel" aria-hidden="false">';
+                html += '<div class="bw-fpw-visible-filter__panel-inner">';
+
+                if (groupKey === 'years') {
+                    html += renderDiscoveryYearPanelContent(widgetId, state);
+                } else {
+                    html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'visible');
+                }
+
+                html += '</div>';
+                html += '</div>';
+            }
+
+            html += '</div>';
+        });
+
+        $containers
+            .html(html)
+            .toggleClass('is-hidden', html === '')
+            .attr('aria-hidden', html === '' ? 'true' : 'false');
     }
 
     function closeDiscoverySortMenu(widgetId) {
@@ -1775,6 +1927,7 @@
             if (isDiscoverySortEnabled(widgetId, state)) {
                 renderDiscoverySortControl(widgetId);
             }
+            renderDiscoveryVisibleFilters(widgetId);
             if (isWidgetSearchEnabled(widgetId, state)) {
                 renderDiscoverySearch(widgetId);
             }
@@ -1964,6 +2117,7 @@
         state.ui.openGroups.source = false;
         state.ui.openGroups.technique = false;
         state.ui.sortMenuOpen = false;
+        state.ui.visibleFilterOpenGroup = '';
         state.ui.yearDraft = createEmptyYearState();
 
         if (yearInputCommitTimers[widgetId]) {
@@ -3252,6 +3406,7 @@
             e.preventDefault();
             e.stopPropagation();
 
+            closeAllDiscoveryVisibleFilterPanels();
             closeAllDiscoverySortMenus(widgetId);
             state.ui.sortMenuOpen = !state.ui.sortMenuOpen;
             renderDiscoverySortControl(widgetId);
@@ -3290,6 +3445,32 @@
             closeAllDiscoverySortMenus();
         });
 
+        $(document).on('click', '.bw-fpw-visible-filter__trigger', function (e) {
+            var widgetId = $(this).attr('data-widget-id');
+            var groupKey = $(this).attr('data-group');
+            var state = getDiscoveryState(widgetId);
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            closeAllDiscoverySortMenus();
+            closeAllDiscoveryVisibleFilterPanels(widgetId);
+            state.ui.visibleFilterOpenGroup = state.ui.visibleFilterOpenGroup === groupKey ? '' : groupKey;
+            renderDiscoveryVisibleFilters(widgetId);
+        });
+
+        $(document).on('click', function (e) {
+            if ($(e.target).closest('.bw-fpw-visible-filter').length) {
+                return;
+            }
+
+            closeAllDiscoveryVisibleFilterPanels();
+        });
+
         $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
             e.preventDefault();
 
@@ -3302,12 +3483,13 @@
             }
 
             state.ui.openGroups[groupKey] = !state.ui.openGroups[groupKey];
-            renderDiscoveryDrawerGroups(widgetId);
+            renderDiscoveryUi(widgetId);
         });
 
         $(document).on('input', '.bw-fpw-discovery-group-search__input', function () {
             var widgetId = $(this).attr('data-widget-id');
             var groupKey = $(this).attr('data-group');
+            var surface = $(this).attr('data-surface') || 'drawer';
             var state = getDiscoveryState(widgetId);
             var cursorPosition = this.selectionStart;
 
@@ -3316,9 +3498,9 @@
             }
 
             state.ui.optionSearches[groupKey] = $(this).val() || '';
-            renderDiscoveryDrawerGroups(widgetId);
+            renderDiscoveryUi(widgetId);
 
-            var $replacementInput = $('.bw-fpw-discovery-group-search__input[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+            var $replacementInput = $('.bw-fpw-discovery-group-search__input[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"][data-surface="' + surface + '"]');
             if ($replacementInput.length) {
                 $replacementInput.trigger('focus');
                 if (typeof cursorPosition === 'number' && $replacementInput[0].setSelectionRange) {
@@ -3372,6 +3554,7 @@
             var widgetId = $(this).attr('data-widget-id');
 
             if (widgetId && isDiscoveryDrawerMode(widgetId)) {
+                closeDiscoveryVisibleFilterPanel(widgetId);
                 resetDiscoveryFilters(widgetId, false);
             }
         });
@@ -3508,6 +3691,7 @@
             e.preventDefault();
 
             var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            closeAllDiscoveryVisibleFilterPanels();
             openMobilePanel(widgetId);
         });
 
@@ -3948,6 +4132,7 @@
                 state.ui.showTags = !!bootstrapPayload.show_tags;
                 state.ui.showYears = !!bootstrapPayload.show_years;
                 state.ui.showOrderBy = !!bootstrapPayload.show_order_by;
+                state.ui.showVisibleFilters = !!bootstrapPayload.show_visible_filters;
                 state.ui.orderTriggerStyle = bootstrapPayload.order_trigger_style === 'dropdown' ? 'dropdown' : 'icon';
                 state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || 'default');
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
@@ -3963,6 +4148,7 @@
             } else {
                 state.ui.searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
                 state.ui.showOrderBy = ($grid.attr('data-show-order-by') || 'no') === 'yes';
+                state.ui.showVisibleFilters = ($grid.attr('data-show-visible-filters') || 'no') === 'yes';
                 state.ui.orderTriggerStyle = ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon';
             }
 

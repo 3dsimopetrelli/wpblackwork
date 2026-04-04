@@ -30,7 +30,7 @@ Controls are registered across four private methods:
 |--------|----------|
 | `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
-| `register_filter_controls()` | `Show Filters`, `Show Search`, `Show Order By`, `Order By Trigger Style`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
+| `register_filter_controls()` | `Show Filters`, `Filter Mode`, `Visible Filters`, `Show Search`, `Show Order By`, `Order By Trigger Style`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
 | `register_query_controls()` | Post type, parent category (multi-select), subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
@@ -97,6 +97,7 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-show-price` | `show_price` control | CSS visibility contract |
 | `data-search-enabled` | `show_search` control | search feature-flag gating in JS + AJAX |
 | `data-show-order-by` | `show_order_by` control gated by responsive discovery mode and `specific_ids` absence | runtime sort trigger/menu gating in JS |
+| `data-show-visible-filters` | `show_visible_filters` control gated by responsive discovery mode + `post_type = product` | desktop visible-filter row gating in JS |
 | `data-order-trigger-style` | `order_by_trigger_style` control | shared runtime sort trigger rendering |
 | `data-default-sort-key` | hardcoded `default` | initial JS sort state |
 | `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
@@ -395,11 +396,13 @@ filterState[widgetId]       = {
                                   showAuthor,
                                   showPublisher,
                                   showSource,
-                                  showTechnique,
-                                  showOrderBy,
-                                  orderTriggerStyle,
-                                  sortMenuOpen,
-                                  optionSearches: {
+                                showTechnique,
+                                showOrderBy,
+                                showVisibleFilters,
+                                orderTriggerStyle,
+                                sortMenuOpen,
+                                visibleFilterOpenGroup,
+                                optionSearches: {
                                     types, tags,
                                     artist, author,
                                     publisher, source,
@@ -425,6 +428,7 @@ In discovery drawer mode the same `filterState` is the single source of truth fo
 - drawer checkboxes
 - global discovery search when `searchEnabled = true`
   - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
+- desktop-only visible filters row above the results
 - active-only chips above the grid
 - active-only chips inside the drawer, under the `Filters` title
 - the runtime sort trigger + shared floating menu
@@ -442,6 +446,29 @@ The responsive drawer shell is intentionally style-only and does not alter filte
 - overlay uses a light veil plus blur so page context remains visible behind the drawer
 - the drawer itself is a detached dark-glass panel with large radius and tight viewport margins
 - header, close control, and footer CTA follow the same floating-surface language used by other mobile navigation surfaces
+
+Desktop visible filters are a second UI surface over the same state, not a second filtering system:
+- enabled via `Visible Filters`
+- desktop only
+- rendered between toolbar controls and active chips
+- supported groups in v1:
+  - `Categories`
+    - implemented as the existing `types` group
+  - `Artists`
+  - `Source`
+  - `Year`
+- `Filters` button remains visible as the full-panel entry point
+- visible token groups reuse:
+  - `ui.optionSearches[group]`
+  - `toggleDiscoverySelection()`
+  - `filterPosts()`
+  - backend `filter_ui` refinement counts/options
+- visible `Year` reuses:
+  - slider
+  - from/to inputs
+  - quick ranges
+- desktop visible-filter panel open state is tracked separately from drawer accordion state through:
+  - `filterState[widgetId].ui.visibleFilterOpenGroup`
 
 `filterState` is initialised by `initFilterState()` (once per widget) and reset only when `destroyWidgetState()` is called.
 
