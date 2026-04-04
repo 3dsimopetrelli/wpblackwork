@@ -1173,9 +1173,9 @@ body.bw-cart-popup-no-scroll {
   border: 1px solid rgba(17, 17, 17, 0.1);
   border-radius: 999px;
   background: #f4f4f1;
-  color: #111111;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+  color: rgba(17, 17, 17, 0.58);
+  box-shadow: none;
+  transition: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger.has-active-selection {
@@ -1185,16 +1185,18 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger:focus-visible,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-open .bw-fpw-visible-filter__trigger {
-  background: #f7f7f4;
-  border-color: rgba(17, 17, 17, 0.22);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
+  background: #f4f4f1;
+  border-color: rgba(17, 17, 17, 0.1);
+  color: #111111;
+  box-shadow: none;
+  transform: none;
   outline: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-selected .bw-fpw-visible-filter__trigger {
-  border-color: rgba(17, 17, 17, 0.8);
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.8);
+  border-color: #111111;
+  color: #111111;
+  box-shadow: inset 0 0 0 1px #111111;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__label {
@@ -1255,7 +1257,7 @@ body.bw-cart-popup-no-scroll {
   width: 100%;
   height: 100%;
   transform: translate(-50%, -50%);
-  transition: opacity 0.14s ease;
+  transition: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__clear-count {
@@ -1310,7 +1312,7 @@ body.bw-cart-popup-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__chevron-icon {
   width: 16px;
   height: 16px;
-  transition: transform 0.18s ease;
+  transition: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter.is-open .bw-fpw-visible-filter__chevron-icon {
