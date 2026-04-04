@@ -1601,7 +1601,7 @@ function bw_fpw_normalize_bool($raw_value, $default = false)
 function bw_fpw_normalize_order_by($raw_order_by)
 {
     $order_by = sanitize_key((string) $raw_order_by);
-    $valid_order_by = ['date', 'modified', 'title', 'rand', 'id'];
+    $valid_order_by = ['date', 'modified', 'title', 'rand', 'id', 'year_int'];
 
     if (!in_array($order_by, $valid_order_by, true)) {
         return 'date';
@@ -2986,6 +2986,12 @@ function bw_fpw_filter_posts_inner()
         'orderby' => $order_by,
         'order' => $order,
     ];
+
+    // year_int sorting uses a numeric meta field; remap to WP_Query meta_value_num
+    if ('year_int' === $order_by) {
+        $query_args['orderby']  = 'meta_value_num';
+        $query_args['meta_key'] = bw_fpw_get_canonical_year_meta_key();
+    }
 
     if ($per_page > 0 && $offset > 0) {
         $query_args['offset'] = $offset;

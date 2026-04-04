@@ -625,6 +625,13 @@ class BW_Product_Grid_Widget extends Widget_Base {
             ],
         ] );
 
+        $this->add_control( 'show_sort', [
+            'label'       => __( 'Mostra ordinamento runtime', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SWITCHER,
+            'default'     => '',
+            'description' => __( 'Mostra un menu a tendina che permette ai visitatori di cambiare l\'ordinamento. Disabilitato automaticamente quando sono impostati ID specifici.', 'bw-elementor-widgets' ),
+        ] );
+
         $this->end_controls_section();
     }
 
@@ -634,12 +641,18 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $widget_id = $this->get_id();
 
         $show_filters = isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
+        $specific_ids = isset( $settings['specific_ids'] ) ? trim( (string) $settings['specific_ids'] ) : '';
+        $show_sort    = isset( $settings['show_sort'] ) && 'yes' === $settings['show_sort'] && '' === $specific_ids;
 
         // Render filters area
         $this->render_wrapper_start( $settings, $show_filters );
 
         if ( $show_filters ) {
             $this->render_filters( $settings, $widget_id );
+        }
+
+        if ( $show_sort ) {
+            $this->render_sort_control( $settings, $widget_id );
         }
 
         $this->render_posts( $settings, $widget_id, $raw_settings );
@@ -1004,6 +1017,54 @@ class BW_Product_Grid_Widget extends Widget_Base {
             </button>
             <?php
         endforeach;
+    }
+
+    private function render_sort_control( $settings, $widget_id ) {
+        $order_by     = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
+        $order        = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
+        $context_slug = $this->resolve_product_grid_context_slug( $settings );
+        $year_ui      = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : [ 'supported' => false ];
+        $year_supported = ! empty( $year_ui['supported'] );
+
+        // Normalise: 'rand' has no meaningful sort UI
+        if ( 'rand' === $order_by ) {
+            return;
+        }
+
+        $current_value = $order_by . '|' . $order;
+
+        $options = [
+            'date|DESC'  => __( 'Più recenti', 'bw-elementor-widgets' ),
+            'date|ASC'   => __( 'Meno recenti', 'bw-elementor-widgets' ),
+            'title|ASC'  => __( 'A → Z', 'bw-elementor-widgets' ),
+            'title|DESC' => __( 'Z → A', 'bw-elementor-widgets' ),
+        ];
+
+        if ( $year_supported ) {
+            $options['year_int|ASC']  = __( 'Anno ↑', 'bw-elementor-widgets' );
+            $options['year_int|DESC'] = __( 'Anno ↓', 'bw-elementor-widgets' );
+        }
+
+        $select_id = 'bw-fpw-sort-select-' . esc_attr( $widget_id );
+        ?>
+        <div class="bw-fpw-sort-control" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <label class="bw-fpw-sort-label" for="<?php echo esc_attr( $select_id ); ?>"><?php esc_html_e( 'Ordina:', 'bw-elementor-widgets' ); ?></label>
+            <select class="bw-fpw-sort-select"
+                    id="<?php echo esc_attr( $select_id ); ?>"
+                    data-widget-id="<?php echo esc_attr( $widget_id ); ?>"
+                    data-default-order-by="<?php echo esc_attr( $order_by ); ?>"
+                    data-default-order="<?php echo esc_attr( $order ); ?>">
+                <?php if ( ! array_key_exists( $current_value, $options ) ) : ?>
+                    <option value="" selected><?php esc_html_e( 'Default', 'bw-elementor-widgets' ); ?></option>
+                <?php endif; ?>
+                <?php foreach ( $options as $value => $label ) : ?>
+                    <option value="<?php echo esc_attr( $value ); ?>"<?php selected( $value, $current_value ); ?>>
+                        <?php echo esc_html( $label ); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php
     }
 
     private function render_posts( $settings, $widget_id, $raw_settings = [] ) {
