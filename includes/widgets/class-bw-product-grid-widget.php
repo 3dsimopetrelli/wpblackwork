@@ -354,13 +354,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
         ] );
 
         $this->add_control( 'show_filters', [
-            'label'        => __( 'Show Filters', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'description'  => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
+            'label'       => __( 'Show Filters', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => [
+                'yes' => __( 'On', 'bw-elementor-widgets' ),
+                ''    => __( 'Off', 'bw-elementor-widgets' ),
+            ],
+            'default'     => 'yes',
+            'description' => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'default_category', [
