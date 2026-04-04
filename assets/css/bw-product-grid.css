@@ -344,7 +344,7 @@
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter-panel--drawer {
   position: fixed;
   inset: 0;
-  z-index: 100000;
+  z-index: 2147483000;
   display: block;
   background: rgba(0, 0, 0, 0.04);
   backdrop-filter: var(--bw-screen-backdrop-filter, blur(4px) saturate(1.5));
