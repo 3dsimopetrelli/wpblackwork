@@ -1497,6 +1497,7 @@
         var activeChips = getDiscoveryActiveChips(widgetId);
         var html = '';
         var containers;
+        var state = getDiscoveryState(widgetId);
 
         activeChips.forEach(function (chip) {
             html += buildDiscoveryChipHtml(chip, widgetId);
@@ -1505,8 +1506,14 @@
         containers = document.querySelectorAll('.bw-fpw-active-chips[data-widget-id="' + widgetId + '"]');
 
         containers.forEach(function (container) {
+            if (container.classList.contains('bw-fpw-quick-filters') && isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+                container.innerHTML = '';
+                container.classList.add('is-empty');
+                return;
+            }
+
             container.innerHTML = html;
-            container.classList.remove('is-empty');
+            container.classList.toggle('is-empty', html === '');
         });
     }
 
@@ -1694,11 +1701,40 @@
         }
 
         if (groupKey === 'years') {
-            return hasActiveYearFilter(state) ? (getYearRangeLabel(state.year) || '') : '';
+            return hasActiveYearFilter(state) ? '1' : '';
         }
 
         var selected = getDiscoverySelections(state, groupKey);
         return selected.length > 0 ? String(selected.length) : '';
+    }
+
+    function clearDiscoveryFilterGroup(widgetId, groupKey) {
+        var state = getDiscoveryState(widgetId);
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+
+        if (!state) {
+            return;
+        }
+
+        if (groupKey === 'types') {
+            state.subcategories = [];
+        } else if (groupKey === 'tags') {
+            state.tags = [];
+        } else if (groupKey === 'years') {
+            state.year = createEmptyYearState();
+            state.ui.yearDraft = createEmptyYearState();
+        } else if (stateKey && isDiscoveryTokenGroup(groupKey)) {
+            state[stateKey] = [];
+        } else {
+            return;
+        }
+
+        if (state.ui.visibleFilterOpenGroup === groupKey) {
+            state.ui.visibleFilterOpenGroup = '';
+        }
+
+        renderDiscoveryUi(widgetId);
+        filterPosts(widgetId);
     }
 
     function closeDiscoveryVisibleFilterPanel(widgetId) {
@@ -1751,15 +1787,19 @@
             }
 
             html += '<div class="bw-fpw-visible-filter' + (isOpen ? ' is-open' : '') + (hasActiveSelection ? ' is-selected' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
-            html += '<button class="bw-fpw-visible-filter__trigger" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '">';
+            html += '<button class="bw-fpw-visible-filter__trigger' + (hasActiveSelection ? ' has-active-selection' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '">';
             html += '<span class="bw-fpw-visible-filter__label">' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '</span>';
-
-            if (summary) {
-                html += '<span class="bw-fpw-visible-filter__summary">' + escapeHtml(summary) + '</span>';
+            if (!hasActiveSelection) {
+                html += '<span class="bw-fpw-visible-filter__chevron" aria-hidden="true"><svg class="bw-fpw-visible-filter__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
             }
-
-            html += '<span class="bw-fpw-visible-filter__chevron" aria-hidden="true"><svg class="bw-fpw-visible-filter__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
             html += '</button>';
+
+            if (hasActiveSelection) {
+                html += '<button class="bw-fpw-visible-filter__clear" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-label="Clear ' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '">';
+                html += '<span class="bw-fpw-visible-filter__clear-count">' + escapeHtml(summary) + '</span>';
+                html += '<span class="bw-fpw-visible-filter__clear-x" aria-hidden="true"></span>';
+                html += '</button>';
+            }
 
             if (isOpen) {
                 html += '<div class="bw-fpw-visible-filter__panel" aria-hidden="false">';
@@ -3461,6 +3501,22 @@
             closeAllDiscoveryVisibleFilterPanels(widgetId);
             state.ui.visibleFilterOpenGroup = state.ui.visibleFilterOpenGroup === groupKey ? '' : groupKey;
             renderDiscoveryVisibleFilters(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-visible-filter__clear', function (e) {
+            var $button = $(this);
+            var widgetId = $button.attr('data-widget-id');
+            var groupKey = $button.attr('data-group');
+            var state = getDiscoveryState(widgetId);
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            clearDiscoveryFilterGroup(widgetId, groupKey);
         });
 
         $(document).on('click', function (e) {
