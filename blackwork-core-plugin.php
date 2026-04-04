@@ -1616,6 +1616,95 @@ function bw_fpw_normalize_order($raw_order)
     return in_array($order, ['ASC', 'DESC'], true) ? $order : 'DESC';
 }
 
+function bw_fpw_normalize_sort_key($raw_sort_key)
+{
+    $sort_key = sanitize_key((string) $raw_sort_key);
+    $valid_sort_keys = ['default', 'recent', 'oldest', 'title_asc', 'title_desc', 'year_asc', 'year_desc'];
+
+    return in_array($sort_key, $valid_sort_keys, true) ? $sort_key : 'default';
+}
+
+function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order, $post_type = 'product')
+{
+    $normalized_sort_key = bw_fpw_normalize_sort_key($sort_key);
+    $effective_order_by = bw_fpw_normalize_order_by($default_order_by);
+    $effective_order = bw_fpw_normalize_order($default_order);
+    $query_args = [
+        'orderby' => $effective_order_by,
+        'order' => $effective_order,
+    ];
+
+    switch ($normalized_sort_key) {
+        case 'recent':
+            $effective_order_by = 'date';
+            $effective_order = 'DESC';
+            $query_args = [
+                'orderby' => 'date',
+                'order' => 'DESC',
+            ];
+            break;
+        case 'oldest':
+            $effective_order_by = 'date';
+            $effective_order = 'ASC';
+            $query_args = [
+                'orderby' => 'date',
+                'order' => 'ASC',
+            ];
+            break;
+        case 'title_asc':
+            $effective_order_by = 'title';
+            $effective_order = 'ASC';
+            $query_args = [
+                'orderby' => 'title',
+                'order' => 'ASC',
+            ];
+            break;
+        case 'title_desc':
+            $effective_order_by = 'title';
+            $effective_order = 'DESC';
+            $query_args = [
+                'orderby' => 'title',
+                'order' => 'DESC',
+            ];
+            break;
+        case 'year_asc':
+        case 'year_desc':
+            if ('product' !== $post_type) {
+                break;
+            }
+
+            $effective_order_by = 'meta_value_num';
+            $effective_order = 'year_asc' === $normalized_sort_key ? 'ASC' : 'DESC';
+            $query_args = [
+                'meta_key' => bw_fpw_get_canonical_year_meta_key(),
+                'meta_type' => 'NUMERIC',
+                'orderby' => [
+                    'meta_value_num' => $effective_order,
+                    'date' => 'DESC',
+                    'ID' => 'DESC',
+                ],
+                'order' => $effective_order,
+            ];
+            break;
+        case 'default':
+        default:
+            break;
+    }
+
+    if ('rand' === $effective_order_by) {
+        $effective_order = 'ASC';
+        $query_args['orderby'] = 'rand';
+        $query_args['order'] = 'ASC';
+    }
+
+    return [
+        'sort_key' => $normalized_sort_key,
+        'effective_order_by' => $effective_order_by,
+        'effective_order' => $effective_order,
+        'query_args' => $query_args,
+    ];
+}
+
 function bw_fpw_normalize_image_size($raw_image_size)
 {
     $image_size = sanitize_key((string) $raw_image_size);
@@ -1826,14 +1915,27 @@ function bw_fpw_get_tags()
     wp_send_json_success($tags);
 }
 
-function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from = null, $year_to = null)
+function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [])
 {
-    $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, []);
+    return bw_fpw_get_candidate_post_ids_without_search(
+        $post_type,
+        $category,
+        $subcategories,
+        [],
+        $year_from,
+        $year_to,
+        $context_slug,
+        $advanced_filters,
+        bw_fpw_get_tag_source_posts_limit()
+    );
+}
 
+function bw_fpw_get_candidate_post_ids_without_search($post_type, $category, $subcategories = [], $tags = [], $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [], $posts_per_page = -1)
+{
     $query_args = [
         'post_type' => $post_type,
         'post_status' => 'publish',
-        'posts_per_page' => bw_fpw_get_tag_source_posts_limit(),
+        'posts_per_page' => is_numeric($posts_per_page) ? (int) $posts_per_page : -1,
         'paged' => 1,
         'fields' => 'ids',
         'no_found_rows' => true,
@@ -1841,6 +1943,8 @@ function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcatego
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
     ];
+
+    $tax_query = bw_fpw_build_tax_query($post_type, $category, $subcategories, $tags);
 
     if (!empty($tax_query)) {
         $query_args['tax_query'] = $tax_query;
@@ -1874,8 +1978,13 @@ function bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcatego
     }
 
     $query = new WP_Query($query_args);
+    $post_ids = array_values(array_map('absint', (array) $query->posts));
 
-    return $query->posts;
+    if (!bw_fpw_has_active_advanced_filter_selections($advanced_filters)) {
+        return $post_ids;
+    }
+
+    return bw_fpw_apply_advanced_filters_to_post_ids($post_ids, $context_slug, $advanced_filters);
 }
 
 function bw_fpw_normalize_search_query($search)
@@ -1925,32 +2034,170 @@ function bw_fpw_get_canonical_author_meta_key()
     return '_bw_filter_author_text';
 }
 
+function bw_fpw_get_canonical_artist_meta_key()
+{
+    return '_bw_filter_artist_text';
+}
+
+function bw_fpw_get_canonical_publisher_meta_key()
+{
+    return '_bw_filter_publisher_text';
+}
+
+function bw_fpw_get_canonical_source_meta_key()
+{
+    return '_bw_filter_source_text';
+}
+
+function bw_fpw_get_canonical_technique_meta_key()
+{
+    return '_bw_filter_technique_text';
+}
+
+function bw_fpw_get_advanced_filter_group_definitions()
+{
+    return [
+        'artist' => [
+            'label' => 'Artist',
+            'contexts' => ['digital-collections', 'prints'],
+            'canonical_key' => bw_fpw_get_canonical_artist_meta_key(),
+            'source_map_key' => 'artist_keys',
+            'searchable' => true,
+        ],
+        'author' => [
+            'label' => 'Author',
+            'contexts' => ['books'],
+            'canonical_key' => bw_fpw_get_canonical_author_meta_key(),
+            'source_map_key' => 'author_keys',
+            'searchable' => true,
+        ],
+        'publisher' => [
+            'label' => 'Publisher',
+            'contexts' => ['digital-collections', 'books', 'prints'],
+            'canonical_key' => bw_fpw_get_canonical_publisher_meta_key(),
+            'source_map_key' => 'publisher_keys',
+            'searchable' => true,
+        ],
+        'source' => [
+            'label' => 'Source',
+            'contexts' => ['digital-collections'],
+            'canonical_key' => bw_fpw_get_canonical_source_meta_key(),
+            'source_map_key' => 'source_keys',
+            'searchable' => false,
+        ],
+        'technique' => [
+            'label' => 'Technique',
+            'contexts' => ['digital-collections', 'prints'],
+            'canonical_key' => bw_fpw_get_canonical_technique_meta_key(),
+            'source_map_key' => 'technique_keys',
+            'searchable' => false,
+        ],
+    ];
+}
+
+function bw_fpw_get_advanced_filter_group_keys()
+{
+    return array_keys(bw_fpw_get_advanced_filter_group_definitions());
+}
+
+function bw_fpw_is_advanced_filter_group($group_key)
+{
+    return isset(bw_fpw_get_advanced_filter_group_definitions()[$group_key]);
+}
+
+function bw_fpw_get_canonical_meta_key_for_advanced_filter_group($group_key)
+{
+    $definitions = bw_fpw_get_advanced_filter_group_definitions();
+    return isset($definitions[$group_key]['canonical_key']) ? (string) $definitions[$group_key]['canonical_key'] : '';
+}
+
+function bw_fpw_get_source_meta_map_key_for_filter_group($group_key)
+{
+    switch ($group_key) {
+        case 'year':
+            return 'year_keys';
+        case 'author':
+            return 'author_keys';
+        default:
+            $definitions = bw_fpw_get_advanced_filter_group_definitions();
+            return isset($definitions[$group_key]['source_map_key']) ? (string) $definitions[$group_key]['source_map_key'] : '';
+    }
+}
+
+function bw_fpw_get_all_filter_canonical_meta_keys()
+{
+    $keys = [
+        bw_fpw_get_canonical_year_meta_key(),
+        bw_fpw_get_canonical_author_meta_key(),
+    ];
+
+    foreach (bw_fpw_get_advanced_filter_group_keys() as $group_key) {
+        $canonical_key = bw_fpw_get_canonical_meta_key_for_advanced_filter_group($group_key);
+        if ('' !== $canonical_key) {
+            $keys[] = $canonical_key;
+        }
+    }
+
+    return array_values(array_unique($keys));
+}
+
 function bw_fpw_get_product_filter_source_meta_map()
 {
     return [
         'digital-collections' => [
             'year_keys' => ['_digital_year'],
-            'author_keys' => ['_bw_artist_name'],
+            'author_keys' => ['_bw_artist_name', '_digital_artist_name'],
+            'artist_keys' => ['_digital_artist_name', '_bw_artist_name'],
+            'publisher_keys' => ['_digital_publisher'],
+            'source_keys' => ['_digital_source'],
+            'technique_keys' => ['_digital_technique'],
         ],
         'books' => [
             'year_keys' => ['_bw_biblio_year'],
-            'author_keys' => ['_bw_biblio_author', '_bw_artist_name'],
+            'author_keys' => ['_bw_biblio_author', '_bw_artist_name', '_digital_artist_name'],
+            'artist_keys' => [],
+            'publisher_keys' => ['_bw_biblio_publisher'],
+            'source_keys' => [],
+            'technique_keys' => [],
         ],
         'prints' => [
             'year_keys' => ['_print_year'],
-            'author_keys' => ['_print_artist', '_bw_artist_name'],
+            'author_keys' => ['_print_artist', '_bw_artist_name', '_digital_artist_name'],
+            'artist_keys' => ['_print_artist', '_bw_artist_name', '_digital_artist_name'],
+            'publisher_keys' => ['_print_publisher'],
+            'source_keys' => [],
+            'technique_keys' => ['_print_technique'],
         ],
     ];
 }
 
+function bw_fpw_get_all_filter_source_meta_keys_for_group($group_key)
+{
+    $map_key = bw_fpw_get_source_meta_map_key_for_filter_group($group_key);
+    $source_map = bw_fpw_get_product_filter_source_meta_map();
+    $keys = [];
+
+    if ('' === $map_key) {
+        return [];
+    }
+
+    foreach ($source_map as $context_map) {
+        if (!empty($context_map[$map_key]) && is_array($context_map[$map_key])) {
+            $keys = array_merge($keys, $context_map[$map_key]);
+        }
+    }
+
+    return array_values(array_unique(array_filter($keys)));
+}
+
 function bw_fpw_get_all_filter_source_year_meta_keys()
 {
-    return ['_digital_year', '_bw_biblio_year', '_print_year'];
+    return bw_fpw_get_all_filter_source_meta_keys_for_group('year');
 }
 
 function bw_fpw_get_all_filter_source_author_meta_keys()
 {
-    return ['_bw_biblio_author', '_print_artist', '_bw_artist_name'];
+    return bw_fpw_get_all_filter_source_meta_keys_for_group('author');
 }
 
 function bw_fpw_get_all_filter_relevant_meta_keys()
@@ -1960,7 +2207,11 @@ function bw_fpw_get_all_filter_relevant_meta_keys()
             array_merge(
                 bw_fpw_get_all_filter_source_year_meta_keys(),
                 bw_fpw_get_all_filter_source_author_meta_keys(),
-                [bw_fpw_get_canonical_year_meta_key(), bw_fpw_get_canonical_author_meta_key()]
+                bw_fpw_get_all_filter_source_meta_keys_for_group('artist'),
+                bw_fpw_get_all_filter_source_meta_keys_for_group('publisher'),
+                bw_fpw_get_all_filter_source_meta_keys_for_group('source'),
+                bw_fpw_get_all_filter_source_meta_keys_for_group('technique'),
+                bw_fpw_get_all_filter_canonical_meta_keys()
             )
         )
     );
@@ -2064,6 +2315,95 @@ function bw_fpw_extract_year_int($value)
     return null;
 }
 
+function bw_fpw_normalize_filter_token_label($value)
+{
+    if (!is_scalar($value)) {
+        return '';
+    }
+
+    $normalized = sanitize_text_field(wp_unslash((string) $value));
+    $normalized = preg_replace('/\s+/', ' ', trim($normalized));
+
+    return is_string($normalized) ? $normalized : '';
+}
+
+function bw_fpw_normalize_filter_token_value($value)
+{
+    $label = bw_fpw_normalize_filter_token_label($value);
+
+    if ('' === $label) {
+        return '';
+    }
+
+    $normalized = remove_accents($label);
+    $normalized = strtolower($normalized);
+    $normalized = preg_replace('/\s+/', ' ', trim($normalized));
+
+    return is_string($normalized) ? $normalized : '';
+}
+
+function bw_fpw_extract_filter_tokens_from_value($value)
+{
+    $segments = is_array($value) ? $value : explode(',', (string) $value);
+    $tokens = [];
+
+    foreach ($segments as $segment) {
+        $label = bw_fpw_normalize_filter_token_label($segment);
+        $normalized_value = bw_fpw_normalize_filter_token_value($label);
+
+        if ('' === $label || '' === $normalized_value || isset($tokens[$normalized_value])) {
+            continue;
+        }
+
+        $tokens[$normalized_value] = [
+            'value' => $normalized_value,
+            'label' => $label,
+        ];
+    }
+
+    return array_values($tokens);
+}
+
+function bw_fpw_join_filter_token_labels_for_storage($tokens)
+{
+    $labels = [];
+
+    foreach ((array) $tokens as $token) {
+        if (!is_array($token) || empty($token['label'])) {
+            continue;
+        }
+
+        $labels[] = (string) $token['label'];
+    }
+
+    return implode(', ', $labels);
+}
+
+function bw_fpw_normalize_filter_token_selection_array($values, $limit = 50)
+{
+    if (!is_array($values)) {
+        $values = [$values];
+    }
+
+    $normalized = [];
+
+    foreach ($values as $value) {
+        $normalized_value = bw_fpw_normalize_filter_token_value($value);
+
+        if ('' === $normalized_value || isset($normalized[$normalized_value])) {
+            continue;
+        }
+
+        $normalized[$normalized_value] = $normalized_value;
+
+        if (count($normalized) >= $limit) {
+            break;
+        }
+    }
+
+    return array_values($normalized);
+}
+
 function bw_fpw_normalize_author_text($value)
 {
     if (!is_string($value)) {
@@ -2083,16 +2423,29 @@ function bw_fpw_get_context_source_meta_map($context_slug)
 
 function bw_fpw_get_candidate_source_meta_keys($context_slug, $kind)
 {
-    $kind = 'author' === $kind ? 'author_keys' : 'year_keys';
+    $kind = bw_fpw_get_source_meta_map_key_for_filter_group($kind);
     $map = bw_fpw_get_context_source_meta_map($context_slug);
 
     if (is_array($map) && !empty($map[$kind])) {
         return $map[$kind];
     }
 
-    return 'author_keys' === $kind
-        ? bw_fpw_get_all_filter_source_author_meta_keys()
-        : bw_fpw_get_all_filter_source_year_meta_keys();
+    switch ($kind) {
+        case 'author_keys':
+            return bw_fpw_get_all_filter_source_author_meta_keys();
+        case 'year_keys':
+            return bw_fpw_get_all_filter_source_year_meta_keys();
+        case 'artist_keys':
+            return bw_fpw_get_all_filter_source_meta_keys_for_group('artist');
+        case 'publisher_keys':
+            return bw_fpw_get_all_filter_source_meta_keys_for_group('publisher');
+        case 'source_keys':
+            return bw_fpw_get_all_filter_source_meta_keys_for_group('source');
+        case 'technique_keys':
+            return bw_fpw_get_all_filter_source_meta_keys_for_group('technique');
+        default:
+            return [];
+    }
 }
 
 function bw_fpw_compute_canonical_year_for_product($post_id)
@@ -2115,14 +2468,37 @@ function bw_fpw_compute_canonical_author_for_product($post_id)
     $context_slug = bw_fpw_resolve_product_family_slug_from_product($post_id);
     $meta_keys = bw_fpw_get_candidate_source_meta_keys($context_slug, 'author');
 
+    $tokens = [];
+
     foreach ($meta_keys as $meta_key) {
-        $author = bw_fpw_normalize_author_text((string) get_post_meta($post_id, $meta_key, true));
-        if ('' !== $author) {
-            return $author;
+        $tokens = array_merge($tokens, bw_fpw_extract_filter_tokens_from_value((string) get_post_meta($post_id, $meta_key, true)));
+        if (!empty($tokens)) {
+            return bw_fpw_join_filter_token_labels_for_storage($tokens);
         }
     }
 
     return '';
+}
+
+function bw_fpw_compute_canonical_text_for_product($post_id, $group_key)
+{
+    $context_slug = bw_fpw_resolve_product_family_slug_from_product($post_id);
+    $meta_keys = bw_fpw_get_candidate_source_meta_keys($context_slug, $group_key);
+    $seen = [];
+    $tokens = [];
+
+    foreach ($meta_keys as $meta_key) {
+        foreach (bw_fpw_extract_filter_tokens_from_value((string) get_post_meta($post_id, $meta_key, true)) as $token) {
+            if (empty($token['value']) || isset($seen[$token['value']])) {
+                continue;
+            }
+
+            $seen[$token['value']] = true;
+            $tokens[] = $token;
+        }
+    }
+
+    return bw_fpw_join_filter_token_labels_for_storage($tokens);
 }
 
 function bw_fpw_sync_product_filter_meta($post_id)
@@ -2142,6 +2518,7 @@ function bw_fpw_sync_product_filter_meta($post_id)
 
     $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
     $canonical_author_key = bw_fpw_get_canonical_author_meta_key();
+    $advanced_group_definitions = bw_fpw_get_advanced_filter_group_definitions();
 
     $year = bw_fpw_compute_canonical_year_for_product($post_id);
     $author = bw_fpw_compute_canonical_author_for_product($post_id);
@@ -2156,6 +2533,21 @@ function bw_fpw_sync_product_filter_meta($post_id)
         update_post_meta($post_id, $canonical_author_key, $author);
     } else {
         delete_post_meta($post_id, $canonical_author_key);
+    }
+
+    foreach ($advanced_group_definitions as $group_key => $definition) {
+        $canonical_key = isset($definition['canonical_key']) ? (string) $definition['canonical_key'] : '';
+        if ('' === $canonical_key || ('author' === $group_key && $canonical_key === $canonical_author_key)) {
+            continue;
+        }
+
+        $value = bw_fpw_compute_canonical_text_for_product($post_id, $group_key);
+
+        if ('' !== $value) {
+            update_post_meta($post_id, $canonical_key, $value);
+        } else {
+            delete_post_meta($post_id, $canonical_key);
+        }
     }
 
     unset($sync_in_progress[$post_id]);
@@ -2423,6 +2815,414 @@ function bw_fpw_get_year_filter_ui($context_slug)
     ];
 }
 
+function bw_fpw_get_advanced_filter_index_transient_key($context_slug)
+{
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    return 'bw_fpw_advanced_filter_index_' . ($normalized ?: 'unknown');
+}
+
+function bw_fpw_clear_advanced_filter_index_transients($context_slug = '')
+{
+    global $wpdb;
+
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    if ('' !== $normalized) {
+        delete_transient(bw_fpw_get_advanced_filter_index_transient_key($normalized));
+        return;
+    }
+
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options}
+         WHERE option_name LIKE '_transient_bw_fpw_advanced_filter_index_%'
+            OR option_name LIKE '_transient_timeout_bw_fpw_advanced_filter_index_%'"
+    );
+}
+
+function bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug)
+{
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    $definitions = bw_fpw_get_advanced_filter_group_definitions();
+    $supported = [];
+
+    foreach ($definitions as $group_key => $definition) {
+        $contexts = isset($definition['contexts']) && is_array($definition['contexts']) ? $definition['contexts'] : [];
+
+        if (in_array($normalized, $contexts, true)) {
+            $supported[$group_key] = $definition;
+        }
+    }
+
+    return $supported;
+}
+
+function bw_fpw_build_advanced_filter_index($context_slug)
+{
+    global $wpdb;
+
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+    $supported_groups = bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug);
+
+    if (empty($supported_groups)) {
+        return [
+            'context' => $context_slug ?: 'mixed',
+            'supported' => false,
+            'post_ids' => [],
+            'groups' => [],
+        ];
+    }
+
+    $root_term_id = bw_fpw_get_context_root_term_id($context_slug);
+    if ($root_term_id <= 0) {
+        return [
+            'context' => $context_slug,
+            'supported' => false,
+            'post_ids' => [],
+            'groups' => [],
+        ];
+    }
+
+    $query = new WP_Query([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'no_found_rows' => true,
+        'ignore_sticky_posts' => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
+        'tax_query' => [[
+            'taxonomy' => 'product_cat',
+            'field' => 'term_id',
+            'terms' => [$root_term_id],
+            'include_children' => true,
+        ]],
+    ]);
+
+    $product_ids = array_values(array_filter(array_map('absint', (array) $query->posts)));
+    $index = [
+        'context' => $context_slug,
+        'supported' => !empty($product_ids),
+        'post_ids' => $product_ids,
+        'groups' => [],
+    ];
+
+    foreach ($supported_groups as $group_key => $definition) {
+        $index['groups'][$group_key] = [
+            'supported' => true,
+            'labels' => [],
+            'counts' => [],
+            'post_map' => [],
+        ];
+    }
+
+    if (empty($product_ids)) {
+        return $index;
+    }
+
+    $meta_keys = [];
+    foreach ($supported_groups as $group_key => $definition) {
+        $canonical_key = isset($definition['canonical_key']) ? (string) $definition['canonical_key'] : '';
+        if ('' !== $canonical_key) {
+            $meta_keys[] = $canonical_key;
+        }
+
+        $meta_keys = array_merge($meta_keys, bw_fpw_get_candidate_source_meta_keys($context_slug, $group_key));
+    }
+
+    $meta_keys = array_values(array_unique(array_filter($meta_keys)));
+
+    if (empty($meta_keys)) {
+        return $index;
+    }
+
+    $ids_in = implode(',', $product_ids);
+    $meta_placeholders = implode(',', array_fill(0, count($meta_keys), '%s'));
+    $query_args = array_merge($meta_keys, [$ids_in]);
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta}
+             WHERE meta_key IN ({$meta_placeholders}) AND post_id IN ({$ids_in})",
+            $meta_keys
+        )
+    );
+
+    $meta_by_post = [];
+    foreach ((array) $rows as $row) {
+        $post_id = absint($row->post_id);
+        $meta_key = is_string($row->meta_key) ? $row->meta_key : '';
+
+        if ($post_id <= 0 || '' === $meta_key) {
+            continue;
+        }
+
+        $meta_by_post[$post_id][$meta_key] = isset($row->meta_value) ? (string) $row->meta_value : '';
+    }
+
+    foreach ($product_ids as $post_id) {
+        $post_meta = isset($meta_by_post[$post_id]) ? $meta_by_post[$post_id] : [];
+
+        foreach ($supported_groups as $group_key => $definition) {
+            $canonical_key = isset($definition['canonical_key']) ? (string) $definition['canonical_key'] : '';
+            $tokens = [];
+            $seen = [];
+
+            if ('' !== $canonical_key && !empty($post_meta[$canonical_key])) {
+                $tokens = bw_fpw_extract_filter_tokens_from_value($post_meta[$canonical_key]);
+            }
+
+            if (empty($tokens)) {
+                foreach (bw_fpw_get_candidate_source_meta_keys($context_slug, $group_key) as $source_meta_key) {
+                    if (empty($post_meta[$source_meta_key])) {
+                        continue;
+                    }
+
+                    foreach (bw_fpw_extract_filter_tokens_from_value($post_meta[$source_meta_key]) as $token) {
+                        if (empty($token['value']) || isset($seen[$token['value']])) {
+                            continue;
+                        }
+
+                        $seen[$token['value']] = true;
+                        $tokens[] = $token;
+                    }
+                }
+            }
+
+            if (empty($tokens)) {
+                continue;
+            }
+
+            $token_values = [];
+            foreach ($tokens as $token) {
+                if (empty($token['value']) || empty($token['label'])) {
+                    continue;
+                }
+
+                $value = (string) $token['value'];
+                $label = (string) $token['label'];
+                $token_values[] = $value;
+
+                if (!isset($index['groups'][$group_key]['labels'][$value])) {
+                    $index['groups'][$group_key]['labels'][$value] = $label;
+                }
+
+                if (!isset($index['groups'][$group_key]['counts'][$value])) {
+                    $index['groups'][$group_key]['counts'][$value] = 0;
+                }
+
+                $index['groups'][$group_key]['counts'][$value]++;
+            }
+
+            if (!empty($token_values)) {
+                $index['groups'][$group_key]['post_map'][$post_id] = array_values(array_unique($token_values));
+            }
+        }
+    }
+
+    foreach ($index['groups'] as $group_key => $group_index) {
+        if (empty($group_index['counts'])) {
+            $index['groups'][$group_key]['supported'] = false;
+        } else {
+            ksort($index['groups'][$group_key]['counts'], SORT_NATURAL | SORT_FLAG_CASE);
+        }
+    }
+
+    return $index;
+}
+
+function bw_fpw_get_advanced_filter_index($context_slug)
+{
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+
+    if (empty(bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug))) {
+        return [
+            'context' => $context_slug ?: 'mixed',
+            'supported' => false,
+            'post_ids' => [],
+            'groups' => [],
+        ];
+    }
+
+    $transient_key = bw_fpw_get_advanced_filter_index_transient_key($context_slug);
+    $cached = get_transient($transient_key);
+
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $index = bw_fpw_build_advanced_filter_index($context_slug);
+    set_transient($transient_key, $index, 30 * MINUTE_IN_SECONDS);
+
+    return $index;
+}
+
+function bw_fpw_get_empty_advanced_filter_selections()
+{
+    $selections = [];
+
+    foreach (bw_fpw_get_advanced_filter_group_keys() as $group_key) {
+        $selections[$group_key] = [];
+    }
+
+    return $selections;
+}
+
+function bw_fpw_normalize_advanced_filter_selections($filters)
+{
+    $normalized = bw_fpw_get_empty_advanced_filter_selections();
+
+    if (!is_array($filters)) {
+        return $normalized;
+    }
+
+    foreach ($normalized as $group_key => $values) {
+        $normalized[$group_key] = bw_fpw_normalize_filter_token_selection_array(
+            isset($filters[$group_key]) ? $filters[$group_key] : [],
+            50
+        );
+    }
+
+    return $normalized;
+}
+
+function bw_fpw_has_active_advanced_filter_selections($filters)
+{
+    foreach (bw_fpw_normalize_advanced_filter_selections($filters) as $values) {
+        if (!empty($values)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function bw_fpw_apply_advanced_filters_to_post_ids($post_ids, $context_slug, $filters, $ignore_group = '')
+{
+    $normalized_filters = bw_fpw_normalize_advanced_filter_selections($filters);
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+    $supported_groups = bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug);
+    $index = bw_fpw_get_advanced_filter_index($context_slug);
+    $candidate_ids = is_array($post_ids)
+        ? array_values(array_unique(array_map('absint', $post_ids)))
+        : array_values(array_map('absint', isset($index['post_ids']) ? (array) $index['post_ids'] : []));
+
+    if (empty($candidate_ids) || empty($supported_groups)) {
+        return $candidate_ids;
+    }
+
+    $candidate_lookup = array_fill_keys($candidate_ids, true);
+
+    foreach ($normalized_filters as $group_key => $selected_tokens) {
+        if ($group_key === $ignore_group || empty($selected_tokens) || !isset($supported_groups[$group_key])) {
+            continue;
+        }
+
+        $selected_lookup = array_fill_keys($selected_tokens, true);
+        $post_map = isset($index['groups'][$group_key]['post_map']) ? (array) $index['groups'][$group_key]['post_map'] : [];
+
+        foreach (array_keys($candidate_lookup) as $post_id) {
+            $post_tokens = isset($post_map[$post_id]) ? (array) $post_map[$post_id] : [];
+            $matched = false;
+
+            foreach ($post_tokens as $token) {
+                if (isset($selected_lookup[$token])) {
+                    $matched = true;
+                    break;
+                }
+            }
+
+            if (!$matched) {
+                unset($candidate_lookup[$post_id]);
+            }
+        }
+
+        if (empty($candidate_lookup)) {
+            break;
+        }
+    }
+
+    return array_map('intval', array_keys($candidate_lookup));
+}
+
+function bw_fpw_build_advanced_filter_options_from_post_ids($context_slug, $group_key, $post_ids)
+{
+    $index = bw_fpw_get_advanced_filter_index($context_slug);
+    $group_index = isset($index['groups'][$group_key]) ? (array) $index['groups'][$group_key] : [];
+    $labels = isset($group_index['labels']) ? (array) $group_index['labels'] : [];
+    $post_map = isset($group_index['post_map']) ? (array) $group_index['post_map'] : [];
+    $candidate_ids = is_array($post_ids)
+        ? array_values(array_unique(array_map('absint', $post_ids)))
+        : array_values(array_map('absint', isset($index['post_ids']) ? (array) $index['post_ids'] : []));
+    $counts = [];
+    $options = [];
+
+    foreach ($candidate_ids as $post_id) {
+        if (empty($post_map[$post_id])) {
+            continue;
+        }
+
+        foreach ((array) $post_map[$post_id] as $token) {
+            if (!isset($counts[$token])) {
+                $counts[$token] = 0;
+            }
+
+            $counts[$token]++;
+        }
+    }
+
+    foreach ($counts as $token => $count) {
+        $label = isset($labels[$token]) ? (string) $labels[$token] : '';
+        if ('' === $label) {
+            continue;
+        }
+
+        $options[] = [
+            'value' => (string) $token,
+            'name' => $label,
+            'count' => (int) $count,
+        ];
+    }
+
+    usort(
+        $options,
+        static function ($a, $b) {
+            if ($a['count'] === $b['count']) {
+                return strcmp($a['name'], $b['name']);
+            }
+
+            return $b['count'] <=> $a['count'];
+        }
+    );
+
+    return array_values($options);
+}
+
+function bw_fpw_get_advanced_filter_ui($context_slug, $post_ids = null, $filters = [])
+{
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+    $supported_groups = bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug);
+    $base_post_ids = is_array($post_ids) ? array_values(array_unique(array_map('absint', $post_ids))) : null;
+    $ui = [];
+
+    foreach (bw_fpw_get_advanced_filter_group_definitions() as $group_key => $definition) {
+        if (!isset($supported_groups[$group_key])) {
+            $ui[$group_key] = [
+                'supported' => false,
+                'options' => [],
+            ];
+            continue;
+        }
+
+        $scoped_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_post_ids, $context_slug, $filters, $group_key);
+
+        $ui[$group_key] = [
+            'supported' => true,
+            'options' => bw_fpw_build_advanced_filter_options_from_post_ids($context_slug, $group_key, $scoped_post_ids),
+        ];
+    }
+
+    return $ui;
+}
+
 function bw_fpw_normalize_year_bound($value)
 {
     if (null === $value || '' === $value) {
@@ -2496,7 +3296,7 @@ function bw_fpw_get_empty_state_message($subcategories = [], $tags = [], $search
     return 'No results found.';
 }
 
-function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search, $year_from = null, $year_to = null)
+function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search, $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [], $ignore_advanced_group = '')
 {
     global $wpdb;
 
@@ -2572,10 +3372,22 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
         $like_sql    = "'" . esc_sql($like) . "'";
         $tax_sql     = "'" . esc_sql($taxonomy) . "'";
         $tag_tax_sql = "'" . esc_sql($tag_taxonomy) . "'";
-        $canonical_year_meta_sql = "'" . esc_sql(bw_fpw_get_canonical_year_meta_key()) . "'";
-        $canonical_author_meta_sql = "'" . esc_sql(bw_fpw_get_canonical_author_meta_key()) . "'";
-        $source_year_keys_sql = "'" . implode("','", array_map('esc_sql', bw_fpw_get_all_filter_source_year_meta_keys())) . "'";
-        $source_author_keys_sql = "'" . implode("','", array_map('esc_sql', bw_fpw_get_all_filter_source_author_meta_keys())) . "'";
+        $searchable_meta_keys = array_values(
+            array_unique(
+                array_merge(
+                    [bw_fpw_get_canonical_year_meta_key(), bw_fpw_get_canonical_author_meta_key()],
+                    array_filter([
+                        bw_fpw_get_canonical_artist_meta_key(),
+                        bw_fpw_get_canonical_publisher_meta_key(),
+                    ]),
+                    bw_fpw_get_all_filter_source_year_meta_keys(),
+                    bw_fpw_get_all_filter_source_author_meta_keys(),
+                    bw_fpw_get_all_filter_source_meta_keys_for_group('artist'),
+                    bw_fpw_get_all_filter_source_meta_keys_for_group('publisher')
+                )
+            )
+        );
+        $searchable_meta_keys_sql = "'" . implode("','", array_map('esc_sql', $searchable_meta_keys)) . "'";
         $wheres[]    = "(LOWER(p.post_title) LIKE {$like_sql}"
                      . " OR LOWER(p.post_name) LIKE {$like_sql}"
                      . " OR LOWER(p.post_excerpt) LIKE {$like_sql}"
@@ -2593,7 +3405,7 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
                      . " OR p.ID IN ("
                      . "   SELECT pm.post_id"
                      . "   FROM {$wpdb->postmeta} pm"
-                     . "   WHERE pm.meta_key IN ({$canonical_year_meta_sql}, {$canonical_author_meta_sql}, {$source_year_keys_sql}, {$source_author_keys_sql})"
+                     . "   WHERE pm.meta_key IN ({$searchable_meta_keys_sql})"
                      . "   AND LOWER(pm.meta_value) LIKE {$like_sql}"
                      . "))";
     }
@@ -2602,7 +3414,13 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
              . $joins
              . ' WHERE ' . implode(' AND ', $wheres);
     $raw_col = $wpdb->get_col($sql);
-    return array_map('absint', (array) $raw_col);
+    $post_ids = array_map('absint', (array) $raw_col);
+
+    if (!bw_fpw_has_active_advanced_filter_selections($advanced_filters)) {
+        return $post_ids;
+    }
+
+    return bw_fpw_apply_advanced_filters_to_post_ids($post_ids, $context_slug, $advanced_filters, $ignore_advanced_group);
 }
 function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
 {
@@ -2654,12 +3472,12 @@ function bw_fpw_collect_tags_from_posts($taxonomy, $post_ids)
     return array_values($results);
 }
 
-function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategories = [], $search = '', $year_from = null, $year_to = null)
+function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategories = [], $search = '', $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [])
 {
     $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
     $normalized_search = bw_fpw_normalize_search_value($search);
 
-    if (('all' === $category || empty($category)) && '' === $normalized_search && null === $year_from && null === $year_to) {
+    if (('all' === $category || empty($category)) && '' === $normalized_search && null === $year_from && null === $year_to && !bw_fpw_has_active_advanced_filter_selections($advanced_filters)) {
         $terms = get_terms(
             [
                 'taxonomy' => $tag_taxonomy,
@@ -2685,17 +3503,19 @@ function bw_fpw_get_related_tags_data($post_type, $category = 'all', $subcategor
     }
 
     $post_ids = '' === $normalized_search
-        ? bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from, $year_to)
-        : bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, [], $normalized_search, $year_from, $year_to);
+        ? bw_fpw_get_filtered_post_ids_for_tags($post_type, $category, $subcategories, $year_from, $year_to, $context_slug, $advanced_filters)
+        : bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, [], $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
 
     return bw_fpw_collect_tags_from_posts($tag_taxonomy, $post_ids);
 }
 
-function bw_fpw_get_available_subcategories_data($post_type, $category = 'all', $tags = [], $search = '', $year_from = null, $year_to = null)
+function bw_fpw_get_available_subcategories_data($post_type, $category = 'all', $tags = [], $search = '', $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [])
 {
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
     $normalized_search = bw_fpw_normalize_search_value($search);
-    $post_ids = bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search, $year_from, $year_to);
+    $post_ids = '' === $normalized_search
+        ? bw_fpw_get_candidate_post_ids_without_search($post_type, $category, [], $tags, $year_from, $year_to, $context_slug, $advanced_filters)
+        : bw_fpw_get_matching_post_ids($post_type, $category, [], $tags, $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters);
 
     if (empty($post_ids)) {
         return [];
@@ -2792,14 +3612,26 @@ function bw_fpw_normalize_array_for_cache_key($values)
     return $normalized;
 }
 
+function bw_fpw_normalize_token_array_for_cache_key($values)
+{
+    $normalized = bw_fpw_normalize_filter_token_selection_array($values, 50);
+    sort($normalized, SORT_NATURAL | SORT_FLAG_CASE);
+
+    return array_values($normalized);
+}
+
 function bw_fpw_generate_cache_key($params)
 {
     $params = is_array($params) ? $params : [];
+    $search_enabled = bw_fpw_normalize_bool(isset($params['search_enabled']) ? $params['search_enabled'] : null, true);
+    $search_value = $search_enabled
+        ? bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : '')
+        : '';
 
     $context_slug_for_key = isset($params['context_slug']) ? (string) $params['context_slug'] : '';
 
     $canonical_payload = [
-        'schema' => 'v4',
+        'schema' => 'v6',
         'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
         'context_slug' => $context_slug_for_key,
@@ -2807,14 +3639,21 @@ function bw_fpw_generate_cache_key($params)
         'category' => isset($params['category']) ? (string) $params['category'] : 'all',
         'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
         'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
-        'search' => bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : ''),
+        'search_enabled' => $search_enabled ? 1 : 0,
+        'search' => $search_value,
         'year_from' => bw_fpw_normalize_year_bound(isset($params['year_from']) ? $params['year_from'] : null),
         'year_to' => bw_fpw_normalize_year_bound(isset($params['year_to']) ? $params['year_to'] : null),
+        'artist' => bw_fpw_normalize_token_array_for_cache_key(isset($params['artist']) ? $params['artist'] : []),
+        'author' => bw_fpw_normalize_token_array_for_cache_key(isset($params['author']) ? $params['author'] : []),
+        'publisher' => bw_fpw_normalize_token_array_for_cache_key(isset($params['publisher']) ? $params['publisher'] : []),
+        'source' => bw_fpw_normalize_token_array_for_cache_key(isset($params['source']) ? $params['source'] : []),
+        'technique' => bw_fpw_normalize_token_array_for_cache_key(isset($params['technique']) ? $params['technique'] : []),
         'image_toggle' => !empty($params['image_toggle']) ? 1 : 0,
         'image_size' => isset($params['image_size']) ? (string) $params['image_size'] : 'large',
         'image_mode' => isset($params['image_mode']) ? (string) $params['image_mode'] : 'proportional',
         'hover_effect' => !empty($params['hover_effect']) ? 1 : 0,
         'open_cart_popup' => !empty($params['open_cart_popup']) ? 1 : 0,
+        'sort_key' => bw_fpw_normalize_sort_key(isset($params['sort_key']) ? $params['sort_key'] : 'default'),
         'order_by' => isset($params['order_by']) ? (string) $params['order_by'] : 'date',
         'order' => isset($params['order']) ? (string) $params['order'] : 'DESC',
         'per_page' => isset($params['per_page']) ? (int) $params['per_page'] : bw_fpw_get_default_per_page(),
@@ -2879,7 +3718,7 @@ function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $
         return;
     }
 
-    if (in_array($meta_key, [bw_fpw_get_canonical_year_meta_key(), bw_fpw_get_canonical_author_meta_key()], true)) {
+    if (in_array($meta_key, bw_fpw_get_all_filter_canonical_meta_keys(), true)) {
         return;
     }
 
@@ -2889,6 +3728,7 @@ function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $
     $slugs = ('' !== $family && 'mixed' !== $family) ? [$family] : null;
     bw_fpw_clear_grid_transient_cache($slugs);
     bw_fpw_clear_year_index_transients();
+    bw_fpw_clear_advanced_filter_index_transients();
 }
 add_action('added_post_meta', 'bw_fpw_handle_product_filter_meta_change', 10, 4);
 add_action('updated_post_meta', 'bw_fpw_handle_product_filter_meta_change', 10, 4);
@@ -2904,6 +3744,7 @@ function bw_fpw_handle_product_filter_term_change($object_id, $terms, $tt_ids, $
     bw_fpw_sync_product_filter_meta($object_id);
     bw_fpw_clear_grid_transient_cache();
     bw_fpw_clear_year_index_transients();
+    bw_fpw_clear_advanced_filter_index_transients();
 }
 add_action('set_object_terms', 'bw_fpw_handle_product_filter_term_change', 10, 6);
 
@@ -2916,6 +3757,7 @@ function bw_fpw_handle_product_filter_status_change($new_status, $old_status, $p
     bw_fpw_sync_product_filter_meta($post->ID);
     bw_fpw_clear_grid_transient_cache();
     bw_fpw_clear_year_index_transients();
+    bw_fpw_clear_advanced_filter_index_transients();
 }
 add_action('transition_post_status', 'bw_fpw_handle_product_filter_status_change', 10, 3);
 
@@ -2944,20 +3786,34 @@ function bw_fpw_filter_posts_inner()
     $category = bw_fpw_normalize_term_selector(isset($_POST['category']) ? wp_unslash($_POST['category']) : 'all');
     $subcategories = bw_fpw_normalize_int_array(isset($_POST['subcategories']) ? wp_unslash($_POST['subcategories']) : [], 50);
     $tags = bw_fpw_normalize_int_array(isset($_POST['tags']) ? wp_unslash($_POST['tags']) : [], 50);
-    $search = bw_fpw_normalize_search_query(isset($_POST['search']) ? wp_unslash($_POST['search']) : '');
+    $search_enabled = bw_fpw_normalize_bool(isset($_POST['search_enabled']) ? wp_unslash($_POST['search_enabled']) : null, true);
+    $search = $search_enabled
+        ? bw_fpw_normalize_search_query(isset($_POST['search']) ? wp_unslash($_POST['search']) : '')
+        : '';
     $normalized_year_range = bw_fpw_normalize_year_range(
         isset($_POST['year_from']) ? wp_unslash($_POST['year_from']) : null,
         isset($_POST['year_to']) ? wp_unslash($_POST['year_to']) : null
     );
     $year_from = $normalized_year_range['from'];
     $year_to = $normalized_year_range['to'];
+    $advanced_filters = bw_fpw_normalize_advanced_filter_selections([
+        'artist' => isset($_POST['artist']) ? wp_unslash($_POST['artist']) : [],
+        'author' => isset($_POST['author']) ? wp_unslash($_POST['author']) : [],
+        'publisher' => isset($_POST['publisher']) ? wp_unslash($_POST['publisher']) : [],
+        'source' => isset($_POST['source']) ? wp_unslash($_POST['source']) : [],
+        'technique' => isset($_POST['technique']) ? wp_unslash($_POST['technique']) : [],
+    ]);
     $image_toggle = bw_fpw_normalize_bool(isset($_POST['image_toggle']) ? wp_unslash($_POST['image_toggle']) : null, false);
     $image_size = bw_fpw_normalize_image_size(isset($_POST['image_size']) ? wp_unslash($_POST['image_size']) : 'large');
     $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
     $hover_effect = bw_fpw_normalize_bool(isset($_POST['hover_effect']) ? wp_unslash($_POST['hover_effect']) : null, false);
     $open_cart_popup = bw_fpw_normalize_bool(isset($_POST['open_cart_popup']) ? wp_unslash($_POST['open_cart_popup']) : null, false);
-    $order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
-    $order = bw_fpw_normalize_order(isset($_POST['order']) ? wp_unslash($_POST['order']) : 'DESC');
+    $default_order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
+    $default_order = bw_fpw_normalize_order(isset($_POST['order']) ? wp_unslash($_POST['order']) : 'DESC');
+    $sort_key = bw_fpw_normalize_sort_key(isset($_POST['sort_key']) ? wp_unslash($_POST['sort_key']) : 'default');
+    $sort_config = bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order, $post_type);
+    $order_by = $sort_config['effective_order_by'];
+    $order = $sort_config['effective_order'];
     $raw_per_page = isset($_POST['per_page']) ? wp_unslash($_POST['per_page']) : bw_fpw_get_default_per_page();
     $normalized_per_page = is_numeric($raw_per_page) ? (int) $raw_per_page : bw_fpw_get_default_per_page();
     $per_page = $normalized_per_page <= 0
@@ -2998,14 +3854,21 @@ function bw_fpw_filter_posts_inner()
             'category' => $category,
             'subcategories' => $subcategories,
             'tags' => $tags,
+            'search_enabled' => $search_enabled,
             'search' => $search,
             'year_from' => $year_from,
             'year_to' => $year_to,
+            'artist' => $advanced_filters['artist'],
+            'author' => $advanced_filters['author'],
+            'publisher' => $advanced_filters['publisher'],
+            'source' => $advanced_filters['source'],
+            'technique' => $advanced_filters['technique'],
             'image_toggle' => $image_toggle,
             'image_size' => $image_size,
             'image_mode' => $image_mode,
             'hover_effect' => $hover_effect,
             'open_cart_popup' => $open_cart_popup,
+            'sort_key' => $sort_key,
             'order_by' => $order_by,
             'order' => $order,
             'per_page' => $per_page,
@@ -3034,8 +3897,6 @@ function bw_fpw_filter_posts_inner()
         'post_status' => 'publish',
         'no_found_rows' => $is_append,
         'ignore_sticky_posts' => true,
-        'orderby' => $order_by,
-        'order' => $order,
     ];
 
     // year_int sorting uses a numeric meta field; remap to WP_Query meta_value_num
@@ -3085,20 +3946,57 @@ function bw_fpw_filter_posts_inner()
         $query_args['meta_query'] = $meta_query;
     }
 
-    if ('' !== $search) {
-        // Text search: find IDs matching the search term across title/slug/excerpt/terms.
-        // Category and tag filtering is already handled by tax_query above,
-        // so we pass 'all'/'[]' here to avoid a complex JOIN that can silently return
-        // empty when there is a category mismatch between the SQL and the term hierarchy.
-        // Pass year bounds so the search SQL already filters by year, reducing the post__in set
-        // before WP_Query applies its own meta_query. Category/tag are deliberately omitted here
-        // (handled by tax_query above) to avoid JOIN complexity on the term hierarchy.
-        $matching_post_ids = bw_fpw_get_matching_post_ids($post_type, 'all', [], [], $search, $year_from, $year_to);
+    $effective_context_slug = $context_slug;
 
-        if (empty($matching_post_ids)) {
+    if ('' === $effective_context_slug && 'product' === $post_type && 'all' !== $category) {
+        $effective_context_slug = bw_fpw_resolve_product_family_slug_from_term_id(absint($category), 'product_cat');
+    }
+
+    $base_candidate_post_ids = [];
+    $final_candidate_post_ids = [];
+    $has_active_advanced_filters = bw_fpw_has_active_advanced_filter_selections($advanced_filters);
+    $supports_advanced_filters = !empty(bw_fpw_get_supported_advanced_filter_groups_for_context($effective_context_slug));
+
+    if ('product' === $post_type) {
+        if ('' !== $search) {
+            $base_candidate_post_ids = bw_fpw_get_matching_post_ids(
+                $post_type,
+                $category,
+                $subcategories,
+                $tags,
+                $search,
+                $year_from,
+                $year_to,
+                $effective_context_slug,
+                []
+            );
+        } elseif ($has_active_advanced_filters || $supports_advanced_filters) {
+            $base_candidate_post_ids = bw_fpw_get_candidate_post_ids_without_search(
+                $post_type,
+                $category,
+                $subcategories,
+                $tags,
+                $year_from,
+                $year_to,
+                $effective_context_slug,
+                []
+            );
+        }
+    }
+
+    if ($has_active_advanced_filters) {
+        $final_candidate_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
+
+        if (empty($final_candidate_post_ids)) {
             $query_args['post__in'] = [0];
         } else {
-            $query_args['post__in'] = $matching_post_ids;
+            $query_args['post__in'] = $final_candidate_post_ids;
+        }
+    } elseif ('' !== $search) {
+        if (empty($base_candidate_post_ids)) {
+            $query_args['post__in'] = [0];
+        } else {
+            $query_args['post__in'] = $base_candidate_post_ids;
         }
     }
 
@@ -3329,8 +4227,8 @@ function bw_fpw_filter_posts_inner()
 
     $html = ob_get_clean();
 
-    $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search, $year_from, $year_to);
-    $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search, $year_from, $year_to);
+    $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
+    $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
     $available_tags = wp_list_pluck($related_tags, 'term_id');
     // On append loads no_found_rows is true, so found_posts is 0; preserve null
     // to signal JS that the displayed count should not be overwritten.
@@ -3348,6 +4246,13 @@ function bw_fpw_filter_posts_inner()
         'max' => null,
         'quick_ranges' => [],
     ];
+    $advanced_filter_ui = 'product' === $post_type
+        ? bw_fpw_get_advanced_filter_ui(
+            $effective_context_slug,
+            $base_candidate_post_ids,
+            $advanced_filters
+        )
+        : [];
 
     $response_data = [
         'html' => $html,
@@ -3368,6 +4273,7 @@ function bw_fpw_filter_posts_inner()
             'tags' => array_values($related_tags),
             'result_count' => $result_count,
             'year' => $year_ui,
+            'advanced' => $advanced_filter_ui,
         ],
     ];
 

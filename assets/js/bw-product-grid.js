@@ -406,6 +406,7 @@
     var staggerTimersByWidget = {};
     var staggerObserversByWidget = {};
     var searchDebounceTimers = {};
+    var searchBindingsActive = false;
 
     // ============================================
     // PERFORMANCE OPTIMIZATION - CACHING SYSTEM
@@ -561,15 +562,44 @@
         return !!(state && state.year && (state.year.from !== null || state.year.to !== null));
     }
 
+    function isWidgetSearchEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.searchEnabled === 'boolean') {
+            return resolvedState.ui.searchEnabled;
+        }
+
+        if (!widgetId) {
+            return true;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+
+        return ($grid.attr('data-search-enabled') || 'yes') === 'yes';
+    }
+
     function hasActiveDiscoveryFilters(state) {
+        var hasActiveTokenGroups = false;
+        var searchEnabled = false;
+
         if (!state) {
             return false;
         }
 
+        searchEnabled = isWidgetSearchEnabled(null, state);
+
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            if (!hasActiveTokenGroups && getDiscoverySelections(state, groupKey).length > 0) {
+                hasActiveTokenGroups = true;
+            }
+        });
+
         return state.subcategories.length > 0 ||
             state.tags.length > 0 ||
+            hasActiveTokenGroups ||
             hasActiveYearFilter(state) ||
-            $.trim(state.search || '') !== '';
+            (searchEnabled && $.trim(state.search || '') !== '');
     }
 
     function disconnectInfiniteObserver(widgetId) {
@@ -811,17 +841,25 @@
     function initFilterState(widgetId) {
         if (!filterState[widgetId]) {
             var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
+            var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
             var defaultCategory = $filters.attr('data-default-category');
             var initialCategory = 'all';
+            var searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
 
             if (defaultCategory && defaultCategory !== 'all') {
                 initialCategory = defaultCategory;
             }
 
             filterState[widgetId] = {
+                sortKey: normalizeDiscoverySortKey($grid.attr('data-default-sort-key') || 'default'),
                 category: initialCategory,
                 subcategories: [],
                 tags: [],
+                artists: [],
+                authors: [],
+                publishers: [],
+                sources: [],
+                techniques: [],
                 search: '',
                 appliedSearch: '',
                 year: createEmptyYearState(),
@@ -830,25 +868,56 @@
                 resultCount: 0,
                 options: {
                     types: [],
-                    tags: []
+                    tags: [],
+                    artist: [],
+                    author: [],
+                    publisher: [],
+                    source: [],
+                    technique: []
                 },
                 labels: {
                     types: {},
-                    tags: {}
+                    tags: {},
+                    artist: {},
+                    author: {},
+                    publisher: {},
+                    source: {},
+                    technique: {}
                 },
                 ui: {
                     showTypes: true,
                     showTags: true,
                     showYears: false,
+                    showArtist: false,
+                    showAuthor: false,
+                    showPublisher: false,
+                    showSource: false,
+                    showTechnique: false,
+                    showOrderBy: ($grid.attr('data-show-order-by') || 'no') === 'yes',
+                    showVisibleFilters: ($grid.attr('data-show-visible-filters') || 'no') === 'yes',
+                    orderTriggerStyle: ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon',
+                    sortMenuOpen: false,
+                    visibleFilterOpenGroup: '',
                     optionSearches: {
                         types: '',
-                        tags: ''
+                        tags: '',
+                        artist: '',
+                        author: '',
+                        publisher: '',
+                        source: '',
+                        technique: ''
                     },
                     openGroups: {
                         types: false,
                         tags: false,
-                        years: false
+                        years: false,
+                        artist: false,
+                        author: false,
+                        publisher: false,
+                        source: false,
+                        technique: false
                     },
+                    searchEnabled: searchEnabled,
                     yearDraft: {
                         from: null,
                         to: null
@@ -888,6 +957,299 @@
         return $.trim(text);
     }
 
+    function getDiscoveryTokenGroupKeys() {
+        return ['artist', 'author', 'publisher', 'source', 'technique'];
+    }
+
+    function isDiscoveryTokenGroup(groupKey) {
+        return getDiscoveryTokenGroupKeys().indexOf(groupKey) > -1;
+    }
+
+    function normalizeDiscoveryTokenValue(value) {
+        return normalizeDiscoveryText(value);
+    }
+
+    function uniqueStringArray(values) {
+        var seen = {};
+        var result = [];
+
+        (Array.isArray(values) ? values : []).forEach(function (value) {
+            var normalized = normalizeDiscoveryTokenValue(value);
+
+            if (normalized && !seen[normalized]) {
+                seen[normalized] = true;
+                result.push(normalized);
+            }
+        });
+
+        return result;
+    }
+
+    function getDiscoverySortOptions() {
+        return {
+            'default': {
+                triggerLabel: 'Default',
+                menuLabel: 'Default order',
+                orderBy: null,
+                order: null
+            },
+            recent: {
+                triggerLabel: 'Latest',
+                menuLabel: 'Recently added',
+                orderBy: 'date',
+                order: 'DESC'
+            },
+            oldest: {
+                triggerLabel: 'Earliest',
+                menuLabel: 'Oldest added',
+                orderBy: 'date',
+                order: 'ASC'
+            },
+            title_asc: {
+                triggerLabel: 'A–Z',
+                menuLabel: 'Alphabetical A to Z',
+                orderBy: 'title',
+                order: 'ASC'
+            },
+            title_desc: {
+                triggerLabel: 'Z–A',
+                menuLabel: 'Alphabetical Z to A',
+                orderBy: 'title',
+                order: 'DESC'
+            },
+            year_asc: {
+                triggerLabel: 'Year ↑',
+                menuLabel: 'Year, oldest first',
+                orderBy: 'date',
+                order: 'ASC'
+            },
+            year_desc: {
+                triggerLabel: 'Year ↓',
+                menuLabel: 'Year, newest first',
+                orderBy: 'date',
+                order: 'DESC'
+            }
+        };
+    }
+
+    function normalizeDiscoverySortKey(value) {
+        var sortKey = String(value || 'default').toLowerCase();
+        var options = getDiscoverySortOptions();
+
+        return options.hasOwnProperty(sortKey) ? sortKey : 'default';
+    }
+
+    function getDefaultDiscoverySortConfig(widgetId) {
+        var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        var orderBy = String($grid.attr('data-default-order-by') || $grid.attr('data-order-by') || 'date');
+        var order = String($grid.attr('data-default-order') || $grid.attr('data-order') || 'DESC').toUpperCase();
+
+        if (['date', 'modified', 'title', 'rand', 'ID'].indexOf(orderBy) === -1) {
+            orderBy = 'date';
+        }
+
+        if (['ASC', 'DESC'].indexOf(order) === -1) {
+            order = 'DESC';
+        }
+
+        if (orderBy === 'rand') {
+            order = 'ASC';
+        }
+
+        return {
+            orderBy: orderBy,
+            order: order
+        };
+    }
+
+    function isDiscoverySortEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.showOrderBy === 'boolean') {
+            return resolvedState.ui.showOrderBy;
+        }
+
+        if (!widgetId) {
+            return false;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        return ($grid.attr('data-show-order-by') || 'no') === 'yes';
+    }
+
+    function isDiscoveryVisibleFiltersEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.showVisibleFilters === 'boolean') {
+            return resolvedState.ui.showVisibleFilters;
+        }
+
+        if (!widgetId) {
+            return false;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        return ($grid.attr('data-show-visible-filters') || 'no') === 'yes';
+    }
+
+    function getDiscoveryGroupConfigs() {
+        return [
+            {
+                key: 'types',
+                label: 'Categories',
+                visibleLabel: 'Categories',
+                placeholder: 'Search types...'
+            },
+            {
+                key: 'tags',
+                label: 'Style / Subject',
+                visibleLabel: 'Style / Subject',
+                placeholder: 'Search styles...'
+            },
+            {
+                key: 'years',
+                label: 'Years',
+                visibleLabel: 'Year',
+                placeholder: ''
+            },
+            {
+                key: 'artist',
+                label: 'Artist',
+                visibleLabel: 'Artists',
+                placeholder: 'Search artists...'
+            },
+            {
+                key: 'author',
+                label: 'Author',
+                visibleLabel: 'Author',
+                placeholder: 'Search authors...'
+            },
+            {
+                key: 'publisher',
+                label: 'Publisher',
+                visibleLabel: 'Publisher',
+                placeholder: 'Search publishers...'
+            },
+            {
+                key: 'source',
+                label: 'Source',
+                visibleLabel: 'Source',
+                placeholder: 'Search sources...'
+            },
+            {
+                key: 'technique',
+                label: 'Technique',
+                visibleLabel: 'Technique',
+                placeholder: 'Search techniques...'
+            }
+        ];
+    }
+
+    function getDiscoveryGroupConfig(groupKey) {
+        var config = null;
+
+        getDiscoveryGroupConfigs().some(function (groupConfig) {
+            if (groupConfig.key === groupKey) {
+                config = groupConfig;
+                return true;
+            }
+
+            return false;
+        });
+
+        return config;
+    }
+
+    function getVisibleDiscoveryGroupKeys() {
+        return ['types', 'tags', 'artist', 'source', 'years'];
+    }
+
+    function getDiscoverySortTriggerStyle(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && resolvedState.ui.orderTriggerStyle) {
+            return resolvedState.ui.orderTriggerStyle;
+        }
+
+        if (!widgetId) {
+            return 'icon';
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        return ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon';
+    }
+
+    function getEffectiveDiscoverySortConfig(widgetId, state) {
+        var resolvedState = state || getDiscoveryState(widgetId);
+        var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
+        var options = getDiscoverySortOptions();
+        var option = options[sortKey] || options['default'];
+        var defaults = getDefaultDiscoverySortConfig(widgetId);
+
+        return {
+            sortKey: sortKey,
+            triggerLabel: option.triggerLabel,
+            menuLabel: option.menuLabel,
+            orderBy: sortKey === 'default' ? defaults.orderBy : option.orderBy,
+            order: sortKey === 'default' ? defaults.order : option.order
+        };
+    }
+
+    function getDiscoverySelectionStateKey(groupKey) {
+        switch (groupKey) {
+            case 'types':
+                return 'subcategories';
+            case 'tags':
+                return 'tags';
+            case 'artist':
+                return 'artists';
+            case 'author':
+                return 'authors';
+            case 'publisher':
+                return 'publishers';
+            case 'source':
+                return 'sources';
+            case 'technique':
+                return 'techniques';
+            default:
+                return '';
+        }
+    }
+
+    function getDiscoveryGroupVisibilityFlag(groupKey) {
+        switch (groupKey) {
+            case 'types':
+                return 'showTypes';
+            case 'tags':
+                return 'showTags';
+            case 'years':
+                return 'showYears';
+            case 'artist':
+                return 'showArtist';
+            case 'author':
+                return 'showAuthor';
+            case 'publisher':
+                return 'showPublisher';
+            case 'source':
+                return 'showSource';
+            case 'technique':
+                return 'showTechnique';
+            default:
+                return '';
+        }
+    }
+
+    function getDiscoveryOptionKey(groupKey, option) {
+        if (groupKey === 'types' || groupKey === 'tags') {
+            return parseInteger(option && option.term_id, 0);
+        }
+
+        return normalizeDiscoveryTokenValue(option && option.value);
+    }
+
     function getDiscoveryBootstrapPayload(widgetId) {
         var $bootstrap = $('.bw-fpw-discovery-bootstrap[data-widget-id="' + widgetId + '"]').first();
 
@@ -912,10 +1274,10 @@
         }
 
         (Array.isArray(options) ? options : []).forEach(function (option) {
-            var termId = parseInteger(option.term_id, 0);
+            var optionKey = getDiscoveryOptionKey(groupKey, option);
 
-            if (termId > 0 && option.name) {
-                state.labels[groupKey][termId] = option.name;
+            if ((isDiscoveryTokenGroup(groupKey) ? !!optionKey : optionKey > 0) && option.name) {
+                state.labels[groupKey][optionKey] = option.name;
             }
         });
     }
@@ -934,26 +1296,35 @@
     }
 
     function mergeSelectedDiscoveryOptions(state, groupKey, options) {
-        var selectedIds = groupKey === 'types' ? state.subcategories : state.tags;
+        var selectedIds = getDiscoverySelections(state, groupKey);
         var optionMap = {};
 
         sortDiscoveryOptions(options).forEach(function (option) {
-            var termId = parseInteger(option.term_id, 0);
+            var optionKey = getDiscoveryOptionKey(groupKey, option);
 
-            if (termId > 0) {
-                optionMap[termId] = {
-                    term_id: termId,
-                    name: option.name || state.labels[groupKey][termId] || '',
+            if (isDiscoveryTokenGroup(groupKey) ? !!optionKey : optionKey > 0) {
+                optionMap[String(optionKey)] = isDiscoveryTokenGroup(groupKey) ? {
+                    value: optionKey,
+                    name: option.name || state.labels[groupKey][optionKey] || '',
+                    count: Math.max(0, parseInteger(option.count, 0))
+                } : {
+                    term_id: optionKey,
+                    name: option.name || state.labels[groupKey][optionKey] || '',
                     count: Math.max(0, parseInteger(option.count, 0))
                 };
             }
         });
 
-        (Array.isArray(selectedIds) ? selectedIds : []).forEach(function (termId) {
-            if (!optionMap[termId]) {
-                optionMap[termId] = {
-                    term_id: termId,
-                    name: state.labels[groupKey][termId] || '',
+        (Array.isArray(selectedIds) ? selectedIds : []).forEach(function (selectedValue) {
+            var mapKey = String(selectedValue);
+            if (!optionMap[mapKey]) {
+                optionMap[mapKey] = isDiscoveryTokenGroup(groupKey) ? {
+                    value: selectedValue,
+                    name: state.labels[groupKey][selectedValue] || '',
+                    count: 0
+                } : {
+                    term_id: selectedValue,
+                    name: state.labels[groupKey][selectedValue] || '',
                     count: 0
                 };
             }
@@ -962,7 +1333,8 @@
         return sortDiscoveryOptions(Object.keys(optionMap).map(function (key) {
             return optionMap[key];
         })).filter(function (option) {
-            return option.term_id > 0 && option.name;
+            var optionKey = getDiscoveryOptionKey(groupKey, option);
+            return (isDiscoveryTokenGroup(groupKey) ? !!optionKey : optionKey > 0) && option.name;
         });
     }
 
@@ -982,6 +1354,28 @@
             storeDiscoveryLabels(state, 'tags', filterUi.tags);
             state.options.tags = mergeSelectedDiscoveryOptions(state, 'tags', filterUi.tags);
         }
+
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            var groupUi = filterUi.advanced && filterUi.advanced[groupKey] ? filterUi.advanced[groupKey] : null;
+            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+            var stateKey = getDiscoverySelectionStateKey(groupKey);
+
+            if (visibilityFlag) {
+                state.ui[visibilityFlag] = !!(groupUi && groupUi.supported);
+            }
+
+            if (groupUi && Array.isArray(groupUi.options)) {
+                storeDiscoveryLabels(state, groupKey, groupUi.options);
+                state.options[groupKey] = mergeSelectedDiscoveryOptions(state, groupKey, groupUi.options);
+            } else if (visibilityFlag && !state.ui[visibilityFlag]) {
+                state.options[groupKey] = [];
+                if (stateKey) {
+                    state[stateKey] = [];
+                }
+                state.ui.optionSearches[groupKey] = '';
+                state.ui.openGroups[groupKey] = false;
+            }
+        });
 
         if (typeof filterUi.result_count !== 'undefined') {
             state.resultCount = Math.max(0, parseInteger(filterUi.result_count, state.resultCount));
@@ -1012,7 +1406,8 @@
     }
 
     function getDiscoverySelections(state, groupKey) {
-        return groupKey === 'types' ? state.subcategories : state.tags;
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+        return stateKey && Array.isArray(state[stateKey]) ? state[stateKey] : [];
     }
 
     function hasDiscoverySelection(state, groupKey, termId) {
@@ -1058,16 +1453,27 @@
         state.tags.forEach(function (termId) {
             chips.push({
                 group: 'tags',
-                term_id: termId,
+                value: termId,
                 name: state.labels.tags[termId] || '',
                 selected: true
+            });
+        });
+
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            getDiscoverySelections(state, groupKey).forEach(function (tokenValue) {
+                chips.push({
+                    group: groupKey,
+                    value: tokenValue,
+                    name: state.labels[groupKey][tokenValue] || '',
+                    selected: true
+                });
             });
         });
 
         if (hasActiveYearFilter(state)) {
             chips.push({
                 group: 'years',
-                term_id: 0,
+                value: '',
                 name: getYearRangeLabel(state.year),
                 selected: true
             });
@@ -1078,20 +1484,37 @@
         });
     }
 
+    function buildDiscoveryChipHtml(chip, widgetId) {
+        var filterValue = typeof chip.value !== 'undefined' ? chip.value : chip.term_id;
+
+        return '<div class="bw-fpw-active-chip bw-fpw-quick-filter is-selected" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-filter-value="' + escapeHtml(filterValue == null ? '' : filterValue) + '">' +
+            '<span class="bw-fpw-active-chip__label bw-fpw-quick-filter__label">' + escapeHtml(chip.name) + '</span>' +
+            '<button class="bw-fpw-active-chip__remove bw-fpw-quick-filter__remove" type="button" aria-label="Remove ' + escapeHtml(chip.name) + '" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-filter-value="' + escapeHtml(filterValue == null ? '' : filterValue) + '"></button>' +
+            '</div>';
+    }
+
     function renderDiscoveryActiveChips(widgetId) {
         var activeChips = getDiscoveryActiveChips(widgetId);
         var html = '';
+        var containers;
+        var state = getDiscoveryState(widgetId);
 
         activeChips.forEach(function (chip) {
-            html += '<div class="bw-fpw-active-chip bw-fpw-quick-filter is-selected" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '">';
-            html += '<span class="bw-fpw-active-chip__label bw-fpw-quick-filter__label">' + escapeHtml(chip.name) + '</span>';
-            html += '<button class="bw-fpw-active-chip__remove bw-fpw-quick-filter__remove" type="button" aria-label="Remove ' + escapeHtml(chip.name) + '" data-widget-id="' + widgetId + '" data-group="' + chip.group + '" data-term-id="' + chip.term_id + '"></button>';
-            html += '</div>';
+            html += buildDiscoveryChipHtml(chip, widgetId);
         });
 
-        $('.bw-fpw-active-chips[data-widget-id="' + widgetId + '"], .bw-fpw-quick-filters[data-widget-id="' + widgetId + '"]')
-            .html(html)
-            .toggleClass('is-empty', activeChips.length === 0);
+        containers = document.querySelectorAll('.bw-fpw-active-chips[data-widget-id="' + widgetId + '"]');
+
+        containers.forEach(function (container) {
+            if (container.classList.contains('bw-fpw-quick-filters') && isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+                container.innerHTML = '';
+                container.classList.add('is-empty');
+                return;
+            }
+
+            container.innerHTML = html;
+            container.classList.toggle('is-empty', html === '');
+        });
     }
 
     function getResolvedYearDraft(state) {
@@ -1124,19 +1547,11 @@
         return 'left:' + start + '%;width:' + Math.max(0, end - start) + '%;';
     }
 
-    function renderDiscoveryYearSection(widgetId, state) {
-        var isOpen = !!state.ui.openGroups.years || hasActiveYearFilter(state);
+    function renderDiscoveryYearPanelContent(widgetId, state) {
         var bounds = state.yearBounds || createEmptyYearBounds();
         var resolvedDraft = getResolvedYearDraft(state);
         var quickRanges = Array.isArray(state.yearQuickRanges) ? state.yearQuickRanges : [];
         var html = '';
-
-        html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
-        html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
-        html += '<span class="bw-fpw-discovery-group__title">Years</span>';
-        html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true"><svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span>';
-        html += '</button>';
-        html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
 
         if (bounds.min !== null && bounds.max !== null) {
             html += '<div class="bw-fpw-year-slider" data-widget-id="' + widgetId + '">';
@@ -1167,8 +1582,46 @@
             html += '</div>';
         }
 
+        return html;
+    }
+
+    function renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, surfaceKey) {
+        var groupKey = groupConfig.key;
+        var options = state.options[groupKey] || [];
+        var selectedIds = getDiscoverySelections(state, groupKey);
+        var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
+        var visibleOptions = options.filter(function (option) {
+            if (!termSearch) {
+                return true;
+            }
+
+            return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
+        });
+        var html = '';
+
+        html += '<label class="bw-fpw-discovery-group-search">';
+        html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
+        html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-surface="' + escapeHtml(surfaceKey || 'drawer') + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
+        html += '</label>';
+        html += '<div class="bw-fpw-discovery-options">';
+
+        if (visibleOptions.length) {
+            visibleOptions.forEach(function (option) {
+                var optionValue = getDiscoveryOptionKey(groupKey, option);
+                var isSelected = selectedIds.indexOf(optionValue) > -1;
+                var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
+
+                html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
+                html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
+                html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
+                html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
+                html += '</button>';
+            });
+        } else {
+            html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
+        }
+
         html += '</div>';
-        html += '</section>';
 
         return html;
     }
@@ -1177,74 +1630,56 @@
         var state = getDiscoveryState(widgetId);
         var resolvedDraft = getResolvedYearDraft(state);
         var normalizedLabel = getYearRangeLabel(normalizeYearRange(resolvedDraft.from, resolvedDraft.to)) || 'Any year';
-        var $group = $('.bw-fpw-discovery-group--years[data-widget-id="' + widgetId + '"]');
+        var $context = $('.bw-fpw-discovery-group--years[data-widget-id="' + widgetId + '"], .bw-fpw-visible-filter[data-widget-id="' + widgetId + '"][data-group="years"]');
 
-        if (!$group.length) {
+        if (!$context.length) {
             return;
         }
 
-        $group.find('.bw-fpw-year-slider__active').attr('style', buildYearSliderTrackStyle(resolvedDraft));
-        $group.find('.bw-fpw-year-slider__selection').text(normalizedLabel);
+        $context.find('.bw-fpw-year-slider__active').attr('style', buildYearSliderTrackStyle(resolvedDraft));
+        $context.find('.bw-fpw-year-slider__selection').text(normalizedLabel);
 
-        $group.find('.bw-fpw-year-slider__input--from').val(resolvedDraft.from !== null ? resolvedDraft.from : resolvedDraft.min);
-        $group.find('.bw-fpw-year-slider__input--to').val(resolvedDraft.to !== null ? resolvedDraft.to : resolvedDraft.max);
-        $group.find('.bw-fpw-year-input__field[data-year-field="from"]').val(state.ui.yearDraft.from !== null ? state.ui.yearDraft.from : '');
-        $group.find('.bw-fpw-year-input__field[data-year-field="to"]').val(state.ui.yearDraft.to !== null ? state.ui.yearDraft.to : '');
+        $context.find('.bw-fpw-year-slider__input--from').val(resolvedDraft.from !== null ? resolvedDraft.from : resolvedDraft.min);
+        $context.find('.bw-fpw-year-slider__input--to').val(resolvedDraft.to !== null ? resolvedDraft.to : resolvedDraft.max);
+        $context.find('.bw-fpw-year-input__field[data-year-field="from"]').val(state.ui.yearDraft.from !== null ? state.ui.yearDraft.from : '');
+        $context.find('.bw-fpw-year-input__field[data-year-field="to"]').val(state.ui.yearDraft.to !== null ? state.ui.yearDraft.to : '');
     }
 
     function renderDiscoveryDrawerGroups(widgetId) {
         var state = filterState[widgetId];
         var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
         var chevronIcon = '<svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
-        var groupConfigs = [
-            {
-                key: 'types',
-                label: 'Categories',
-                placeholder: 'Search types...'
-            },
-            {
-                key: 'tags',
-                label: 'Style / Subject',
-                placeholder: 'Search styles...'
-            },
-            {
-                key: 'years',
-                label: 'Years',
-                placeholder: ''
-            }
-        ];
         var html = '';
 
         if (!state || !$groups.length) {
             return;
         }
 
-        groupConfigs.forEach(function (groupConfig) {
+        getDiscoveryGroupConfigs().forEach(function (groupConfig) {
             var groupKey = groupConfig.key;
-            var showGroup = groupKey === 'types'
-                ? state.ui.showTypes
-                : (groupKey === 'tags' ? state.ui.showTags : state.ui.showYears);
+            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+            var showGroup = visibilityFlag ? !!state.ui[visibilityFlag] : false;
+            var termSearch = groupKey === 'years' ? '' : normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
+            var isOpen = groupKey === 'years'
+                ? (!!state.ui.openGroups.years || hasActiveYearFilter(state))
+                : (!!state.ui.openGroups[groupKey] || !!termSearch);
 
             if (!showGroup) {
                 return;
             }
 
             if (groupKey === 'years') {
-                html += renderDiscoveryYearSection(widgetId, state);
+                html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
+                html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
+                html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
+                html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
+                html += '</button>';
+                html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+                html += renderDiscoveryYearPanelContent(widgetId, state);
+                html += '</div>';
+                html += '</section>';
                 return;
             }
-
-            var options = state.options[groupKey] || [];
-            var selectedIds = getDiscoverySelections(state, groupKey);
-            var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
-            var visibleOptions = options.filter(function (option) {
-                if (!termSearch) {
-                    return true;
-                }
-
-                return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
-            });
-            var isOpen = !!state.ui.openGroups[groupKey] || !!termSearch;
 
             html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
             html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
@@ -1252,29 +1687,7 @@
             html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
             html += '</button>';
             html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
-            html += '<label class="bw-fpw-discovery-group-search">';
-            html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
-            html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
-            html += '</label>';
-            html += '<div class="bw-fpw-discovery-options">';
-
-            if (visibleOptions.length) {
-                visibleOptions.forEach(function (option) {
-                    var termId = parseInteger(option.term_id, 0);
-                    var isSelected = selectedIds.indexOf(termId) > -1;
-                    var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
-
-                    html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-term-id="' + termId + '"' + (isDisabled ? ' disabled' : '') + '>';
-                    html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
-                    html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
-                    html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
-                    html += '</button>';
-                });
-            } else {
-                html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
-            }
-
-            html += '</div>';
+            html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'drawer');
             html += '</div>';
             html += '</section>';
         });
@@ -1282,24 +1695,404 @@
         $groups.html(html);
     }
 
+    function getDiscoveryVisibleFilterSummary(state, groupKey) {
+        if (!state) {
+            return '';
+        }
+
+        if (groupKey === 'years') {
+            return hasActiveYearFilter(state) ? '1' : '';
+        }
+
+        var selected = getDiscoverySelections(state, groupKey);
+        return selected.length > 0 ? String(selected.length) : '';
+    }
+
+    function getDiscoveryVisibleFilterInlineSummary(state, groupKey) {
+        if (!state) {
+            return '';
+        }
+
+        if (groupKey === 'years' && hasActiveYearFilter(state)) {
+            return getYearRangeLabel(state.year) || '';
+        }
+
+        return '';
+    }
+
+    function clearDiscoveryFilterGroup(widgetId, groupKey) {
+        var state = getDiscoveryState(widgetId);
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+
+        if (!state) {
+            return;
+        }
+
+        if (groupKey === 'types') {
+            state.subcategories = [];
+        } else if (groupKey === 'tags') {
+            state.tags = [];
+        } else if (groupKey === 'years') {
+            state.year = createEmptyYearState();
+            state.ui.yearDraft = createEmptyYearState();
+        } else if (stateKey && isDiscoveryTokenGroup(groupKey)) {
+            state[stateKey] = [];
+        } else {
+            return;
+        }
+
+        if (state.ui.visibleFilterOpenGroup === groupKey) {
+            state.ui.visibleFilterOpenGroup = '';
+        }
+
+        renderDiscoveryUi(widgetId);
+        filterPosts(widgetId);
+    }
+
+    function closeDiscoveryVisibleFilterPanel(widgetId) {
+        var state = filterState[widgetId];
+
+        if (!state || !state.ui || !state.ui.visibleFilterOpenGroup) {
+            return;
+        }
+
+        state.ui.visibleFilterOpenGroup = '';
+        renderDiscoveryVisibleFilters(widgetId);
+    }
+
+    function closeAllDiscoveryVisibleFilterPanels(exceptWidgetId) {
+        Object.keys(filterState).forEach(function (widgetId) {
+            if (exceptWidgetId && String(widgetId) === String(exceptWidgetId)) {
+                return;
+            }
+
+            closeDiscoveryVisibleFilterPanel(widgetId);
+        });
+    }
+
+    function renderDiscoveryVisibleFilters(widgetId) {
+        var state = filterState[widgetId];
+        var $containers = $('.bw-fpw-visible-filters[data-widget-id="' + widgetId + '"]');
+        var html = '';
+
+        if (!state || !$containers.length) {
+            return;
+        }
+
+        if (!isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+            $containers.empty().addClass('is-hidden').attr('aria-hidden', 'true');
+            return;
+        }
+
+        getVisibleDiscoveryGroupKeys().forEach(function (groupKey) {
+            var groupConfig = getDiscoveryGroupConfig(groupKey);
+            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+            var isSupported = visibilityFlag ? !!state.ui[visibilityFlag] : false;
+            var isOpen = state.ui.visibleFilterOpenGroup === groupKey;
+            var summary = getDiscoveryVisibleFilterSummary(state, groupKey);
+            var inlineSummary = getDiscoveryVisibleFilterInlineSummary(state, groupKey);
+            var hasActiveSelection = groupKey === 'years'
+                ? hasActiveYearFilter(state)
+                : getDiscoverySelections(state, groupKey).length > 0;
+
+            if (!groupConfig || !isSupported) {
+                return;
+            }
+
+            html += '<div class="bw-fpw-visible-filter' + (isOpen ? ' is-open' : '') + (hasActiveSelection ? ' is-selected' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+            html += '<button class="bw-fpw-visible-filter__trigger' + (hasActiveSelection ? ' has-active-selection' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '">';
+            html += '<span class="bw-fpw-visible-filter__label">' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '</span>';
+            if (inlineSummary) {
+                html += '<span class="bw-fpw-visible-filter__summary">' + escapeHtml(inlineSummary) + '</span>';
+            }
+            if (!hasActiveSelection) {
+                html += '<span class="bw-fpw-visible-filter__chevron" aria-hidden="true"><svg class="bw-fpw-visible-filter__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
+            }
+            html += '</button>';
+
+            if (hasActiveSelection) {
+                html += '<button class="bw-fpw-visible-filter__clear' + (groupKey === 'years' ? ' is-clear-only' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-label="Clear ' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '">';
+                html += '<span class="bw-fpw-visible-filter__clear-count">' + escapeHtml(summary) + '</span>';
+                html += '<span class="bw-fpw-visible-filter__clear-x" aria-hidden="true"></span>';
+                html += '</button>';
+            }
+
+            if (isOpen) {
+                html += '<div class="bw-fpw-visible-filter__panel" aria-hidden="false">';
+                html += '<div class="bw-fpw-visible-filter__panel-inner">';
+
+                if (groupKey === 'years') {
+                    html += renderDiscoveryYearPanelContent(widgetId, state);
+                } else {
+                    html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'visible');
+                }
+
+                html += '</div>';
+                html += '</div>';
+            }
+
+            html += '</div>';
+        });
+
+        $containers
+            .html(html)
+            .toggleClass('is-hidden', html === '')
+            .attr('aria-hidden', html === '' ? 'true' : 'false');
+    }
+
+    function closeDiscoverySortMenu(widgetId) {
+        var state = filterState[widgetId];
+
+        if (!state || !state.ui || !state.ui.sortMenuOpen) {
+            return;
+        }
+
+        state.ui.sortMenuOpen = false;
+        renderDiscoverySortControl(widgetId);
+    }
+
+    function closeAllDiscoverySortMenus(exceptWidgetId) {
+        Object.keys(filterState).forEach(function (widgetId) {
+            if (exceptWidgetId && String(widgetId) === String(exceptWidgetId)) {
+                return;
+            }
+
+            closeDiscoverySortMenu(widgetId);
+        });
+    }
+
+    function renderDiscoverySortControl(widgetId) {
+        var state = filterState[widgetId];
+        var config;
+        var isOpen;
+        var $sort;
+        var $trigger;
+        var $menu;
+
+        if (!isDiscoverySortEnabled(widgetId, state)) {
+            return;
+        }
+
+        config = getEffectiveDiscoverySortConfig(widgetId, state);
+        isOpen = !!(state && state.ui && state.ui.sortMenuOpen);
+        $sort = $('.bw-fpw-sort[data-widget-id="' + widgetId + '"]');
+
+        if (!$sort.length) {
+            return;
+        }
+
+        $trigger = $sort.find('.bw-fpw-sort-trigger');
+        $menu = $sort.find('.bw-fpw-sort-menu');
+
+        $sort.toggleClass('is-open', isOpen);
+        $sort.attr('data-sort-key', config.sortKey);
+        $sort.attr('data-trigger-style', getDiscoverySortTriggerStyle(widgetId, state));
+        $trigger.attr('aria-expanded', isOpen ? 'true' : 'false');
+        $menu.attr('aria-hidden', isOpen ? 'false' : 'true');
+        $sort.find('[data-sort-current-label]').text(config.triggerLabel);
+
+        $sort.find('.bw-fpw-sort-option').each(function () {
+            var $option = $(this);
+            var isSelected = normalizeDiscoverySortKey($option.attr('data-sort-key')) === config.sortKey;
+
+            $option.toggleClass('is-selected', isSelected);
+            $option.attr('aria-checked', isSelected ? 'true' : 'false');
+        });
+    }
+
     function renderDiscoverySearch(widgetId) {
         var state = filterState[widgetId];
+        var searchEnabled = isWidgetSearchEnabled(widgetId, state);
         var value = state ? state.search || '' : '';
         var hasValue = $.trim(value) !== '';
+
+        if (!searchEnabled) {
+            $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').val('');
+            $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').removeClass('has-value');
+            return;
+        }
 
         $('.bw-fpw-discovery-search__input[data-widget-id="' + widgetId + '"]').val(value);
         $('.bw-fpw-discovery-search[data-widget-id="' + widgetId + '"]').toggleClass('has-value', hasValue);
     }
 
+    function getDiscoveryDrawerBody(widgetId) {
+        return document.querySelector('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel__body--drawer');
+    }
+
+    function syncDiscoveryDrawerStickyState(widgetId) {
+        var body = getDiscoveryDrawerBody(widgetId);
+        var chips;
+
+        if (!body) {
+            return;
+        }
+
+        chips = body.querySelector('.bw-fpw-active-chips--drawer[data-widget-id="' + widgetId + '"]');
+
+        if (!chips) {
+            return;
+        }
+
+        chips.classList.toggle('is-stuck', body.scrollTop > 2);
+    }
+
+    function ensureDiscoveryDrawerBodyListener(widgetId) {
+        var body = getDiscoveryDrawerBody(widgetId);
+
+        if (!body || body.getAttribute('data-sticky-chip-listener-bound') === 'yes') {
+            return;
+        }
+
+        body.addEventListener('scroll', function () {
+            syncDiscoveryDrawerStickyState(widgetId);
+        }, { passive: true });
+        body.setAttribute('data-sticky-chip-listener-bound', 'yes');
+    }
+
+    function preserveDiscoveryDrawerScrollPosition(widgetId, renderCallback) {
+        var body = getDiscoveryDrawerBody(widgetId);
+        var previousScrollTop;
+
+        if (!body) {
+            renderCallback();
+            return;
+        }
+
+        previousScrollTop = body.scrollTop;
+        renderCallback();
+
+        body.scrollTop = previousScrollTop;
+
+        window.requestAnimationFrame(function () {
+            body.scrollTop = previousScrollTop;
+            syncDiscoveryDrawerStickyState(widgetId);
+        });
+    }
+
     function renderDiscoveryUi(widgetId) {
+        var state = filterState[widgetId];
+
         if (!isDiscoveryDrawerMode(widgetId)) {
             return;
         }
 
-        renderDiscoverySearch(widgetId);
-        renderDiscoveryResultCount(widgetId);
-        renderDiscoveryActiveChips(widgetId);
-        renderDiscoveryDrawerGroups(widgetId);
+        ensureDiscoveryDrawerBodyListener(widgetId);
+
+        preserveDiscoveryDrawerScrollPosition(widgetId, function () {
+            if (isDiscoverySortEnabled(widgetId, state)) {
+                renderDiscoverySortControl(widgetId);
+            }
+            renderDiscoveryVisibleFilters(widgetId);
+            if (isWidgetSearchEnabled(widgetId, state)) {
+                renderDiscoverySearch(widgetId);
+            }
+            renderDiscoveryResultCount(widgetId);
+            renderDiscoveryActiveChips(widgetId);
+            renderDiscoveryDrawerGroups(widgetId);
+        });
+    }
+
+    function hasAnySearchEnabledWidget() {
+        var hasEnabled = false;
+
+        $('.bw-fpw-grid').each(function () {
+            if (($(this).attr('data-search-enabled') || 'yes') === 'yes') {
+                hasEnabled = true;
+                return false;
+            }
+        });
+
+        return hasEnabled;
+    }
+
+    function bindSearchFeatureHandlers() {
+        if (searchBindingsActive) {
+            return;
+        }
+
+        $(document).on('input.bwProductGridSearch', '.bw-fpw-discovery-search__input', function () {
+            var widgetId = $(this).attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+            var normalizedSearch;
+
+            if (!isDiscoveryDrawerMode(widgetId) || !isWidgetSearchEnabled(widgetId, state)) {
+                return;
+            }
+
+            state.search = $(this).val() || '';
+            normalizedSearch = $.trim(state.search);
+
+            renderDiscoverySearch(widgetId);
+
+            if (discoverySearchTimers[widgetId]) {
+                clearTimeout(discoverySearchTimers[widgetId]);
+            }
+
+            discoverySearchTimers[widgetId] = setTimeout(function () {
+                delete discoverySearchTimers[widgetId];
+
+                if (normalizedSearch === $.trim(state.appliedSearch || '')) {
+                    return;
+                }
+
+                filterPosts(widgetId);
+            }, 650);
+        });
+
+        $(document).on('input.bwProductGridSearch', '.bw-fpw-search-input', function () {
+            var $input = $(this);
+            var widgetId = $input.attr('data-widget-id');
+            var val;
+
+            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
+                return;
+            }
+
+            initFilterState(widgetId);
+            if (!isWidgetSearchEnabled(widgetId, filterState[widgetId])) {
+                return;
+            }
+
+            val = $.trim($input.val());
+            filterState[widgetId].search = val;
+
+            if (val.length === 1) {
+                if (searchDebounceTimers[widgetId]) {
+                    clearTimeout(searchDebounceTimers[widgetId]);
+                    delete searchDebounceTimers[widgetId];
+                }
+                return;
+            }
+
+            if (searchDebounceTimers[widgetId]) {
+                clearTimeout(searchDebounceTimers[widgetId]);
+            }
+            searchDebounceTimers[widgetId] = setTimeout(function () {
+                delete searchDebounceTimers[widgetId];
+                filterPosts(widgetId);
+            }, 250);
+        });
+
+        searchBindingsActive = true;
+    }
+
+    function unbindSearchFeatureHandlers() {
+        if (!searchBindingsActive) {
+            return;
+        }
+
+        $(document).off('.bwProductGridSearch');
+        searchBindingsActive = false;
+    }
+
+    function syncSearchFeatureBindings() {
+        if (hasAnySearchEnabledWidget()) {
+            bindSearchFeatureHandlers();
+            return;
+        }
+
+        unbindSearchFeatureHandlers();
     }
 
     function syncDiscoveryResponse(widgetId, data) {
@@ -1315,28 +2108,36 @@
             state.resultCount = Math.max(0, parseInteger(data.result_count, state.resultCount));
         }
 
-        state.appliedSearch = state.search;
+        state.appliedSearch = isWidgetSearchEnabled(widgetId, state) ? state.search : '';
 
         renderDiscoveryUi(widgetId);
     }
 
     function toggleDiscoverySelection(widgetId, groupKey, termId) {
         var state = getDiscoveryState(widgetId);
-        var selections = getDiscoverySelections(state, groupKey);
-        var index = selections.indexOf(termId);
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+        var selections = getDiscoverySelections(state, groupKey).slice();
+        var normalizedValue = isDiscoveryTokenGroup(groupKey)
+            ? normalizeDiscoveryTokenValue(termId)
+            : parseInteger(termId, 0);
+        var index = selections.indexOf(normalizedValue);
+
+        if (!stateKey || (isDiscoveryTokenGroup(groupKey) ? !normalizedValue : normalizedValue <= 0)) {
+            return;
+        }
 
         state.ui.openGroups[groupKey] = true;
 
         if (index > -1) {
             selections.splice(index, 1);
         } else {
-            selections.push(termId);
+            selections.push(normalizedValue);
         }
 
-        if (groupKey === 'types') {
-            state.subcategories = uniqueIntArray(selections);
+        if (isDiscoveryTokenGroup(groupKey)) {
+            state[stateKey] = uniqueStringArray(selections);
         } else {
-            state.tags = uniqueIntArray(selections);
+            state[stateKey] = uniqueIntArray(selections);
         }
     }
 
@@ -1348,14 +2149,31 @@
         state.category = defaultCategory;
         state.subcategories = [];
         state.tags = [];
+        state.artists = [];
+        state.authors = [];
+        state.publishers = [];
+        state.sources = [];
+        state.techniques = [];
         state.search = '';
         state.appliedSearch = '';
         state.year = createEmptyYearState();
         state.ui.optionSearches.types = '';
         state.ui.optionSearches.tags = '';
+        state.ui.optionSearches.artist = '';
+        state.ui.optionSearches.author = '';
+        state.ui.optionSearches.publisher = '';
+        state.ui.optionSearches.source = '';
+        state.ui.optionSearches.technique = '';
         state.ui.openGroups.types = false;
         state.ui.openGroups.tags = false;
         state.ui.openGroups.years = false;
+        state.ui.openGroups.artist = false;
+        state.ui.openGroups.author = false;
+        state.ui.openGroups.publisher = false;
+        state.ui.openGroups.source = false;
+        state.ui.openGroups.technique = false;
+        state.ui.sortMenuOpen = false;
+        state.ui.visibleFilterOpenGroup = '';
         state.ui.yearDraft = createEmptyYearState();
 
         if (yearInputCommitTimers[widgetId]) {
@@ -1395,14 +2213,22 @@
 
     function removeActiveDiscoveryFilter(widgetId, groupKey, termId) {
         var state = getDiscoveryState(widgetId);
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+        var normalizedValue = isDiscoveryTokenGroup(groupKey)
+            ? normalizeDiscoveryTokenValue(termId)
+            : parseInteger(termId, 0);
 
         if (groupKey === 'types') {
             state.subcategories = state.subcategories.filter(function (id) {
-                return id !== termId;
+                return id !== normalizedValue;
             });
         } else if (groupKey === 'tags') {
             state.tags = state.tags.filter(function (id) {
-                return id !== termId;
+                return id !== normalizedValue;
+            });
+        } else if (stateKey && isDiscoveryTokenGroup(groupKey)) {
+            state[stateKey] = state[stateKey].filter(function (value) {
+                return value !== normalizedValue;
             });
         } else if (groupKey === 'years') {
             state.year = createEmptyYearState();
@@ -1822,6 +2648,7 @@
         delete lastDeviceByGrid[widgetId];
         delete infiniteLoadSpacers[widgetId];
         unlockDrawerBodyScrollIfSafe();
+        syncSearchFeatureBindings();
     }
 
     function prepareItemsForReveal($items, mode) {
@@ -2195,14 +3022,22 @@
         var imageMode = $grid.attr('data-image-mode') || 'proportional';
         var hoverEffect = $grid.attr('data-hover-effect') || 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
-        var orderBy = $grid.attr('data-order-by') || 'date';
-        var order = $grid.attr('data-order') || 'DESC';
+        var sortConfig = getEffectiveDiscoverySortConfig(widgetId, state);
+        var orderBy = sortConfig.orderBy;
+        var order = sortConfig.order;
+        var sortKey = sortConfig.sortKey;
         var contextSlug = $grid.attr('data-context-slug') || '';
+        var searchEnabled = isWidgetSearchEnabled(widgetId, state);
         var requestPerPage = appendMode ? pagingState.loadBatchSize : pagingState.initialItems;
         var requestedOffset = appendMode ? Math.max(0, parseInteger(options.offset, pagingState.nextOffset > 0 ? pagingState.nextOffset : pagingState.loadedCount)) : 0;
-        var searchTerm = state.search || '';
+        var searchTerm = searchEnabled ? (state.search || '') : '';
         var yearFrom = state.year && state.year.from !== null ? state.year.from : null;
         var yearTo = state.year && state.year.to !== null ? state.year.to : null;
+        var artistValues = uniqueStringArray(state.artists || []);
+        var authorValues = uniqueStringArray(state.authors || []);
+        var publisherValues = uniqueStringArray(state.publishers || []);
+        var sourceValues = uniqueStringArray(state.sources || []);
+        var techniqueValues = uniqueStringArray(state.techniques || []);
 
         if (!appendMode && requestPerPage === 0) {
             requestPerPage = pagingState.perPage;
@@ -2227,9 +3062,16 @@
             category: state.category,
             subcategories: state.subcategories,
             tags: state.tags,
+            search_enabled: searchEnabled ? 'yes' : 'no',
             search: searchTerm,
             year_from: yearFrom,
             year_to: yearTo,
+            artist: artistValues,
+            author: authorValues,
+            publisher: publisherValues,
+            source: sourceValues,
+            technique: techniqueValues,
+            sort_key: sortKey,
             order_by: orderBy,
             order: order,
             image_mode: imageMode,
@@ -2292,9 +3134,16 @@
                 category: state.category,
                 subcategories: state.subcategories,
                 tags: state.tags,
+                search_enabled: searchEnabled ? 'yes' : 'no',
                 search: searchTerm,
                 year_from: yearFrom,
                 year_to: yearTo,
+                artist: artistValues,
+                author: authorValues,
+                publisher: publisherValues,
+                source: sourceValues,
+                technique: techniqueValues,
+                sort_key: sortKey,
                 image_toggle: imageToggle,
                 image_size: imageSize,
                 image_mode: imageMode,
@@ -2602,33 +3451,96 @@
     }
 
     function initFilters() {
-        $(document).on('input', '.bw-fpw-discovery-search__input', function () {
+        $(document).on('click', '.bw-fpw-sort-trigger', function (e) {
             var widgetId = $(this).attr('data-widget-id');
             var state = getDiscoveryState(widgetId);
-            var normalizedSearch;
 
-            if (!isDiscoveryDrawerMode(widgetId)) {
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoverySortEnabled(widgetId, state)) {
                 return;
             }
 
-            state.search = $(this).val() || '';
-            normalizedSearch = $.trim(state.search);
+            e.preventDefault();
+            e.stopPropagation();
 
-            renderDiscoverySearch(widgetId);
+            closeAllDiscoveryVisibleFilterPanels();
+            closeAllDiscoverySortMenus(widgetId);
+            state.ui.sortMenuOpen = !state.ui.sortMenuOpen;
+            renderDiscoverySortControl(widgetId);
+        });
 
-            if (discoverySearchTimers[widgetId]) {
-                clearTimeout(discoverySearchTimers[widgetId]);
+        $(document).on('click', '.bw-fpw-sort-option', function (e) {
+            var $option = $(this);
+            var widgetId = $option.attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+            var nextSortKey = normalizeDiscoverySortKey($option.attr('data-sort-key'));
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoverySortEnabled(widgetId, state)) {
+                return;
             }
 
-            discoverySearchTimers[widgetId] = setTimeout(function () {
-                delete discoverySearchTimers[widgetId];
+            e.preventDefault();
+            e.stopPropagation();
 
-                if (normalizedSearch === $.trim(state.appliedSearch || '')) {
-                    return;
-                }
+            if (state.sortKey === nextSortKey) {
+                state.ui.sortMenuOpen = false;
+                renderDiscoverySortControl(widgetId);
+                return;
+            }
 
-                filterPosts(widgetId);
-            }, 650);
+            state.sortKey = nextSortKey;
+            state.ui.sortMenuOpen = false;
+            renderDiscoverySortControl(widgetId);
+            filterPosts(widgetId);
+        });
+
+        $(document).on('click', function (e) {
+            if ($(e.target).closest('.bw-fpw-sort').length) {
+                return;
+            }
+
+            closeAllDiscoverySortMenus();
+        });
+
+        $(document).on('click', '.bw-fpw-visible-filter__trigger', function (e) {
+            var widgetId = $(this).attr('data-widget-id');
+            var groupKey = $(this).attr('data-group');
+            var state = getDiscoveryState(widgetId);
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            closeAllDiscoverySortMenus();
+            closeAllDiscoveryVisibleFilterPanels(widgetId);
+            state.ui.visibleFilterOpenGroup = state.ui.visibleFilterOpenGroup === groupKey ? '' : groupKey;
+            renderDiscoveryVisibleFilters(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-visible-filter__clear', function (e) {
+            var $button = $(this);
+            var widgetId = $button.attr('data-widget-id');
+            var groupKey = $button.attr('data-group');
+            var state = getDiscoveryState(widgetId);
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoveryVisibleFiltersEnabled(widgetId, state)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            clearDiscoveryFilterGroup(widgetId, groupKey);
+        });
+
+        $(document).on('click', function (e) {
+            if ($(e.target).closest('.bw-fpw-visible-filter').length) {
+                return;
+            }
+
+            closeAllDiscoveryVisibleFilterPanels();
         });
 
         $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
@@ -2643,12 +3555,13 @@
             }
 
             state.ui.openGroups[groupKey] = !state.ui.openGroups[groupKey];
-            renderDiscoveryDrawerGroups(widgetId);
+            renderDiscoveryUi(widgetId);
         });
 
         $(document).on('input', '.bw-fpw-discovery-group-search__input', function () {
             var widgetId = $(this).attr('data-widget-id');
             var groupKey = $(this).attr('data-group');
+            var surface = $(this).attr('data-surface') || 'drawer';
             var state = getDiscoveryState(widgetId);
             var cursorPosition = this.selectionStart;
 
@@ -2657,9 +3570,9 @@
             }
 
             state.ui.optionSearches[groupKey] = $(this).val() || '';
-            renderDiscoveryDrawerGroups(widgetId);
+            renderDiscoveryUi(widgetId);
 
-            var $replacementInput = $('.bw-fpw-discovery-group-search__input[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+            var $replacementInput = $('.bw-fpw-discovery-group-search__input[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"][data-surface="' + surface + '"]');
             if ($replacementInput.length) {
                 $replacementInput.trigger('focus');
                 if (typeof cursorPosition === 'number' && $replacementInput[0].setSelectionRange) {
@@ -2674,13 +3587,16 @@
             var $button = $(this);
             var widgetId = $button.attr('data-widget-id');
             var groupKey = $button.attr('data-group');
-            var termId = parseInteger($button.attr('data-term-id'), 0);
+            var rawValue = $button.attr('data-filter-value');
+            var selectionValue = isDiscoveryTokenGroup(groupKey)
+                ? normalizeDiscoveryTokenValue(rawValue)
+                : parseInteger(rawValue, 0);
 
-            if (!isDiscoveryDrawerMode(widgetId) || termId <= 0 || !groupKey) {
+            if (!isDiscoveryDrawerMode(widgetId) || !groupKey || (isDiscoveryTokenGroup(groupKey) ? !selectionValue : selectionValue <= 0)) {
                 return;
             }
 
-            toggleDiscoverySelection(widgetId, groupKey, termId);
+            toggleDiscoverySelection(widgetId, groupKey, selectionValue);
             renderDiscoveryUi(widgetId);
             filterPosts(widgetId);
         });
@@ -2692,13 +3608,16 @@
             var $button = $(this);
             var widgetId = $button.attr('data-widget-id');
             var groupKey = $button.attr('data-group');
-            var termId = parseInteger($button.attr('data-term-id'), 0);
+            var rawValue = $button.attr('data-filter-value');
+            var filterValue = isDiscoveryTokenGroup(groupKey)
+                ? normalizeDiscoveryTokenValue(rawValue)
+                : parseInteger(rawValue, 0);
 
             if (!widgetId || !isDiscoveryDrawerMode(widgetId)) {
                 return;
             }
 
-            removeActiveDiscoveryFilter(widgetId, groupKey, termId);
+            removeActiveDiscoveryFilter(widgetId, groupKey, filterValue);
         });
 
         $(document).on('click', '.bw-fpw-discovery-reset', function (e) {
@@ -2707,6 +3626,7 @@
             var widgetId = $(this).attr('data-widget-id');
 
             if (widgetId && isDiscoveryDrawerMode(widgetId)) {
+                closeDiscoveryVisibleFilterPanel(widgetId);
                 resetDiscoveryFilters(widgetId, false);
             }
         });
@@ -2839,41 +3759,11 @@
             }
         });
 
-        // Search input — debounced, fires filterPosts in standard (non-discovery-drawer) mode.
-        // Discovery-drawer mode is handled by its own handler above (uses discoverySearchTimers).
-        $(document).on('input', '.bw-fpw-search-input', function () {
-            var $input = $(this);
-            var widgetId = $input.attr('data-widget-id');
-            if (!widgetId || isDiscoveryDrawerMode(widgetId)) {
-                return;
-            }
-            initFilterState(widgetId);
-            var val = $.trim($input.val());
-            filterState[widgetId].search = val;
-
-            // Require at least 2 characters to start searching.
-            // Always search when the field is cleared (val === '').
-            if (val.length === 1) {
-                if (searchDebounceTimers[widgetId]) {
-                    clearTimeout(searchDebounceTimers[widgetId]);
-                    delete searchDebounceTimers[widgetId];
-                }
-                return;
-            }
-
-            if (searchDebounceTimers[widgetId]) {
-                clearTimeout(searchDebounceTimers[widgetId]);
-            }
-            searchDebounceTimers[widgetId] = setTimeout(function () {
-                delete searchDebounceTimers[widgetId];
-                filterPosts(widgetId);
-            }, 250);
-        });
-
         $(document).on('click', '.bw-fpw-mobile-filter-button', function (e) {
             e.preventDefault();
 
             var widgetId = $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            closeAllDiscoveryVisibleFilterPanels();
             openMobilePanel(widgetId);
         });
 
@@ -3062,23 +3952,75 @@
             // Reset filter state (preserve options/labels caches from discovery state if present)
             var prevState = filterState[widgetId] || {};
             filterState[widgetId] = {
+                sortKey: prevState.sortKey || normalizeDiscoverySortKey($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-default-sort-key') || 'default'),
                 category: defaultCategory,
                 subcategories: [],
                 tags: [],
+                artists: [],
+                authors: [],
+                publishers: [],
+                sources: [],
+                techniques: [],
                 search: '',
                 appliedSearch: '',
                 year: createEmptyYearState(),
                 yearBounds: prevState.yearBounds || createEmptyYearBounds(),
                 yearQuickRanges: prevState.yearQuickRanges || [],
                 resultCount: 0,
-                options: { types: [], tags: [] },
-                labels: prevState.labels || { types: {}, tags: {} },
+                options: {
+                    types: [],
+                    tags: [],
+                    artist: [],
+                    author: [],
+                    publisher: [],
+                    source: [],
+                    technique: []
+                },
+                labels: prevState.labels || {
+                    types: {},
+                    tags: {},
+                    artist: {},
+                    author: {},
+                    publisher: {},
+                    source: {},
+                    technique: {}
+                },
                 ui: {
                     showTypes: true,
                     showTags: true,
                     showYears: !!(prevState.ui && prevState.ui.showYears),
-                    optionSearches: { types: '', tags: '' },
-                    openGroups: { types: false, tags: false, years: false },
+                    showArtist: !!(prevState.ui && prevState.ui.showArtist),
+                    showAuthor: !!(prevState.ui && prevState.ui.showAuthor),
+                    showPublisher: !!(prevState.ui && prevState.ui.showPublisher),
+                    showSource: !!(prevState.ui && prevState.ui.showSource),
+                    showTechnique: !!(prevState.ui && prevState.ui.showTechnique),
+                    showOrderBy: !!(prevState.ui && prevState.ui.showOrderBy),
+                    orderTriggerStyle: prevState.ui && prevState.ui.orderTriggerStyle
+                        ? prevState.ui.orderTriggerStyle
+                        : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon'),
+                    sortMenuOpen: false,
+                    searchEnabled: prevState.ui && typeof prevState.ui.searchEnabled === 'boolean'
+                        ? prevState.ui.searchEnabled
+                        : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
+                    optionSearches: {
+                        types: '',
+                        tags: '',
+                        artist: '',
+                        author: '',
+                        publisher: '',
+                        source: '',
+                        technique: ''
+                    },
+                    openGroups: {
+                        types: false,
+                        tags: false,
+                        years: false,
+                        artist: false,
+                        author: false,
+                        publisher: false,
+                        source: false,
+                        technique: false
+                    },
                     yearDraft: createEmptyYearState()
                 }
             };
@@ -3135,6 +4077,8 @@
                 return;
             }
 
+            closeAllDiscoverySortMenus();
+
             $('.bw-product-grid-wrapper.bw-fpw-mobile-panel-open').each(function () {
                 var widgetId = $(this).find('.bw-fpw-mobile-filter').first().attr('data-widget-id');
 
@@ -3186,6 +4130,8 @@
 
             if (isResponsiveFilterDrawerMode(widgetId)) {
                 lockDrawerBodyScroll();
+                ensureDiscoveryDrawerBodyListener(widgetId);
+                syncDiscoveryDrawerStickyState(widgetId);
             }
         }
     }
@@ -3199,6 +4145,7 @@
             $panel.attr('aria-hidden', 'true');
 
             if (isResponsiveFilterDrawerMode(widgetId)) {
+                syncDiscoveryDrawerStickyState(widgetId);
                 unlockDrawerBodyScrollIfSafe();
             }
         }
@@ -3283,18 +4230,42 @@
             if (isDiscoveryDrawerMode(widgetId)) {
                 var bootstrapPayload = getDiscoveryBootstrapPayload(widgetId) || {};
 
+                state.ui.searchEnabled = !!bootstrapPayload.search_enabled;
                 state.ui.showTypes = !!bootstrapPayload.show_types;
                 state.ui.showTags = !!bootstrapPayload.show_tags;
                 state.ui.showYears = !!bootstrapPayload.show_years;
+                state.ui.showOrderBy = !!bootstrapPayload.show_order_by;
+                state.ui.showVisibleFilters = !!bootstrapPayload.show_visible_filters;
+                state.ui.orderTriggerStyle = bootstrapPayload.order_trigger_style === 'dropdown' ? 'dropdown' : 'icon';
+                state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || 'default');
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
 
                 updateDiscoveryOptions(widgetId, {
                     types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
                     tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
                     year: bootstrapPayload.year || null,
+                    advanced: bootstrapPayload.advanced || {},
                     result_count: state.resultCount
                 });
                 renderDiscoveryUi(widgetId);
+            } else {
+                state.ui.searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
+                state.ui.showOrderBy = ($grid.attr('data-show-order-by') || 'no') === 'yes';
+                state.ui.showVisibleFilters = ($grid.attr('data-show-visible-filters') || 'no') === 'yes';
+                state.ui.orderTriggerStyle = ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon';
+            }
+
+            if (!state.ui.searchEnabled) {
+                state.search = '';
+                state.appliedSearch = '';
+                if (discoverySearchTimers[widgetId]) {
+                    clearTimeout(discoverySearchTimers[widgetId]);
+                    delete discoverySearchTimers[widgetId];
+                }
+                if (searchDebounceTimers[widgetId]) {
+                    clearTimeout(searchDebounceTimers[widgetId]);
+                    delete searchDebounceTimers[widgetId];
+                }
             }
 
             if (!isElementorEditor()) {
@@ -3312,6 +4283,8 @@
                 syncInfiniteObserver(widgetId);
             });
         });
+
+        syncSearchFeatureBindings();
     }
 
     // Window resize handler
@@ -3356,6 +4329,7 @@
 
     $(function () {
         initFilters();
+        syncSearchFeatureBindings();
         handleGridResize();
 
         // Fallback: if Elementor's frontend JS fails to fire the

@@ -41,6 +41,26 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $this->register_style_controls();
     }
 
+    private function get_filter_category_options() {
+        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
+
+        $product_categories = get_terms(
+            [
+                'taxonomy'   => 'product_cat',
+                'hide_empty' => false,
+                'parent'     => 0,
+            ]
+        );
+
+        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
+            foreach ( $product_categories as $category ) {
+                $category_options[ $category->term_id ] = $category->name;
+            }
+        }
+
+        return $category_options;
+    }
+
     private function register_rebuild_layout_controls() {
         $this->start_controls_section( 'layout_rebuild_section', [
             'label' => __( 'Layout', 'bw-elementor-widgets' ),
@@ -327,29 +347,56 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function register_filter_controls() {
+        $category_options = $this->get_filter_category_options();
+
         $this->start_controls_section( 'filter_section', [
             'label' => __( 'Filter Settings', 'bw-elementor-widgets' ),
         ] );
 
         $this->add_control( 'show_filters', [
-            'label'        => __( 'Show Filters', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'description'  => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
+            'label'       => __( 'Show Filters', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => [
+                'yes' => __( 'On', 'bw-elementor-widgets' ),
+                ''    => __( 'Off', 'bw-elementor-widgets' ),
+            ],
+            'default'     => 'yes',
+            'description' => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
+        ] );
+
+        $this->add_control( 'default_category', [
+            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
+            'type'        => Controls_Manager::SELECT,
+            'options'     => $category_options,
+            'default'     => 'all',
+            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
+            'condition'   => [ 'show_filters' => 'yes' ],
         ] );
 
         $this->add_control( 'enable_responsive_filter_mode', [
-            'label'        => __( 'Enable Responsive Filter Mode', 'bw-elementor-widgets' ),
+            'label'        => __( 'Filter Mode', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SELECT,
+            'options'      => [
+                ''    => __( 'Filter Label', 'bw-elementor-widgets' ),
+                'yes' => __( 'Filter Panel', 'bw-elementor-widgets' ),
+            ],
+            'default'      => '',
+            'description'  => __( 'Choose whether desktop uses the inline filter labels or the responsive filter panel trigger.', 'bw-elementor-widgets' ),
+            'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_visible_filters', [
+            'label'        => __( 'Visible Filters', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
             'label_on'     => __( 'On', 'bw-elementor-widgets' ),
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => '',
-            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the drawer shell.', 'bw-elementor-widgets' ),
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [
+                'show_filters'                  => 'yes',
+                'enable_responsive_filter_mode' => 'yes',
+                'post_type'                     => 'product',
+            ],
         ] );
 
         $this->add_control( 'responsive_filter_drawer_side', [
@@ -374,6 +421,27 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $side = isset( $settings['responsive_filter_drawer_side'] ) ? sanitize_key( $settings['responsive_filter_drawer_side'] ) : 'left';
 
         return in_array( $side, [ 'left', 'right' ], true ) ? $side : 'left';
+    }
+
+    private function get_runtime_sort_trigger_style( $settings ) {
+        $style = isset( $settings['order_by_trigger_style'] ) ? sanitize_key( $settings['order_by_trigger_style'] ) : 'icon';
+
+        return in_array( $style, [ 'icon', 'dropdown' ], true ) ? $style : 'icon';
+    }
+
+    private function is_visible_filters_enabled( $settings ) {
+        return isset( $settings['show_visible_filters'] )
+            && 'yes' === $settings['show_visible_filters']
+            && $this->is_responsive_filter_mode_enabled( $settings )
+            && isset( $settings['post_type'] )
+            && 'product' === sanitize_key( $settings['post_type'] );
+    }
+
+    private function is_runtime_sort_enabled( $settings, $include_ids = [] ) {
+        $show_order_by          = isset( $settings['show_order_by'] ) && 'yes' === $settings['show_order_by'];
+        $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
+
+        return $show_order_by && $responsive_filter_mode && empty( $include_ids );
     }
 
     private function resolve_product_grid_context_slug( $settings, $runtime_category = 0 ) {
@@ -452,30 +520,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function register_filter_controls_categories_section() {
-        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
-
-        $product_categories = get_terms(
-            [
-                'taxonomy'   => 'product_cat',
-                'hide_empty' => false,
-                'parent'     => 0, // Only top-level categories
-            ]
-        );
-        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
-            foreach ( $product_categories as $category ) {
-                $category_options[ $category->term_id ] = $category->name;
-            }
-        }
-
-        $this->add_control( 'default_category', [
-            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT,
-            'options'     => $category_options,
-            'default'     => 'all',
-            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'    => [ 'show_filters' => 'yes' ],
-        ] );
-
         $this->add_control( 'show_categories', [
             'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -483,14 +527,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_categories_title', [
             'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_categories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_subcategories', [
@@ -500,14 +544,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_subcategories_title', [
             'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_tags', [
@@ -517,14 +561,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'filter_tags_title', [
             'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Tags', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_all_button', [
@@ -534,7 +578,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'show_categories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
         ] );
 
         $this->add_control( 'show_search', [
@@ -545,6 +589,34 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => 'no',
             'condition'    => [ 'show_filters' => 'yes' ],
+        ] );
+
+        $this->add_control( 'show_order_by', [
+            'label'        => __( 'Show Order By', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'condition'    => [
+                'show_filters'                  => 'yes',
+                'enable_responsive_filter_mode' => 'yes',
+            ],
+        ] );
+
+        $this->add_control( 'order_by_trigger_style', [
+            'label'     => __( 'Order By Trigger Style', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::SELECT,
+            'default'   => 'icon',
+            'options'   => [
+                'icon'     => __( 'Icon', 'bw-elementor-widgets' ),
+                'dropdown' => __( 'Dropdown', 'bw-elementor-widgets' ),
+            ],
+            'condition' => [
+                'show_filters'                  => 'yes',
+                'enable_responsive_filter_mode' => 'yes',
+                'show_order_by'                 => 'yes',
+            ],
         ] );
 
         $this->end_controls_section();
@@ -902,6 +974,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
             ? absint( $settings['default_category'] )
             : 'all';
         $post_type              = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+        $show_search            = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
+        $include_ids            = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
+        $show_order_by          = $this->is_runtime_sort_enabled( $settings, $include_ids );
+        $show_visible_filters   = $this->is_visible_filters_enabled( $settings );
+        $order_trigger_style    = $this->get_runtime_sort_trigger_style( $settings );
         $show_subcategories     = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
         $show_tags              = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
         $initial_types          = $show_subcategories ? $this->get_subcategories_data( $post_type, $default_category ) : [];
@@ -915,6 +992,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
         $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
         $search_icon_html      = '<svg class="bw-fpw-discovery-search__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
+        $sort_icon_html        = '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
+        $sort_chevron_html     = '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+        $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
         $context_slug          = $this->resolve_product_grid_context_slug( $settings );
         $year_ui               = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : [
             'supported'    => false,
@@ -923,14 +1003,21 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'max'          => null,
             'quick_ranges' => [],
         ];
+        $advanced_filter_ui    = function_exists( 'bw_fpw_get_advanced_filter_ui' ) ? bw_fpw_get_advanced_filter_ui( $context_slug ) : [];
         $bootstrap_payload     = [
             'show_types' => $show_subcategories,
             'show_tags'  => $show_tags,
             'show_years' => ! empty( $year_ui['supported'] ),
+            'search_enabled' => $show_search,
+            'show_order_by' => $show_order_by,
+            'show_visible_filters' => $show_visible_filters,
+            'order_trigger_style' => $order_trigger_style,
+            'default_sort_key' => 'default',
             'context'    => $context_slug ?: 'mixed',
             'types'      => array_values( $initial_types ),
             'tags'       => array_values( $initial_tags ),
             'year'       => $year_ui,
+            'advanced'   => is_array( $advanced_filter_ui ) ? $advanced_filter_ui : [],
         ];
         ?>
         <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
@@ -942,12 +1029,62 @@ class BW_Product_Grid_Widget extends Widget_Base {
             </div>
 
             <div class="bw-fpw-discovery-toolbar__controls">
-                <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                    <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
-                    <span class="bw-fpw-discovery-search__icon-shell">
-                        <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    </span>
-                </label>
+                <?php if ( $show_search ) : ?>
+                    <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                        <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
+                        <span class="bw-fpw-discovery-search__icon-shell">
+                            <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </span>
+                    </label>
+                <?php endif; ?>
+
+                <?php if ( $show_order_by ) : ?>
+                    <div class="bw-fpw-sort bw-fpw-sort--<?php echo esc_attr( $order_trigger_style ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                        <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--<?php echo esc_attr( $order_trigger_style ); ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
+                            <?php if ( 'dropdown' === $order_trigger_style ) : ?>
+                                <span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php esc_html_e( 'Default', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-trigger__chevron" aria-hidden="true">
+                                    <?php echo $sort_chevron_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                </span>
+                            <?php else : ?>
+                                <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
+                                    <?php echo $sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                </span>
+                            <?php endif; ?>
+                        </button>
+
+                        <div class="bw-fpw-sort-menu" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="menu" aria-hidden="true">
+                            <button class="bw-fpw-sort-option is-selected" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="default" role="menuitemradio" aria-checked="true">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Default order', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                            <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="recent" role="menuitemradio" aria-checked="false">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Recently added', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                            <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="oldest" role="menuitemradio" aria-checked="false">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Oldest added', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                            <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="title_asc" role="menuitemradio" aria-checked="false">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Alphabetical A to Z', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                            <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="title_desc" role="menuitemradio" aria-checked="false">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Alphabetical Z to A', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                            <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="year_asc" role="menuitemradio" aria-checked="false">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Year, oldest first', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                            <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="year_desc" role="menuitemradio" aria-checked="false">
+                                <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Year, newest first', 'bw-elementor-widgets' ); ?></span>
+                                <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                            </button>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
                     <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
@@ -968,6 +1105,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
                             <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
                                 <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                    <div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                     <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                     <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
                                 </div>
@@ -980,6 +1118,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     </div>
                 </div>
             </div>
+
+            <div class="bw-fpw-visible-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo $show_visible_filters ? 'false' : 'true'; ?>"></div>
 
             <div class="bw-fpw-active-chips bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
         </div>
@@ -1167,8 +1307,11 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $show_title       = 'yes' === ( $settings['show_title'] ?? 'yes' );
         $show_description = 'yes' === ( $settings['show_description'] ?? 'yes' );
         $show_price       = 'yes' === ( $settings['show_price'] ?? 'yes' );
-
-        $include_ids = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
+        $show_search      = isset( $settings['show_search'] ) && 'yes' === $settings['show_search'];
+        $include_ids      = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
+        $show_order_by    = $this->is_runtime_sort_enabled( $settings, $include_ids );
+        $show_visible_filters = $this->is_visible_filters_enabled( $settings );
+        $order_trigger_style = $this->get_runtime_sort_trigger_style( $settings );
 
         $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
         $subcategories     = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
@@ -1184,9 +1327,13 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $order    = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
 
         // Validate order_by
-        $valid_order_by = [ 'date', 'modified', 'title', 'rand', 'ID' ];
+        $valid_order_by = [ 'date', 'modified', 'title', 'rand', 'id' ];
         if ( ! in_array( $order_by, $valid_order_by, true ) ) {
             $order_by = 'date';
+        }
+
+        if ( 'id' === $order_by ) {
+            $order_by = 'ID';
         }
 
         // Validate order
@@ -1287,8 +1434,16 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'data-show-title'             => $show_title ? 'yes' : 'no',
             'data-show-description'       => $show_description ? 'yes' : 'no',
             'data-show-price'             => $show_price ? 'yes' : 'no',
+            'data-search-enabled'         => $show_search ? 'yes' : 'no',
+            'data-show-order-by'          => $show_order_by ? 'yes' : 'no',
+            'data-show-visible-filters'   => $show_visible_filters ? 'yes' : 'no',
+            'data-order-trigger-style'    => $order_trigger_style,
+            'data-default-sort-key'       => 'default',
             'data-order-by'               => $order_by,
             'data-order'                  => $order,
+            'data-default-order-by'       => $order_by,
+            'data-default-order'          => $order,
+            'data-specific-ids-mode'      => ! empty( $include_ids ) ? 'yes' : 'no',
             'data-initial-items'          => $initial_items,
             'data-load-batch-size'        => $load_batch_size,
             'data-per-page'               => $pagination_per_page,

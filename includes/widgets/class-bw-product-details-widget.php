@@ -456,6 +456,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				'_digital_assets_list'  => __( 'Assets List', 'bw' ),
 				'_digital_file_size'    => __( 'File size', 'bw' ),
 				'_digital_formats'      => __( 'Formats included', 'bw' ),
+				'_bw_artist_name'       => __( 'Digital Author', 'bw' ),
 				'_digital_source'       => __( 'Source', 'bw' ),
 				'_digital_publisher'    => __( 'Publisher', 'bw' ),
 				'_digital_year'         => __( 'Year', 'bw' ),
@@ -597,6 +598,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		$rows = [];
 		foreach ( $fields as $meta_key => $label ) {
 			$value = get_post_meta( $product_id, $meta_key, true );
+			if ( '_bw_artist_name' === $meta_key && '' === $value ) {
+				$value = get_post_meta( $product_id, '_digital_artist_name', true );
+			}
 			if ( '' === $value ) {
 				continue;
 			}
