@@ -503,7 +503,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::TEXT,
             'default'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
+            'condition'   => [ 'show_filters' => 'yes', 'show_categories' => 'yes' ],
         ] );
 
         $this->add_control( 'show_subcategories', [
@@ -547,7 +547,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
             'return_value' => 'yes',
             'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes' ],
+            'condition'    => [ 'show_filters' => 'yes', 'show_categories' => 'yes' ],
         ] );
 
         $this->add_control( 'show_search', [
