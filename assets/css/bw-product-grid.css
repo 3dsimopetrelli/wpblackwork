@@ -1279,6 +1279,14 @@ body.bw-cart-popup-no-scroll {
   opacity: 0;
 }
 
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__clear.is-clear-only .bw-fpw-visible-filter__clear-count {
+  opacity: 0;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__clear.is-clear-only .bw-fpw-visible-filter__clear-x {
+  opacity: 1;
+}
+
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__clear-x::before,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__clear-x::after {
   content: "";

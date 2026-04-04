@@ -1811,7 +1811,7 @@
             html += '</button>';
 
             if (hasActiveSelection) {
-                html += '<button class="bw-fpw-visible-filter__clear" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-label="Clear ' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '">';
+                html += '<button class="bw-fpw-visible-filter__clear' + (groupKey === 'years' ? ' is-clear-only' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-label="Clear ' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '">';
                 html += '<span class="bw-fpw-visible-filter__clear-count">' + escapeHtml(summary) + '</span>';
                 html += '<span class="bw-fpw-visible-filter__clear-x" aria-hidden="true"></span>';
                 html += '</button>';
