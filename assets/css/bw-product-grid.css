@@ -788,7 +788,7 @@ body.bw-cart-popup-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown {
-  min-width: 188px;
+  min-width: 130px;
   max-width: min(100%, 248px);
 }
 

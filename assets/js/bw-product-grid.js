@@ -1708,6 +1708,18 @@
         return selected.length > 0 ? String(selected.length) : '';
     }
 
+    function getDiscoveryVisibleFilterInlineSummary(state, groupKey) {
+        if (!state) {
+            return '';
+        }
+
+        if (groupKey === 'years' && hasActiveYearFilter(state)) {
+            return getYearRangeLabel(state.year) || '';
+        }
+
+        return '';
+    }
+
     function clearDiscoveryFilterGroup(widgetId, groupKey) {
         var state = getDiscoveryState(widgetId);
         var stateKey = getDiscoverySelectionStateKey(groupKey);
@@ -1778,6 +1790,7 @@
             var isSupported = visibilityFlag ? !!state.ui[visibilityFlag] : false;
             var isOpen = state.ui.visibleFilterOpenGroup === groupKey;
             var summary = getDiscoveryVisibleFilterSummary(state, groupKey);
+            var inlineSummary = getDiscoveryVisibleFilterInlineSummary(state, groupKey);
             var hasActiveSelection = groupKey === 'years'
                 ? hasActiveYearFilter(state)
                 : getDiscoverySelections(state, groupKey).length > 0;
@@ -1789,6 +1802,9 @@
             html += '<div class="bw-fpw-visible-filter' + (isOpen ? ' is-open' : '') + (hasActiveSelection ? ' is-selected' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
             html += '<button class="bw-fpw-visible-filter__trigger' + (hasActiveSelection ? ' has-active-selection' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '">';
             html += '<span class="bw-fpw-visible-filter__label">' + escapeHtml(groupConfig.visibleLabel || groupConfig.label) + '</span>';
+            if (inlineSummary) {
+                html += '<span class="bw-fpw-visible-filter__summary">' + escapeHtml(inlineSummary) + '</span>';
+            }
             if (!hasActiveSelection) {
                 html += '<span class="bw-fpw-visible-filter__chevron" aria-hidden="true"><svg class="bw-fpw-visible-filter__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
             }
