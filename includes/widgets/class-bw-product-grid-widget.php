@@ -41,6 +41,26 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $this->register_style_controls();
     }
 
+    private function get_filter_category_options() {
+        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
+
+        $product_categories = get_terms(
+            [
+                'taxonomy'   => 'product_cat',
+                'hide_empty' => false,
+                'parent'     => 0,
+            ]
+        );
+
+        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
+            foreach ( $product_categories as $category ) {
+                $category_options[ $category->term_id ] = $category->name;
+            }
+        }
+
+        return $category_options;
+    }
+
     private function register_rebuild_layout_controls() {
         $this->start_controls_section( 'layout_rebuild_section', [
             'label' => __( 'Layout', 'bw-elementor-widgets' ),
@@ -327,6 +347,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function register_filter_controls() {
+        $category_options = $this->get_filter_category_options();
+
         $this->start_controls_section( 'filter_section', [
             'label' => __( 'Filter Settings', 'bw-elementor-widgets' ),
         ] );
@@ -475,21 +497,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function register_filter_controls_categories_section() {
-        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
-
-        $product_categories = get_terms(
-            [
-                'taxonomy'   => 'product_cat',
-                'hide_empty' => false,
-                'parent'     => 0, // Only top-level categories
-            ]
-        );
-        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
-            foreach ( $product_categories as $category ) {
-                $category_options[ $category->term_id ] = $category->name;
-            }
-        }
-
         $this->add_control( 'show_categories', [
             'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
