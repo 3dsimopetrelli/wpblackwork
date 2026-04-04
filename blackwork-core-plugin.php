@@ -1616,6 +1616,95 @@ function bw_fpw_normalize_order($raw_order)
     return in_array($order, ['ASC', 'DESC'], true) ? $order : 'DESC';
 }
 
+function bw_fpw_normalize_sort_key($raw_sort_key)
+{
+    $sort_key = sanitize_key((string) $raw_sort_key);
+    $valid_sort_keys = ['default', 'recent', 'oldest', 'title_asc', 'title_desc', 'year_asc', 'year_desc'];
+
+    return in_array($sort_key, $valid_sort_keys, true) ? $sort_key : 'default';
+}
+
+function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order, $post_type = 'product')
+{
+    $normalized_sort_key = bw_fpw_normalize_sort_key($sort_key);
+    $effective_order_by = bw_fpw_normalize_order_by($default_order_by);
+    $effective_order = bw_fpw_normalize_order($default_order);
+    $query_args = [
+        'orderby' => $effective_order_by,
+        'order' => $effective_order,
+    ];
+
+    switch ($normalized_sort_key) {
+        case 'recent':
+            $effective_order_by = 'date';
+            $effective_order = 'DESC';
+            $query_args = [
+                'orderby' => 'date',
+                'order' => 'DESC',
+            ];
+            break;
+        case 'oldest':
+            $effective_order_by = 'date';
+            $effective_order = 'ASC';
+            $query_args = [
+                'orderby' => 'date',
+                'order' => 'ASC',
+            ];
+            break;
+        case 'title_asc':
+            $effective_order_by = 'title';
+            $effective_order = 'ASC';
+            $query_args = [
+                'orderby' => 'title',
+                'order' => 'ASC',
+            ];
+            break;
+        case 'title_desc':
+            $effective_order_by = 'title';
+            $effective_order = 'DESC';
+            $query_args = [
+                'orderby' => 'title',
+                'order' => 'DESC',
+            ];
+            break;
+        case 'year_asc':
+        case 'year_desc':
+            if ('product' !== $post_type) {
+                break;
+            }
+
+            $effective_order_by = 'meta_value_num';
+            $effective_order = 'year_asc' === $normalized_sort_key ? 'ASC' : 'DESC';
+            $query_args = [
+                'meta_key' => bw_fpw_get_canonical_year_meta_key(),
+                'meta_type' => 'NUMERIC',
+                'orderby' => [
+                    'meta_value_num' => $effective_order,
+                    'date' => 'DESC',
+                    'ID' => 'DESC',
+                ],
+                'order' => $effective_order,
+            ];
+            break;
+        case 'default':
+        default:
+            break;
+    }
+
+    if ('rand' === $effective_order_by) {
+        $effective_order = 'ASC';
+        $query_args['orderby'] = 'rand';
+        $query_args['order'] = 'ASC';
+    }
+
+    return [
+        'sort_key' => $normalized_sort_key,
+        'effective_order_by' => $effective_order_by,
+        'effective_order' => $effective_order,
+        'query_args' => $query_args,
+    ];
+}
+
 function bw_fpw_normalize_image_size($raw_image_size)
 {
     $image_size = sanitize_key((string) $raw_image_size);
@@ -3504,7 +3593,7 @@ function bw_fpw_generate_cache_key($params)
         : '';
 
     $canonical_payload = [
-        'schema' => 'v5',
+        'schema' => 'v6',
         'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
         'context_slug' => isset($params['context_slug']) ? (string) $params['context_slug'] : '',
@@ -3525,6 +3614,7 @@ function bw_fpw_generate_cache_key($params)
         'image_mode' => isset($params['image_mode']) ? (string) $params['image_mode'] : 'proportional',
         'hover_effect' => !empty($params['hover_effect']) ? 1 : 0,
         'open_cart_popup' => !empty($params['open_cart_popup']) ? 1 : 0,
+        'sort_key' => bw_fpw_normalize_sort_key(isset($params['sort_key']) ? $params['sort_key'] : 'default'),
         'order_by' => isset($params['order_by']) ? (string) $params['order_by'] : 'date',
         'order' => isset($params['order']) ? (string) $params['order'] : 'DESC',
         'per_page' => isset($params['per_page']) ? (int) $params['per_page'] : bw_fpw_get_default_per_page(),
@@ -3672,8 +3762,12 @@ function bw_fpw_filter_posts_inner()
     $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
     $hover_effect = bw_fpw_normalize_bool(isset($_POST['hover_effect']) ? wp_unslash($_POST['hover_effect']) : null, false);
     $open_cart_popup = bw_fpw_normalize_bool(isset($_POST['open_cart_popup']) ? wp_unslash($_POST['open_cart_popup']) : null, false);
-    $order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
-    $order = bw_fpw_normalize_order(isset($_POST['order']) ? wp_unslash($_POST['order']) : 'DESC');
+    $default_order_by = bw_fpw_normalize_order_by(isset($_POST['order_by']) ? wp_unslash($_POST['order_by']) : 'date');
+    $default_order = bw_fpw_normalize_order(isset($_POST['order']) ? wp_unslash($_POST['order']) : 'DESC');
+    $sort_key = bw_fpw_normalize_sort_key(isset($_POST['sort_key']) ? wp_unslash($_POST['sort_key']) : 'default');
+    $sort_config = bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order, $post_type);
+    $order_by = $sort_config['effective_order_by'];
+    $order = $sort_config['effective_order'];
     $raw_per_page = isset($_POST['per_page']) ? wp_unslash($_POST['per_page']) : bw_fpw_get_default_per_page();
     $normalized_per_page = is_numeric($raw_per_page) ? (int) $raw_per_page : bw_fpw_get_default_per_page();
     $per_page = $normalized_per_page <= 0
@@ -3728,6 +3822,7 @@ function bw_fpw_filter_posts_inner()
             'image_mode' => $image_mode,
             'hover_effect' => $hover_effect,
             'open_cart_popup' => $open_cart_popup,
+            'sort_key' => $sort_key,
             'order_by' => $order_by,
             'order' => $order,
             'per_page' => $per_page,
@@ -3752,9 +3847,11 @@ function bw_fpw_filter_posts_inner()
         'post_status' => 'publish',
         'no_found_rows' => false,
         'ignore_sticky_posts' => true,
-        'orderby' => $order_by,
-        'order' => $order,
     ];
+
+    foreach ((array) $sort_config['query_args'] as $query_arg_key => $query_arg_value) {
+        $query_args[$query_arg_key] = $query_arg_value;
+    }
 
     if ($per_page > 0 && $offset > 0) {
         $query_args['offset'] = $offset;

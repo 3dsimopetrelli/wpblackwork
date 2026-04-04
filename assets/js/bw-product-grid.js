@@ -851,6 +851,7 @@
             }
 
             filterState[widgetId] = {
+                sortKey: normalizeDiscoverySortKey($grid.attr('data-default-sort-key') || 'default'),
                 category: initialCategory,
                 subcategories: [],
                 tags: [],
@@ -892,6 +893,9 @@
                     showPublisher: false,
                     showSource: false,
                     showTechnique: false,
+                    showOrderBy: ($grid.attr('data-show-order-by') || 'no') === 'yes',
+                    orderTriggerStyle: ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon',
+                    sortMenuOpen: false,
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -977,6 +981,131 @@
         });
 
         return result;
+    }
+
+    function getDiscoverySortOptions() {
+        return {
+            'default': {
+                triggerLabel: 'Default',
+                menuLabel: 'Default order',
+                orderBy: null,
+                order: null
+            },
+            recent: {
+                triggerLabel: 'Recently added',
+                menuLabel: 'Recently added',
+                orderBy: 'date',
+                order: 'DESC'
+            },
+            oldest: {
+                triggerLabel: 'Oldest added',
+                menuLabel: 'Oldest added',
+                orderBy: 'date',
+                order: 'ASC'
+            },
+            title_asc: {
+                triggerLabel: 'Alphabetical A to Z',
+                menuLabel: 'Alphabetical A to Z',
+                orderBy: 'title',
+                order: 'ASC'
+            },
+            title_desc: {
+                triggerLabel: 'Alphabetical Z to A',
+                menuLabel: 'Alphabetical Z to A',
+                orderBy: 'title',
+                order: 'DESC'
+            },
+            year_asc: {
+                triggerLabel: 'Year, oldest first',
+                menuLabel: 'Year, oldest first',
+                orderBy: 'date',
+                order: 'ASC'
+            },
+            year_desc: {
+                triggerLabel: 'Year, newest first',
+                menuLabel: 'Year, newest first',
+                orderBy: 'date',
+                order: 'DESC'
+            }
+        };
+    }
+
+    function normalizeDiscoverySortKey(value) {
+        var sortKey = String(value || 'default').toLowerCase();
+        var options = getDiscoverySortOptions();
+
+        return options.hasOwnProperty(sortKey) ? sortKey : 'default';
+    }
+
+    function getDefaultDiscoverySortConfig(widgetId) {
+        var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        var orderBy = String($grid.attr('data-default-order-by') || $grid.attr('data-order-by') || 'date');
+        var order = String($grid.attr('data-default-order') || $grid.attr('data-order') || 'DESC').toUpperCase();
+
+        if (['date', 'modified', 'title', 'rand', 'ID'].indexOf(orderBy) === -1) {
+            orderBy = 'date';
+        }
+
+        if (['ASC', 'DESC'].indexOf(order) === -1) {
+            order = 'DESC';
+        }
+
+        if (orderBy === 'rand') {
+            order = 'ASC';
+        }
+
+        return {
+            orderBy: orderBy,
+            order: order
+        };
+    }
+
+    function isDiscoverySortEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.showOrderBy === 'boolean') {
+            return resolvedState.ui.showOrderBy;
+        }
+
+        if (!widgetId) {
+            return false;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        return ($grid.attr('data-show-order-by') || 'no') === 'yes';
+    }
+
+    function getDiscoverySortTriggerStyle(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && resolvedState.ui.orderTriggerStyle) {
+            return resolvedState.ui.orderTriggerStyle;
+        }
+
+        if (!widgetId) {
+            return 'icon';
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+        return ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon';
+    }
+
+    function getEffectiveDiscoverySortConfig(widgetId, state) {
+        var resolvedState = state || getDiscoveryState(widgetId);
+        var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
+        var options = getDiscoverySortOptions();
+        var option = options[sortKey] || options['default'];
+        var defaults = getDefaultDiscoverySortConfig(widgetId);
+
+        return {
+            sortKey: sortKey,
+            triggerLabel: option.triggerLabel,
+            menuLabel: option.menuLabel,
+            orderBy: sortKey === 'default' ? defaults.orderBy : option.orderBy,
+            order: sortKey === 'default' ? defaults.order : option.order
+        };
     }
 
     function getDiscoverySelectionStateKey(groupKey) {
@@ -1503,6 +1632,66 @@
         $groups.html(html);
     }
 
+    function closeDiscoverySortMenu(widgetId) {
+        var state = filterState[widgetId];
+
+        if (!state || !state.ui || !state.ui.sortMenuOpen) {
+            return;
+        }
+
+        state.ui.sortMenuOpen = false;
+        renderDiscoverySortControl(widgetId);
+    }
+
+    function closeAllDiscoverySortMenus(exceptWidgetId) {
+        Object.keys(filterState).forEach(function (widgetId) {
+            if (exceptWidgetId && String(widgetId) === String(exceptWidgetId)) {
+                return;
+            }
+
+            closeDiscoverySortMenu(widgetId);
+        });
+    }
+
+    function renderDiscoverySortControl(widgetId) {
+        var state = filterState[widgetId];
+        var config;
+        var isOpen;
+        var $sort;
+        var $trigger;
+        var $menu;
+
+        if (!isDiscoverySortEnabled(widgetId, state)) {
+            return;
+        }
+
+        config = getEffectiveDiscoverySortConfig(widgetId, state);
+        isOpen = !!(state && state.ui && state.ui.sortMenuOpen);
+        $sort = $('.bw-fpw-sort[data-widget-id="' + widgetId + '"]');
+
+        if (!$sort.length) {
+            return;
+        }
+
+        $trigger = $sort.find('.bw-fpw-sort-trigger');
+        $menu = $sort.find('.bw-fpw-sort-menu');
+
+        $sort.toggleClass('is-open', isOpen);
+        $sort.attr('data-sort-key', config.sortKey);
+        $sort.attr('data-trigger-style', getDiscoverySortTriggerStyle(widgetId, state));
+        $trigger.attr('aria-expanded', isOpen ? 'true' : 'false');
+        $menu.attr('aria-hidden', isOpen ? 'false' : 'true');
+        $sort.find('[data-sort-current-label]').text(config.triggerLabel);
+
+        $sort.find('.bw-fpw-sort-option').each(function () {
+            var $option = $(this);
+            var isSelected = normalizeDiscoverySortKey($option.attr('data-sort-key')) === config.sortKey;
+
+            $option.toggleClass('is-selected', isSelected);
+            $option.attr('aria-checked', isSelected ? 'true' : 'false');
+        });
+    }
+
     function renderDiscoverySearch(widgetId) {
         var state = filterState[widgetId];
         var searchEnabled = isWidgetSearchEnabled(widgetId, state);
@@ -1583,6 +1772,9 @@
         ensureDiscoveryDrawerBodyListener(widgetId);
 
         preserveDiscoveryDrawerScrollPosition(widgetId, function () {
+            if (isDiscoverySortEnabled(widgetId, state)) {
+                renderDiscoverySortControl(widgetId);
+            }
             if (isWidgetSearchEnabled(widgetId, state)) {
                 renderDiscoverySearch(widgetId);
             }
@@ -1771,6 +1963,7 @@
         state.ui.openGroups.publisher = false;
         state.ui.openGroups.source = false;
         state.ui.openGroups.technique = false;
+        state.ui.sortMenuOpen = false;
         state.ui.yearDraft = createEmptyYearState();
 
         if (yearInputCommitTimers[widgetId]) {
@@ -2619,8 +2812,10 @@
         var imageMode = $grid.attr('data-image-mode') || 'proportional';
         var hoverEffect = $grid.attr('data-hover-effect') || 'yes';
         var openCartPopup = $grid.attr('data-open-cart-popup') || 'no';
-        var orderBy = $grid.attr('data-order-by') || 'date';
-        var order = $grid.attr('data-order') || 'DESC';
+        var sortConfig = getEffectiveDiscoverySortConfig(widgetId, state);
+        var orderBy = sortConfig.orderBy;
+        var order = sortConfig.order;
+        var sortKey = sortConfig.sortKey;
         var contextSlug = $grid.attr('data-context-slug') || '';
         var searchEnabled = isWidgetSearchEnabled(widgetId, state);
         var requestPerPage = appendMode ? pagingState.loadBatchSize : pagingState.initialItems;
@@ -2666,6 +2861,7 @@
             publisher: publisherValues,
             source: sourceValues,
             technique: techniqueValues,
+            sort_key: sortKey,
             order_by: orderBy,
             order: order,
             image_mode: imageMode,
@@ -2737,6 +2933,7 @@
                 publisher: publisherValues,
                 source: sourceValues,
                 technique: techniqueValues,
+                sort_key: sortKey,
                 image_toggle: imageToggle,
                 image_size: imageSize,
                 image_mode: imageMode,
@@ -3044,6 +3241,55 @@
     }
 
     function initFilters() {
+        $(document).on('click', '.bw-fpw-sort-trigger', function (e) {
+            var widgetId = $(this).attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoverySortEnabled(widgetId, state)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            closeAllDiscoverySortMenus(widgetId);
+            state.ui.sortMenuOpen = !state.ui.sortMenuOpen;
+            renderDiscoverySortControl(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-sort-option', function (e) {
+            var $option = $(this);
+            var widgetId = $option.attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+            var nextSortKey = normalizeDiscoverySortKey($option.attr('data-sort-key'));
+
+            if (!widgetId || !isDiscoveryDrawerMode(widgetId) || !isDiscoverySortEnabled(widgetId, state)) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (state.sortKey === nextSortKey) {
+                state.ui.sortMenuOpen = false;
+                renderDiscoverySortControl(widgetId);
+                return;
+            }
+
+            state.sortKey = nextSortKey;
+            state.ui.sortMenuOpen = false;
+            renderDiscoverySortControl(widgetId);
+            filterPosts(widgetId);
+        });
+
+        $(document).on('click', function (e) {
+            if ($(e.target).closest('.bw-fpw-sort').length) {
+                return;
+            }
+
+            closeAllDiscoverySortMenus();
+        });
+
         $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
             e.preventDefault();
 
@@ -3450,6 +3696,7 @@
             // Reset filter state (preserve options/labels caches from discovery state if present)
             var prevState = filterState[widgetId] || {};
             filterState[widgetId] = {
+                sortKey: prevState.sortKey || normalizeDiscoverySortKey($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-default-sort-key') || 'default'),
                 category: defaultCategory,
                 subcategories: [],
                 tags: [],
@@ -3491,6 +3738,11 @@
                     showPublisher: !!(prevState.ui && prevState.ui.showPublisher),
                     showSource: !!(prevState.ui && prevState.ui.showSource),
                     showTechnique: !!(prevState.ui && prevState.ui.showTechnique),
+                    showOrderBy: !!(prevState.ui && prevState.ui.showOrderBy),
+                    orderTriggerStyle: prevState.ui && prevState.ui.orderTriggerStyle
+                        ? prevState.ui.orderTriggerStyle
+                        : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon'),
+                    sortMenuOpen: false,
                     searchEnabled: prevState.ui && typeof prevState.ui.searchEnabled === 'boolean'
                         ? prevState.ui.searchEnabled
                         : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
@@ -3568,6 +3820,8 @@
             if (e.key !== 'Escape') {
                 return;
             }
+
+            closeAllDiscoverySortMenus();
 
             $('.bw-product-grid-wrapper.bw-fpw-mobile-panel-open').each(function () {
                 var widgetId = $(this).find('.bw-fpw-mobile-filter').first().attr('data-widget-id');
@@ -3693,6 +3947,9 @@
                 state.ui.showTypes = !!bootstrapPayload.show_types;
                 state.ui.showTags = !!bootstrapPayload.show_tags;
                 state.ui.showYears = !!bootstrapPayload.show_years;
+                state.ui.showOrderBy = !!bootstrapPayload.show_order_by;
+                state.ui.orderTriggerStyle = bootstrapPayload.order_trigger_style === 'dropdown' ? 'dropdown' : 'icon';
+                state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || 'default');
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
 
                 updateDiscoveryOptions(widgetId, {
@@ -3705,6 +3962,8 @@
                 renderDiscoveryUi(widgetId);
             } else {
                 state.ui.searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
+                state.ui.showOrderBy = ($grid.attr('data-show-order-by') || 'no') === 'yes';
+                state.ui.orderTriggerStyle = ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon';
             }
 
             if (!state.ui.searchEnabled) {

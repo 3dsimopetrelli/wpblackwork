@@ -30,7 +30,7 @@ Controls are registered across four private methods:
 |--------|----------|
 | `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
-| `register_filter_controls()` | `Show Filters`, `Show Search`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
+| `register_filter_controls()` | `Show Filters`, `Show Search`, `Show Order By`, `Order By Trigger Style`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
 | `register_query_controls()` | Post type, parent category (multi-select), subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
@@ -96,7 +96,12 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-show-description` | `show_description` control | CSS visibility contract |
 | `data-show-price` | `show_price` control | CSS visibility contract |
 | `data-search-enabled` | `show_search` control | search feature-flag gating in JS + AJAX |
+| `data-show-order-by` | `show_order_by` control gated by responsive discovery mode and `specific_ids` absence | runtime sort trigger/menu gating in JS |
+| `data-order-trigger-style` | `order_by_trigger_style` control | shared runtime sort trigger rendering |
+| `data-default-sort-key` | hardcoded `default` | initial JS sort state |
 | `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
+| `data-default-order-by`, `data-default-order` | query controls | runtime `Default order` mapping in JS |
+| `data-specific-ids-mode` | `specific_ids` present or not | runtime sort disablement in curated-ID mode |
 | `data-initial-items`, `data-load-batch-size`, `data-per-page` | controls | paging state |
 | `data-current-page`, `data-next-page`, `data-next-offset` | `render_posts()` derived | paging state |
 | `data-loaded-count`, `data-has-more` | `render_posts()` derived | paging state |
@@ -151,6 +156,10 @@ The widget currently has two filter surface families:
 Responsive discovery PHP shell authority:
 - toolbar result count + reset action
 - optional global search input (`Search in collection...`) when `Show Search = On`
+- optional runtime `Order By` trigger when `Show Order By = On`
+  - trigger variants: `icon` or `dropdown`
+  - both open the same shared floating sort menu
+  - sorting is not treated as a filter chip and is not cleared by `Reset filters`
 - filter trigger pill
 - active-chip row above the grid (active filters only)
 - drawer shell regions:
@@ -167,6 +176,14 @@ Drawer body content is data-bootstrapped in PHP and rendered live in JS from cen
 - JS bypasses search UI/state wiring when disabled
 - AJAX sends `search_enabled`
 - the backend forces the effective search term to `''` and skips search-term matching work
+
+Runtime sorting is implemented as one shared stateful feature:
+- JS state uses a single `sortKey`
+- AJAX sends `sort_key` plus effective `order_by` / `order`
+- the backend maps `sort_key` authoritatively to real query args
+- `default` means the widget’s own Elementor query defaults
+- `year_asc` / `year_desc` sort on canonical `_bw_filter_year_int`
+- widgets configured with `specific_ids` do not expose runtime sorting, so curated `post__in` order remains authoritative
 
 ### 3.7 Responsive filter first-paint contract
 
@@ -204,6 +221,7 @@ filterState[widgetId]       = {
                                 techniques[],
                                 search,
                                 appliedSearch,
+                                sortKey,
                                 year: { from, to },
                                 yearBounds: { min, max },
                                 yearQuickRanges[],
@@ -230,6 +248,9 @@ filterState[widgetId]       = {
                                   showPublisher,
                                   showSource,
                                   showTechnique,
+                                  showOrderBy,
+                                  orderTriggerStyle,
+                                  sortMenuOpen,
                                   optionSearches: {
                                     types, tags,
                                     artist, author,
@@ -258,6 +279,7 @@ In discovery drawer mode the same `filterState` is the single source of truth fo
   - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
 - active-only chips above the grid
 - active-only chips inside the drawer, under the `Filters` title
+- the runtime sort trigger + shared floating menu
 - year slider, year inputs, and year quick ranges
 - token-based advanced meta groups:
   - `Artist`
@@ -396,7 +418,7 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 ### 5.3 bw_fpw_filter_posts
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
-- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `artist[]`, `author[]`, `publisher[]`, `source[]`, `technique[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
+- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `artist[]`, `author[]`, `publisher[]`, `source[]`, `technique[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `sort_key`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
 - Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
 - Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)

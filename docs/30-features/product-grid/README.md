@@ -16,11 +16,24 @@ Current notable UI/runtime deltas:
     - Phase 2: `Source`, `Technique`
 - responsive toolbar uses the shared discovery state:
   - global search is a real feature flag driven by `Filter Settings > Show Search`
+  - optional runtime `Order By` control is driven by `Filter Settings > Show Order By`
+  - trigger style can be switched between `icon` and `dropdown` via `Order By Trigger Style`
+  - runtime sorting is backend-authoritative and shares the same AJAX flow as filters
+  - supported runtime sort keys:
+    - `default`
+    - `recent`
+    - `oldest`
+    - `title_asc`
+    - `title_desc`
+    - `year_asc`
+    - `year_desc`
+  - `Default order` maps back to the widget query defaults (`order_by` + `order`)
   - when enabled, the global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
   - when disabled, Product Grid skips search UI, search runtime wiring, AJAX search payload, and backend search matching work
   - result count
   - active-only chips contract above the grid
   - reset action
+- runtime sort is intentionally disabled when the widget is driven by `specific_ids`, so curated `post__in` ordering stays authoritative
 - responsive filter drawer uses the detached dark-glass floating-panel treatment with light veil overlay, rounded shell, and premium close/apply controls
 - mobile first paint is CSS-governed, so desktop filter labels do not flash before JS init
 - Product Grid search now also matches canonical derived filter meta:
