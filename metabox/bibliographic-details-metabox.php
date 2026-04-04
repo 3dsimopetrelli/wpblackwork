@@ -66,6 +66,142 @@ function bw_get_digital_product_fields() {
 }
 
 /**
+ * Admin-only field config for Digital Product Details.
+ *
+ * Keeps stored meta keys unchanged while improving editor clarity.
+ *
+ * @return array<string, array{label: string, id: string}>
+ */
+function bw_get_digital_product_admin_field_config() {
+    return [
+        '_digital_total_assets' => [
+            'label' => __( 'Total Assets', 'bw' ),
+            'id'    => 'digital_total_assets',
+        ],
+        '_digital_assets_list'  => [
+            'label' => __( 'Assets List', 'bw' ),
+            'id'    => 'digital_assets_list',
+        ],
+        '_digital_file_size'    => [
+            'label' => __( 'File Size', 'bw' ),
+            'id'    => 'digital_file_size',
+        ],
+        '_digital_formats'      => [
+            'label' => __( 'Formats Included', 'bw' ),
+            'id'    => 'digital_formats',
+        ],
+        '_bw_artist_name'       => [
+            'label' => __( 'Digital Artist', 'bw' ),
+            'id'    => 'digital_artist',
+        ],
+        '_digital_source'       => [
+            'label' => __( 'Digital Source', 'bw' ),
+            'id'    => 'digital_source',
+        ],
+        '_digital_publisher'    => [
+            'label' => __( 'Digital Publisher', 'bw' ),
+            'id'    => 'digital_publisher',
+        ],
+        '_digital_year'         => [
+            'label' => __( 'Digital Year', 'bw' ),
+            'id'    => 'digital_year',
+        ],
+        '_digital_technique'    => [
+            'label' => __( 'Digital Technique', 'bw' ),
+            'id'    => 'digital_technique',
+        ],
+    ];
+}
+
+/**
+ * Admin-only field config for Books bibliographic details.
+ *
+ * @return array<string, array{label: string, id: string}>
+ */
+function bw_get_books_admin_field_config() {
+    return [
+        '_bw_biblio_title'     => [
+            'label' => __( 'Book Title', 'bw' ),
+            'id'    => 'book_title',
+        ],
+        '_bw_biblio_author'    => [
+            'label' => __( 'Book Author', 'bw' ),
+            'id'    => 'book_author',
+        ],
+        '_bw_biblio_publisher' => [
+            'label' => __( 'Book Publisher', 'bw' ),
+            'id'    => 'book_publisher',
+        ],
+        '_bw_biblio_year'      => [
+            'label' => __( 'Book Year', 'bw' ),
+            'id'    => 'book_year',
+        ],
+        '_bw_biblio_language'  => [
+            'label' => __( 'Book Language', 'bw' ),
+            'id'    => 'book_language',
+        ],
+        '_bw_biblio_binding'   => [
+            'label' => __( 'Book Binding', 'bw' ),
+            'id'    => 'book_binding',
+        ],
+        '_bw_biblio_pages'     => [
+            'label' => __( 'Book Pages', 'bw' ),
+            'id'    => 'book_pages',
+        ],
+        '_bw_biblio_edition'   => [
+            'label' => __( 'Book Edition', 'bw' ),
+            'id'    => 'book_edition',
+        ],
+        '_bw_biblio_condition' => [
+            'label' => __( 'Book Condition', 'bw' ),
+            'id'    => 'book_condition',
+        ],
+        '_bw_biblio_location'  => [
+            'label' => __( 'Book Location', 'bw' ),
+            'id'    => 'book_location',
+        ],
+    ];
+}
+
+/**
+ * Admin-only field config for Prints bibliographic details.
+ *
+ * @return array<string, array{label: string, id: string}>
+ */
+function bw_get_prints_admin_field_config() {
+    return [
+        '_print_artist'     => [
+            'label' => __( 'Print Artist', 'bw' ),
+            'id'    => 'print_artist',
+        ],
+        '_print_publisher'  => [
+            'label' => __( 'Print Publisher', 'bw' ),
+            'id'    => 'print_publisher',
+        ],
+        '_print_year'       => [
+            'label' => __( 'Print Year', 'bw' ),
+            'id'    => 'print_year',
+        ],
+        '_print_technique'  => [
+            'label' => __( 'Print Technique', 'bw' ),
+            'id'    => 'print_technique',
+        ],
+        '_print_material'   => [
+            'label' => __( 'Print Material', 'bw' ),
+            'id'    => 'print_material',
+        ],
+        '_print_plate_size' => [
+            'label' => __( 'Print Plate Size', 'bw' ),
+            'id'    => 'print_plate_size',
+        ],
+        '_print_condition'  => [
+            'label' => __( 'Print Condition', 'bw' ),
+            'id'    => 'print_condition',
+        ],
+    ];
+}
+
+/**
  * List of compatibility rows.
  *
  * @return array<string, string> Key is the meta key, value is the frontend label.
@@ -158,6 +294,9 @@ function bw_render_bibliographic_details_metabox( $post ) {
     $book_fields    = bw_get_bibliographic_fields();
     $print_fields   = bw_get_prints_bibliographic_fields();
     $digital_fields = bw_get_digital_product_fields();
+    $digital_admin  = bw_get_digital_product_admin_field_config();
+    $books_admin    = bw_get_books_admin_field_config();
+    $prints_admin   = bw_get_prints_admin_field_config();
     ?>
     <style>
         .bw-biblio-metabox-table {
@@ -214,20 +353,22 @@ function bw_render_bibliographic_details_metabox( $post ) {
             <tbody>
             <?php foreach ( $digital_fields as $meta_key => $label ) :
                 $value = get_post_meta( $post->ID, $meta_key, true );
+                $field_id    = isset( $digital_admin[ $meta_key ]['id'] ) ? $digital_admin[ $meta_key ]['id'] : $meta_key;
+                $field_label = isset( $digital_admin[ $meta_key ]['label'] ) ? $digital_admin[ $meta_key ]['label'] : $label;
                 ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <th scope="row"><label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
                     <td>
                         <?php if ( '_digital_assets_list' === $meta_key ) : ?>
                             <textarea
-                                id="<?php echo esc_attr( $meta_key ); ?>"
+                                id="<?php echo esc_attr( $field_id ); ?>"
                                 name="<?php echo esc_attr( $meta_key ); ?>"
                                 class="bw-biblio-textarea"
                             ><?php echo esc_textarea( $value ); ?></textarea>
                         <?php else : ?>
                             <input
                                 type="text"
-                                id="<?php echo esc_attr( $meta_key ); ?>"
+                                id="<?php echo esc_attr( $field_id ); ?>"
                                 name="<?php echo esc_attr( $meta_key ); ?>"
                                 value="<?php echo esc_attr( $value ); ?>"
                                 class="bw-biblio-metabox-input"
@@ -271,13 +412,15 @@ function bw_render_bibliographic_details_metabox( $post ) {
             <tbody>
             <?php foreach ( $book_fields as $meta_key => $label ) :
                 $value = get_post_meta( $post->ID, $meta_key, true );
+                $field_id    = isset( $books_admin[ $meta_key ]['id'] ) ? $books_admin[ $meta_key ]['id'] : $meta_key;
+                $field_label = isset( $books_admin[ $meta_key ]['label'] ) ? $books_admin[ $meta_key ]['label'] : $label;
                 ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <th scope="row"><label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
                     <td>
                         <input
                             type="text"
-                            id="<?php echo esc_attr( $meta_key ); ?>"
+                            id="<?php echo esc_attr( $field_id ); ?>"
                             name="<?php echo esc_attr( $meta_key ); ?>"
                             value="<?php echo esc_attr( $value ); ?>"
                             class="bw-biblio-metabox-input"
@@ -295,13 +438,15 @@ function bw_render_bibliographic_details_metabox( $post ) {
             <tbody>
             <?php foreach ( $print_fields as $meta_key => $label ) :
                 $value = get_post_meta( $post->ID, $meta_key, true );
+                $field_id    = isset( $prints_admin[ $meta_key ]['id'] ) ? $prints_admin[ $meta_key ]['id'] : $meta_key;
+                $field_label = isset( $prints_admin[ $meta_key ]['label'] ) ? $prints_admin[ $meta_key ]['label'] : $label;
                 ?>
                 <tr>
-                    <th scope="row"><label for="<?php echo esc_attr( $meta_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                    <th scope="row"><label for="<?php echo esc_attr( $field_id ); ?>"><?php echo esc_html( $field_label ); ?></label></th>
                     <td>
                         <input
                             type="text"
-                            id="<?php echo esc_attr( $meta_key ); ?>"
+                            id="<?php echo esc_attr( $field_id ); ?>"
                             name="<?php echo esc_attr( $meta_key ); ?>"
                             value="<?php echo esc_attr( $value ); ?>"
                             class="bw-biblio-metabox-input"
