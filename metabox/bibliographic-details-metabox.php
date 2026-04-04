@@ -93,6 +93,7 @@ function bw_get_digital_product_admin_field_config() {
         '_bw_artist_name'       => [
             'label' => __( 'Digital Artist', 'bw' ),
             'id'    => 'digital_artist',
+            'hint'  => '_digital_artist_name',
         ],
         '_digital_source'       => [
             'label' => __( 'Digital Source', 'bw' ),
@@ -364,12 +365,13 @@ function bw_render_bibliographic_details_metabox( $post ) {
                 $value = get_post_meta( $post->ID, $meta_key, true );
                 $field_id    = isset( $digital_admin[ $meta_key ]['id'] ) ? $digital_admin[ $meta_key ]['id'] : $meta_key;
                 $field_label = isset( $digital_admin[ $meta_key ]['label'] ) ? $digital_admin[ $meta_key ]['label'] : $label;
+                $field_hint  = isset( $digital_admin[ $meta_key ]['hint'] ) ? $digital_admin[ $meta_key ]['hint'] : $meta_key;
                 ?>
                 <tr>
                     <th scope="row">
                         <label for="<?php echo esc_attr( $field_id ); ?>">
                             <?php echo esc_html( $field_label ); ?>
-                            <span class="bw-meta-key-hint"><?php echo esc_html( $meta_key ); ?></span>
+                            <span class="bw-meta-key-hint"><?php echo esc_html( $field_hint ); ?></span>
                         </label>
                     </th>
                     <td>
@@ -515,8 +517,14 @@ function bw_save_bibliographic_details_metabox( $post_id ) {
 
         if ( '' !== $value ) {
             update_post_meta( $post_id, $meta_key, $value );
+            if ( '_bw_artist_name' === $meta_key ) {
+                update_post_meta( $post_id, '_digital_artist_name', $value );
+            }
         } else {
             delete_post_meta( $post_id, $meta_key );
+            if ( '_bw_artist_name' === $meta_key ) {
+                delete_post_meta( $post_id, '_digital_artist_name' );
+            }
         }
     }
 

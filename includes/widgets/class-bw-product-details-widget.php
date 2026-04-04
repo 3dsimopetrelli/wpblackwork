@@ -597,6 +597,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		$rows = [];
 		foreach ( $fields as $meta_key => $label ) {
 			$value = get_post_meta( $product_id, $meta_key, true );
+			if ( '_bw_artist_name' === $meta_key && '' === $value ) {
+				$value = get_post_meta( $product_id, '_digital_artist_name', true );
+			}
 			if ( '' === $value ) {
 				continue;
 			}

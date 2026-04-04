@@ -77,6 +77,10 @@ if ( class_exists( '\Elementor\Core\DynamicTags\Tag' ) && class_exists( '\Elemen
 
             $artist_name = get_post_meta( $post_id, '_bw_artist_name', true );
 
+            if ( '' === $artist_name ) {
+                $artist_name = get_post_meta( $post_id, '_digital_artist_name', true );
+            }
+
             return is_string( $artist_name ) ? $artist_name : '';
         }
 

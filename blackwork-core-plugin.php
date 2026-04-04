@@ -1930,15 +1930,15 @@ function bw_fpw_get_product_filter_source_meta_map()
     return [
         'digital-collections' => [
             'year_keys' => ['_digital_year'],
-            'author_keys' => ['_bw_artist_name'],
+            'author_keys' => ['_bw_artist_name', '_digital_artist_name'],
         ],
         'books' => [
             'year_keys' => ['_bw_biblio_year'],
-            'author_keys' => ['_bw_biblio_author', '_bw_artist_name'],
+            'author_keys' => ['_bw_biblio_author', '_bw_artist_name', '_digital_artist_name'],
         ],
         'prints' => [
             'year_keys' => ['_print_year'],
-            'author_keys' => ['_print_artist', '_bw_artist_name'],
+            'author_keys' => ['_print_artist', '_bw_artist_name', '_digital_artist_name'],
         ],
     ];
 }
@@ -1950,7 +1950,7 @@ function bw_fpw_get_all_filter_source_year_meta_keys()
 
 function bw_fpw_get_all_filter_source_author_meta_keys()
 {
-    return ['_bw_biblio_author', '_print_artist', '_bw_artist_name'];
+    return ['_bw_biblio_author', '_print_artist', '_bw_artist_name', '_digital_artist_name'];
 }
 
 function bw_fpw_get_all_filter_relevant_meta_keys()
