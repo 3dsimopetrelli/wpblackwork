@@ -1162,7 +1162,7 @@
     }
 
     function getVisibleDiscoveryGroupKeys() {
-        return ['types', 'artist', 'tags', 'author', 'source', 'technique', 'years'];
+        return ['types', 'tags', 'artist', 'author', 'source', 'technique', 'years'];
     }
 
     function getDiscoverySortTriggerStyle(widgetId, state) {
