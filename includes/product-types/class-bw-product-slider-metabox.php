@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function bw_register_product_slider_hover_metabox() {
 	add_meta_box(
 		'bw_product_slider_image',
-		__( 'Hover Media', 'bw' ),
+		__( 'Product Presentation Hover Media', 'bw' ),
 		'bw_render_product_slider_hover_metabox',
 		'product',
 		'side',
