@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function bw_register_product_slider_hover_metabox() {
 	add_meta_box(
 		'bw_product_slider_image',
-		__( 'Hover Media', 'bw' ),
+		__( 'Product Presentation Hover Media', 'bw' ),
 		'bw_render_product_slider_hover_metabox',
 		'product',
 		'side',
@@ -34,13 +34,39 @@ function bw_render_product_slider_hover_metabox( $post ) {
 
 	wp_nonce_field( 'bw_slider_hover_media_nonce', 'bw_slider_hover_media_nonce' );
 	?>
+	<style>
+		.bw-slider-metabox-wrapper .bw-meta-key-hint {
+			display: block;
+			margin-top: 4px;
+			color: #888;
+			cursor: pointer;
+			font-family: monospace;
+			font-size: 11px;
+			font-weight: 400;
+			text-transform: none;
+			transition: color 0.15s ease;
+			user-select: none;
+			-webkit-user-select: none;
+		}
+		.bw-slider-metabox-wrapper .bw-meta-key-hint:hover,
+		.bw-slider-metabox-wrapper .bw-meta-key-hint:focus {
+			color: #555;
+			outline: none;
+		}
+		.bw-slider-metabox-wrapper .bw-meta-key-hint.is-copied {
+			color: #4caf50;
+		}
+	</style>
 	<div class="bw-slider-metabox-wrapper">
 		<p style="margin-top:0;color:#50575e;">
 			<?php esc_html_e( 'Hover Video has priority. If no video is set, the hover image will be used as fallback.', 'bw' ); ?>
 		</p>
 
 		<div class="bw-slider-metabox-field" style="margin-bottom:16px;">
-			<strong style="display:block;margin-bottom:8px;"><?php esc_html_e( 'Hover Image', 'bw' ); ?></strong>
+			<strong style="display:block;margin-bottom:8px;">
+				<?php esc_html_e( 'Hover Image', 'bw' ); ?>
+				<span class="bw-meta-key-hint" data-meta-key="_bw_slider_hover_image" tabindex="0">_bw_slider_hover_image</span>
+			</strong>
 			<div class="bw-slider-metabox-preview bw-slider-metabox-preview--image" style="margin-bottom:10px;max-width:280px;">
 				<?php if ( $image_url ) : ?>
 					<img src="<?php echo esc_url( $image_url ); ?>" style="display:block;width:100%;height:auto;max-width:280px;border-radius:6px;" alt="<?php echo esc_attr__( 'Hover image preview', 'bw' ); ?>">
@@ -54,7 +80,10 @@ function bw_render_product_slider_hover_metabox( $post ) {
 		</div>
 
 		<div class="bw-slider-metabox-field">
-			<strong style="display:block;margin-bottom:8px;"><?php esc_html_e( 'Hover Video', 'bw' ); ?></strong>
+			<strong style="display:block;margin-bottom:8px;">
+				<?php esc_html_e( 'Hover Video', 'bw' ); ?>
+				<span class="bw-meta-key-hint" data-meta-key="_bw_slider_hover_video" tabindex="0">_bw_slider_hover_video</span>
+			</strong>
 			<div class="bw-slider-metabox-preview bw-slider-metabox-preview--video" style="margin-bottom:10px;max-width:280px;">
 				<?php if ( $video_url ) : ?>
 					<video
@@ -79,6 +108,86 @@ function bw_render_product_slider_hover_metabox( $post ) {
 
 	<script>
 	jQuery(function($){
+		if (!window.bwMetaKeyHintCopyBound) {
+			window.bwMetaKeyHintCopyBound = true;
+
+			function fallbackCopy(text) {
+				var textarea = document.createElement('textarea');
+				textarea.value = text;
+				textarea.setAttribute('readonly', 'readonly');
+				textarea.style.position = 'fixed';
+				textarea.style.opacity = '0';
+				textarea.style.pointerEvents = 'none';
+				document.body.appendChild(textarea);
+				textarea.select();
+
+				try {
+					document.execCommand('copy');
+				} finally {
+					document.body.removeChild(textarea);
+				}
+			}
+
+			function copyMetaKey(text) {
+				if (navigator.clipboard && navigator.clipboard.writeText) {
+					return navigator.clipboard.writeText(text).catch(function() {
+						fallbackCopy(text);
+					});
+				}
+
+				fallbackCopy(text);
+				return Promise.resolve();
+			}
+
+			function showCopiedState(element) {
+				if (!element) {
+					return;
+				}
+
+				if (element.bwMetaKeyHintReset) {
+					clearTimeout(element.bwMetaKeyHintReset);
+				}
+
+				if (!element.dataset.originalText) {
+					element.dataset.originalText = element.textContent;
+				}
+
+				element.textContent = 'Copied!';
+				element.classList.add('is-copied');
+
+				element.bwMetaKeyHintReset = window.setTimeout(function() {
+					element.textContent = element.dataset.metaKey || element.dataset.originalText || '';
+					element.classList.remove('is-copied');
+					element.bwMetaKeyHintReset = null;
+				}, 1000);
+			}
+
+			function handleMetaKeyHintInteraction(event) {
+				var hint = event.target.closest('.bw-meta-key-hint');
+				if (!hint) {
+					return;
+				}
+
+				if ('keydown' === event.type && 'Enter' !== event.key && ' ' !== event.key) {
+					return;
+				}
+
+				event.preventDefault();
+
+				var metaKey = hint.dataset.metaKey || hint.textContent.trim();
+				if (!metaKey) {
+					return;
+				}
+
+				copyMetaKey(metaKey).then(function() {
+					showCopiedState(hint);
+				});
+			}
+
+			document.addEventListener('click', handleMetaKeyHintInteraction);
+			document.addEventListener('keydown', handleMetaKeyHintInteraction);
+		}
+
 		var imageFrame = null;
 		var videoFrame = null;
 

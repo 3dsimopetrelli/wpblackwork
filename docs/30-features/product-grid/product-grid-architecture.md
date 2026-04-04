@@ -30,7 +30,7 @@ Controls are registered across four private methods:
 |--------|----------|
 | `register_rebuild_layout_controls()` | Infinite scroll, initial items, batch size, desktop columns (`3`-`6`), max-width, masonry toggle, show title/description/price, `Disable Hover Actions on Tablet & Mobile` |
 | `register_style_controls()` | Style tab text controls: content gap, title/description/price color, typography, and padding |
-| `register_filter_controls()` | `Show Filters`, `Enable Responsive Filter Mode`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
+| `register_filter_controls()` | `Show Filters`, `Filter Mode`, `Visible Filters`, `Show Search`, `Show Order By`, `Order By Trigger Style`, `Drawer Opening`, default category, show categories/subcategories/tags, filter bar titles, show `All` option |
 | `register_query_controls()` | Post type, parent category (multi-select), subcategory (multi-select), specific IDs, order by, order direction |
 
 ### 3.2 Render pipeline
@@ -82,7 +82,7 @@ values in JS — always add a matching data-attribute in PHP first.
 |-----------|---------------|------------|
 | `data-widget-id` | `$this->get_id()` | all state lookups |
 | `data-post-type` | `$settings['post_type']` | filter/AJAX calls |
-| `data-context-slug` | resolved product-family context (`digital-collections` / `books` / `prints` / `mixed`) | Years bootstrap + AJAX context payload |
+| `data-context-slug` | resolved product-family context (`digital-collections` / `books` / `prints` / `mixed`) | Years + advanced meta-filter bootstrap and AJAX context payload |
 | `data-layout-mode` | masonry_effect control | `initGrid()` |
 | `data-columns-desktop/tablet/mobile` | controls | `setItemWidths()` |
 | `data-gap-x-desktop/tablet/mobile` | `Grid > Post Gap Horizontal` | CSS vars + masonry width/gutter |
@@ -95,7 +95,14 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-show-title` | `show_title` control | CSS visibility contract |
 | `data-show-description` | `show_description` control | CSS visibility contract |
 | `data-show-price` | `show_price` control | CSS visibility contract |
+| `data-search-enabled` | `show_search` control | search feature-flag gating in JS + AJAX |
+| `data-show-order-by` | `show_order_by` control gated by responsive discovery mode and `specific_ids` absence | runtime sort trigger/menu gating in JS |
+| `data-show-visible-filters` | `show_visible_filters` control gated by responsive discovery mode + `post_type = product` | desktop visible-filter row gating in JS |
+| `data-order-trigger-style` | `order_by_trigger_style` control | shared runtime sort trigger rendering |
+| `data-default-sort-key` | hardcoded `default` | initial JS sort state |
 | `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
+| `data-default-order-by`, `data-default-order` | query controls | runtime `Default order` mapping in JS |
+| `data-specific-ids-mode` | `specific_ids` present or not | runtime sort disablement in curated-ID mode |
 | `data-initial-items`, `data-load-batch-size`, `data-per-page` | controls | paging state |
 | `data-current-page`, `data-next-page`, `data-next-offset` | `render_posts()` derived | paging state |
 | `data-loaded-count`, `data-has-more` | `render_posts()` derived | paging state |
@@ -149,7 +156,11 @@ The widget currently has two filter surface families:
 
 Responsive discovery PHP shell authority:
 - toolbar result count + reset action
-- global search input (`Search in collection...`)
+- optional global search input (`Search in collection...`) when `Show Search = On`
+- optional runtime `Order By` trigger when `Show Order By = On`
+  - trigger variants: `icon` or `dropdown`
+  - both open the same shared floating sort menu
+  - sorting is not treated as a filter chip and is not cleared by `Reset filters`
 - filter trigger pill
 - active-chip row above the grid (active filters only)
 - drawer shell regions:
@@ -159,7 +170,171 @@ Responsive discovery PHP shell authority:
 
 Drawer body content is data-bootstrapped in PHP and rendered live in JS from centralized state.
 
-### 3.7 Responsive filter first-paint contract
+`Show Search` is implemented as a real feature flag:
+- PHP skips search markup entirely when the control is `Off`
+- discovery bootstrap exposes `search_enabled`
+- grid runtime exposes `data-search-enabled`
+- JS bypasses search UI/state wiring when disabled
+- AJAX sends `search_enabled`
+- the backend forces the effective search term to `''` and skips search-term matching work
+
+Runtime sorting is implemented as one shared stateful feature:
+- JS state uses a single `sortKey`
+- AJAX sends `sort_key` plus effective `order_by` / `order`
+- the backend maps `sort_key` authoritatively to real query args
+- `default` means the widget’s own Elementor query defaults
+- `year_asc` / `year_desc` sort on canonical `_bw_filter_year_int`
+- widgets configured with `specific_ids` do not expose runtime sorting, so curated `post__in` order remains authoritative
+
+### 3.7 Runtime Sort (Order By)
+
+#### Feature overview
+
+Runtime Sort is the user-facing Product Grid ordering control.
+
+- scope: responsive discovery toolbar only
+- purpose: change the real backend order of the current result set
+- nature: runtime user control, not only editor-defined query setup
+
+#### Elementor controls
+
+- `Show Order By`
+  - switcher
+  - enables the runtime sort feature
+- `Order By Trigger Style`
+  - select
+  - values: `icon`, `dropdown`
+  - shown only when `Show Order By = yes`
+
+The feature is intended for responsive discovery mode. No legacy inline placement is implemented in v1.
+
+#### Runtime state
+
+Shared client-side source of truth:
+
+- `filterState[widgetId].sortKey`
+
+Supported values:
+
+- `default`
+- `recent`
+- `oldest`
+- `title_asc`
+- `title_desc`
+- `year_asc`
+- `year_desc`
+
+Both trigger modes read and update the same state key.
+
+#### Trigger modes
+
+`icon`
+- circular green trigger
+- arrow-up-down icon
+- opens the shared floating sort menu
+
+`dropdown`
+- soft rounded pill
+- current selected short label
+- chevron on the right
+- opens the same shared floating sort menu
+
+Only the trigger UI differs. State, menu logic, AJAX, and backend mapping remain shared.
+
+#### Label system
+
+Trigger labels are short:
+
+- `default` -> `Default`
+- `recent` -> `Latest`
+- `oldest` -> `Earliest`
+- `title_asc` -> `A–Z`
+- `title_desc` -> `Z–A`
+- `year_asc` -> `Year ↑`
+- `year_desc` -> `Year ↓`
+
+Menu labels remain full:
+
+- `Default order`
+- `Recently added`
+- `Oldest added`
+- `Alphabetical A to Z`
+- `Alphabetical Z to A`
+- `Year, oldest first`
+- `Year, newest first`
+
+This keeps the trigger compact and the menu explicit.
+
+#### Backend mapping
+
+`sort_key` is authoritative when present.
+
+- `default` -> widget defaults (`order_by` + `order`)
+- `recent` -> `date DESC`
+- `oldest` -> `date ASC`
+- `title_asc` -> `title ASC`
+- `title_desc` -> `title DESC`
+- `year_asc` -> canonical `_bw_filter_year_int ASC`
+- `year_desc` -> canonical `_bw_filter_year_int DESC`
+
+Year sorting uses canonical meta and not raw editorial year fields.
+
+#### Default order
+
+`Default` means the widget’s Elementor query defaults.
+
+It is not a hardcoded fallback to `date DESC`.
+
+#### Interaction with the rest of Product Grid
+
+- filters are preserved
+- Years filter is preserved
+- advanced filters are preserved
+- search ON/OFF is compatible
+- sort is not represented as a chip
+- `Reset filters` does not reset sort
+
+#### Infinite scroll
+
+Sort changes:
+
+- reset paging
+- force replace-mode refresh
+- restart from page 1
+- prevent mixed ordering between old and new appended results
+
+#### specific_ids
+
+When `specific_ids` is active:
+
+- runtime sort is disabled
+- no sort trigger is rendered
+
+Reason:
+- preserve editorial `post__in` ordering
+
+#### UI layering
+
+The floating sort menu uses dedicated layering rules:
+
+- the toolbar establishes a stacking context
+- `.bw-fpw-sort.is-open` elevates the active sort control
+- the menu has its own z-index
+- the panel sits above product cards and overlay actions
+- the open menu remains clickable
+
+#### Limitations (v1)
+
+- responsive discovery toolbar only
+- not implemented in legacy inline mode
+- no chip integration
+- no reset integration
+
+#### Status
+
+Runtime Sort is implemented, integrated with Product Grid architecture, and ready for final browser QA.
+
+### 3.8 Responsive filter first-paint contract
 
 To avoid a mobile first-paint flash of desktop filter labels, visibility is decided in two layers:
 - CSS first-paint authority:
@@ -188,20 +363,57 @@ filterState[widgetId]       = {
                                 category,
                                 subcategories[],
                                 tags[],
+                                artists[],
+                                authors[],
+                                publishers[],
+                                sources[],
+                                techniques[],
                                 search,
                                 appliedSearch,
+                                sortKey,
                                 year: { from, to },
                                 yearBounds: { min, max },
                                 yearQuickRanges[],
                                 resultCount,
-                                options: { types[], tags[] },
-                                labels:  { types{}, tags{} },
+                                options: {
+                                  types[], tags[],
+                                  artist[], author[],
+                                  publisher[], source[],
+                                  technique[]
+                                },
+                                labels:  {
+                                  types{}, tags{},
+                                  artist{}, author{},
+                                  publisher{}, source{},
+                                  technique{}
+                                },
                                 ui: {
+                                  searchEnabled,
                                   showTypes,
                                   showTags,
                                   showYears,
-                                  optionSearches: { types, tags },
-                                  openGroups:     { types, tags, years },
+                                  showArtist,
+                                  showAuthor,
+                                  showPublisher,
+                                  showSource,
+                                showTechnique,
+                                showOrderBy,
+                                showVisibleFilters,
+                                orderTriggerStyle,
+                                sortMenuOpen,
+                                visibleFilterOpenGroup,
+                                optionSearches: {
+                                    types, tags,
+                                    artist, author,
+                                    publisher, source,
+                                    technique
+                                  },
+                                  openGroups: {
+                                    types, tags, years,
+                                    artist, author,
+                                    publisher, source,
+                                    technique
+                                  },
                                   yearDraft:      { from, to }
                                 }
                               }
@@ -214,10 +426,19 @@ widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
 
 In discovery drawer mode the same `filterState` is the single source of truth for:
 - drawer checkboxes
-- global discovery search
+- global discovery search when `searchEnabled = true`
   - placeholder label is PHP-derived from widget query context when a single default/parent category is locked
+- desktop-only visible filters row above the results
 - active-only chips above the grid
+- active-only chips inside the drawer, under the `Filters` title
+- the runtime sort trigger + shared floating menu
 - year slider, year inputs, and year quick ranges
+- token-based advanced meta groups:
+  - `Artist`
+  - `Author`
+  - `Publisher`
+  - `Source`
+  - `Technique`
 - result count
 - reset actions
 
@@ -225,6 +446,31 @@ The responsive drawer shell is intentionally style-only and does not alter filte
 - overlay uses a light veil plus blur so page context remains visible behind the drawer
 - the drawer itself is a detached dark-glass panel with large radius and tight viewport margins
 - header, close control, and footer CTA follow the same floating-surface language used by other mobile navigation surfaces
+
+Desktop visible filters are a second UI surface over the same state, not a second filtering system:
+- enabled via `Visible Filters`
+- desktop only
+- rendered between toolbar controls and active chips
+- supported groups in v1:
+  - `Categories`
+    - implemented as the existing `types` group
+  - `Artists`
+  - `Style / Subject`
+    - implemented as the existing `tags` group
+  - `Source`
+  - `Year`
+- `Filters` button remains visible as the full-panel entry point
+- visible token groups reuse:
+  - `ui.optionSearches[group]`
+  - `toggleDiscoverySelection()`
+  - `filterPosts()`
+  - backend `filter_ui` refinement counts/options
+- visible `Year` reuses:
+  - slider
+  - from/to inputs
+  - quick ranges
+- desktop visible-filter panel open state is tracked separately from drawer accordion state through:
+  - `filterState[widgetId].ui.visibleFilterOpenGroup`
 
 `filterState` is initialised by `initFilterState()` (once per widget) and reset only when `destroyWidgetState()` is called.
 
@@ -315,6 +561,12 @@ In responsive discovery mode the toolbar + drawer currently behaves as follows:
   - `Categories`
   - `Style / Subject`
   - `Years` (only when the widget resolves to a supported product-family context)
+  - context-aware token groups:
+    - `Artist` -> Digital Collections + Prints
+    - `Author` -> Books
+    - `Publisher` -> Digital Collections + Books + Prints
+    - `Source` -> Digital Collections
+    - `Technique` -> Digital Collections + Prints
 
 The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
@@ -343,7 +595,7 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 ### 5.3 bw_fpw_filter_posts
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
-- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
+- Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `artist[]`, `author[]`, `publisher[]`, `source[]`, `technique[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `sort_key`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
 - Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
 - Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
@@ -354,9 +606,12 @@ Current search behavior:
 - canonical filter meta searched server-side:
   - `_bw_filter_year_int`
   - `_bw_filter_author_text`
+  - `_bw_filter_artist_text`
+  - `_bw_filter_publisher_text`
 - source meta fallback is still checked during migration/backfill support:
   - `_digital_year`, `_bw_biblio_year`, `_print_year`
-  - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`
+  - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`, `_digital_artist_name`
+  - `_digital_publisher`, `_bw_biblio_publisher`, `_print_publisher`
 
 Current Year filter behavior:
 - discovery drawer only
@@ -374,8 +629,21 @@ Current empty-state copy:
 Canonical filter meta:
 - Year: `_bw_filter_year_int`
 - Author: `_bw_filter_author_text`
+- Artist: `_bw_filter_artist_text`
+- Publisher: `_bw_filter_publisher_text`
+ - Source: `_bw_filter_source_text`
+ - Technique: `_bw_filter_technique_text`
 
-These values are derived from editorial source meta and kept in sync on product save/meta/category/status changes. A per-context Year index transient is used to bootstrap:
+These values are derived from editorial source meta and kept in sync on product save/meta/category/status changes. Product Grid now maintains:
+- a per-context Year index transient for bounds / quick ranges / drawer visibility
+- a per-context advanced meta-filter index transient for token option lists and refinement of:
+  - Artist
+  - Author
+  - Publisher
+  - Source
+  - Technique
+
+Year index bootstraps:
 - slider bounds
 - quick ranges
 - drawer visibility for supported product-family contexts (`digital-collections`, `books`, `prints`)
