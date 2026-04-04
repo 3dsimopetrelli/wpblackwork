@@ -342,13 +342,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
         ] );
 
         $this->add_control( 'enable_responsive_filter_mode', [
-            'label'        => __( 'Enable Responsive Filter Mode', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
+            'label'        => __( 'Filter Mode', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SELECT,
+            'options'      => [
+                ''    => __( 'Filter Label', 'bw-elementor-widgets' ),
+                'yes' => __( 'Filter Panel', 'bw-elementor-widgets' ),
+            ],
             'default'      => '',
-            'description'  => __( 'Use the responsive drawer interaction on desktop too. When enabled, inline desktop filters are replaced by a filter trigger that opens the drawer shell.', 'bw-elementor-widgets' ),
+            'description'  => __( 'Choose whether desktop uses the inline filter labels or the responsive filter panel trigger.', 'bw-elementor-widgets' ),
             'condition'    => [ 'show_filters' => 'yes' ],
         ] );
 
