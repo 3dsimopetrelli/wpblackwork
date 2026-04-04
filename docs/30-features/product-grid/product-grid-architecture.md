@@ -253,8 +253,6 @@ In discovery drawer mode the same `filterState` is the single source of truth fo
   - `Artist`
   - `Author`
   - `Publisher`
-  - `Source`
-  - `Technique`
 - result count
 - reset actions
 
@@ -356,8 +354,6 @@ In responsive discovery mode the toolbar + drawer currently behaves as follows:
     - `Artist` -> Digital Collections + Prints
     - `Author` -> Books
     - `Publisher` -> Digital Collections + Books + Prints
-    - `Source` -> Digital Collections
-    - `Technique` -> Digital Collections + Prints
 
 The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
@@ -422,8 +418,6 @@ Canonical filter meta:
 - Author: `_bw_filter_author_text`
 - Artist: `_bw_filter_artist_text`
 - Publisher: `_bw_filter_publisher_text`
-- Source: `_bw_filter_source_text`
-- Technique: `_bw_filter_technique_text`
 
 These values are derived from editorial source meta and kept in sync on product save/meta/category/status changes. Product Grid now maintains:
 - a per-context Year index transient for bounds / quick ranges / drawer visibility
@@ -431,8 +425,6 @@ These values are derived from editorial source meta and kept in sync on product 
   - Artist
   - Author
   - Publisher
-  - Source
-  - Technique
 
 Year index bootstraps:
 - slider bounds

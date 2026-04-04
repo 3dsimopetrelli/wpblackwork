@@ -11,7 +11,7 @@ Current notable UI/runtime deltas:
 - responsive drawer groups now support:
   - taxonomy groups: `Categories`, `Style / Subject`
   - numeric meta group: `Years`
-  - token-based meta groups: `Artist`, `Author`, `Publisher`, `Source`, `Technique`
+  - token-based meta groups in Phase 1: `Artist`, `Author`, `Publisher`
 - responsive toolbar uses the shared discovery state:
   - global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
   - result count
@@ -26,8 +26,7 @@ Current notable UI/runtime deltas:
   - `Artist` -> `_bw_filter_artist_text`
   - `Author` -> `_bw_filter_author_text`
   - `Publisher` -> `_bw_filter_publisher_text`
-  - `Source` -> `_bw_filter_source_text`
-  - `Technique` -> `_bw_filter_technique_text`
+- `Source` and `Technique` remain editorial/source fields in Phase 1 but are reserved for a later advanced-filter pass
 - canonical filter meta is derived from editorial source fields:
   - Year: `_digital_year`, `_bw_biblio_year`, `_print_year`
   - Author / Artist: `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`, `_digital_artist_name`

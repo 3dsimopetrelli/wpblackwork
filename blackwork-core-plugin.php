@@ -1974,20 +1974,6 @@ function bw_fpw_get_advanced_filter_group_definitions()
             'source_map_key' => 'publisher_keys',
             'searchable' => true,
         ],
-        'source' => [
-            'label' => 'Source',
-            'contexts' => ['digital-collections'],
-            'canonical_key' => bw_fpw_get_canonical_source_meta_key(),
-            'source_map_key' => 'source_keys',
-            'searchable' => false,
-        ],
-        'technique' => [
-            'label' => 'Technique',
-            'contexts' => ['digital-collections', 'prints'],
-            'canonical_key' => bw_fpw_get_canonical_technique_meta_key(),
-            'source_map_key' => 'technique_keys',
-            'searchable' => false,
-        ],
     ];
 }
 

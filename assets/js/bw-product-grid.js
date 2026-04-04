@@ -928,7 +928,7 @@
     }
 
     function getDiscoveryTokenGroupKeys() {
-        return ['artist', 'author', 'publisher', 'source', 'technique'];
+        return ['artist', 'author', 'publisher'];
     }
 
     function isDiscoveryTokenGroup(groupKey) {
@@ -1399,16 +1399,6 @@
                 key: 'publisher',
                 label: 'Publisher',
                 placeholder: 'Search publishers...'
-            },
-            {
-                key: 'source',
-                label: 'Source',
-                placeholder: 'Search sources...'
-            },
-            {
-                key: 'technique',
-                label: 'Technique',
-                placeholder: 'Search techniques...'
             }
         ];
         var html = '';
