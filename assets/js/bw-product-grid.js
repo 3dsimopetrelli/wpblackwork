@@ -4087,6 +4087,37 @@
                 }
             });
         });
+
+        $(document).on('change', '.bw-fpw-sort-select', function () {
+            var $select = $(this);
+            var widgetId = $select.attr('data-widget-id');
+            var val = $select.val() || '';
+            var $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]');
+
+            if (!$grid.length) {
+                return;
+            }
+
+            var newOrderBy, newOrder;
+
+            if (val === '') {
+                // "Default" option — restore widget's configured sort
+                newOrderBy = $select.attr('data-default-order-by') || 'date';
+                newOrder   = $select.attr('data-default-order')    || 'DESC';
+            } else {
+                var parts = val.split('|');
+                if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                    return;
+                }
+                newOrderBy = parts[0];
+                newOrder   = parts[1];
+            }
+
+            $grid.attr('data-order-by', newOrderBy);
+            $grid.attr('data-order', newOrder);
+
+            filterPosts(widgetId);
+        });
     }
 
     function openMobilePanel(widgetId) {

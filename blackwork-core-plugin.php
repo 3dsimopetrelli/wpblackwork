@@ -1601,7 +1601,7 @@ function bw_fpw_normalize_bool($raw_value, $default = false)
 function bw_fpw_normalize_order_by($raw_order_by)
 {
     $order_by = sanitize_key((string) $raw_order_by);
-    $valid_order_by = ['date', 'modified', 'title', 'rand', 'id'];
+    $valid_order_by = ['date', 'modified', 'title', 'rand', 'id', 'year_int'];
 
     if (!in_array($order_by, $valid_order_by, true)) {
         return 'date';
@@ -2553,15 +2553,58 @@ function bw_fpw_sync_product_filter_meta($post_id)
     unset($sync_in_progress[$post_id]);
 }
 
-function bw_fpw_clear_grid_transient_cache()
+/**
+ * Returns the current cache generation counter for a context slug.
+ * Cached in a static variable so the option is read at most once per request.
+ */
+function bw_fpw_get_cache_generation($context_slug)
 {
-    global $wpdb;
+    static $cache = [];
+    $opt = 'bw_fpw_cache_gen_' . ('' === $context_slug ? 'all' : sanitize_key($context_slug));
+    if (!array_key_exists($opt, $cache)) {
+        $cache[$opt] = (int) get_option($opt, 0);
+    }
+    return $cache[$opt];
+}
 
-    $wpdb->query(
-        "DELETE FROM {$wpdb->options}
-         WHERE option_name LIKE '_transient_bw_fpw_%'
-            OR option_name LIKE '_transient_timeout_bw_fpw_%'"
-    );
+/**
+ * Increments the cache generation counter for each supplied context slug.
+ * Old transients with the previous generation hash become unreachable and
+ * expire naturally — no expensive DELETE LIKE query needed.
+ *
+ * @param string|string[] $context_slugs One or more context slugs to bump.
+ */
+function bw_fpw_bump_cache_generation($context_slugs)
+{
+    $slugs = array_unique(array_filter((array) $context_slugs, 'is_string'));
+    foreach ($slugs as $slug) {
+        $opt = 'bw_fpw_cache_gen_' . ('' === $slug ? 'all' : sanitize_key($slug));
+        update_option($opt, (int) get_option($opt, 0) + 1, false);
+    }
+}
+
+/**
+ * Invalidates the product-grid transient cache.
+ *
+ * Pass one or more context slugs to invalidate only those contexts;
+ * omit the argument for a full (all-contexts) invalidation.
+ * Uses a generation counter instead of a nuclear DELETE LIKE query.
+ *
+ * @param string|string[]|null $context_slugs Contexts to invalidate, or null for all.
+ */
+function bw_fpw_clear_grid_transient_cache($context_slugs = null)
+{
+    if (null === $context_slugs) {
+        // Nuclear: bump every known context + the catch-all buckets
+        $all_slugs = array_merge(['', 'mixed'], bw_fpw_get_supported_product_family_slugs());
+    } else {
+        // Scoped: bump the given slug(s) and always include '' and 'mixed',
+        // because mixed-context grids contain products from all families.
+        $given = array_unique(array_filter(array_map('strval', (array) $context_slugs), 'is_string'));
+        $all_slugs = array_unique(array_merge($given, ['', 'mixed']));
+    }
+
+    bw_fpw_bump_cache_generation($all_slugs);
 }
 
 function bw_fpw_get_year_index_transient_key($context_slug)
@@ -2650,7 +2693,6 @@ function bw_fpw_build_year_index($context_slug)
             'min_year' => null,
             'max_year' => null,
             'years' => [],
-            'post_year_map' => [],
             'quick_ranges' => [],
         ];
     }
@@ -2663,7 +2705,6 @@ function bw_fpw_build_year_index($context_slug)
             'min_year' => null,
             'max_year' => null,
             'years' => [],
-            'post_year_map' => [],
             'quick_ranges' => [],
         ];
     }
@@ -2686,7 +2727,6 @@ function bw_fpw_build_year_index($context_slug)
     ]);
 
     $years = [];
-    $post_year_map = [];
 
     // Collect valid IDs first, then bulk-load canonical year meta in a single query
     // to avoid N+1 DB hits (no per-product get_post_meta or sync writes here).
@@ -2704,9 +2744,8 @@ function bw_fpw_build_year_index($context_slug)
         );
 
         foreach ((array) $rows as $row) {
-            $pid  = absint($row->post_id);
             $year = bw_fpw_extract_year_int($row->meta_value);
-            if ($pid <= 0 || null === $year) {
+            if (null === $year) {
                 continue;
             }
 
@@ -2715,7 +2754,6 @@ function bw_fpw_build_year_index($context_slug)
             }
 
             $years[$year]++;
-            $post_year_map[$pid] = $year;
         }
     }
 
@@ -2733,7 +2771,6 @@ function bw_fpw_build_year_index($context_slug)
         'min_year' => $min_year,
         'max_year' => $max_year,
         'years' => $years,
-        'post_year_map' => $post_year_map,
         'quick_ranges' => bw_fpw_build_year_quick_ranges($years),
     ];
 }
@@ -2748,7 +2785,6 @@ function bw_fpw_get_year_index($context_slug)
             'min_year' => null,
             'max_year' => null,
             'years' => [],
-            'post_year_map' => [],
             'quick_ranges' => [],
         ];
     }
@@ -3592,11 +3628,14 @@ function bw_fpw_generate_cache_key($params)
         ? bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : '')
         : '';
 
+    $context_slug_for_key = isset($params['context_slug']) ? (string) $params['context_slug'] : '';
+
     $canonical_payload = [
         'schema' => 'v6',
         'widget_id' => isset($params['widget_id']) ? (string) $params['widget_id'] : '',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
-        'context_slug' => isset($params['context_slug']) ? (string) $params['context_slug'] : '',
+        'context_slug' => $context_slug_for_key,
+        'cache_gen' => bw_fpw_get_cache_generation($context_slug_for_key),
         'category' => isset($params['category']) ? (string) $params['category'] : 'all',
         'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
         'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
@@ -3655,13 +3694,17 @@ function bw_fpw_clear_grid_transients($post_id)
         return;
     }
 
-    bw_fpw_clear_grid_transient_cache();
-    bw_fpw_clear_year_index_transients();
-    bw_fpw_clear_advanced_filter_index_transients();
-
     if ('product' === get_post_type($post_id)) {
+        $family = bw_fpw_resolve_product_family_slug_from_product($post_id);
+        // Scope invalidation to this product's family (+ 'mixed'/'') when unambiguous.
+        $slugs = ('' !== $family && 'mixed' !== $family) ? [$family] : null;
+        bw_fpw_clear_grid_transient_cache($slugs);
         bw_fpw_sync_product_filter_meta($post_id);
+    } else {
+        bw_fpw_clear_grid_transient_cache();
     }
+
+    bw_fpw_clear_year_index_transients();
 }
 
 function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $meta_key, $meta_value = '')
@@ -3680,7 +3723,10 @@ function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $
     }
 
     bw_fpw_sync_product_filter_meta($object_id);
-    bw_fpw_clear_grid_transient_cache();
+
+    $family = bw_fpw_resolve_product_family_slug_from_product($object_id);
+    $slugs = ('' !== $family && 'mixed' !== $family) ? [$family] : null;
+    bw_fpw_clear_grid_transient_cache($slugs);
     bw_fpw_clear_year_index_transients();
     bw_fpw_clear_advanced_filter_index_transients();
 }
@@ -3841,16 +3887,22 @@ function bw_fpw_filter_posts_inner()
 
     $query_posts_per_page = $per_page > 0 ? $per_page + 1 : -1;
 
+    // On append loads (page 2+) the result count is already known client-side;
+    // skip SQL_CALC_FOUND_ROWS to save an expensive full-table scan.
+    $is_append = ($page > 1 || $offset > 0);
+
     $query_args = [
         'post_type' => $post_type,
         'posts_per_page' => $query_posts_per_page,
         'post_status' => 'publish',
-        'no_found_rows' => false,
+        'no_found_rows' => $is_append,
         'ignore_sticky_posts' => true,
     ];
 
-    foreach ((array) $sort_config['query_args'] as $query_arg_key => $query_arg_value) {
-        $query_args[$query_arg_key] = $query_arg_value;
+    // year_int sorting uses a numeric meta field; remap to WP_Query meta_value_num
+    if ('year_int' === $order_by) {
+        $query_args['orderby']  = 'meta_value_num';
+        $query_args['meta_key'] = bw_fpw_get_canonical_year_meta_key();
     }
 
     if ($per_page > 0 && $offset > 0) {
@@ -4178,7 +4230,14 @@ function bw_fpw_filter_posts_inner()
     $related_tags = bw_fpw_get_related_tags_data($post_type, $category, $subcategories, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
     $available_types = bw_fpw_get_available_subcategories_data($post_type, $category, $tags, $search, $year_from, $year_to, $effective_context_slug, $advanced_filters);
     $available_tags = wp_list_pluck($related_tags, 'term_id');
-    $result_count = (int) $query->found_posts;
+    // On append loads no_found_rows is true, so found_posts is 0; preserve null
+    // to signal JS that the displayed count should not be overwritten.
+    $result_count = $is_append ? null : (int) $query->found_posts;
+    $effective_context_slug = $context_slug;
+
+    if ('' === $effective_context_slug && 'product' === $post_type && 'all' !== $category) {
+        $effective_context_slug = bw_fpw_resolve_product_family_slug_from_term_id(absint($category), 'product_cat');
+    }
 
     $year_ui = 'product' === $post_type ? bw_fpw_get_year_filter_ui($effective_context_slug) : [
         'supported' => false,
