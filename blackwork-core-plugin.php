@@ -3195,20 +3195,26 @@ function bw_fpw_get_advanced_filter_index($context_slug)
         ];
     }
 
-    $transient_key = bw_fpw_get_advanced_filter_index_transient_key($context_slug);
-    $cached        = get_transient($transient_key);
+    $data_key  = bw_fpw_get_advanced_filter_index_transient_key($context_slug);
+    $fresh_key = $data_key . '_fresh';
+    $cached    = get_transient($data_key);
 
-    if (is_array($cached)) {
-        return $cached;
+    if (is_array($cached) && get_transient($fresh_key)) {
+        return $cached; // Fresh cache hit.
     }
 
-    // On a regular HTTP request, do NOT block: schedule an async cron rebuild
-    // and return an empty index immediately.  The cron job calls this function
-    // again (DOING_CRON = true) and runs the actual expensive build then.
+    // On a regular HTTP request schedule a background rebuild.
+    // Stale-while-revalidate: if a previous build exists (even if its freshness
+    // flag expired), serve it immediately rather than returning an empty index.
+    // The user sees correct—if slightly stale—options while the cron completes.
     if (!defined('DOING_CRON') || !DOING_CRON) {
         $hook = 'bw_fpw_async_rebuild_advanced_filter_index';
         if (!wp_next_scheduled($hook, [$context_slug])) {
             wp_schedule_single_event(time(), $hook, [$context_slug]);
+        }
+
+        if (is_array($cached)) {
+            return $cached; // Stale-while-revalidate.
         }
 
         return [
@@ -3219,16 +3225,41 @@ function bw_fpw_get_advanced_filter_index($context_slug)
         ];
     }
 
-    // Cron context: run the real build with stampede protection.
-    return bw_fpw_get_cached_index_with_lock(
-        $transient_key,
-        'advanced_filter_index',
-        $context_slug,
-        static function () use ($context_slug) {
-            return bw_fpw_build_advanced_filter_index($context_slug);
-        },
-        30 * MINUTE_IN_SECONDS
-    );
+    // Cron context: build with stampede protection then mark data as fresh.
+    // We manage the two transients (data + freshness) directly instead of
+    // delegating to bw_fpw_get_cached_index_with_lock, which would short-circuit
+    // on stale data and skip the actual rebuild.
+    if (!bw_fpw_acquire_index_build_lock('advanced_filter_index', $context_slug)) {
+        $attempts = bw_fpw_get_index_build_lock_wait_attempts();
+        $wait_us  = bw_fpw_get_index_build_lock_wait_interval_us();
+
+        for ($i = 0; $i < $attempts; $i++) {
+            if ($wait_us > 0) {
+                usleep($wait_us);
+            }
+            $maybe = get_transient($data_key);
+            if (is_array($maybe) && get_transient($fresh_key)) {
+                return $maybe;
+            }
+        }
+
+        // Lock holder did not publish in time; build locally as fallback.
+        $index = bw_fpw_build_advanced_filter_index($context_slug);
+        set_transient($data_key, $index, 12 * HOUR_IN_SECONDS);
+        set_transient($fresh_key, 1, 30 * MINUTE_IN_SECONDS);
+
+        return $index;
+    }
+
+    try {
+        $index = bw_fpw_build_advanced_filter_index($context_slug);
+        set_transient($data_key, $index, 12 * HOUR_IN_SECONDS);
+        set_transient($fresh_key, 1, 30 * MINUTE_IN_SECONDS);
+    } finally {
+        bw_fpw_release_index_build_lock('advanced_filter_index', $context_slug);
+    }
+
+    return $index;
 }
 
 function bw_fpw_get_empty_advanced_filter_selections()
@@ -3465,11 +3496,6 @@ function bw_fpw_build_tax_query($post_type, $category = 'all', $subcategories = 
     }
 
     return $tax_query;
-}
-
-function bw_fpw_has_active_refinement_filters($subcategories = [], $tags = [], $search = '')
-{
-    return !empty($subcategories) || !empty($tags) || '' !== bw_fpw_normalize_search_query($search);
 }
 
 function bw_fpw_is_context_root_scope($post_type, $category, $subcategories = [], $tags = [], $year_from = null, $year_to = null, $context_slug = '')
@@ -4366,7 +4392,9 @@ function bw_fpw_filter_posts_inner()
 
         if ($use_php_year_sort) {
             // Remove meta args set for year_int — ordering handled in PHP.
-            unset($query_args['orderby'], $query_args['meta_key']);
+            // Also clear offset/paged: we slice the candidate array ourselves
+            // and pass only page-sized IDs, so WP_Query must not re-paginate.
+            unset($query_args['orderby'], $query_args['meta_key'], $query_args['offset'], $query_args['paged']);
 
             $year_index = bw_fpw_get_year_index($effective_context_slug);
             $post_map   = isset($year_index['post_map']) && is_array($year_index['post_map'])
