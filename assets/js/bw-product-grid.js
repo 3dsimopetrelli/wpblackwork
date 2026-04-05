@@ -950,6 +950,7 @@
                     searchEnabled: searchEnabled,
                     lastFilterUiSignature: '',
                     filterUiHashes: {},
+                    drawerGroupMarkup: {},
                     yearDraft: {
                         from: null,
                         to: null
@@ -1733,51 +1734,129 @@
     function renderDiscoveryDrawerGroups(widgetId) {
         var state = filterState[widgetId];
         var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
-        var chevronIcon = '<svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
-        var html = '';
 
         if (!state || !$groups.length) {
             return;
         }
 
+        patchDiscoveryDrawerGroups(widgetId, null);
+    }
+
+    function buildDiscoveryDrawerGroupMarkup(widgetId, state, groupConfig) {
+        var groupKey = groupConfig.key;
+        var chevronIcon = '<svg class="bw-fpw-discovery-group__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+        var termSearch = groupKey === 'years' ? '' : normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
+        var isOpen = groupKey === 'years'
+            ? (!!state.ui.openGroups.years || hasActiveYearFilter(state))
+            : (!!state.ui.openGroups[groupKey] || !!termSearch);
+        var html = '';
+
+        if (groupKey === 'years') {
+            html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
+            html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
+            html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
+            html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
+            html += '</button>';
+            html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+            html += renderDiscoveryYearPanelContent(widgetId, state);
+            html += '</div>';
+            html += '</section>';
+
+            return html;
+        }
+
+        html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+        html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+        html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
+        html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
+        html += '</button>';
+        html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+        html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'drawer');
+        html += '</div>';
+        html += '</section>';
+
+        return html;
+    }
+
+    function patchDiscoveryDrawerGroups(widgetId, targetGroupKey) {
+        var state = filterState[widgetId];
+        var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
+        var renderedGroups = {};
+        var groupOrder = [];
+
+        if (!state || !$groups.length) {
+            return;
+        }
+
+        state.ui.drawerGroupMarkup = state.ui.drawerGroupMarkup || {};
+
         getDiscoveryGroupConfigs().forEach(function (groupConfig) {
             var groupKey = groupConfig.key;
             var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
             var showGroup = visibilityFlag ? !!state.ui[visibilityFlag] : false;
-            var termSearch = groupKey === 'years' ? '' : normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
-            var isOpen = groupKey === 'years'
-                ? (!!state.ui.openGroups.years || hasActiveYearFilter(state))
-                : (!!state.ui.openGroups[groupKey] || !!termSearch);
 
             if (!showGroup) {
                 return;
             }
 
-            if (groupKey === 'years') {
-                html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
-                html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
-                html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
-                html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
-                html += '</button>';
-                html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
-                html += renderDiscoveryYearPanelContent(widgetId, state);
-                html += '</div>';
-                html += '</section>';
+            groupOrder.push(groupKey);
+            renderedGroups[groupKey] = buildDiscoveryDrawerGroupMarkup(widgetId, state, groupConfig);
+        });
+
+        $groups.children('.bw-fpw-discovery-group').each(function () {
+            var $existing = $(this);
+            var groupKey = $existing.attr('data-group');
+
+            if (!groupKey || renderedGroups.hasOwnProperty(groupKey)) {
                 return;
             }
 
-            html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
-            html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
-            html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
-            html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
-            html += '</button>';
-            html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
-            html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'drawer');
-            html += '</div>';
-            html += '</section>';
+            $existing.remove();
+            delete state.ui.drawerGroupMarkup[groupKey];
         });
 
-        $groups.html(html);
+        groupOrder.forEach(function (groupKey, index) {
+            var nextGroupKey = index < groupOrder.length - 1 ? groupOrder[index + 1] : '';
+            var nextSelector = nextGroupKey ? '.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + nextGroupKey + '"]' : '';
+            var markup = renderedGroups[groupKey];
+            var previousMarkup = state.ui.drawerGroupMarkup[groupKey] || '';
+            var $existing = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+            var $current = $existing;
+
+            if ((targetGroupKey && targetGroupKey !== groupKey && $existing.length) ? false : previousMarkup !== markup || !$existing.length) {
+                if ($existing.length) {
+                    $existing.replaceWith(markup);
+                } else if (nextSelector && $groups.children(nextSelector).length) {
+                    $(markup).insertBefore($groups.children(nextSelector).first());
+                } else {
+                    $groups.append(markup);
+                }
+
+                $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+            }
+
+            if ($current.length && nextSelector) {
+                var $next = $groups.children(nextSelector).first();
+
+                if ($next.length && !$current.next().is($next)) {
+                    $current.insertBefore($next);
+                }
+            } else if ($current.length && !nextSelector && $current.index() !== $groups.children().length - 1) {
+                $groups.append($current);
+            }
+
+            state.ui.drawerGroupMarkup[groupKey] = markup;
+        });
+    }
+
+    function renderDiscoveryDrawerGroup(widgetId, groupKey) {
+        if (!isDiscoveryDrawerMode(widgetId) || !groupKey) {
+            return;
+        }
+
+        preserveDiscoveryDrawerScrollPosition(widgetId, function () {
+            patchDiscoveryDrawerGroups(widgetId, groupKey);
+        });
     }
 
     function getDiscoveryVisibleFilterSummary(state, groupKey) {
@@ -3753,7 +3832,7 @@
             }
 
             state.ui.openGroups[groupKey] = !state.ui.openGroups[groupKey];
-            renderDiscoveryUi(widgetId);
+            renderDiscoveryDrawerGroup(widgetId, groupKey);
         });
 
         $(document).on('input', '.bw-fpw-discovery-group-search__input', function () {
@@ -3768,7 +3847,11 @@
             }
 
             state.ui.optionSearches[groupKey] = $(this).val() || '';
-            renderDiscoveryUi(widgetId);
+            if (surface === 'drawer') {
+                renderDiscoveryDrawerGroup(widgetId, groupKey);
+            } else {
+                renderDiscoveryVisibleFilters(widgetId);
+            }
 
             var $replacementInput = $('.bw-fpw-discovery-group-search__input[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"][data-surface="' + surface + '"]');
             if ($replacementInput.length) {
@@ -4202,6 +4285,7 @@
                         : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
                     lastFilterUiSignature: '',
                     filterUiHashes: prevState.ui && prevState.ui.filterUiHashes ? $.extend({}, prevState.ui.filterUiHashes) : {},
+                    drawerGroupMarkup: prevState.ui && prevState.ui.drawerGroupMarkup ? $.extend({}, prevState.ui.drawerGroupMarkup) : {},
                     optionSearches: {
                         types: '',
                         tags: '',
