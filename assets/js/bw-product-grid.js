@@ -453,9 +453,17 @@
     var yearInputCommitTimers = {};
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
     var CACHE_MAX_ENTRIES = 80;
+    var AJAX_CACHE_NAMESPACE = 'bwpg';
+
+    function normalizeAjaxCacheNamespace(action) {
+        var normalized = String(action || 'unknown').toLowerCase();
+        normalized = normalized.replace(/[^a-z0-9_-]+/g, '-');
+
+        return normalized || 'unknown';
+    }
 
     function getCacheKey(action, params) {
-        return action + '_' + JSON.stringify(params);
+        return AJAX_CACHE_NAMESPACE + '::' + normalizeAjaxCacheNamespace(action) + '::' + JSON.stringify(params);
     }
 
     function getCachedData(cacheKey) {
