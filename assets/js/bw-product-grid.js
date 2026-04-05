@@ -959,6 +959,8 @@
                     lastFilterUiSignature: '',
                     filterUiHashes: {},
                     drawerGroupMarkup: {},
+                    sortConfigCacheKey: '',
+                    sortConfigCacheValue: null,
                     yearDraft: {
                         from: null,
                         to: null
@@ -1103,6 +1105,18 @@
         };
     }
 
+    function getDiscoverySortConfigCacheKey(widgetId, state) {
+        var resolvedState = state || getDiscoveryState(widgetId);
+        var defaults = getDefaultDiscoverySortConfig(widgetId);
+        var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
+
+        return [
+            sortKey,
+            defaults.orderBy,
+            defaults.order
+        ].join('|');
+    }
+
     function isDiscoverySortEnabled(widgetId, state) {
         var resolvedState = state || (widgetId ? filterState[widgetId] : null);
         var $grid;
@@ -1225,18 +1239,38 @@
 
     function getEffectiveDiscoverySortConfig(widgetId, state) {
         var resolvedState = state || getDiscoveryState(widgetId);
-        var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
-        var options = getDiscoverySortOptions();
-        var option = options[sortKey] || options['default'];
-        var defaults = getDefaultDiscoverySortConfig(widgetId);
+        var cacheKey;
+        var sortKey;
+        var options;
+        var option;
+        var defaults;
+        var config;
 
-        return {
+        cacheKey = getDiscoverySortConfigCacheKey(widgetId, resolvedState);
+
+        if (resolvedState && resolvedState.ui && resolvedState.ui.sortConfigCacheKey === cacheKey && resolvedState.ui.sortConfigCacheValue) {
+            return resolvedState.ui.sortConfigCacheValue;
+        }
+
+        sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
+        options = getDiscoverySortOptions();
+        option = options[sortKey] || options['default'];
+        defaults = getDefaultDiscoverySortConfig(widgetId);
+
+        config = {
             sortKey: sortKey,
             triggerLabel: option.triggerLabel,
             menuLabel: option.menuLabel,
             orderBy: sortKey === 'default' ? defaults.orderBy : option.orderBy,
             order: sortKey === 'default' ? defaults.order : option.order
         };
+
+        if (resolvedState && resolvedState.ui) {
+            resolvedState.ui.sortConfigCacheKey = cacheKey;
+            resolvedState.ui.sortConfigCacheValue = config;
+        }
+
+        return config;
     }
 
     function getDiscoverySelectionStateKey(groupKey) {
@@ -4294,6 +4328,8 @@
                     lastFilterUiSignature: '',
                     filterUiHashes: prevState.ui && prevState.ui.filterUiHashes ? $.extend({}, prevState.ui.filterUiHashes) : {},
                     drawerGroupMarkup: prevState.ui && prevState.ui.drawerGroupMarkup ? $.extend({}, prevState.ui.drawerGroupMarkup) : {},
+                    sortConfigCacheKey: prevState.ui && prevState.ui.sortConfigCacheKey ? prevState.ui.sortConfigCacheKey : '',
+                    sortConfigCacheValue: prevState.ui && prevState.ui.sortConfigCacheValue ? $.extend({}, prevState.ui.sortConfigCacheValue) : null,
                     optionSearches: {
                         types: '',
                         tags: '',

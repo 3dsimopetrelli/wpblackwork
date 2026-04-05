@@ -1527,6 +1527,16 @@ function bw_fpw_get_client_response_cache_ttl()
     return 10 * MINUTE_IN_SECONDS;
 }
 
+function bw_fpw_get_year_index_cache_ttl()
+{
+    return 15 * MINUTE_IN_SECONDS;
+}
+
+function bw_fpw_get_advanced_filter_index_cache_ttl()
+{
+    return 15 * MINUTE_IN_SECONDS;
+}
+
 function bw_fpw_get_index_build_lock_ttl()
 {
     return 45;
@@ -3132,7 +3142,7 @@ function bw_fpw_get_year_index($context_slug)
         static function () use ($context_slug) {
             return bw_fpw_build_year_index($context_slug);
         },
-        30 * MINUTE_IN_SECONDS
+        bw_fpw_get_year_index_cache_ttl()
     );
 }
 
@@ -3439,7 +3449,7 @@ function bw_fpw_get_advanced_filter_index($context_slug)
         static function () use ($context_slug) {
             return bw_fpw_build_advanced_filter_index($context_slug);
         },
-        30 * MINUTE_IN_SECONDS
+        bw_fpw_get_advanced_filter_index_cache_ttl()
     );
 }
 
