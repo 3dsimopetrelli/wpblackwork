@@ -3101,7 +3101,8 @@ function bw_fpw_build_year_index($context_slug)
         )
     );
 
-    $years = [];
+    $years    = [];
+    $post_map = [];
 
     foreach ((array) $rows as $row) {
         $year = bw_fpw_extract_year_int($row->year_value);
@@ -3114,6 +3115,7 @@ function bw_fpw_build_year_index($context_slug)
         }
 
         $years[$year]++;
+        $post_map[(int) $row->ID] = $year;
     }
 
     if (!empty($years)) {
@@ -3125,11 +3127,12 @@ function bw_fpw_build_year_index($context_slug)
     $max_year = !empty($year_keys) ? (int) end($year_keys) : null;
 
     return [
-        'context' => $context_slug,
-        'supported' => !empty($years),
-        'min_year' => $min_year,
-        'max_year' => $max_year,
-        'years' => $years,
+        'context'      => $context_slug,
+        'supported'    => !empty($years),
+        'min_year'     => $min_year,
+        'max_year'     => $max_year,
+        'years'        => $years,
+        'post_map'     => $post_map,
         'quick_ranges' => bw_fpw_build_year_quick_ranges($years),
     ];
 }
@@ -4554,6 +4557,7 @@ function bw_fpw_filter_posts_inner()
     $cached_next_offset = 0;
     $cached_result_count = null;
     $using_cached_data = false;
+    $php_sort_result_count = null;
     $has_active_advanced_filters = bw_fpw_has_active_advanced_filter_selections($advanced_filters);
     $supports_advanced_filters = !empty(bw_fpw_get_supported_advanced_filter_groups_for_context($effective_context_slug));
     $should_build_filter_ui = !$is_append;
@@ -4643,32 +4647,91 @@ function bw_fpw_filter_posts_inner()
         $response_page = isset($cached_result['page']) ? max(1, (int) $cached_result['page']) : ($per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page);
         $next_page = $cached_next_page;
     } else {
-        if ($has_active_advanced_filters) {
-            $final_candidate_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
+        // PHP-sort path: when ordering by year_int and a candidate set is known,
+        // sort in PHP using the cached post_map and pass only page-sized IDs to
+        // WP_Query with orderby=post__in — eliminates the meta JOIN + filesort.
+        $use_php_year_sort = 'year_int' === $order_by &&
+            ($has_active_advanced_filters || '' !== $search);
 
-            $final_candidate_post_ids = bw_fpw_prepare_post_in_values($final_candidate_post_ids);
+        if ($use_php_year_sort) {
+            // Remove meta args set for year_int — ordering handled in PHP.
+            unset($query_args['orderby'], $query_args['meta_key']);
 
-            if (empty($final_candidate_post_ids)) {
-                $query_args['post__in'] = [0];
+            $year_index = bw_fpw_get_year_index($effective_context_slug);
+            $post_map   = isset($year_index['post_map']) && is_array($year_index['post_map'])
+                ? $year_index['post_map']
+                : [];
+
+            // Resolve the full candidate set.
+            if ($has_active_advanced_filters) {
+                $candidate_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
             } else {
-                $query_args['post__in'] = $final_candidate_post_ids;
+                $candidate_ids = $base_candidate_post_ids;
             }
-        } elseif ('' !== $search) {
-            $base_candidate_post_ids = bw_fpw_prepare_post_in_values($base_candidate_post_ids);
 
-            if (empty($base_candidate_post_ids)) {
-                $query_args['post__in'] = [0];
-            } else {
-                $query_args['post__in'] = $base_candidate_post_ids;
+            // Sort: posts with no year entry sort to the end regardless of direction.
+            // Sentinel: 0 for DESC (below any real year), PHP_INT_MAX for ASC (above any real year).
+            $sort_direction  = ('ASC' === $order) ? 1 : -1;
+            $missing_year_sentinel = ('ASC' === $order) ? PHP_INT_MAX : 0;
+            usort($candidate_ids, static function ($a, $b) use ($post_map, $sort_direction, $missing_year_sentinel) {
+                $ya = isset($post_map[$a]) ? $post_map[$a] : $missing_year_sentinel;
+                $yb = isset($post_map[$b]) ? $post_map[$b] : $missing_year_sentinel;
+                if ($ya === $yb) {
+                    return 0;
+                }
+                return $sort_direction * ($ya < $yb ? -1 : 1);
+            });
+
+            $php_sort_result_count = count($candidate_ids);
+
+            // Slice to current page (+1 to detect has_more).
+            $page_ids = $per_page > 0
+                ? array_slice($candidate_ids, $offset, $per_page + 1)
+                : $candidate_ids;
+
+            $has_more      = $per_page > 0 && count($page_ids) > $per_page;
+            $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
+            $next_page     = $has_more ? $response_page + 1 : 0;
+
+            if ($has_more) {
+                $page_ids = array_slice($page_ids, 0, $per_page);
             }
+
+            $query_args['post__in']       = !empty($page_ids) ? array_map('absint', $page_ids) : [0];
+            $query_args['orderby']        = 'post__in';
+            $query_args['posts_per_page'] = !empty($page_ids) ? count($page_ids) : 1;
+            $query_args['no_found_rows']  = true;
+
+            $query     = new WP_Query($query_args);
+            $has_posts = !empty($page_ids) && $query->have_posts();
+        } else {
+            if ($has_active_advanced_filters) {
+                $final_candidate_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
+
+                $final_candidate_post_ids = bw_fpw_prepare_post_in_values($final_candidate_post_ids);
+
+                if (empty($final_candidate_post_ids)) {
+                    $query_args['post__in'] = [0];
+                } else {
+                    $query_args['post__in'] = $final_candidate_post_ids;
+                }
+            } elseif ('' !== $search) {
+                $base_candidate_post_ids = bw_fpw_prepare_post_in_values($base_candidate_post_ids);
+
+                if (empty($base_candidate_post_ids)) {
+                    $query_args['post__in'] = [0];
+                } else {
+                    $query_args['post__in'] = $base_candidate_post_ids;
+                }
+            }
+
+            $query = new WP_Query($query_args);
+
+            $has_posts     = $query->have_posts();
+            $has_more      = $per_page > 0 && $has_posts && $query->post_count > $per_page;
+            $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
+            $next_page     = $has_more ? $response_page + 1 : 0;
         }
-
-        $query = new WP_Query($query_args);
-
-        $has_posts = $query->have_posts();
-        $has_more = $per_page > 0 && $has_posts && $query->post_count > $per_page;
-        $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
-        $next_page = $has_more ? $response_page + 1 : 0;
     }
 
     $rendered_posts = 0;
@@ -4897,6 +4960,8 @@ function bw_fpw_filter_posts_inner()
 
     if ($using_cached_data) {
         $result_count = $cached_result_count;
+    } elseif (null !== $php_sort_result_count) {
+        $result_count = $php_sort_result_count;
     } else {
         // On append loads no_found_rows is true, so found_posts is 0; preserve null
         // to signal JS that the displayed count should not be overwritten.
