@@ -1813,32 +1813,53 @@ function bw_fpw_get_rate_limit_block_transient_key($action_key, $fingerprint)
     return 'bw_fpw_rl_block_' . md5((string) $action_key . '|' . (string) $fingerprint);
 }
 
-function bw_fpw_get_rate_limit_cookie_state($fingerprint, $window_seconds)
+function bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint)
+{
+    return 'bw_fpw_rl_' . md5((string) $action_key . '|' . (string) $fingerprint);
+}
+
+function bw_fpw_get_rate_limit_cookie_state_result($fingerprint, $window_seconds)
 {
     $cookie_name = bw_fpw_get_rate_limit_cookie_name();
     $cookie_value = isset($_COOKIE[$cookie_name]) ? (string) wp_unslash($_COOKIE[$cookie_name]) : '';
 
     if ('' === $cookie_value || false === strpos($cookie_value, '.')) {
-        return [];
+        return [
+            'valid' => false,
+            'reason' => 'missing',
+            'state' => [],
+        ];
     }
 
     [$encoded_payload, $signature] = explode('.', $cookie_value, 2);
 
     if ('' === $encoded_payload || '' === $signature) {
-        return [];
+        return [
+            'valid' => false,
+            'reason' => 'invalid',
+            'state' => [],
+        ];
     }
 
     $expected_signature = bw_fpw_get_rate_limit_cookie_signature($encoded_payload);
 
     if (!hash_equals($expected_signature, $signature)) {
-        return [];
+        return [
+            'valid' => false,
+            'reason' => 'invalid',
+            'state' => [],
+        ];
     }
 
     $json = base64_decode(strtr($encoded_payload, '-_', '+/'), true);
     $state = json_decode(is_string($json) ? $json : '', true);
 
     if (!is_array($state)) {
-        return [];
+        return [
+            'valid' => false,
+            'reason' => 'invalid',
+            'state' => [],
+        ];
     }
 
     $window_start = isset($state['w']) ? (int) $state['w'] : 0;
@@ -1848,14 +1869,37 @@ function bw_fpw_get_rate_limit_cookie_state($fingerprint, $window_seconds)
     $current_window_start = (int) (floor(time() / max(1, (int) $window_seconds)) * max(1, (int) $window_seconds));
 
     if ($window_start !== $current_window_start || $fingerprint_hash !== $expected_hash) {
-        return [];
+        return [
+            'valid' => false,
+            'reason' => 'stale',
+            'state' => [],
+        ];
     }
 
     return [
-        'w' => $window_start,
-        'f' => $fingerprint_hash,
-        'c' => $counts,
+        'valid' => true,
+        'reason' => 'ok',
+        'state' => [
+            'w' => $window_start,
+            'f' => $fingerprint_hash,
+            'c' => $counts,
+        ],
     ];
+}
+
+function bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds)
+{
+    $transient_key = bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint);
+    $bucket = get_transient($transient_key);
+
+    if (!is_array($bucket) || !isset($bucket['count'])) {
+        $bucket = ['count' => 0];
+    }
+
+    $bucket['count'] = (int) $bucket['count'] + 1;
+    set_transient($transient_key, $bucket, max(1, (int) $window_seconds));
+
+    return (int) $bucket['count'];
 }
 
 function bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $state)
@@ -1923,20 +1967,36 @@ function bw_fpw_is_throttled_request($action_key)
     $fingerprint = bw_fpw_get_request_fingerprint();
     $window_seconds = max(1, (int) $config['window']);
     $block_key = bw_fpw_get_rate_limit_block_transient_key($action_key, $fingerprint);
-    $cookie_state = bw_fpw_get_rate_limit_cookie_state($fingerprint, $window_seconds);
+    $cookie_result = bw_fpw_get_rate_limit_cookie_state_result($fingerprint, $window_seconds);
+    $cookie_state = isset($cookie_result['state']) && is_array($cookie_result['state']) ? $cookie_result['state'] : [];
+    $current_window_start = (int) (floor(time() / $window_seconds) * $window_seconds);
 
-    if (empty($cookie_state)) {
-        $blocked = get_transient($block_key);
+    if (false !== get_transient($block_key)) {
+        return true;
+    }
 
-        if (false !== $blocked) {
-            return true;
-        }
+    if (empty($cookie_result['valid'])) {
+        $server_count = bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds);
 
         $cookie_state = [
-            'w' => (int) (floor(time() / $window_seconds) * $window_seconds),
+            'w' => $current_window_start,
             'f' => bw_fpw_get_rate_limit_cookie_fingerprint_hash($fingerprint),
             'c' => [],
         ];
+
+        $counts = isset($cookie_state['c']) && is_array($cookie_state['c']) ? $cookie_state['c'] : [];
+        $counts[$action_key] = $server_count;
+        $cookie_state['c'] = $counts;
+        bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $cookie_state);
+
+        if ($server_count > (int) $config['limit']) {
+            $ttl = max(1, ($current_window_start + $window_seconds) - time());
+            set_transient($block_key, 1, $ttl);
+
+            return true;
+        }
+
+        return false;
     }
 
     $counts = isset($cookie_state['c']) && is_array($cookie_state['c']) ? $cookie_state['c'] : [];
@@ -1944,21 +2004,19 @@ function bw_fpw_is_throttled_request($action_key)
     $cookie_state['c'] = $counts;
 
     if (!bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $cookie_state)) {
-        $transient_key = 'bw_fpw_rl_' . md5($action_key . '|' . $fingerprint);
-        $bucket = get_transient($transient_key);
+        $server_count = bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds);
 
-        if (!is_array($bucket) || !isset($bucket['count'])) {
-            $bucket = ['count' => 0];
+        if ($server_count > (int) $config['limit']) {
+            $ttl = max(1, ($current_window_start + $window_seconds) - time());
+            set_transient($block_key, 1, $ttl);
+
+            return true;
         }
 
-        $bucket['count'] = (int) $bucket['count'] + 1;
-        set_transient($transient_key, $bucket, $window_seconds);
-
-        return $bucket['count'] > (int) $config['limit'];
+        return false;
     }
 
     if ((int) $counts[$action_key] > (int) $config['limit']) {
-        $current_window_start = isset($cookie_state['w']) ? (int) $cookie_state['w'] : (int) (floor(time() / $window_seconds) * $window_seconds);
         $ttl = max(1, ($current_window_start + $window_seconds) - time());
         set_transient($block_key, 1, $ttl);
 
