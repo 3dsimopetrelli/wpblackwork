@@ -23,7 +23,9 @@ Current notable UI/runtime deltas:
     - `Categories` (current `types` group / subcategory-type group)
     - `Artists`
     - `Style / Subject` (current `tags` group)
+    - `Author`
     - `Source`
+    - `Technique`
     - `Year`
   - `Visible Filters` is desktop-only; mobile and tablet still use the `Filters` drawer
   - runtime sorting is backend-authoritative and shares the same AJAX flow as filters
@@ -37,7 +39,7 @@ Current notable UI/runtime deltas:
     - `year_desc`
   - `Default order` maps back to the widget query defaults (`order_by` + `order`)
   - when enabled, the global search placeholder inherits the widget query context when a single parent/default category is locked, otherwise falls back to `Search in collections...`
-  - when disabled, Product Grid skips search UI, search runtime wiring, AJAX search payload, and backend search matching work
+  - when disabled, Product Grid skips search UI, per-widget runtime search bindings, AJAX search payload, and backend search matching work
   - result count
   - active-only chips contract above the grid
   - reset action
@@ -47,6 +49,13 @@ Current notable UI/runtime deltas:
 - Product Grid search now also matches canonical derived filter meta:
   - `_bw_filter_year_int`
   - `_bw_filter_author_text`
+- Product Grid search no longer scans raw `post_content` by default; runtime search now uses:
+  - title
+  - slug
+  - excerpt
+  - taxonomy term names
+  - canonical searchable meta
+  - source-meta fallbacks during canonical migration windows
 - Product Grid advanced meta filters are normalized from comma-separated editorial fields and indexed per supported context:
   - `Artist` -> `_bw_filter_artist_text`
   - `Author` -> `_bw_filter_author_text`
@@ -63,6 +72,51 @@ Current notable UI/runtime deltas:
 - `Layout` includes `Disable Hover Actions on Tablet & Mobile` to suppress product-card hover CTAs and hover media below desktop widths
 - `Grid` exposes independent responsive `Post Gap Horizontal` and `Post Gap Vertical` controls for column and row spacing
 - under `800px` the discovery controls switch to always-open full-width pills and active chips keep their remove control always visible
+
+## Performance Hardening
+
+Current Product Grid hardening for large archives:
+
+- global Product Grid search no longer performs default `post_content` scans
+- append / infinite-scroll requests return result cards only
+  - they do not recompute `filter_ui`, related tags, available types, year UI, or advanced filter UI
+- advanced-filter candidate prequeries are skipped for the default context-root browse state
+  - cached per-context indexes are used directly when the current scope does not need extra refinement
+- Year index and advanced-filter index rebuilds use lightweight build locks
+  - concurrent requests now wait briefly for the first rebuild before falling back
+- server response cache uses a dedicated helper TTL and refreshed cache schema
+- client-side AJAX cache is bounded
+  - expired entries are evicted
+  - oldest entries are pruned once the cache exceeds its max size
+- visible filters and drawer UI no longer rerender on append-only payloads
+
+Large candidate safety guard:
+- very large candidate ID arrays destined for `post__in` are capped at `12000`
+- this is a safety valve against pathological SQL `IN (...)` growth
+- at extreme scale this may prefer system safety/performance over perfect completeness of the tail of that specific request
+
+Current scalability position:
+- Product Grid is materially more resilient for larger archives after this pass
+- broad replace-mode refinement is still intentionally server-authoritative and can remain expensive when the UI truly needs fresh filter recomputation
+- very large candidate sets plus broad combinations can still be costly, but the default browse/search/append paths are now significantly lighter
+
+Validation already run:
+- `php -l blackwork-core-plugin.php`
+- `node -c assets/js/bw-product-grid.js`
+- `composer run lint:main`
+
+Recommended manual QA focus:
+- search + filters
+- append / infinite scroll
+- visible filters + popup filters sync
+- Years + year sort
+- Digital / Books / Prints contexts
+- search `ON/OFF`
+
+Status:
+- implemented
+- documented
+- ready for manual QA / closure review
 
 ## Visible Filters
 
@@ -91,7 +145,9 @@ V1 visible groups:
 - `Artists`
 - `Style / Subject`
   - this means the current `tags` group already used by discovery
+- `Author`
 - `Source`
+- `Technique`
 - `Year`
 
 Visible filter panels:
@@ -102,11 +158,21 @@ Visible filter panels:
   - `Categories`
   - `Artists`
   - `Style / Subject`
+  - `Author`
   - `Source`
+  - `Technique`
 - reuse the existing Year UI for:
   - slider
   - from/to inputs
   - quick ranges
+
+Visible pill active-state notes:
+- token groups use the shared inline count badge inside the pill
+- hovering the badge swaps the count to `X`
+- clicking the `X` clears only that group
+- `Year` stays intentionally special:
+  - the active range stays visible inline
+  - the clear badge is `X`-only instead of a numeric count
 
 Reset behaviour:
 - `Reset filters` still resets filters only
