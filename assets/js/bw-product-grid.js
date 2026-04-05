@@ -1355,27 +1355,30 @@
             state.options.tags = mergeSelectedDiscoveryOptions(state, 'tags', filterUi.tags);
         }
 
-        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
-            var groupUi = filterUi.advanced && filterUi.advanced[groupKey] ? filterUi.advanced[groupKey] : null;
-            var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
-            var stateKey = getDiscoverySelectionStateKey(groupKey);
+        // null means server skipped advanced UI rebuild (e.g. append load) — keep state as-is.
+        if (filterUi.advanced !== null && filterUi.advanced !== undefined) {
+            getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+                var groupUi = filterUi.advanced[groupKey] || null;
+                var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
+                var stateKey = getDiscoverySelectionStateKey(groupKey);
 
-            if (visibilityFlag) {
-                state.ui[visibilityFlag] = !!(groupUi && groupUi.supported);
-            }
-
-            if (groupUi && Array.isArray(groupUi.options)) {
-                storeDiscoveryLabels(state, groupKey, groupUi.options);
-                state.options[groupKey] = mergeSelectedDiscoveryOptions(state, groupKey, groupUi.options);
-            } else if (visibilityFlag && !state.ui[visibilityFlag]) {
-                state.options[groupKey] = [];
-                if (stateKey) {
-                    state[stateKey] = [];
+                if (visibilityFlag) {
+                    state.ui[visibilityFlag] = !!(groupUi && groupUi.supported);
                 }
-                state.ui.optionSearches[groupKey] = '';
-                state.ui.openGroups[groupKey] = false;
-            }
-        });
+
+                if (groupUi && Array.isArray(groupUi.options)) {
+                    storeDiscoveryLabels(state, groupKey, groupUi.options);
+                    state.options[groupKey] = mergeSelectedDiscoveryOptions(state, groupKey, groupUi.options);
+                } else if (visibilityFlag && !state.ui[visibilityFlag]) {
+                    state.options[groupKey] = [];
+                    if (stateKey) {
+                        state[stateKey] = [];
+                    }
+                    state.ui.optionSearches[groupKey] = '';
+                    state.ui.openGroups[groupKey] = false;
+                }
+            });
+        }
 
         if (typeof filterUi.result_count !== 'undefined') {
             state.resultCount = Math.max(0, parseInteger(filterUi.result_count, state.resultCount));

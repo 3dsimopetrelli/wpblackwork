@@ -3211,6 +3211,9 @@ function bw_fpw_get_advanced_filter_ui($context_slug, $post_ids = null, $filters
     $context_slug = bw_fpw_normalize_context_slug($context_slug);
     $supported_groups = bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug);
     $base_post_ids = is_array($post_ids) ? array_values(array_unique(array_map('absint', $post_ids))) : null;
+    // When no advanced filters are active, each group's "scoped" set equals
+    // $base_post_ids — skip the per-group intersection calls entirely.
+    $has_active_filters = bw_fpw_has_active_advanced_filter_selections($filters);
     $ui = [];
 
     foreach (bw_fpw_get_advanced_filter_group_definitions() as $group_key => $definition) {
@@ -3222,7 +3225,9 @@ function bw_fpw_get_advanced_filter_ui($context_slug, $post_ids = null, $filters
             continue;
         }
 
-        $scoped_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_post_ids, $context_slug, $filters, $group_key);
+        $scoped_post_ids = $has_active_filters
+            ? bw_fpw_apply_advanced_filters_to_post_ids($base_post_ids, $context_slug, $filters, $group_key)
+            : $base_post_ids;
 
         $ui[$group_key] = [
             'supported' => true,
@@ -4259,13 +4264,16 @@ function bw_fpw_filter_posts_inner()
         'max' => null,
         'quick_ranges' => [],
     ];
-    $advanced_filter_ui = 'product' === $post_type
+    // On append loads the filter state is unchanged client-side; skip rebuilding
+    // the advanced filter UI (per-group intersections) to avoid redundant work.
+    // null signals JS to leave the current advanced filter state untouched.
+    $advanced_filter_ui = ('product' === $post_type && !$is_append)
         ? bw_fpw_get_advanced_filter_ui(
             $effective_context_slug,
             $base_candidate_post_ids,
             $advanced_filters
         )
-        : [];
+        : null;
 
     $response_data = [
         'html' => $html,
