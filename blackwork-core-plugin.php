@@ -2988,52 +2988,49 @@ function bw_fpw_build_year_index($context_slug)
         ];
     }
 
-    $query = new WP_Query([
-        'post_type' => 'product',
-        'post_status' => 'publish',
-        'posts_per_page' => -1,
-        'fields' => 'ids',
-        'no_found_rows' => true,
-        'ignore_sticky_posts' => true,
-        'update_post_meta_cache' => false,
-        'update_post_term_cache' => false,
-        'tax_query' => [[
-            'taxonomy' => 'product_cat',
-            'field' => 'term_id',
-            'terms' => [$root_term_id],
-            'include_children' => true,
-        ]],
-    ]);
+    global $wpdb;
+
+    // Resolve descendant term IDs via the WordPress term cache (fast, no extra query
+    // when terms are already loaded) then run a single JOIN instead of two queries:
+    // previously this was WP_Query(posts_per_page=-1) + IN(all_product_ids).
+    // Now: IN(term_ids) — typically 5–20 values vs thousands of post IDs.
+    $child_ids    = get_term_children($root_term_id, 'product_cat');
+    $all_term_ids = array_merge([$root_term_id], is_array($child_ids) ? array_map('absint', $child_ids) : []);
+    $term_ids_in  = implode(',', $all_term_ids); // safe: all absint
+
+    $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
+
+    // Single JOIN: posts ← term_relationships ← term_taxonomy, left-joined to postmeta.
+    // DISTINCT prevents counting a product multiple times when it belongs to several
+    // subcategories within the context.
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT DISTINCT p.ID, pm.meta_value AS year_value
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+             INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+             LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s
+             WHERE p.post_type = 'product'
+               AND p.post_status = 'publish'
+               AND tt.taxonomy = 'product_cat'
+               AND tt.term_id IN ({$term_ids_in})",
+            $canonical_year_key
+        )
+    );
 
     $years = [];
 
-    // Collect valid IDs first, then bulk-load canonical year meta in a single query
-    // to avoid N+1 DB hits (no per-product get_post_meta or sync writes here).
-    $product_ids = array_values(array_filter(array_map('absint', (array) $query->posts)));
-
-    if (!empty($product_ids)) {
-        global $wpdb;
-        $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
-        $ids_in = implode(',', $product_ids); // safe: all values are absint
-        $rows   = $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id IN ($ids_in)",
-                $canonical_year_key
-            )
-        );
-
-        foreach ((array) $rows as $row) {
-            $year = bw_fpw_extract_year_int($row->meta_value);
-            if (null === $year) {
-                continue;
-            }
-
-            if (!isset($years[$year])) {
-                $years[$year] = 0;
-            }
-
-            $years[$year]++;
+    foreach ((array) $rows as $row) {
+        $year = bw_fpw_extract_year_int($row->year_value);
+        if (null === $year) {
+            continue;
         }
+
+        if (!isset($years[$year])) {
+            $years[$year] = 0;
+        }
+
+        $years[$year]++;
     }
 
     if (!empty($years)) {
