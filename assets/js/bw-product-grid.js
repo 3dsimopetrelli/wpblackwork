@@ -949,6 +949,7 @@
                     },
                     searchEnabled: searchEnabled,
                     lastFilterUiSignature: '',
+                    filterUiHashes: {},
                     yearDraft: {
                         from: null,
                         to: null
@@ -1432,6 +1433,44 @@
                 to: state.year.to
             };
         }
+    }
+
+    function getDiscoveryFilterUiSectionSignature(sectionValue) {
+        try {
+            return JSON.stringify(sectionValue) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function getDiscoveryFilterUiSectionHashes(filterUi) {
+        var hashes = {};
+
+        if (!filterUi) {
+            return hashes;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(filterUi, 'types')) {
+            hashes.types = getDiscoveryFilterUiSectionSignature(filterUi.types);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(filterUi, 'tags')) {
+            hashes.tags = getDiscoveryFilterUiSectionSignature(filterUi.tags);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(filterUi, 'advanced')) {
+            hashes.advanced = getDiscoveryFilterUiSectionSignature(filterUi.advanced);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(filterUi, 'year')) {
+            hashes.year = getDiscoveryFilterUiSectionSignature(filterUi.year);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(filterUi, 'result_count')) {
+            hashes.result_count = getDiscoveryFilterUiSectionSignature(filterUi.result_count);
+        }
+
+        return hashes;
     }
 
     function getDiscoveryFilterUiSignature(filterUi) {
@@ -2164,6 +2203,8 @@
         var state = filterState[widgetId];
         var previousResultCount;
         var nextSignature;
+        var nextHashes;
+        var previousHashes;
         var shouldRender = false;
 
         options = options || {};
@@ -2172,16 +2213,28 @@
             return;
         }
 
+        nextHashes = data.filter_ui_hashes && typeof data.filter_ui_hashes === 'object' ? data.filter_ui_hashes : null;
+        previousHashes = state.ui.filterUiHashes || {};
+
         if (data.filter_ui) {
             previousResultCount = state.resultCount;
             nextSignature = getDiscoveryFilterUiSignature(data.filter_ui);
             updateDiscoveryOptions(widgetId, data.filter_ui);
             shouldRender = nextSignature !== (state.ui.lastFilterUiSignature || '') || state.resultCount !== previousResultCount;
             state.ui.lastFilterUiSignature = nextSignature;
-        } else if (typeof data.result_count !== 'undefined') {
+        }
+
+        if (typeof data.result_count !== 'undefined') {
             previousResultCount = state.resultCount;
             state.resultCount = Math.max(0, parseInteger(data.result_count, state.resultCount));
             shouldRender = state.resultCount !== previousResultCount;
+        }
+
+        if (nextHashes) {
+            shouldRender = shouldRender || JSON.stringify(nextHashes) !== JSON.stringify(previousHashes);
+            state.ui.filterUiHashes = $.extend({}, previousHashes, nextHashes);
+        } else if (data.filter_ui) {
+            state.ui.filterUiHashes = getDiscoveryFilterUiSectionHashes(data.filter_ui);
         }
 
         state.appliedSearch = isWidgetSearchEnabled(widgetId, state) ? state.search : '';
@@ -3234,6 +3287,7 @@
                 publisher: publisherValues,
                 source: sourceValues,
                 technique: techniqueValues,
+                filter_ui_hashes: filterState[widgetId] && filterState[widgetId].ui ? (filterState[widgetId].ui.filterUiHashes || {}) : {},
                 sort_key: sortKey,
                 image_toggle: imageToggle,
                 image_size: imageSize,
@@ -4147,6 +4201,7 @@
                         ? prevState.ui.searchEnabled
                         : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
                     lastFilterUiSignature: '',
+                    filterUiHashes: prevState.ui && prevState.ui.filterUiHashes ? $.extend({}, prevState.ui.filterUiHashes) : {},
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -4414,6 +4469,13 @@
                     result_count: state.resultCount
                 });
                 state.ui.lastFilterUiSignature = getDiscoveryFilterUiSignature({
+                    types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
+                    tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
+                    year: bootstrapPayload.year || null,
+                    advanced: bootstrapPayload.advanced || {},
+                    result_count: state.resultCount
+                });
+                state.ui.filterUiHashes = getDiscoveryFilterUiSectionHashes({
                     types: Array.isArray(bootstrapPayload.types) ? bootstrapPayload.types : [],
                     tags: Array.isArray(bootstrapPayload.tags) ? bootstrapPayload.tags : [],
                     year: bootstrapPayload.year || null,

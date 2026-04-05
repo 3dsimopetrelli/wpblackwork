@@ -4084,6 +4084,54 @@ function bw_fpw_generate_cache_key($params)
     return 'bw_fpw_data_' . $hash;
 }
 
+function bw_fpw_get_filter_ui_section_signature($value)
+{
+    $json = wp_json_encode($value);
+
+    if (!is_string($json) || '' === $json) {
+        $json = wp_json_encode(['fallback' => $value]);
+    }
+
+    return is_string($json) ? hash('sha256', $json) : '';
+}
+
+function bw_fpw_build_filter_ui_hashes($filter_ui)
+{
+    $filter_ui = is_array($filter_ui) ? $filter_ui : [];
+    $hashes = [];
+
+    foreach (['types', 'tags', 'advanced', 'year', 'result_count'] as $section_key) {
+        if (array_key_exists($section_key, $filter_ui)) {
+            $hashes[$section_key] = bw_fpw_get_filter_ui_section_signature($filter_ui[$section_key]);
+        }
+    }
+
+    return $hashes;
+}
+
+function bw_fpw_normalize_filter_ui_hashes($hashes)
+{
+    $normalized = [];
+
+    if (!is_array($hashes)) {
+        return $normalized;
+    }
+
+    foreach (['types', 'tags', 'advanced', 'year', 'result_count'] as $section_key) {
+        if (!isset($hashes[$section_key])) {
+            continue;
+        }
+
+        $hash = preg_replace('/[^a-f0-9]/i', '', (string) $hashes[$section_key]);
+
+        if (is_string($hash) && '' !== $hash) {
+            $normalized[$section_key] = strtolower($hash);
+        }
+    }
+
+    return $normalized;
+}
+
 /**
  * Handler AJAX per filtrare i post
  */
@@ -4218,6 +4266,7 @@ function bw_fpw_filter_posts_inner()
         'source' => isset($_POST['source']) ? wp_unslash($_POST['source']) : [],
         'technique' => isset($_POST['technique']) ? wp_unslash($_POST['technique']) : [],
     ]);
+    $client_filter_ui_hashes = bw_fpw_normalize_filter_ui_hashes(isset($_POST['filter_ui_hashes']) ? wp_unslash($_POST['filter_ui_hashes']) : []);
     $image_toggle = bw_fpw_normalize_bool(isset($_POST['image_toggle']) ? wp_unslash($_POST['image_toggle']) : null, false);
     $image_size = bw_fpw_normalize_image_size(isset($_POST['image_size']) ? wp_unslash($_POST['image_size']) : 'large');
     $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
@@ -4773,6 +4822,29 @@ function bw_fpw_filter_posts_inner()
                 'year' => $year_ui,
                 'advanced' => $advanced_filter_ui,
             ];
+        }
+
+        $filter_ui_hashes = bw_fpw_build_filter_ui_hashes(isset($response_data['filter_ui']) ? $response_data['filter_ui'] : []);
+        $response_data['filter_ui_hashes'] = $filter_ui_hashes;
+
+        if (!empty($client_filter_ui_hashes) && !empty($response_data['filter_ui']) && is_array($response_data['filter_ui'])) {
+            $changed_filter_ui = [];
+
+            foreach ($response_data['filter_ui'] as $section_key => $section_value) {
+                if (!isset($filter_ui_hashes[$section_key]) || !isset($client_filter_ui_hashes[$section_key]) || $client_filter_ui_hashes[$section_key] !== $filter_ui_hashes[$section_key]) {
+                    $changed_filter_ui[$section_key] = $section_value;
+                }
+            }
+
+            $response_data['filter_ui'] = $changed_filter_ui;
+
+            if (isset($filter_ui_hashes['tags']) && isset($client_filter_ui_hashes['tags']) && $client_filter_ui_hashes['tags'] === $filter_ui_hashes['tags']) {
+                unset($response_data['tags_html'], $response_data['available_tags']);
+            }
+
+            if (isset($filter_ui_hashes['types']) && isset($client_filter_ui_hashes['types']) && $client_filter_ui_hashes['types'] === $filter_ui_hashes['types']) {
+                unset($response_data['available_types']);
+            }
         }
     }
 
