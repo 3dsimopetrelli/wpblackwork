@@ -2988,52 +2988,49 @@ function bw_fpw_build_year_index($context_slug)
         ];
     }
 
-    $query = new WP_Query([
-        'post_type' => 'product',
-        'post_status' => 'publish',
-        'posts_per_page' => -1,
-        'fields' => 'ids',
-        'no_found_rows' => true,
-        'ignore_sticky_posts' => true,
-        'update_post_meta_cache' => false,
-        'update_post_term_cache' => false,
-        'tax_query' => [[
-            'taxonomy' => 'product_cat',
-            'field' => 'term_id',
-            'terms' => [$root_term_id],
-            'include_children' => true,
-        ]],
-    ]);
+    global $wpdb;
+
+    // Resolve descendant term IDs via the WordPress term cache (fast, no extra query
+    // when terms are already loaded) then run a single JOIN instead of two queries:
+    // previously this was WP_Query(posts_per_page=-1) + IN(all_product_ids).
+    // Now: IN(term_ids) — typically 5–20 values vs thousands of post IDs.
+    $child_ids    = get_term_children($root_term_id, 'product_cat');
+    $all_term_ids = array_merge([$root_term_id], is_array($child_ids) ? array_map('absint', $child_ids) : []);
+    $term_ids_in  = implode(',', $all_term_ids); // safe: all absint
+
+    $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
+
+    // Single JOIN: posts ← term_relationships ← term_taxonomy, left-joined to postmeta.
+    // DISTINCT prevents counting a product multiple times when it belongs to several
+    // subcategories within the context.
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT DISTINCT p.ID, pm.meta_value AS year_value
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+             INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+             LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s
+             WHERE p.post_type = 'product'
+               AND p.post_status = 'publish'
+               AND tt.taxonomy = 'product_cat'
+               AND tt.term_id IN ({$term_ids_in})",
+            $canonical_year_key
+        )
+    );
 
     $years = [];
 
-    // Collect valid IDs first, then bulk-load canonical year meta in a single query
-    // to avoid N+1 DB hits (no per-product get_post_meta or sync writes here).
-    $product_ids = array_values(array_filter(array_map('absint', (array) $query->posts)));
-
-    if (!empty($product_ids)) {
-        global $wpdb;
-        $canonical_year_key = bw_fpw_get_canonical_year_meta_key();
-        $ids_in = implode(',', $product_ids); // safe: all values are absint
-        $rows   = $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id IN ($ids_in)",
-                $canonical_year_key
-            )
-        );
-
-        foreach ((array) $rows as $row) {
-            $year = bw_fpw_extract_year_int($row->meta_value);
-            if (null === $year) {
-                continue;
-            }
-
-            if (!isset($years[$year])) {
-                $years[$year] = 0;
-            }
-
-            $years[$year]++;
+    foreach ((array) $rows as $row) {
+        $year = bw_fpw_extract_year_int($row->year_value);
+        if (null === $year) {
+            continue;
         }
+
+        if (!isset($years[$year])) {
+            $years[$year] = 0;
+        }
+
+        $years[$year]++;
     }
 
     if (!empty($years)) {
@@ -3173,44 +3170,6 @@ function bw_fpw_build_advanced_filter_index($context_slug)
         ];
     }
 
-    $query = new WP_Query([
-        'post_type' => 'product',
-        'post_status' => 'publish',
-        'posts_per_page' => -1,
-        'fields' => 'ids',
-        'no_found_rows' => true,
-        'ignore_sticky_posts' => true,
-        'update_post_meta_cache' => false,
-        'update_post_term_cache' => false,
-        'tax_query' => [[
-            'taxonomy' => 'product_cat',
-            'field' => 'term_id',
-            'terms' => [$root_term_id],
-            'include_children' => true,
-        ]],
-    ]);
-
-    $product_ids = array_values(array_filter(array_map('absint', (array) $query->posts)));
-    $index = [
-        'context' => $context_slug,
-        'supported' => !empty($product_ids),
-        'post_ids' => $product_ids,
-        'groups' => [],
-    ];
-
-    foreach ($supported_groups as $group_key => $definition) {
-        $index['groups'][$group_key] = [
-            'supported' => true,
-            'labels' => [],
-            'counts' => [],
-            'post_map' => [],
-        ];
-    }
-
-    if (empty($product_ids)) {
-        return $index;
-    }
-
     $meta_keys = [];
     foreach ($supported_groups as $group_key => $definition) {
         $canonical_key = isset($definition['canonical_key']) ? (string) $definition['canonical_key'] : '';
@@ -3223,31 +3182,87 @@ function bw_fpw_build_advanced_filter_index($context_slug)
 
     $meta_keys = array_values(array_unique(array_filter($meta_keys)));
 
-    if (empty($meta_keys)) {
-        return $index;
+    // Resolve descendant term IDs from WordPress term cache — typically 5–20 IDs,
+    // orders of magnitude fewer than the product IDs they were previously used for.
+    $child_ids    = get_term_children($root_term_id, 'product_cat');
+    $all_term_ids = array_merge([$root_term_id], is_array($child_ids) ? array_map('absint', $child_ids) : []);
+    $term_ids_in  = implode(',', $all_term_ids); // safe: all absint
+
+    // Single JOIN query instead of WP_Query(posts_per_page=-1) + IN(product_ids).
+    // LEFT JOIN on postmeta ensures products without matching meta still appear
+    // (as NULL rows) so we collect the full product ID list in one pass.
+    // DISTINCT on (p.ID, pm.meta_key, pm.meta_value) removes duplicates produced
+    // when a product belongs to several subcategories within the context.
+    if (!empty($meta_keys)) {
+        $meta_placeholders = implode(',', array_fill(0, count($meta_keys), '%s'));
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT DISTINCT p.ID, pm.meta_key, pm.meta_value
+                 FROM {$wpdb->posts} p
+                 INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+                 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+                 LEFT JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key IN ({$meta_placeholders})
+                 WHERE p.post_type = 'product'
+                   AND p.post_status = 'publish'
+                   AND tt.taxonomy = 'product_cat'
+                   AND tt.term_id IN ({$term_ids_in})",
+                $meta_keys
+            )
+        );
+    } else {
+        // No meta keys configured: collect product IDs only.
+        $rows = $wpdb->get_results(
+            "SELECT DISTINCT p.ID, NULL AS meta_key, NULL AS meta_value
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+             INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+             WHERE p.post_type = 'product'
+               AND p.post_status = 'publish'
+               AND tt.taxonomy = 'product_cat'
+               AND tt.term_id IN ({$term_ids_in})"
+        );
     }
 
-    $ids_in = implode(',', $product_ids);
-    $meta_placeholders = implode(',', array_fill(0, count($meta_keys), '%s'));
-    $query_args = array_merge($meta_keys, [$ids_in]);
-    $rows = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta}
-             WHERE meta_key IN ({$meta_placeholders}) AND post_id IN ({$ids_in})",
-            $meta_keys
-        )
-    );
-
+    $product_ids  = [];
+    $seen_ids     = [];
     $meta_by_post = [];
-    foreach ((array) $rows as $row) {
-        $post_id = absint($row->post_id);
-        $meta_key = is_string($row->meta_key) ? $row->meta_key : '';
 
-        if ($post_id <= 0 || '' === $meta_key) {
+    foreach ((array) $rows as $row) {
+        $post_id  = absint($row->ID);
+        $meta_key = is_string($row->meta_key) && '' !== $row->meta_key ? $row->meta_key : null;
+
+        if ($post_id <= 0) {
             continue;
         }
 
-        $meta_by_post[$post_id][$meta_key] = isset($row->meta_value) ? (string) $row->meta_value : '';
+        if (!isset($seen_ids[$post_id])) {
+            $seen_ids[$post_id] = true;
+            $product_ids[]      = $post_id;
+        }
+
+        if (null !== $meta_key) {
+            $meta_by_post[$post_id][$meta_key] = isset($row->meta_value) ? (string) $row->meta_value : '';
+        }
+    }
+
+    $index = [
+        'context'  => $context_slug,
+        'supported' => !empty($product_ids),
+        'post_ids' => $product_ids,
+        'groups'   => [],
+    ];
+
+    foreach ($supported_groups as $group_key => $definition) {
+        $index['groups'][$group_key] = [
+            'supported' => true,
+            'labels'    => [],
+            'counts'    => [],
+            'post_map'  => [],
+        ];
+    }
+
+    if (empty($product_ids) || empty($meta_keys)) {
+        return $index;
     }
 
     foreach ($product_ids as $post_id) {
@@ -3335,7 +3350,30 @@ function bw_fpw_get_advanced_filter_index($context_slug)
     }
 
     $transient_key = bw_fpw_get_advanced_filter_index_transient_key($context_slug);
+    $cached        = get_transient($transient_key);
 
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    // On a regular HTTP request, do NOT block: schedule an async cron rebuild
+    // and return an empty index immediately.  The cron job calls this function
+    // again (DOING_CRON = true) and runs the actual expensive build then.
+    if (!defined('DOING_CRON') || !DOING_CRON) {
+        $hook = 'bw_fpw_async_rebuild_advanced_filter_index';
+        if (!wp_next_scheduled($hook, [$context_slug])) {
+            wp_schedule_single_event(time(), $hook, [$context_slug]);
+        }
+
+        return [
+            'context'   => $context_slug,
+            'supported' => false,
+            'post_ids'  => [],
+            'groups'    => [],
+        ];
+    }
+
+    // Cron context: run the real build with stampede protection.
     return bw_fpw_get_cached_index_with_lock(
         $transient_key,
         'advanced_filter_index',
@@ -4223,6 +4261,13 @@ function bw_fpw_handle_product_filter_status_change($new_status, $old_status, $p
     bw_fpw_clear_advanced_filter_index_transients();
 }
 add_action('transition_post_status', 'bw_fpw_handle_product_filter_status_change', 10, 3);
+
+// Async advanced-filter index rebuild scheduled by bw_fpw_get_advanced_filter_index()
+// when a cold-cache miss occurs on a regular HTTP request.  Running inside WP-Cron
+// (DOING_CRON = true) causes the function to do the actual build instead of re-scheduling.
+add_action('bw_fpw_async_rebuild_advanced_filter_index', function ($context_slug) {
+    bw_fpw_get_advanced_filter_index((string) $context_slug);
+});
 
 function bw_fpw_ajax_refresh_nonce()
 {
