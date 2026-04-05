@@ -3005,19 +3005,34 @@ function bw_fpw_build_year_quick_ranges($years_map)
         return [];
     }
 
+    // Tiny datasets do not benefit from quick-range shortcuts; the slider and
+    // direct year inputs already cover these cases without redundant buttons.
+    if ($total < 6) {
+        return [];
+    }
+
     $bucket_count = min(4, $total);
     $bucket_size = (int) ceil($total / $bucket_count);
+    $chunks = array_chunk($distinct_years, max(1, $bucket_size));
     $ranges = [];
 
-    for ($index = 0; $index < $bucket_count; $index++) {
-        $start_offset = $index * $bucket_size;
-        if (!isset($distinct_years[$start_offset])) {
-            break;
+    if (count($chunks) > 1) {
+        $last_index = count($chunks) - 1;
+
+        if (isset($chunks[$last_index]) && count($chunks[$last_index]) < 2) {
+            $chunks[$last_index - 1] = array_merge($chunks[$last_index - 1], $chunks[$last_index]);
+            unset($chunks[$last_index]);
+            $chunks = array_values($chunks);
+        }
+    }
+
+    foreach ($chunks as $chunk) {
+        if (empty($chunk)) {
+            continue;
         }
 
-        $end_offset = min($total - 1, (($index + 1) * $bucket_size) - 1);
-        $from = (int) $distinct_years[$start_offset];
-        $to = (int) $distinct_years[$end_offset];
+        $from = (int) reset($chunk);
+        $to = (int) end($chunk);
 
         $ranges[] = [
             'key' => $from . '-' . $to,

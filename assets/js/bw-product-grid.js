@@ -1447,7 +1447,7 @@
                 } else if (visibilityFlag && !state.ui[visibilityFlag]) {
                     state.options[groupKey] = [];
                     if (stateKey) {
-                        state[stateKey] = [];
+                        setDiscoverySelectionState(state, groupKey, []);
                     }
                     state.ui.optionSearches[groupKey] = '';
                     state.ui.openGroups[groupKey] = false;
@@ -1536,6 +1536,22 @@
     function getDiscoverySelections(state, groupKey) {
         var stateKey = getDiscoverySelectionStateKey(groupKey);
         return stateKey && Array.isArray(state[stateKey]) ? state[stateKey] : [];
+    }
+
+    function normalizeDiscoverySelectionStateValue(groupKey, values) {
+        return isDiscoveryTokenGroup(groupKey)
+            ? uniqueStringArray(values)
+            : uniqueIntArray(values);
+    }
+
+    function setDiscoverySelectionState(state, groupKey, values) {
+        var stateKey = getDiscoverySelectionStateKey(groupKey);
+
+        if (!state || !stateKey) {
+            return;
+        }
+
+        state[stateKey] = normalizeDiscoverySelectionStateValue(groupKey, values);
     }
 
     function hasDiscoverySelection(state, groupKey, termId) {
@@ -1942,7 +1958,7 @@
             state.year = createEmptyYearState();
             state.ui.yearDraft = createEmptyYearState();
         } else if (stateKey && isDiscoveryTokenGroup(groupKey)) {
-            state[stateKey] = [];
+            setDiscoverySelectionState(state, groupKey, []);
         } else {
             return;
         }
@@ -2386,11 +2402,7 @@
             selections.push(normalizedValue);
         }
 
-        if (isDiscoveryTokenGroup(groupKey)) {
-            state[stateKey] = uniqueStringArray(selections);
-        } else {
-            state[stateKey] = uniqueIntArray(selections);
-        }
+        setDiscoverySelectionState(state, groupKey, selections);
     }
 
     function resetDiscoveryFilters(widgetId, closePanel) {
@@ -2479,9 +2491,9 @@
                 return id !== normalizedValue;
             });
         } else if (stateKey && isDiscoveryTokenGroup(groupKey)) {
-            state[stateKey] = state[stateKey].filter(function (value) {
+            setDiscoverySelectionState(state, groupKey, state[stateKey].filter(function (value) {
                 return value !== normalizedValue;
-            });
+            }));
         } else if (groupKey === 'years') {
             state.year = createEmptyYearState();
             state.ui.yearDraft = createEmptyYearState();
