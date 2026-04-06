@@ -8,9 +8,8 @@ Define a realistic target architecture for the Blackwork Elementor widget subsys
   - slug: `bw-product-grid`
   - class: `BW_Product_Grid_Widget`
 - Product-card authority is `BW_Product_Card_Component` across migrated product surfaces (`BW_Product_Card_Renderer` remains compatibility bridge).
-- `bw-product-grid` already supports dual mode via `Show Filters`:
-  - enabled: filtered grid behavior
-  - disabled: simple grid behavior
+- Product Grid current runtime authority lives in:
+  - [`../product-grid/product-grid-architecture.md`](../product-grid/product-grid-architecture.md)
 - `bw-wallpost` has been removed after governed replacement validation.
 - `bw-add-to-cart` and `bw-add-to-cart-variation` have been removed in the governed removal wave.
 
@@ -57,46 +56,18 @@ Direction:
 - avoid re-implementing card markup/CTA/price logic in each widget/template
 - allow controlled variants through explicit renderer settings (show/hide fields, class modifiers)
 
-### Runtime Cleanup and Consistency Improvements
-Under the `BW Product Grid` stabilization wave, the widget runtime was hardened without introducing new feature scope.
+### Product Grid family note
 
-Implemented improvements:
-- removal of duplicate logic
-- extraction of shared helpers where safe
-- price markup centralized through `bw_fpw_get_price_markup()`
-- responsive behavior unified across CSS and JS
-- removal of console debug statements
-- elimination of dead JavaScript code
-- alignment of active Elementor controls with the current runtime contract
-- explicit retention of some values as internal/runtime-only defaults (`image_*`, hover, popup, filter breakpoint)
+This file defines widget-family direction only.
 
-This wave focused on:
-- code health
-- runtime stability
-- editor/runtime consistency
-
-This wave did not introduce new user-facing features; it was a bounded cleanup and consistency pass ahead of future UI refinement and feature work.
-
-Follow-up reality update (2026-03-29):
-- `BW Product Grid` has since gained a governed responsive discovery-drawer surface
-- the discovery surface is still owned by the widget/runtime itself, not by a shared filter-shell abstraction
-- the drawer shell now supports configurable opening side (`left` / `right`) at widget-control level
-- this does not change the architectural direction: a future shared filter-shell abstraction remains possible, but current authority is still `bw-product-grid`
-
-### Loading Policy and Animation Sequencing Hardening
-This hardening wave also corrected loading-policy propagation and animation sequencing without changing the widget architecture.
-
-Implemented direction:
-- loading policy now distinguishes between main images and hover images
-- first paint and append flow now follow different loading behavior
-- Masonry is no longer blocked by hover-image loading
-- reveal starts only after layout-ready completion in both initial and replace flows
-- stale stagger timers are cleared before a new reveal cycle starts
-
-Architectural effect:
-- improved layout determinism
-- reduced visible jumps during first paint and replace-mode updates
-- preserved the current infinite-loading and Masonry architecture while making sequencing explicit
+For `BW Product Grid`:
+- keep the family-level boundary here:
+  - canonical wall/query-grid widget
+  - product-card reuse reference
+  - future control-group extraction candidate
+- keep runtime implementation, filter architecture, cache strategy, and
+  performance rules only in:
+  - [`../product-grid/product-grid-architecture.md`](../product-grid/product-grid-architecture.md)
 
 ## Shared slider-core authority
 Direction:

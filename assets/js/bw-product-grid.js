@@ -933,6 +933,13 @@
                     showTechnique: false,
                     showOrderBy: ($grid.attr('data-show-order-by') || 'no') === 'yes',
                     showVisibleFilters: ($grid.attr('data-show-visible-filters') || 'no') === 'yes',
+                    showDesktopFilterIcon: ($grid.attr('data-desktop-filter-icon-enabled') || 'yes') !== 'no',
+                    desktopFilterGroups: parseJsonArrayAttribute($grid, 'data-desktop-filter-groups'),
+                    desktopFilterOrder: parseJsonArrayAttribute($grid, 'data-desktop-filter-order'),
+                    desktopFilterGroupsResolved: resolveVisibleDiscoveryGroupKeys(
+                        parseJsonArrayAttribute($grid, 'data-desktop-filter-groups'),
+                        parseJsonArrayAttribute($grid, 'data-desktop-filter-order')
+                    ),
                     orderTriggerStyle: ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon',
                     sortMenuOpen: false,
                     visibleFilterOpenGroup: '',
@@ -1217,8 +1224,155 @@
         return config;
     }
 
-    function getVisibleDiscoveryGroupKeys() {
-        return ['types', 'tags', 'artist', 'author', 'source', 'technique', 'years'];
+    function getDefaultVisibleDiscoveryGroupKeys() {
+        return ['types', 'tags', 'artist', 'source', 'years'];
+    }
+
+    function getAllowedVisibleDiscoveryGroupKeys() {
+        return getDiscoveryGroupConfigs().map(function (groupConfig) {
+            return groupConfig.key;
+        });
+    }
+
+    function sanitizeVisibleDiscoveryGroupKeys(groupKeys) {
+        var allowedKeys = getAllowedVisibleDiscoveryGroupKeys();
+        var sanitized = [];
+
+        (Array.isArray(groupKeys) ? groupKeys : []).forEach(function (groupKey) {
+            var normalizedKey = String(groupKey || '');
+
+            if (allowedKeys.indexOf(normalizedKey) > -1 && sanitized.indexOf(normalizedKey) === -1) {
+                sanitized.push(normalizedKey);
+            }
+        });
+
+        return sanitized;
+    }
+
+    function parseJsonArrayAttribute($grid, attrName) {
+        var rawValue;
+        var parsedValue;
+
+        if (!$grid || !$grid.length || !attrName) {
+            return [];
+        }
+
+        rawValue = $grid.attr(attrName);
+
+        if (!rawValue) {
+            return [];
+        }
+
+        try {
+            parsedValue = JSON.parse(rawValue);
+        } catch (error) {
+            parsedValue = [];
+        }
+
+        return Array.isArray(parsedValue) ? parsedValue : [];
+    }
+
+    function resolveVisibleDiscoveryGroupKeys(selectedGroups, orderedGroups) {
+        var sanitizedSelected = sanitizeVisibleDiscoveryGroupKeys(selectedGroups);
+        var sanitizedOrder = sanitizeVisibleDiscoveryGroupKeys(orderedGroups);
+        var resolved = [];
+
+        if (!sanitizedSelected.length) {
+            sanitizedSelected = getDefaultVisibleDiscoveryGroupKeys();
+        }
+
+        if (!sanitizedOrder.length) {
+            return sanitizedSelected.slice();
+        }
+
+        sanitizedOrder.forEach(function (groupKey) {
+            if (sanitizedSelected.indexOf(groupKey) > -1 && resolved.indexOf(groupKey) === -1) {
+                resolved.push(groupKey);
+            }
+        });
+
+        sanitizedSelected.forEach(function (groupKey) {
+            if (resolved.indexOf(groupKey) === -1) {
+                resolved.push(groupKey);
+            }
+        });
+
+        return resolved;
+    }
+
+    function getVisibleDiscoveryGroupKeys(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && Array.isArray(resolvedState.ui.desktopFilterGroupsResolved)) {
+            return resolvedState.ui.desktopFilterGroupsResolved.slice();
+        }
+
+        if (!widgetId) {
+            return getDefaultVisibleDiscoveryGroupKeys();
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+
+        return resolveVisibleDiscoveryGroupKeys(
+            parseJsonArrayAttribute($grid, 'data-desktop-filter-groups'),
+            parseJsonArrayAttribute($grid, 'data-desktop-filter-order')
+        );
+    }
+
+    function isDesktopFilterIconEnabled(widgetId, state) {
+        var resolvedState = state || (widgetId ? filterState[widgetId] : null);
+        var $grid;
+
+        if (resolvedState && resolvedState.ui && typeof resolvedState.ui.showDesktopFilterIcon === 'boolean') {
+            return resolvedState.ui.showDesktopFilterIcon;
+        }
+
+        if (!widgetId) {
+            return true;
+        }
+
+        $grid = $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first();
+
+        return ($grid.attr('data-desktop-filter-icon-enabled') || 'yes') !== 'no';
+    }
+
+    function isViewportBelowFilterBreakpoint(widgetId) {
+        var $wrapper = getProductGridWrapper(widgetId);
+        var breakpoint;
+        var width;
+
+        if (!$wrapper.length) {
+            return false;
+        }
+
+        breakpoint = parseInt($wrapper.attr('data-filter-breakpoint'), 10);
+        if (isNaN(breakpoint) || breakpoint <= 0) {
+            breakpoint = 900;
+        }
+
+        width = window.innerWidth || $(window).width();
+
+        return width < breakpoint;
+    }
+
+    function updateDesktopFilterIconVisibility(widgetId, state) {
+        var $trigger = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"]');
+        var shouldShow;
+
+        if (!$trigger.length) {
+            return;
+        }
+
+        shouldShow = !isDiscoveryDrawerMode(widgetId)
+            || isDesktopFilterIconEnabled(widgetId, state)
+            || isViewportBelowFilterBreakpoint(widgetId);
+
+        if (!shouldShow) {
+            closeMobilePanel(widgetId);
+        }
+
+        $trigger.css('display', shouldShow ? '' : 'none');
     }
 
     function getDiscoverySortTriggerStyle(widgetId, state) {
@@ -2006,7 +2160,7 @@
             return;
         }
 
-        getVisibleDiscoveryGroupKeys().forEach(function (groupKey) {
+        getVisibleDiscoveryGroupKeys(widgetId, state).forEach(function (groupKey) {
             var groupConfig = getDiscoveryGroupConfig(groupKey);
             var visibilityFlag = getDiscoveryGroupVisibilityFlag(groupKey);
             var isSupported = visibilityFlag ? !!state.ui[visibilityFlag] : false;
@@ -2211,6 +2365,7 @@
             if (isDiscoverySortEnabled(widgetId, state)) {
                 renderDiscoverySortControl(widgetId);
             }
+            updateDesktopFilterIconVisibility(widgetId, state);
             renderDiscoveryVisibleFilters(widgetId);
             if (isWidgetSearchEnabled(widgetId, state)) {
                 renderDiscoverySearch(widgetId);
@@ -4512,6 +4667,7 @@
 
                 if (responsiveDrawerMode && widgetId) {
                     ensureDetachedDiscoveryDrawer(widgetId);
+                    updateDesktopFilterIconVisibility(widgetId);
                 }
             } else {
                 $wrapper.removeClass('bw-fpw-mobile-filters-enabled bw-fpw-mobile-panel-open');
@@ -4597,6 +4753,13 @@
                 state.ui.showYears = !!bootstrapPayload.show_years;
                 state.ui.showOrderBy = !!bootstrapPayload.show_order_by;
                 state.ui.showVisibleFilters = !!bootstrapPayload.show_visible_filters;
+                state.ui.showDesktopFilterIcon = ($grid.attr('data-desktop-filter-icon-enabled') || 'yes') !== 'no';
+                state.ui.desktopFilterGroups = parseJsonArrayAttribute($grid, 'data-desktop-filter-groups');
+                state.ui.desktopFilterOrder = parseJsonArrayAttribute($grid, 'data-desktop-filter-order');
+                state.ui.desktopFilterGroupsResolved = resolveVisibleDiscoveryGroupKeys(
+                    state.ui.desktopFilterGroups,
+                    state.ui.desktopFilterOrder
+                );
                 state.ui.orderTriggerStyle = bootstrapPayload.order_trigger_style === 'dropdown' ? 'dropdown' : 'icon';
                 state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || 'default');
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
@@ -4627,6 +4790,13 @@
                 state.ui.searchEnabled = ($grid.attr('data-search-enabled') || 'yes') === 'yes';
                 state.ui.showOrderBy = ($grid.attr('data-show-order-by') || 'no') === 'yes';
                 state.ui.showVisibleFilters = ($grid.attr('data-show-visible-filters') || 'no') === 'yes';
+                state.ui.showDesktopFilterIcon = ($grid.attr('data-desktop-filter-icon-enabled') || 'yes') !== 'no';
+                state.ui.desktopFilterGroups = parseJsonArrayAttribute($grid, 'data-desktop-filter-groups');
+                state.ui.desktopFilterOrder = parseJsonArrayAttribute($grid, 'data-desktop-filter-order');
+                state.ui.desktopFilterGroupsResolved = resolveVisibleDiscoveryGroupKeys(
+                    state.ui.desktopFilterGroups,
+                    state.ui.desktopFilterOrder
+                );
                 state.ui.orderTriggerStyle = ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon';
             }
 

@@ -1,6 +1,6 @@
 # Product Grid — Architecture Map
 
-## 1) Purpose
+## 1) Overview
 
 `bw-product-grid` renders a filterable or filterless masonry/CSS-grid layout of
 products (or any post type).  The initial HTML is server-rendered by the
@@ -346,7 +346,7 @@ To avoid a mobile first-paint flash of desktop filter labels, visibility is deci
 
 This split is intentional: CSS prevents FOUC on reload, while JS retains behavior/state control.
 
-## 4) JavaScript Architecture
+## 4) Frontend Architecture
 
 ### 4.1 Module structure
 
@@ -402,6 +402,11 @@ filterState[widgetId]       = {
                                 orderTriggerStyle,
                                 sortMenuOpen,
                                 visibleFilterOpenGroup,
+                                filterUiHashes: {
+                                  types, tags,
+                                  advanced, year,
+                                  result_count
+                                },
                                 optionSearches: {
                                     types, tags,
                                     artist, author,
@@ -414,7 +419,10 @@ filterState[widgetId]       = {
                                     publisher, source,
                                     technique
                                   },
-                                  yearDraft:      { from, to }
+                                  yearDraft:      { from, to },
+                                  drawerGroupMarkup: {},
+                                  sortConfigCacheKey,
+                                  sortConfigCacheValue
                                 }
                               }
 widgetPagingState[widgetId] = { gridEl, initialItems, loadBatchSize,
@@ -454,9 +462,9 @@ Desktop visible filters are a second UI surface over the same state, not a secon
 - supported groups in v1:
   - `Categories`
     - implemented as the existing `types` group
-  - `Artists`
   - `Style / Subject`
     - implemented as the existing `tags` group
+  - `Artists`
   - `Author`
   - `Source`
   - `Technique`
@@ -487,6 +495,52 @@ Desktop visible filters are a second UI surface over the same state, not a secon
 resets the object and disconnects the observer when it detects that
 `gridEl !== $grid[0]` (Elementor re-render).
 
+### 4.2.1 Filter Architecture Rules (MUST FOLLOW)
+
+- Single source of truth:
+  - frontend filter truth lives in `filterState[widgetId]`
+  - backend filter truth lives in the normalized request payload
+- UI surfaces are not independent filter systems:
+  - visible desktop filters
+  - popup / drawer filters
+  - chips
+  all mutate and reflect the same shared state
+- New filters must always reuse:
+  - shared state
+  - shared payload building
+  - shared backend normalization
+  - shared `filter_ui` refinement
+- Never add:
+  - parallel desktop-only state
+  - parallel drawer-only state
+  - a second backend filter implementation for the same logical filter
+
+### 4.2.2 Data Flow
+
+Canonical flow:
+
+1. UI interaction mutates `filterState[widgetId]`
+2. mutation helpers normalize token selections early
+3. `filterPosts()` serializes effective filter state into AJAX params
+4. backend normalizes/sanitizes/dedupes payload values
+5. normalized filters affect:
+   - query scope
+   - cache key
+   - refinement / `filter_ui`
+6. response returns:
+   - cards + paging
+   - full or partial `filter_ui` sections in replace mode
+7. frontend merges response data back into shared state and updates the
+   relevant UI surfaces
+
+Append vs replace:
+- replace mode:
+  - result set is replaced
+  - `filter_ui` may be refreshed or diffed by section
+- append mode:
+  - cards + paging only
+  - filter UI must not be recomputed or resynced
+
 ### 4.3 AJAX request queue
 
 ```
@@ -502,7 +556,17 @@ changes filters rapidly.
 ### 4.4 Client-side cache
 
 `ajaxCache` stores responses from all three AJAX endpoints.  Keys are
-produced by `getCacheKey(type, params)` (SHA-ish hash of sorted params).
+produced by `getCacheKey(type, params)`.
+
+Current cache-key format:
+
+`bwpg::<request-family>::<params-json>`
+
+Request-family namespacing currently covers:
+- `filter_posts`
+- `subcategories`
+- `tags`
+
 TTL: 5 minutes (`CACHE_DURATION`).
 
 Client cache is now bounded:
@@ -512,6 +576,47 @@ Client cache is now bounded:
 
 Cache is checked first in `filterPosts()`, `loadSubcategories()`, and
 `loadTags()`.  Random-order (`order_by=rand`) always skips the cache.
+
+### 4.4.3 Frontend Rules
+
+- Mutation points must keep state clean immediately.
+  - do not rely only on late normalization before request dispatch
+- `ajaxCache` must remain:
+  - namespaced by request family
+  - TTL-based
+  - bounded by max-entry eviction
+- avoid full DOM replacement when only one drawer group changed
+- append mode must not trigger full discovery/filter resync
+
+### 4.4.1 Sort-config memoization
+
+`getEffectiveDiscoverySortConfig()` is memoized per widget.
+
+The derived config is recomputed only when one of these changes:
+- `filterState[widgetId].sortKey`
+- widget default `order_by`
+- widget default `order`
+
+This avoids rebuilding the same resolved sort config across repeated renders
+and AJAX calls when runtime sort state is unchanged.
+
+### 4.4.2 Advanced-filter selection hygiene
+
+Advanced-token arrays are normalized when mutated, not only later when consumed.
+
+Current early-pruned groups:
+- `artists`
+- `authors`
+- `publishers`
+- `sources`
+- `techniques`
+
+Mutation helpers:
+- `normalizeDiscoverySelectionStateValue(groupKey, values)`
+- `setDiscoverySelectionState(state, groupKey, values)`
+
+This keeps frontend state tidy by removing duplicates / empties close to the
+actual mutation points.
 
 ### 4.5 Filter animation timers
 
@@ -583,6 +688,24 @@ In responsive discovery mode the toolbar + drawer currently behaves as follows:
 
 The first-paint mobile/desktop decision is no longer JS-only; see the CSS contract above.
 
+### 4.10 Discovery drawer rendering strategy
+
+The drawer no longer rebuilds its full DOM tree on every small interaction.
+
+Current rendering model:
+- `renderDiscoveryDrawerGroups(widgetId)` performs the initial/full sync pass
+- `patchDiscoveryDrawerGroups(widgetId, targetGroupKey)` updates either:
+  - a single group, or
+  - all groups selectively
+- `renderDiscoveryDrawerGroup(widgetId, groupKey)` is the focused entry point
+  for one-group rerenders
+
+Current effect:
+- a local search change inside one group rerenders only that group
+- toggling one accordion group no longer forces unrelated groups to rebuild
+- visible filters and the drawer remain synchronized because all surfaces still
+  read from the same `filterState[widgetId]`
+
 ---
 
 ## 5) AJAX Handlers (PHP)
@@ -609,9 +732,32 @@ All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
 
 - Action: `wp_ajax[_nopriv]_bw_fpw_filter_posts`
 - Input: `widget_id`, `post_type`, `context_slug`, `category`, `subcategories[]`, `tags[]`, `artist[]`, `author[]`, `publisher[]`, `source[]`, `technique[]`, `search`, `year_from`, `year_to`, `image_toggle`, `image_size`, `image_mode`, `hover_effect`, `open_cart_popup`, `sort_key`, `order_by`, `order`, `per_page`, `page`, `offset`, `nonce`
-- Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
-- Server cache: SHA-256 transient keyed on canonical payload — 10 min (skipped for `rand`)
+- Returns: `{ html, tags_html, available_tags[], available_types[], filter_ui, filter_ui_hashes, result_count, has_posts, page, per_page, has_more, next_page, offset, loaded_count, next_offset }`
+- Server cache: data-layer transient keyed on canonical dataset payload — 10 min (skipped for `rand`)
 - Rate limit: 35 req/min (anon), 200 req/min (auth)
+
+Response-cache refinement:
+- the cache no longer fragments on purely visual widget settings that do not
+  change the filtered dataset
+- final card HTML is still rendered with the current widget settings, so
+  widgets with different visual presentation cannot contaminate each other
+- generation counters still remain part of the canonical cache key
+
+### 5.3.1 Cache Strategy
+
+- Dataset-affecting inputs must be part of the cache key.
+- Purely visual/render-only inputs must not fragment the dataset cache.
+- New filter inputs must be:
+  - normalized before hashing
+  - stable for array ordering
+  - wired into generation-aware invalidation semantics
+- Cache coherence relies on context generations.
+  - do not reintroduce broad purge-by-pattern invalidation as the normal path
+- The cache split is intentional:
+  - data cache = expensive filtered/refined dataset
+  - render layer = current HTML using widget presentation settings
+
+### 5.3.1.1 Append vs Replace Mode
 
 Append-mode note:
 - append / infinite-scroll responses are intentionally smaller
@@ -624,10 +770,21 @@ Append-mode note:
   - `year` UI
   - advanced filter UI
 
+Replace-mode note:
+- replace mode keeps server-authoritative refinement
+- `filter_ui` can be returned fully or diffed by section hash
+- replace mode is the path that updates the filter surfaces
+
 Current search behavior:
 - search term is normalized server-side
 - matching uses title, slug, excerpt, taxonomy term names, and filter meta
 - raw `post_content` is no longer part of the default Product Grid search path
+- Year filtering inside search uses a JOIN on canonical `_bw_filter_year_int`
+  instead of the older `IN (SELECT ...)` pattern
+- taxonomy-name search uses JOIN-based matching instead of nested
+  `IN (SELECT ...)` term-name subqueries
+- searchable meta matching uses JOIN-based matching instead of nested
+  `IN (SELECT ...)` postmeta subqueries
 - canonical filter meta searched server-side:
   - `_bw_filter_year_int`
   - `_bw_filter_author_text`
@@ -638,6 +795,21 @@ Current search behavior:
   - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`, `_digital_artist_name`
   - `_digital_publisher`, `_bw_biblio_publisher`, `_print_publisher`
 
+### 5.3.2 Performance Rules For Filters
+
+- Never introduce:
+  - full-table scans in the hot request path
+  - unbounded request-path `WP_Query` / collection scans without a hard reason
+  - large `post__in` arrays without respecting the existing guard
+- Always:
+  - reuse cached indexes where available
+  - respect generation-based invalidation
+  - skip filter-ui recomputation on append
+  - keep `filter_ui` section-diffable
+- Search-specific rule:
+  - do not reintroduce `post_content LIKE`
+  - prefer canonical meta, joins on indexed tables, or precomputed/indexed data
+
 Current Year filter behavior:
 - discovery drawer only
 - backed by canonical numeric meta `_bw_filter_year_int`
@@ -646,6 +818,8 @@ Current Year filter behavior:
   - `>=` when only `year_from` exists
   - `<=` when only `year_to` exists
 - slider commits only on release; direct inputs commit on debounce / blur / Enter
+- quick ranges are intentionally suppressed on tiny datasets where they would
+  add noise rather than navigation value
 
 Current empty-state copy:
 - active refinements/search -> `No results found.`
@@ -677,6 +851,10 @@ Index build hardening:
 - Year index rebuilds use a lightweight per-context build lock
 - advanced filter index rebuilds use the same lock pattern
 - concurrent requests briefly wait for the first builder to publish a transient before falling back to a local rebuild
+- current index TTL balance:
+  - response cache: `10 min`
+  - year index: `15 min`
+  - advanced filter index: `15 min`
 
 Advanced-filter refinement scope hardening:
 - the backend no longer resolves candidate IDs for advanced-filter UI during the default unfiltered context-root scope
@@ -690,6 +868,55 @@ Large candidate safety guard:
 - candidate ID arrays destined for `post__in` are normalized and capped at `12000`
 - this protects against pathological `IN (...)` growth in very large result scopes
 - the trade-off is explicit: at extreme scale the system may prioritise query safety over perfect completeness of the tail of that request
+
+Derived dataset caches:
+- `bw_fpw_get_related_tags_data()` now has dedicated cache lookup/write
+- `bw_fpw_get_available_subcategories_data()` now has dedicated cache lookup/write
+- cache keys are canonicalized from the effective filtering state and include
+  the Product Grid cache generation counter
+
+Replace-mode filter-ui diffing:
+- replace-mode responses now include section hashes via `filter_ui_hashes`
+- unchanged sections can be omitted from the response payload
+- current diffed sections:
+  - `types`
+  - `tags`
+  - `advanced`
+  - `year`
+  - `result_count`
+- the frontend merges these partial updates into existing shared state
+
+Advanced-filter index invalidation:
+- advanced-filter indexes now use per-context generation counters
+- normal invalidation no longer depends on broad `DELETE LIKE` scans of
+  transient rows in `wp_options`
+
+### 5.3.3 When Adding A New Filter
+
+Checklist:
+
+- add the filter to shared frontend state
+- normalize it at mutation time and again server-side
+- include it in the AJAX payload only through the shared request path
+- include it in the dataset cache key if it changes eligibility
+- implement backend query support with bounded/query-safe logic
+- wire it into `filter_ui` only if the UI truly needs dynamic refinement
+- ensure append mode does not recompute or resend unnecessary UI for it
+- avoid adding heavy request-path scans or new uncached expensive branches
+
+### 5.3.4 Known Trade-Offs (Intentional)
+
+- `post__in` threshold guard:
+  - protects query safety on very large candidate sets
+- search scope:
+  - Product Grid intentionally excludes raw `post_content`
+- authoritative refinement:
+  - replace-mode UI refinement is still server-authoritative and therefore not free
+- partial UI diffing:
+  - reduces payload churn, but does not eliminate all replace-mode payload work
+- throttling design:
+  - anonymous protection is intentionally lightweight and hosting-friendly
+  - it is not a full security / anti-bot framework
 
 Current scalability position:
 - default browse/search/append flows are significantly lighter after this hardening pass
@@ -723,15 +950,27 @@ Status:
 
 ### 5.5 Rate limiting
 
-`bw_fpw_is_throttled_request($action_key)` maintains a per-fingerprint
-counter in a short-lived transient.
+`bw_fpw_is_throttled_request($action_key)` is now a hybrid throttling layer.
 
-- **Anonymous users:** fingerprint = `md5(IP + '|' + UA[:128])`
-- **Authenticated users:** fingerprint = `'u' + user_id`
+Authenticated users:
+- still use a server-side transient counter keyed by user ID
+- this keeps the original deterministic server-side throttle path
 
-Using `user_id` for authenticated users avoids false positives on shared
-networks (offices, NAT) while still protecting against scripted abuse from
-a single account.
+Anonymous users:
+- use a signed fixed-window cookie as the primary lightweight counter
+- also check a sparse server-side block transient keyed by the anonymous
+  fingerprint + action
+- fall back to a server-side transient counter only when the cookie path is
+  missing, invalid, tampered, or cannot be persisted
+
+This reduces normal anonymous `wp_options` churn while still tightening the
+cookie-less / bypass-prone path.
+
+Fingerprint model:
+- anonymous: coarse fingerprint from IP + truncated UA
+- authenticated: `'u' + user_id`
+
+This remains a practical abuse-control layer, not a heavy security subsystem.
 
 ---
 
