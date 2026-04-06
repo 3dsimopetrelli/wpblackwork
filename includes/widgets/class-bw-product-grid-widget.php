@@ -401,33 +401,18 @@ class BW_Product_Grid_Widget extends Widget_Base {
             ],
         ] );
 
-        $this->add_control( 'desktop_filter_groups', [
-            'label'       => __( 'Desktop Filter Groups', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT2,
-            'multiple'    => true,
-            'label_block' => true,
-            'options'     => $desktop_filter_group_options,
-            'default'     => $this->get_default_desktop_filter_groups(),
-            'condition'   => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-                'show_visible_filters'          => 'yes',
-                'post_type'                     => 'product',
-            ],
-        ] );
-
-        $desktop_filter_order_repeater = new Repeater();
-        $desktop_filter_order_repeater->add_control( 'group_key', [
+        $desktop_filter_group_repeater = new Repeater();
+        $desktop_filter_group_repeater->add_control( 'group_key', [
             'label'   => __( 'Group', 'bw-elementor-widgets' ),
             'type'    => Controls_Manager::SELECT,
             'options' => $desktop_filter_group_options,
             'default' => 'types',
         ] );
 
-        $this->add_control( 'desktop_filter_order', [
-            'label'       => __( 'Desktop Filter Order', 'bw-elementor-widgets' ),
+        $this->add_control( 'desktop_filters_config', [
+            'label'       => __( 'Desktop Filter Groups', 'bw-elementor-widgets' ),
             'type'        => Controls_Manager::REPEATER,
-            'fields'      => $desktop_filter_order_repeater->get_controls(),
+            'fields'      => $desktop_filter_group_repeater->get_controls(),
             'default'     => array_map(
                 static function ( $group_key ) {
                     return [ 'group_key' => $group_key ];
@@ -546,6 +531,32 @@ class BW_Product_Grid_Widget extends Widget_Base {
         }
 
         return $sanitized;
+    }
+
+    private function get_resolved_desktop_filter_config( $settings ) {
+        $configured_groups = $this->sanitize_desktop_filter_order( $settings['desktop_filters_config'] ?? [] );
+
+        if ( ! empty( $configured_groups ) ) {
+            return [
+                'groups' => $configured_groups,
+                'order'  => $configured_groups,
+            ];
+        }
+
+        $legacy_groups = $this->sanitize_desktop_filter_groups(
+            $settings['desktop_filter_groups'] ?? $this->get_default_desktop_filter_groups()
+        );
+
+        if ( empty( $legacy_groups ) ) {
+            $legacy_groups = $this->get_default_desktop_filter_groups();
+        }
+
+        $legacy_order = $this->sanitize_desktop_filter_order( $settings['desktop_filter_order'] ?? [] );
+
+        return [
+            'groups' => $legacy_groups,
+            'order'  => $legacy_order,
+        ];
     }
 
     private function is_runtime_sort_enabled( $settings, $include_ids = [] ) {
@@ -1089,14 +1100,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $include_ids            = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
         $show_order_by          = $this->is_runtime_sort_enabled( $settings, $include_ids );
         $show_visible_filters   = $this->is_visible_filters_enabled( $settings );
-        $desktop_filter_groups  = $this->sanitize_desktop_filter_groups(
-            $settings['desktop_filter_groups'] ?? $this->get_default_desktop_filter_groups()
-        );
-        if ( empty( $desktop_filter_groups ) ) {
-            $desktop_filter_groups = $this->get_default_desktop_filter_groups();
-        }
-        $desktop_filter_order        = $this->sanitize_desktop_filter_order( $settings['desktop_filter_order'] ?? [] );
-        $show_desktop_filter_icon    = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
+        $desktop_filter_config   = $this->get_resolved_desktop_filter_config( $settings );
+        $desktop_filter_groups   = $desktop_filter_config['groups'];
+        $desktop_filter_order    = $desktop_filter_config['order'];
+        $show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
         $order_trigger_style    = $this->get_runtime_sort_trigger_style( $settings );
         $show_subcategories     = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
         $show_tags              = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
@@ -1430,13 +1437,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $include_ids      = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
         $show_order_by    = $this->is_runtime_sort_enabled( $settings, $include_ids );
         $show_visible_filters = $this->is_visible_filters_enabled( $settings );
-        $desktop_filter_groups = $this->sanitize_desktop_filter_groups(
-            $settings['desktop_filter_groups'] ?? $this->get_default_desktop_filter_groups()
-        );
-        if ( empty( $desktop_filter_groups ) ) {
-            $desktop_filter_groups = $this->get_default_desktop_filter_groups();
-        }
-        $desktop_filter_order = $this->sanitize_desktop_filter_order( $settings['desktop_filter_order'] ?? [] );
+        $desktop_filter_config = $this->get_resolved_desktop_filter_config( $settings );
+        $desktop_filter_groups = $desktop_filter_config['groups'];
+        $desktop_filter_order = $desktop_filter_config['order'];
         $show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
         $order_trigger_style = $this->get_runtime_sort_trigger_style( $settings );
 
