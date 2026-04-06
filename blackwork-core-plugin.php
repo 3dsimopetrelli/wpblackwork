@@ -1600,6 +1600,17 @@ function bw_fpw_get_max_per_page()
     return 100;
 }
 
+/**
+ * Maximum number of candidate IDs that the PHP-sort year_int path will handle
+ * in memory. If the resolved candidate set exceeds this threshold the request
+ * falls back to the DB meta-JOIN path (slower per query, but bounded in PHP
+ * memory and CPU time).
+ */
+function bw_fpw_get_php_sort_max_ids()
+{
+    return 5000;
+}
+
 function bw_fpw_get_tag_source_posts_limit()
 {
     return 300;
@@ -3043,21 +3054,61 @@ function bw_fpw_get_year_index_transient_key($context_slug)
     return 'bw_fpw_year_index_' . ($normalized ?: 'unknown');
 }
 
+/**
+ * Transient key for the post_map (post_id => year) stored separately from the
+ * main year index so that the lightweight filter-UI transient stays small and
+ * fast to deserialize on every request, while the potentially large post_map
+ * is only loaded when the PHP-sort year_int path actually needs it.
+ */
+function bw_fpw_get_year_postmap_transient_key($context_slug)
+{
+    $normalized = bw_fpw_normalize_context_slug($context_slug);
+    return 'bw_fpw_year_postmap_' . ($normalized ?: 'unknown');
+}
+
+/**
+ * Returns the cached post_map array (post_id => year int) for a context.
+ * Triggers a full year index build if the postmap transient is missing.
+ */
+function bw_fpw_get_year_postmap($context_slug)
+{
+    $context_slug = bw_fpw_normalize_context_slug($context_slug);
+
+    if (!bw_fpw_is_supported_context_slug($context_slug)) {
+        return [];
+    }
+
+    $cached = get_transient(bw_fpw_get_year_postmap_transient_key($context_slug));
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    // Postmap is missing (cleared or expired before the main index).
+    // Rebuild the year index — its build function writes the postmap transient
+    // as a side effect, so the next get_transient call below will succeed.
+    bw_fpw_get_year_index($context_slug);
+
+    $cached = get_transient(bw_fpw_get_year_postmap_transient_key($context_slug));
+    return is_array($cached) ? $cached : [];
+}
+
 function bw_fpw_clear_year_index_transients($context_slug = '')
 {
     global $wpdb;
 
     $normalized = bw_fpw_normalize_context_slug($context_slug);
     if ('' !== $normalized) {
-        $transient_key = bw_fpw_get_year_index_transient_key($normalized);
-        delete_transient($transient_key);
+        delete_transient(bw_fpw_get_year_index_transient_key($normalized));
+        delete_transient(bw_fpw_get_year_postmap_transient_key($normalized));
         return;
     }
 
     $wpdb->query(
         "DELETE FROM {$wpdb->options}
          WHERE option_name LIKE '_transient_bw_fpw_year_index_%'
-            OR option_name LIKE '_transient_timeout_bw_fpw_year_index_%'"
+            OR option_name LIKE '_transient_timeout_bw_fpw_year_index_%'
+            OR option_name LIKE '_transient_bw_fpw_year_postmap_%'
+            OR option_name LIKE '_transient_timeout_bw_fpw_year_postmap_%'"
     );
 }
 
@@ -3205,9 +3256,18 @@ function bw_fpw_build_year_index($context_slug)
         ksort($years, SORT_NUMERIC);
     }
 
+    // Store post_map in its own transient so the main year index stays small
+    // and fast to deserialize on every filter-UI request. The postmap is only
+    // loaded when the PHP-sort year_int path actually needs it.
+    set_transient(
+        bw_fpw_get_year_postmap_transient_key($context_slug),
+        $post_map,
+        30 * MINUTE_IN_SECONDS
+    );
+
     $year_keys = array_keys($years);
-    $min_year = !empty($year_keys) ? (int) reset($year_keys) : null;
-    $max_year = !empty($year_keys) ? (int) end($year_keys) : null;
+    $min_year  = !empty($year_keys) ? (int) reset($year_keys) : null;
+    $max_year  = !empty($year_keys) ? (int) end($year_keys) : null;
 
     return [
         'context'      => $context_slug,
@@ -3215,7 +3275,6 @@ function bw_fpw_build_year_index($context_slug)
         'min_year'     => $min_year,
         'max_year'     => $max_year,
         'years'        => $years,
-        'post_map'     => $post_map,
         'quick_ranges' => bw_fpw_build_year_quick_ranges($years),
     ];
 }
@@ -3288,12 +3347,25 @@ function bw_fpw_bump_advanced_filter_index_generation($context_slugs)
 
 function bw_fpw_clear_advanced_filter_index_transients($context_slug = '')
 {
+    // Explicitly delete the current data + freshness transients *before*
+    // bumping the generation so old keys are immediately freed in wp_options
+    // rather than lingering for up to 2 hours until natural expiry.
+    $slugs_to_clear = empty($context_slug)
+        ? bw_fpw_get_supported_product_family_slugs()
+        : (array) $context_slug;
+
+    foreach ($slugs_to_clear as $slug) {
+        $key = bw_fpw_get_advanced_filter_index_transient_key($slug);
+        delete_transient($key);
+        delete_transient($key . '_fresh');
+    }
+
     if (empty($context_slug)) {
-        bw_fpw_bump_advanced_filter_index_generation(bw_fpw_get_supported_product_family_slugs());
+        bw_fpw_bump_advanced_filter_index_generation($slugs_to_clear);
         return;
     }
 
-    bw_fpw_bump_advanced_filter_index_generation((array) $context_slug);
+    bw_fpw_bump_advanced_filter_index_generation($slugs_to_clear);
 }
 
 function bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug)
@@ -3518,20 +3590,26 @@ function bw_fpw_get_advanced_filter_index($context_slug)
         ];
     }
 
-    $transient_key = bw_fpw_get_advanced_filter_index_transient_key($context_slug);
-    $cached        = get_transient($transient_key);
+    $data_key  = bw_fpw_get_advanced_filter_index_transient_key($context_slug);
+    $fresh_key = $data_key . '_fresh';
+    $cached    = get_transient($data_key);
 
-    if (is_array($cached)) {
-        return $cached;
+    if (is_array($cached) && get_transient($fresh_key)) {
+        return $cached; // Fresh cache hit.
     }
 
-    // On a regular HTTP request, do NOT block: schedule an async cron rebuild
-    // and return an empty index immediately.  The cron job calls this function
-    // again (DOING_CRON = true) and runs the actual expensive build then.
+    // On a regular HTTP request schedule a background rebuild.
+    // Stale-while-revalidate: if a previous build exists (even if its freshness
+    // flag expired), serve it immediately rather than returning an empty index.
+    // The user sees correct—if slightly stale—options while the cron completes.
     if (!defined('DOING_CRON') || !DOING_CRON) {
         $hook = 'bw_fpw_async_rebuild_advanced_filter_index';
         if (!wp_next_scheduled($hook, [$context_slug])) {
             wp_schedule_single_event(time(), $hook, [$context_slug]);
+        }
+
+        if (is_array($cached)) {
+            return $cached; // Stale-while-revalidate.
         }
 
         return [
@@ -3542,16 +3620,48 @@ function bw_fpw_get_advanced_filter_index($context_slug)
         ];
     }
 
-    // Cron context: run the real build with stampede protection.
-    return bw_fpw_get_cached_index_with_lock(
-        $transient_key,
-        'advanced_filter_index',
-        $context_slug,
-        static function () use ($context_slug) {
-            return bw_fpw_build_advanced_filter_index($context_slug);
-        },
-        bw_fpw_get_advanced_filter_index_cache_ttl()
-    );
+    // Cron context: build with stampede protection then mark data as fresh.
+    // We manage the two transients (data + freshness) directly instead of
+    // delegating to bw_fpw_get_cached_index_with_lock, which would short-circuit
+    // on stale data and skip the actual rebuild.
+    if (!bw_fpw_acquire_index_build_lock('advanced_filter_index', $context_slug)) {
+        $attempts = bw_fpw_get_index_build_lock_wait_attempts();
+        $wait_us  = bw_fpw_get_index_build_lock_wait_interval_us();
+
+        for ($i = 0; $i < $attempts; $i++) {
+            if ($wait_us > 0) {
+                usleep($wait_us);
+            }
+            $maybe = get_transient($data_key);
+            if (is_array($maybe) && get_transient($fresh_key)) {
+                return $maybe;
+            }
+        }
+
+        // One final check: the lock holder may have finished just after the
+        // polling loop ended.  Serving their result avoids a redundant build.
+        $late = get_transient($data_key);
+        if (is_array($late)) {
+            return $late;
+        }
+
+        // Lock holder timed out without writing; build locally as last resort.
+        $index = bw_fpw_build_advanced_filter_index($context_slug);
+        set_transient($data_key, $index, 2 * HOUR_IN_SECONDS);
+        set_transient($fresh_key, 1, bw_fpw_get_advanced_filter_index_cache_ttl());
+
+        return $index;
+    }
+
+    try {
+        $index = bw_fpw_build_advanced_filter_index($context_slug);
+        set_transient($data_key, $index, 2 * HOUR_IN_SECONDS);
+        set_transient($fresh_key, 1, bw_fpw_get_advanced_filter_index_cache_ttl());
+    } finally {
+        bw_fpw_release_index_build_lock('advanced_filter_index', $context_slug);
+    }
+
+    return $index;
 }
 
 function bw_fpw_get_empty_advanced_filter_selections()
@@ -3788,11 +3898,6 @@ function bw_fpw_build_tax_query($post_type, $category = 'all', $subcategories = 
     }
 
     return $tax_query;
-}
-
-function bw_fpw_has_active_refinement_filters($subcategories = [], $tags = [], $search = '')
-{
-    return !empty($subcategories) || !empty($tags) || '' !== bw_fpw_normalize_search_query($search);
 }
 
 function bw_fpw_is_context_root_scope($post_type, $category, $subcategories = [], $tags = [], $year_from = null, $year_to = null, $context_slug = '')
@@ -4733,60 +4838,83 @@ function bw_fpw_filter_posts_inner()
         // PHP-sort path: when ordering by year_int and a candidate set is known,
         // sort in PHP using the cached post_map and pass only page-sized IDs to
         // WP_Query with orderby=post__in — eliminates the meta JOIN + filesort.
-        $use_php_year_sort = 'year_int' === $order_by &&
-            ($has_active_advanced_filters || '' !== $search);
+        // PHP-sort is only viable when the context is supported (so the year
+        // postmap exists) and a candidate set is already known (search or
+        // advanced filters active — without one, WP handles taxonomy ordering
+        // natively without a large post__in).
+        $use_php_year_sort = 'year_int' === $order_by
+            && bw_fpw_is_supported_context_slug($effective_context_slug)
+            && ($has_active_advanced_filters || '' !== $search);
 
         if ($use_php_year_sort) {
-            // Remove meta args set for year_int — ordering handled in PHP.
-            unset($query_args['orderby'], $query_args['meta_key']);
-
-            $year_index = bw_fpw_get_year_index($effective_context_slug);
-            $post_map   = isset($year_index['post_map']) && is_array($year_index['post_map'])
-                ? $year_index['post_map']
-                : [];
-
-            // Resolve the full candidate set.
+            // Resolve the full candidate set first so we can enforce the size
+            // threshold before committing to an in-memory sort.
             if ($has_active_advanced_filters) {
                 $candidate_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
             } else {
                 $candidate_ids = $base_candidate_post_ids;
             }
 
-            // Sort: posts with no year entry sort to the end regardless of direction.
-            // Sentinel: 0 for DESC (below any real year), PHP_INT_MAX for ASC (above any real year).
-            $sort_direction  = ('ASC' === $order) ? 1 : -1;
-            $missing_year_sentinel = ('ASC' === $order) ? PHP_INT_MAX : 0;
-            usort($candidate_ids, static function ($a, $b) use ($post_map, $sort_direction, $missing_year_sentinel) {
-                $ya = isset($post_map[$a]) ? $post_map[$a] : $missing_year_sentinel;
-                $yb = isset($post_map[$b]) ? $post_map[$b] : $missing_year_sentinel;
-                if ($ya === $yb) {
-                    return 0;
+            if (count($candidate_ids) <= bw_fpw_get_php_sort_max_ids()) {
+                // ── PHP-sort path ────────────────────────────────────────────
+                // Remove meta args and pagination: we slice in PHP and pass
+                // only page-sized IDs, so WP_Query must not re-paginate.
+                unset($query_args['orderby'], $query_args['meta_key'], $query_args['offset'], $query_args['paged']);
+
+                // Load the postmap from its dedicated (lightweight) transient.
+                $post_map = bw_fpw_get_year_postmap($effective_context_slug);
+
+                // Sort: posts with no year entry sort to the end regardless of direction.
+                // Sentinel: 0 for DESC (below any real year), PHP_INT_MAX for ASC.
+                $sort_direction        = ('ASC' === $order) ? 1 : -1;
+                $missing_year_sentinel = ('ASC' === $order) ? PHP_INT_MAX : 0;
+                usort($candidate_ids, static function ($a, $b) use ($post_map, $sort_direction, $missing_year_sentinel) {
+                    $ya = isset($post_map[$a]) ? $post_map[$a] : $missing_year_sentinel;
+                    $yb = isset($post_map[$b]) ? $post_map[$b] : $missing_year_sentinel;
+                    if ($ya === $yb) {
+                        return 0;
+                    }
+                    return $sort_direction * ($ya < $yb ? -1 : 1);
+                });
+
+                $php_sort_result_count = count($candidate_ids);
+
+                // Slice to current page (+1 to detect has_more).
+                $page_ids = $per_page > 0
+                    ? array_slice($candidate_ids, $offset, $per_page + 1)
+                    : $candidate_ids;
+
+                $has_more      = $per_page > 0 && count($page_ids) > $per_page;
+                $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
+                $next_page     = $has_more ? $response_page + 1 : 0;
+
+                if ($has_more) {
+                    $page_ids = array_slice($page_ids, 0, $per_page);
                 }
-                return $sort_direction * ($ya < $yb ? -1 : 1);
-            });
 
-            $php_sort_result_count = count($candidate_ids);
+                $query_args['post__in']       = !empty($page_ids) ? array_map('absint', $page_ids) : [0];
+                $query_args['orderby']        = 'post__in';
+                $query_args['posts_per_page'] = !empty($page_ids) ? count($page_ids) : 1;
+                $query_args['no_found_rows']  = true;
 
-            // Slice to current page (+1 to detect has_more).
-            $page_ids = $per_page > 0
-                ? array_slice($candidate_ids, $offset, $per_page + 1)
-                : $candidate_ids;
+                $query     = new WP_Query($query_args);
+                $has_posts = !empty($page_ids) && $query->have_posts();
+            } else {
+                // ── DB meta-JOIN fallback (candidate set too large) ──────────
+                // $query_args still carries meta_key + orderby=meta_value_num
+                // from the earlier year_int block.  Apply the candidate set as
+                // post__in (capped by bw_fpw_prepare_post_in_values) and let
+                // MySQL handle the sort.
+                $candidate_ids = bw_fpw_prepare_post_in_values($candidate_ids);
+                $query_args['post__in'] = !empty($candidate_ids) ? $candidate_ids : [0];
 
-            $has_more      = $per_page > 0 && count($page_ids) > $per_page;
-            $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
-            $next_page     = $has_more ? $response_page + 1 : 0;
+                $query = new WP_Query($query_args);
 
-            if ($has_more) {
-                $page_ids = array_slice($page_ids, 0, $per_page);
+                $has_posts     = $query->have_posts();
+                $has_more      = $per_page > 0 && $has_posts && $query->post_count > $per_page;
+                $response_page = $per_page > 0 ? (int) floor($offset / $per_page) + 1 : $page;
+                $next_page     = $has_more ? $response_page + 1 : 0;
             }
-
-            $query_args['post__in']       = !empty($page_ids) ? array_map('absint', $page_ids) : [0];
-            $query_args['orderby']        = 'post__in';
-            $query_args['posts_per_page'] = !empty($page_ids) ? count($page_ids) : 1;
-            $query_args['no_found_rows']  = true;
-
-            $query     = new WP_Query($query_args);
-            $has_posts = !empty($page_ids) && $query->have_posts();
         } else {
             if ($has_active_advanced_filters) {
                 $final_candidate_post_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $advanced_filters);
