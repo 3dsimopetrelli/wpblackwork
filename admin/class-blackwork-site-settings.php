@@ -47,6 +47,22 @@ function bw_site_settings_menu()
 add_action('admin_menu', 'bw_site_settings_menu');
 
 /**
+ * Register Promotions & Labels dedicated submenu page.
+ */
+function bw_product_labels_admin_menu()
+{
+    add_submenu_page(
+        'blackwork-site-settings',
+        __('Promotions & Labels', 'bw'),
+        __('Promotions & Labels', 'bw'),
+        'manage_options',
+        'bw-product-labels-settings',
+        'bw_product_labels_render_admin_page'
+    );
+}
+add_action('admin_menu', 'bw_product_labels_admin_menu', 61);
+
+/**
  * Force Site Settings as first submenu entry for Blackwork top-level menu.
  */
 function bw_site_settings_force_default_submenu()
@@ -128,6 +144,7 @@ function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
 
     $allowed_pages = [
         'blackwork-site-settings',
+        'bw-product-labels-settings',
         'blackwork-mail-marketing',
         'bw-reviews',
         'bw-reviews-settings',
@@ -168,20 +185,23 @@ function bw_site_settings_admin_assets($hook)
     $current_tab_raw = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
 
     $is_site_settings_page = ('blackwork-site-settings' === $current_page || 'toplevel_page_blackwork-site-settings' === $hook);
+    $is_product_labels_page = (
+        'bw-product-labels-settings' === $current_page
+        || 'blackwork-site-settings_page_bw-product-labels-settings' === $hook
+    );
     $is_mail_marketing_page = (
         'blackwork-mail-marketing' === $current_page
         || 'blackwork-site-settings_page_blackwork-mail-marketing' === $hook
     );
 
     // Site Settings asset matrix is restricted to Site Settings and Mail Marketing pages.
-    if (!$is_site_settings_page && !$is_mail_marketing_page) {
+    if (!$is_site_settings_page && !$is_mail_marketing_page && !$is_product_labels_page) {
         return;
     }
 
     $site_settings_tabs = [
         'info',
         'layout',
-        'product-labels',
         'cart-popup',
         'bw-coming-soon',
         'account-page',
@@ -212,7 +232,7 @@ function bw_site_settings_admin_assets($hook)
         wp_enqueue_media();
     }
 
-    if ($is_site_settings_page && 'product-labels' === $current_site_settings_tab) {
+    if ($is_product_labels_page) {
         $select2_css_path = BW_MEW_PATH . 'assets/lib/select2/css/select2.css';
         $select2_js_path = BW_MEW_PATH . 'assets/lib/select2/js/select2.full.min.js';
         $product_labels_admin_js_path = BW_MEW_PATH . 'admin/js/bw-product-labels-admin.js';
@@ -1112,16 +1132,22 @@ function bw_site_settings_page()
         return;
     }
 
+    $requested_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'info';
+
+    if ('product-labels' === $requested_tab) {
+        wp_safe_redirect(admin_url('admin.php?page=bw-product-labels-settings'));
+        exit;
+    }
+
     // Determina quale tab è attivo
-    $allowed_tabs = ['info', 'layout', 'product-labels', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
-    $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'info';
+    $allowed_tabs = ['info', 'layout', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
+    $active_tab = $requested_tab;
     if (!in_array($active_tab, $allowed_tabs, true)) {
         $active_tab = 'info';
     }
 
     $save_button_map = [
         'layout' => 'bw_layout_settings_submit',
-        'product-labels' => 'bw_product_labels_settings_submit',
         'cart-popup' => 'bw_cart_popup_submit',
         'bw-coming-soon' => 'bw_coming_soon_submit',
         'account-page' => 'bw_account_page_submit',
@@ -1165,10 +1191,6 @@ function bw_site_settings_page()
                     class="nav-tab <?php echo $active_tab === 'layout' ? 'nav-tab-active' : ''; ?>">
                     Layout
                 </a>
-                <a href="?page=blackwork-site-settings&tab=product-labels"
-                    class="nav-tab <?php echo $active_tab === 'product-labels' ? 'nav-tab-active' : ''; ?>">
-                    Promotions &amp; Labels
-                </a>
                 <a href="?page=blackwork-site-settings&tab=cart-popup"
                     class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
                     Cart Pop-up
@@ -1211,8 +1233,6 @@ function bw_site_settings_page()
                     bw_site_render_info_tab();
                 } elseif ($active_tab === 'layout') {
                     bw_site_render_layout_tab();
-                } elseif ($active_tab === 'product-labels') {
-                    bw_site_render_product_labels_tab();
                 } elseif ($active_tab === 'cart-popup') {
                     bw_site_render_cart_popup_tab();
                 } elseif ($active_tab === 'bw-coming-soon') {
@@ -1541,6 +1561,62 @@ function bw_get_product_labels_admin_selected_products($product_ids)
     }
 
     return $products;
+}
+
+/**
+ * Render Promotions & Labels dedicated admin page.
+ *
+ * @return void
+ */
+function bw_product_labels_render_admin_page()
+{
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    ?>
+    <div class="wrap bw-admin-root bw-admin-page bw-admin-page-product-labels">
+        <div class="bw-admin-header">
+            <h1 class="bw-admin-title"><?php esc_html_e('Promotions & Labels', 'bw'); ?></h1>
+            <p class="bw-admin-subtitle"><?php esc_html_e('Manage automatic and manual WooCommerce product badges from a dedicated Blackwork admin page.', 'bw'); ?></p>
+        </div>
+
+        <div class="bw-admin-action-bar">
+            <div class="bw-admin-action-meta">
+                <?php esc_html_e('Adjust label rules, then save the current configuration.', 'bw'); ?>
+            </div>
+            <div class="bw-admin-action-buttons">
+                <button type="button" class="button button-primary" id="bw-product-labels-save-proxy">
+                    <?php esc_html_e('Save Settings', 'bw'); ?>
+                </button>
+            </div>
+        </div>
+
+        <section class="bw-admin-card bw-admin-card-product-labels">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Panels', 'bw'); ?></h2>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Configure label logic and curated product assignments in one dedicated surface.', 'bw'); ?></p>
+
+            <div class="bw-admin-site-settings-content">
+                <?php bw_site_render_product_labels_tab(); ?>
+            </div>
+        </section>
+    </div>
+    <script>
+    (function () {
+        var proxyButton = document.getElementById('bw-product-labels-save-proxy');
+        if (!proxyButton) {
+            return;
+        }
+
+        proxyButton.addEventListener('click', function () {
+            var targetButton = document.querySelector('.bw-product-labels-admin [type="submit"][name="bw_product_labels_settings_submit"]');
+
+            if (targetButton) {
+                targetButton.click();
+            }
+        });
+    })();
+    </script>
+    <?php
 }
 
 /**
