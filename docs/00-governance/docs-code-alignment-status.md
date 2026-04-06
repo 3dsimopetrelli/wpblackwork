@@ -8,6 +8,7 @@ Use it to quickly identify what is aligned, what is fragile, and which documenta
 
 ### Product Grid Widget
 - Primary docs:
+  - [Entry Point](../../30-features/product-grid/README.md)
   - [Architecture Map](../../30-features/product-grid/product-grid-architecture.md)
   - [Hardening Report 2026-03-14](../../30-features/product-grid/fixes/2026-03-14-product-grid-hardening-report.md)
 - Code reality anchors:
@@ -15,13 +16,9 @@ Use it to quickly identify what is aligned, what is fragile, and which documenta
   - `assets/js/bw-product-grid.js`
   - `blackwork-core-plugin.php` (functions `bw_fpw_*`)
 - Alignment status: `Aligned`
-- Known gaps:
-  - Breakpoints (tablet/mobile) are hardcoded in PHP and not exposed as Elementor controls.
-  - `$image_size`, `$image_mode`, `$hover_effect`, `$open_cart_popup` have no Elementor controls yet (declared as named variables, exposed via data-attributes, ready for controls when needed).
-- Highest-risk surfaces:
-  - `bw_fpw_filter_posts` response shape (any change breaks JS rendering)
-  - `data-*` attribute contract on `.bw-fpw-grid` (both PHP and JS must be updated together)
-  - `destroyWidgetState()` completeness (new timers/observers must be registered here)
+- Summary:
+  - Product Grid current runtime, filter architecture, cache strategy, and performance rules are documented only in the dedicated Product Grid docs.
+  - This governance file tracks alignment status only and should not duplicate Product Grid architecture detail.
 
 ### Admin
 - Primary docs:

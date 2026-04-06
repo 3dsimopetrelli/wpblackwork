@@ -11,6 +11,10 @@ Canonical naming note:
 - Historical reference:
   - `BW Product Grid` (formerly `bw-filtered-post-wall`)
 
+Product Grid doc authority:
+- entry point: [`../product-grid/README.md`](../product-grid/README.md)
+- runtime / architecture source of truth: [`../product-grid/product-grid-architecture.md`](../product-grid/product-grid-architecture.md)
+
 Current runtime authority:
 - Widget classes: `includes/widgets/`
 - Widget registration loader: `includes/class-bw-widget-loader.php`
@@ -68,11 +72,6 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-slick-slider` + `bw-slide-showcase` -> rationalization/merge path under review
 - `bw-related-products` -> current best reference for shared product-card reuse
   - current widget-local extension also supports tablet/mobile suppression of overlay CTA actions without mutating the shared component globally
-- `bw-product-grid` current UI baseline also includes the responsive discovery drawer path:
-  - desktop-opt-in via `Enable Responsive Filter Mode`
-  - configurable drawer opening side (`Left` / `Right`)
-  - discovery labels currently `Categories` and `Style / Subject`
-  - shared search/result-count/reset state between toolbar and drawer
 - `bw-reviews` -> canonical custom product-reviews widget backed by the Reviews module
 - `bw-price-variation` -> pricing widget that can consume a compact read-only Reviews summary for the current product and expose variation-bound license disclosure without becoming a second reviews authority
 - `bw-trust-box` -> standalone trust/support stack widget consuming global Reviews trust content plus widget-level info/FAQ controls
@@ -168,8 +167,10 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - Woo related template
   - `bw-slick-slider` product path
   - `bw-product-grid` product path (including AJAX HTML response path)
-- `bw-product-grid` supports filtered/simple grid mode via `Show Filters = yes/no`.
-- `bw-product-grid` also completed a post-implementation runtime hardening pass covering settings alignment, dead-code removal, duplicate-markup reduction, debug-log removal, and resize-handler consolidation.
+- `bw-product-grid` remains the canonical wall/query-grid widget in the family map.
+  - current runtime details are documented only in the dedicated Product Grid docs:
+    - [`../product-grid/README.md`](../product-grid/README.md)
+    - [`../product-grid/product-grid-architecture.md`](../product-grid/product-grid-architecture.md)
 - Removal/replacement path finalized:
   - `bw-wallpost` -> use `bw-product-grid` with `Show Filters = No`
   - `bw-add-to-cart` and `bw-add-to-cart-variation` removed; use maintained BW-SP surfaces
@@ -179,61 +180,6 @@ This directory is the governed documentation baseline for the audit/rebuild prog
   - admin behavior delegated to `Mail Marketing -> Subscription`
   - current review status: `Almost ready` (`~9.5/10`), pending final manual validation only
   - final reference: `docs/tasks/task-close-template.md`
-
-## BW Product Grid Stabilization (2026)
-- A dedicated stabilization wave was completed on `BW Product Grid` to harden runtime behavior and remove residual drift before further feature work.
-- Active Elementor controls were aligned with the current runtime contract:
-  - filtered/simple mode via `Show Filters`
-  - infinite loading (`Initial Items`, `Load Batch Size`)
-  - layout toggles (`Desktop Columns`, `Container Max Width`, `Masonry Effect`)
-  - content visibility (`Show Title`, `Show Description`, `Show Price`)
-  - touch-device hover suppression
-- Internal/runtime-only values remain non-exposed in Elementor:
-  - `image_toggle`
-  - `image_size`
-  - `image_mode`
-  - `hover_effect`
-  - `open_cart_popup`
-  - filter breakpoint (`900`)
-- Removed dead JavaScript utilities from the runtime:
-  - `clearWidgetCache()`
-  - `debounce()`
-  - `debounceTimers`
-  - `loadAndOpenTagsInMobile()`
-- Subsequent refinement wave added:
-  - mobile filter trigger redesign to a bordered white pill with a green icon shell
-  - CSS-first mobile filter visibility below the responsive breakpoint to prevent desktop-filter FOUC on reload
-  - `Layout > Disable Hover Actions on Tablet & Mobile` to suppress product-card hover overlays and hover media below desktop widths
-- Cleaned up unused PHP methods and dead branches.
-- Consolidated resize handling into a single dispatcher.
-- Aligned responsive breakpoint behavior across PHP, JS, and CSS.
-
-Final responsive contract:
-- mobile <= 767px
-- tablet 768-1024px
-- desktop >= 1025px
-
-### Lazy Loading and Animation Stabilization
-- `BW_Product_Card_Component` now supports explicit loading controls:
-  - `image_loading`
-  - `hover_image_loading`
-- AJAX loading policy is now explicit:
-  - initial batch can be eager
-  - appended batches remain lazy
-  - hover images stay lazy
-- Initial server-side render now uses:
-  - eager for first-row main images
-  - lazy for later initial items
-  - lazy for hover images
-- Masonry/reveal waits are now limited to primary images only:
-  - `img.bw-slider-main`
-- Initial reveal and replace-mode reveal are now sequenced behind grid-ready completion.
-- Stale stagger timers are cleared before new reveal cycles so replaced content cannot be affected by orphaned timeouts.
-- `BW-UI Mosaic Slider` now follows the same governed image-loading approach:
-  - server markup starts from `auto`/`lazy`, not duplicate eager defaults on both responsive branches
-  - JS promotes only the active viewport primary images
-  - the hidden inactive viewport is demoted to lazy
-  - wrapper reveal waits for the first active primary image instead of bare Embla init timing
 
 ## Deferred future work
 - slider-core convergence (`bw-slick-slider` + `bw-slide-showcase` rationalization)

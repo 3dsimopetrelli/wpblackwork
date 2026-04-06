@@ -1,0 +1,90 @@
+/**
+ * Blackwork product labels.
+ *
+ * Hardcoded first-version badge styling for archive product cards and
+ * optional single-product rendering.
+ */
+
+.bw-product-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bw-product-labels--archive {
+  left: 14px;
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 18;
+  pointer-events: none;
+}
+
+.bw-product-labels--single {
+  margin: 0 0 18px;
+}
+
+.bw-product-label {
+  align-items: center;
+  border-radius: 999px;
+  box-sizing: border-box;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  max-width: 100%;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.bw-product-label__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 12px;
+  width: 12px;
+}
+
+.bw-product-label__icon-svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.bw-product-label--sale {
+  background: #f06d4f;
+  color: #ffffff;
+}
+
+.bw-product-label--staff_select {
+  background: #111111;
+  color: #ffffff;
+}
+
+.bw-product-label--staff_select .bw-product-label__icon {
+  color: #4fa7ff;
+}
+
+.bw-product-label--free_download {
+  background: #169c8b;
+  color: #ffffff;
+}
+
+.bw-product-label--new {
+  background: #f3f4f6;
+  color: #111111;
+}
+
+@media (max-width: 767px) {
+  .bw-product-labels--archive {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+  }
+
+  .bw-product-label {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+}

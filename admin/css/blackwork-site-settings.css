@@ -224,3 +224,40 @@
     background: #fce2e2;
     border: 1px solid #e99a9a;
 }
+
+.bw-product-labels-admin .select2-container {
+    max-width: 680px;
+}
+
+.bw-product-labels-sortable {
+    margin: 12px 0 0;
+    max-width: 680px;
+    padding: 0;
+}
+
+.bw-product-labels-sortable__item,
+.bw-product-labels-sortable__empty {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d8dadd;
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    margin: 0 0 10px;
+    min-height: 46px;
+    padding: 12px 14px;
+}
+
+.bw-product-labels-sortable__item {
+    cursor: move;
+    font-weight: 500;
+}
+
+.bw-product-labels-sortable__item .dashicons {
+    color: #6b7280;
+}
+
+.bw-product-labels-sortable__empty {
+    color: #6b7280;
+    font-style: italic;
+}

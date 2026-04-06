@@ -44,6 +44,10 @@
   };
   var panelObserver = null;
   var observerTick = null;
+  var PRODUCT_GRID_FILTER_GROUPS_BY_CONTEXT =
+    (window.bwElementorWidgetPanelData && window.bwElementorWidgetPanelData.productGridDesktopFilterGroupsByContext) || {};
+  var PRODUCT_CATEGORY_CONTEXT_BY_TERM_ID =
+    (window.bwElementorWidgetPanelData && window.bwElementorWidgetPanelData.productCategoryContextByTermId) || {};
 
   function normalizeText(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
@@ -157,10 +161,166 @@
     });
   }
 
+  function getFirstControlRoot(controlName) {
+    return $('.elementor-panel .elementor-control-' + controlName).first();
+  }
+
+  function getControlValue(controlName) {
+    var $control = getFirstControlRoot(controlName);
+    if (!$control.length) {
+      return null;
+    }
+
+    var $field = $control.find('[data-setting="' + controlName + '"]').first();
+    if (!$field.length) {
+      return null;
+    }
+
+    if ($field.is('select')) {
+      return $field.val();
+    }
+
+    return $field.val ? $field.val() : null;
+  }
+
+  function normalizeControlValues(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map(function (item) {
+          return String(item || '').trim();
+        })
+        .filter(function (item) {
+          return item.length > 0;
+        });
+    }
+
+    var normalized = String(value || '').trim();
+    if (!normalized) {
+      return [];
+    }
+
+    if (normalized.charAt(0) === '[') {
+      try {
+        return normalizeControlValues(JSON.parse(normalized));
+      } catch (error) {
+        return [];
+      }
+    }
+
+    return [normalized];
+  }
+
+  function getResolvedCategoryContext(termId) {
+    var normalizedTermId = String(termId || '').trim();
+    if (!normalizedTermId || normalizedTermId === 'all') {
+      return '';
+    }
+
+    return PRODUCT_CATEGORY_CONTEXT_BY_TERM_ID[normalizedTermId] || '';
+  }
+
+  function resolveProductGridDesktopFilterContext() {
+    var postType = String(getControlValue('post_type') || '').trim();
+    if (postType && postType !== 'product') {
+      return '';
+    }
+
+    var defaultCategoryValues = normalizeControlValues(getControlValue('default_category'));
+    if (defaultCategoryValues.length === 1 && defaultCategoryValues[0] !== 'all') {
+      return getResolvedCategoryContext(defaultCategoryValues[0]);
+    }
+
+    var parentCategories = normalizeControlValues(getControlValue('parent_category'));
+    if (!parentCategories.length) {
+      return '';
+    }
+
+    var resolvedContexts = {};
+
+    parentCategories.forEach(function (termId) {
+      var contextSlug = getResolvedCategoryContext(termId);
+      if (contextSlug) {
+        resolvedContexts[contextSlug] = true;
+      }
+    });
+
+    var uniqueContexts = Object.keys(resolvedContexts);
+
+    if (uniqueContexts.length === 1) {
+      return uniqueContexts[0];
+    }
+
+    if (uniqueContexts.length > 1) {
+      return 'mixed';
+    }
+
+    return '';
+  }
+
+  function getAllowedDesktopFilterGroupsForContext(contextSlug) {
+    if (PRODUCT_GRID_FILTER_GROUPS_BY_CONTEXT[contextSlug]) {
+      return PRODUCT_GRID_FILTER_GROUPS_BY_CONTEXT[contextSlug];
+    }
+
+    if (PRODUCT_GRID_FILTER_GROUPS_BY_CONTEXT.mixed) {
+      return PRODUCT_GRID_FILTER_GROUPS_BY_CONTEXT.mixed;
+    }
+
+    return ['types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years'];
+  }
+
+  function applyProductGridDesktopFilterVisibility() {
+    var $desktopFilterControl = getFirstControlRoot('desktop_filters_config');
+    if (!$desktopFilterControl.length) {
+      return;
+    }
+
+    var allowedGroups = getAllowedDesktopFilterGroupsForContext(resolveProductGridDesktopFilterContext());
+    var allowedGroupMap = {};
+
+    allowedGroups.forEach(function (groupKey) {
+      allowedGroupMap[groupKey] = true;
+    });
+
+    $desktopFilterControl.find('[data-setting="group_key"]').each(function () {
+      var $select = $(this);
+      var currentValue = String($select.val() || '').trim();
+      var $row = $select.closest('.elementor-repeater-row');
+
+      $select.find('option').each(function () {
+        var $option = $(this);
+        var optionValue = String($option.attr('value') || '').trim();
+        var isAllowed = !optionValue || !!allowedGroupMap[optionValue];
+
+        $option.prop('disabled', !isAllowed);
+        $option.prop('hidden', !isAllowed);
+      });
+
+      if ($row.length) {
+        $row.toggle(!currentValue || !!allowedGroupMap[currentValue]);
+      }
+    });
+
+    $desktopFilterControl.find('.elementor-repeater-row').each(function () {
+      var $row = $(this);
+      var $groupSelect = $row.find('[data-setting="group_key"]').first();
+      var rowValue = String($groupSelect.val() || '').trim();
+
+      if (!rowValue) {
+        rowValue = normalizeText($row.find('.elementor-repeater-row-item-title').first().text());
+      }
+
+      $row.toggle(!rowValue || !!allowedGroupMap[rowValue]);
+    });
+  }
+
   function schedulePanelScan() {
     styleWidgetCards($(document));
+    applyProductGridDesktopFilterVisibility();
     setTimeout(function () { styleWidgetCards($(document)); }, 150);
+    setTimeout(applyProductGridDesktopFilterVisibility, 150);
     setTimeout(function () { styleWidgetCards($(document)); }, 500);
+    setTimeout(applyProductGridDesktopFilterVisibility, 500);
   }
 
   function connectPanelObserver() {

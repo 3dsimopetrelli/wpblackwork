@@ -63,6 +63,7 @@ function bw_mew_initialize_woocommerce_overrides()
 
     add_filter('woocommerce_locate_template', 'bw_mew_locate_template', 1, 3);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_related_products_assets', 30);
+    add_action('wp_enqueue_scripts', 'bw_mew_enqueue_product_labels_assets', 20);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_account_page_assets', 20);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_checkout_assets', 20);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_order_confirmation_assets', 20);
@@ -71,6 +72,7 @@ function bw_mew_initialize_woocommerce_overrides()
     add_action('template_redirect', 'bw_mew_prepare_checkout_layout', 9);
     add_action('template_redirect', 'bw_mew_prepare_theme_title_bypass', 8);
     add_action('template_redirect', 'bw_mew_hide_single_product_notices', 9);
+    add_action('template_redirect', 'bw_mew_prepare_single_product_labels', 9);
     add_action('woocommerce_checkout_update_order_review', 'bw_mew_sync_checkout_cart_quantities', 10, 1);
     add_filter('woocommerce_checkout_posted_data', 'bw_mew_sync_billing_from_shipping_mode', 20, 1);
     add_action('wp_ajax_bw_apply_coupon', 'bw_mew_ajax_apply_coupon');

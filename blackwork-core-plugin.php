@@ -427,6 +427,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'cart-popup/cart-popup.php')) {
 }
 
 // Includi la pagina unificata Blackwork Site Settings
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/woocommerce-overrides/product-labels.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/woocommerce-overrides/product-labels.php';
+}
+
+// Includi la pagina unificata Blackwork Site Settings
 if (file_exists(plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php')) {
     require_once plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php';
 }
@@ -852,8 +857,76 @@ function bw_enqueue_elementor_widget_panel_assets()
         $panel_js_version,
         true
     );
+
+    wp_localize_script(
+        'bw-elementor-widget-panel-script',
+        'bwElementorWidgetPanelData',
+        [
+            'productGridDesktopFilterGroupsByContext' => bw_get_product_grid_desktop_filter_groups_by_context(),
+            'productCategoryContextByTermId' => bw_get_product_category_context_map_for_editor(),
+        ]
+    );
 }
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_elementor_widget_panel_assets');
+
+function bw_get_product_grid_desktop_filter_groups_by_context()
+{
+    $all_groups = ['types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years'];
+    $contexts = ['', 'mixed', 'books', 'digital-collections', 'prints'];
+    $map = [];
+
+    foreach ($contexts as $context_slug) {
+        $groups = ['types', 'tags', 'years'];
+
+        if (
+            '' !== $context_slug
+            && 'mixed' !== $context_slug
+            && function_exists('bw_fpw_get_supported_advanced_filter_groups_for_context')
+        ) {
+            $groups = array_merge(
+                $groups,
+                array_keys((array) bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug))
+            );
+        } else {
+            $groups = $all_groups;
+        }
+
+        $map[$context_slug] = array_values(array_unique(array_filter($groups)));
+    }
+
+    return $map;
+}
+
+function bw_get_product_category_context_map_for_editor()
+{
+    if (!function_exists('bw_fpw_resolve_product_family_slug_from_term_id')) {
+        return [];
+    }
+
+    $term_ids = get_terms(
+        [
+            'taxonomy' => 'product_cat',
+            'hide_empty' => false,
+            'fields' => 'ids',
+        ]
+    );
+
+    if (is_wp_error($term_ids) || empty($term_ids)) {
+        return [];
+    }
+
+    $map = [];
+
+    foreach ($term_ids as $term_id) {
+        $resolved_context = (string) bw_fpw_resolve_product_family_slug_from_term_id((int) $term_id, 'product_cat');
+
+        if ('' !== $resolved_context) {
+            $map[(string) (int) $term_id] = $resolved_context;
+        }
+    }
+
+    return $map;
+}
 
 function bw_register_divider_style()
 {
@@ -959,6 +1032,16 @@ function bw_register_wallpost_widget_assets()
 
 function bw_register_related_products_widget_assets()
 {
+    $product_labels_css_file = __DIR__ . '/assets/css/bw-product-labels.css';
+    $product_labels_css_version = file_exists($product_labels_css_file) ? filemtime($product_labels_css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-product-labels-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-product-labels.css',
+        [],
+        $product_labels_css_version
+    );
+
     // Register product card CSS (shared)
     $product_card_css_file = __DIR__ . '/assets/css/bw-product-card.css';
     $product_card_css_version = file_exists($product_card_css_file) ? filemtime($product_card_css_file) : '1.0.0';
@@ -968,7 +1051,7 @@ function bw_register_related_products_widget_assets()
     wp_register_style(
         'bw-product-card-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-product-card.css',
-        [],
+        ['bw-product-labels-style'],
         $product_card_css_version
     );
 
@@ -1538,6 +1621,16 @@ function bw_fpw_get_client_response_cache_ttl()
     return 10 * MINUTE_IN_SECONDS;
 }
 
+function bw_fpw_get_year_index_cache_ttl()
+{
+    return 15 * MINUTE_IN_SECONDS;
+}
+
+function bw_fpw_get_advanced_filter_index_cache_ttl()
+{
+    return 15 * MINUTE_IN_SECONDS;
+}
+
 function bw_fpw_get_index_build_lock_ttl()
 {
     return 45;
@@ -1785,31 +1878,122 @@ function bw_fpw_get_request_fingerprint()
     return md5($remote_addr . '|' . $user_agent);
 }
 
-function bw_fpw_is_throttled_request($action_key)
+function bw_fpw_get_rate_limit_config($action_key, $is_logged_in)
 {
-    $is_logged_in = is_user_logged_in();
-
-    // Authenticated users get higher limits keyed by user ID (accurate, avoids
-    // IP collisions on shared networks). Anonymous users get tighter limits
-    // keyed by IP + UA fingerprint.
     if ($is_logged_in) {
         $limits = [
             'bw_fpw_get_subcategories' => ['limit' => 300, 'window' => 60],
             'bw_fpw_get_tags'          => ['limit' => 300, 'window' => 60],
             'bw_fpw_filter_posts'      => ['limit' => 200, 'window' => 60],
         ];
-        $fingerprint = 'u' . get_current_user_id();
     } else {
         $limits = [
             'bw_fpw_get_subcategories' => ['limit' => 60, 'window' => 60],
             'bw_fpw_get_tags'          => ['limit' => 50, 'window' => 60],
             'bw_fpw_filter_posts'      => ['limit' => 35, 'window' => 60],
         ];
-        $fingerprint = bw_fpw_get_request_fingerprint();
     }
 
-    $config = isset($limits[$action_key]) ? $limits[$action_key] : ['limit' => 40, 'window' => 60];
-    $transient_key = 'bw_fpw_rl_' . md5($action_key . '|' . $fingerprint);
+    return isset($limits[$action_key]) ? $limits[$action_key] : ['limit' => 40, 'window' => 60];
+}
+
+function bw_fpw_get_rate_limit_cookie_name()
+{
+    return 'bw_fpw_rl';
+}
+
+function bw_fpw_get_rate_limit_cookie_fingerprint_hash($fingerprint)
+{
+    return hash('sha256', (string) $fingerprint);
+}
+
+function bw_fpw_get_rate_limit_cookie_signature($payload)
+{
+    return hash_hmac('sha256', (string) $payload, wp_salt('auth'));
+}
+
+function bw_fpw_get_rate_limit_block_transient_key($action_key, $fingerprint)
+{
+    return 'bw_fpw_rl_block_' . md5((string) $action_key . '|' . (string) $fingerprint);
+}
+
+function bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint)
+{
+    return 'bw_fpw_rl_' . md5((string) $action_key . '|' . (string) $fingerprint);
+}
+
+function bw_fpw_get_rate_limit_cookie_state_result($fingerprint, $window_seconds)
+{
+    $cookie_name = bw_fpw_get_rate_limit_cookie_name();
+    $cookie_value = isset($_COOKIE[$cookie_name]) ? (string) wp_unslash($_COOKIE[$cookie_name]) : '';
+
+    if ('' === $cookie_value || false === strpos($cookie_value, '.')) {
+        return [
+            'valid' => false,
+            'reason' => 'missing',
+            'state' => [],
+        ];
+    }
+
+    [$encoded_payload, $signature] = explode('.', $cookie_value, 2);
+
+    if ('' === $encoded_payload || '' === $signature) {
+        return [
+            'valid' => false,
+            'reason' => 'invalid',
+            'state' => [],
+        ];
+    }
+
+    $expected_signature = bw_fpw_get_rate_limit_cookie_signature($encoded_payload);
+
+    if (!hash_equals($expected_signature, $signature)) {
+        return [
+            'valid' => false,
+            'reason' => 'invalid',
+            'state' => [],
+        ];
+    }
+
+    $json = base64_decode(strtr($encoded_payload, '-_', '+/'), true);
+    $state = json_decode(is_string($json) ? $json : '', true);
+
+    if (!is_array($state)) {
+        return [
+            'valid' => false,
+            'reason' => 'invalid',
+            'state' => [],
+        ];
+    }
+
+    $window_start = isset($state['w']) ? (int) $state['w'] : 0;
+    $fingerprint_hash = isset($state['f']) ? (string) $state['f'] : '';
+    $counts = isset($state['c']) && is_array($state['c']) ? $state['c'] : [];
+    $expected_hash = bw_fpw_get_rate_limit_cookie_fingerprint_hash($fingerprint);
+    $current_window_start = (int) (floor(time() / max(1, (int) $window_seconds)) * max(1, (int) $window_seconds));
+
+    if ($window_start !== $current_window_start || $fingerprint_hash !== $expected_hash) {
+        return [
+            'valid' => false,
+            'reason' => 'stale',
+            'state' => [],
+        ];
+    }
+
+    return [
+        'valid' => true,
+        'reason' => 'ok',
+        'state' => [
+            'w' => $window_start,
+            'f' => $fingerprint_hash,
+            'c' => $counts,
+        ],
+    ];
+}
+
+function bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds)
+{
+    $transient_key = bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint);
     $bucket = get_transient($transient_key);
 
     if (!is_array($bucket) || !isset($bucket['count'])) {
@@ -1817,9 +2001,133 @@ function bw_fpw_is_throttled_request($action_key)
     }
 
     $bucket['count'] = (int) $bucket['count'] + 1;
-    set_transient($transient_key, $bucket, (int) $config['window']);
+    set_transient($transient_key, $bucket, max(1, (int) $window_seconds));
 
-    return $bucket['count'] > (int) $config['limit'];
+    return (int) $bucket['count'];
+}
+
+function bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $state)
+{
+    if (headers_sent()) {
+        return false;
+    }
+
+    $window_seconds = max(1, (int) $window_seconds);
+    $window_start = (int) (floor(time() / $window_seconds) * $window_seconds);
+    $expires = $window_start + $window_seconds;
+    $payload = [
+        'w' => $window_start,
+        'f' => bw_fpw_get_rate_limit_cookie_fingerprint_hash($fingerprint),
+        'c' => isset($state['c']) && is_array($state['c']) ? $state['c'] : [],
+    ];
+    $payload_json = wp_json_encode($payload);
+
+    if (!is_string($payload_json) || '' === $payload_json) {
+        return false;
+    }
+
+    $encoded_payload = rtrim(strtr(base64_encode($payload_json), '+/', '-_'), '=');
+    $cookie_value = $encoded_payload . '.' . bw_fpw_get_rate_limit_cookie_signature($encoded_payload);
+    $cookie_options = [
+        'expires' => $expires,
+        'path' => defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/',
+        'secure' => is_ssl(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+
+    $set = setcookie(bw_fpw_get_rate_limit_cookie_name(), $cookie_value, $cookie_options);
+
+    if ($set) {
+        $_COOKIE[bw_fpw_get_rate_limit_cookie_name()] = $cookie_value;
+    }
+
+    return $set;
+}
+
+function bw_fpw_is_throttled_request($action_key)
+{
+    $is_logged_in = is_user_logged_in();
+    $config = bw_fpw_get_rate_limit_config($action_key, $is_logged_in);
+
+    // Authenticated users get higher limits keyed by user ID (accurate, avoids
+    // IP collisions on shared networks). Anonymous users get tighter limits
+    // keyed by IP + UA fingerprint.
+    if ($is_logged_in) {
+        $fingerprint = 'u' . get_current_user_id();
+        $transient_key = 'bw_fpw_rl_' . md5($action_key . '|' . $fingerprint);
+        $bucket = get_transient($transient_key);
+
+        if (!is_array($bucket) || !isset($bucket['count'])) {
+            $bucket = ['count' => 0];
+        }
+
+        $bucket['count'] = (int) $bucket['count'] + 1;
+        set_transient($transient_key, $bucket, (int) $config['window']);
+
+        return $bucket['count'] > (int) $config['limit'];
+    }
+
+    $fingerprint = bw_fpw_get_request_fingerprint();
+    $window_seconds = max(1, (int) $config['window']);
+    $block_key = bw_fpw_get_rate_limit_block_transient_key($action_key, $fingerprint);
+    $cookie_result = bw_fpw_get_rate_limit_cookie_state_result($fingerprint, $window_seconds);
+    $cookie_state = isset($cookie_result['state']) && is_array($cookie_result['state']) ? $cookie_result['state'] : [];
+    $current_window_start = (int) (floor(time() / $window_seconds) * $window_seconds);
+
+    if (false !== get_transient($block_key)) {
+        return true;
+    }
+
+    if (empty($cookie_result['valid'])) {
+        $server_count = bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds);
+
+        $cookie_state = [
+            'w' => $current_window_start,
+            'f' => bw_fpw_get_rate_limit_cookie_fingerprint_hash($fingerprint),
+            'c' => [],
+        ];
+
+        $counts = isset($cookie_state['c']) && is_array($cookie_state['c']) ? $cookie_state['c'] : [];
+        $counts[$action_key] = $server_count;
+        $cookie_state['c'] = $counts;
+        bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $cookie_state);
+
+        if ($server_count > (int) $config['limit']) {
+            $ttl = max(1, ($current_window_start + $window_seconds) - time());
+            set_transient($block_key, 1, $ttl);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    $counts = isset($cookie_state['c']) && is_array($cookie_state['c']) ? $cookie_state['c'] : [];
+    $counts[$action_key] = isset($counts[$action_key]) ? ((int) $counts[$action_key] + 1) : 1;
+    $cookie_state['c'] = $counts;
+
+    if (!bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $cookie_state)) {
+        $server_count = bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds);
+
+        if ($server_count > (int) $config['limit']) {
+            $ttl = max(1, ($current_window_start + $window_seconds) - time());
+            set_transient($block_key, 1, $ttl);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    if ((int) $counts[$action_key] > (int) $config['limit']) {
+        $ttl = max(1, ($current_window_start + $window_seconds) - time());
+        set_transient($block_key, 1, $ttl);
+
+        return true;
+    }
+
+    return false;
 }
 
 function bw_fpw_send_throttled_response($action_key, $widget_id = '')
@@ -2831,19 +3139,34 @@ function bw_fpw_build_year_quick_ranges($years_map)
         return [];
     }
 
+    // Tiny datasets do not benefit from quick-range shortcuts; the slider and
+    // direct year inputs already cover these cases without redundant buttons.
+    if ($total < 6) {
+        return [];
+    }
+
     $bucket_count = min(4, $total);
     $bucket_size = (int) ceil($total / $bucket_count);
+    $chunks = array_chunk($distinct_years, max(1, $bucket_size));
     $ranges = [];
 
-    for ($index = 0; $index < $bucket_count; $index++) {
-        $start_offset = $index * $bucket_size;
-        if (!isset($distinct_years[$start_offset])) {
-            break;
+    if (count($chunks) > 1) {
+        $last_index = count($chunks) - 1;
+
+        if (isset($chunks[$last_index]) && count($chunks[$last_index]) < 2) {
+            $chunks[$last_index - 1] = array_merge($chunks[$last_index - 1], $chunks[$last_index]);
+            unset($chunks[$last_index]);
+            $chunks = array_values($chunks);
+        }
+    }
+
+    foreach ($chunks as $chunk) {
+        if (empty($chunk)) {
+            continue;
         }
 
-        $end_offset = min($total - 1, (($index + 1) * $bucket_size) - 1);
-        $from = (int) $distinct_years[$start_offset];
-        $to = (int) $distinct_years[$end_offset];
+        $from = (int) reset($chunk);
+        $to = (int) end($chunk);
 
         $ranges[] = [
             'key' => $from . '-' . $to,
@@ -2979,7 +3302,7 @@ function bw_fpw_get_year_index($context_slug)
         static function () use ($context_slug) {
             return bw_fpw_build_year_index($context_slug);
         },
-        30 * MINUTE_IN_SECONDS
+        bw_fpw_get_year_index_cache_ttl()
     );
 }
 
@@ -3325,7 +3648,7 @@ function bw_fpw_get_advanced_filter_index($context_slug)
         // Lock holder timed out without writing; build locally as last resort.
         $index = bw_fpw_build_advanced_filter_index($context_slug);
         set_transient($data_key, $index, 2 * HOUR_IN_SECONDS);
-        set_transient($fresh_key, 1, 30 * MINUTE_IN_SECONDS);
+        set_transient($fresh_key, 1, bw_fpw_get_advanced_filter_index_cache_ttl());
 
         return $index;
     }
@@ -3333,7 +3656,7 @@ function bw_fpw_get_advanced_filter_index($context_slug)
     try {
         $index = bw_fpw_build_advanced_filter_index($context_slug);
         set_transient($data_key, $index, 2 * HOUR_IN_SECONDS);
-        set_transient($fresh_key, 1, 30 * MINUTE_IN_SECONDS);
+        set_transient($fresh_key, 1, bw_fpw_get_advanced_filter_index_cache_ttl());
     } finally {
         bw_fpw_release_index_build_lock('advanced_filter_index', $context_slug);
     }
@@ -4073,6 +4396,54 @@ function bw_fpw_generate_cache_key($params)
     return 'bw_fpw_data_' . $hash;
 }
 
+function bw_fpw_get_filter_ui_section_signature($value)
+{
+    $json = wp_json_encode($value);
+
+    if (!is_string($json) || '' === $json) {
+        $json = wp_json_encode(['fallback' => $value]);
+    }
+
+    return is_string($json) ? hash('sha256', $json) : '';
+}
+
+function bw_fpw_build_filter_ui_hashes($filter_ui)
+{
+    $filter_ui = is_array($filter_ui) ? $filter_ui : [];
+    $hashes = [];
+
+    foreach (['types', 'tags', 'advanced', 'year', 'result_count'] as $section_key) {
+        if (array_key_exists($section_key, $filter_ui)) {
+            $hashes[$section_key] = bw_fpw_get_filter_ui_section_signature($filter_ui[$section_key]);
+        }
+    }
+
+    return $hashes;
+}
+
+function bw_fpw_normalize_filter_ui_hashes($hashes)
+{
+    $normalized = [];
+
+    if (!is_array($hashes)) {
+        return $normalized;
+    }
+
+    foreach (['types', 'tags', 'advanced', 'year', 'result_count'] as $section_key) {
+        if (!isset($hashes[$section_key])) {
+            continue;
+        }
+
+        $hash = preg_replace('/[^a-f0-9]/i', '', (string) $hashes[$section_key]);
+
+        if (is_string($hash) && '' !== $hash) {
+            $normalized[$section_key] = strtolower($hash);
+        }
+    }
+
+    return $normalized;
+}
+
 /**
  * Handler AJAX per filtrare i post
  */
@@ -4214,6 +4585,7 @@ function bw_fpw_filter_posts_inner()
         'source' => isset($_POST['source']) ? wp_unslash($_POST['source']) : [],
         'technique' => isset($_POST['technique']) ? wp_unslash($_POST['technique']) : [],
     ]);
+    $client_filter_ui_hashes = bw_fpw_normalize_filter_ui_hashes(isset($_POST['filter_ui_hashes']) ? wp_unslash($_POST['filter_ui_hashes']) : []);
     $image_toggle = bw_fpw_normalize_bool(isset($_POST['image_toggle']) ? wp_unslash($_POST['image_toggle']) : null, false);
     $image_size = bw_fpw_normalize_image_size(isset($_POST['image_size']) ? wp_unslash($_POST['image_size']) : 'large');
     $image_mode = bw_fpw_normalize_image_mode(isset($_POST['image_mode']) ? wp_unslash($_POST['image_mode']) : 'proportional');
@@ -4854,6 +5226,29 @@ function bw_fpw_filter_posts_inner()
                 'year' => $year_ui,
                 'advanced' => $advanced_filter_ui,
             ];
+        }
+
+        $filter_ui_hashes = bw_fpw_build_filter_ui_hashes(isset($response_data['filter_ui']) ? $response_data['filter_ui'] : []);
+        $response_data['filter_ui_hashes'] = $filter_ui_hashes;
+
+        if (!empty($client_filter_ui_hashes) && !empty($response_data['filter_ui']) && is_array($response_data['filter_ui'])) {
+            $changed_filter_ui = [];
+
+            foreach ($response_data['filter_ui'] as $section_key => $section_value) {
+                if (!isset($filter_ui_hashes[$section_key]) || !isset($client_filter_ui_hashes[$section_key]) || $client_filter_ui_hashes[$section_key] !== $filter_ui_hashes[$section_key]) {
+                    $changed_filter_ui[$section_key] = $section_value;
+                }
+            }
+
+            $response_data['filter_ui'] = $changed_filter_ui;
+
+            if (isset($filter_ui_hashes['tags']) && isset($client_filter_ui_hashes['tags']) && $client_filter_ui_hashes['tags'] === $filter_ui_hashes['tags']) {
+                unset($response_data['tags_html'], $response_data['available_tags']);
+            }
+
+            if (isset($filter_ui_hashes['types']) && isset($client_filter_ui_hashes['types']) && $client_filter_ui_hashes['types'] === $filter_ui_hashes['types']) {
+                unset($response_data['available_types']);
+            }
         }
     }
 
