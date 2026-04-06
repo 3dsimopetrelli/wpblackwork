@@ -795,6 +795,14 @@ Current search behavior:
   - `_bw_biblio_author`, `_print_artist`, `_bw_artist_name`, `_digital_artist_name`
   - `_digital_publisher`, `_bw_biblio_publisher`, `_print_publisher`
 
+Current year-sort optimization:
+- when effective ordering resolves to canonical `year_int` and the request is
+  already narrowed by search or active advanced filters, Product Grid can sort
+  the candidate set in PHP using the cached Year index `post_map`
+- the final `WP_Query` then runs on page-sized `post__in` IDs with
+  `orderby=post__in`
+- this avoids a broader meta JOIN + filesort on the final query path
+
 ### 5.3.2 Performance Rules For Filters
 
 - Never introduce:
@@ -846,6 +854,12 @@ Year index bootstraps:
 - slider bounds
 - quick ranges
 - drawer visibility for supported product-family contexts (`digital-collections`, `books`, `prints`)
+- the underlying Year index build now uses one JOIN-based SQL pass over:
+  - posts
+  - term relationships / taxonomy
+  - canonical Year meta
+  instead of the older two-stage `WP_Query(posts_per_page=-1)` + secondary
+  postmeta scan pattern
 
 Index build hardening:
 - Year index rebuilds use a lightweight per-context build lock
@@ -890,6 +904,19 @@ Advanced-filter index invalidation:
 - advanced-filter indexes now use per-context generation counters
 - normal invalidation no longer depends on broad `DELETE LIKE` scans of
   transient rows in `wp_options`
+
+Advanced-filter index build path:
+- the advanced-filter index is built from a single JOIN-based SQL pass over:
+  - posts
+  - term relationships / taxonomy
+  - relevant canonical/source meta keys
+- this replaces the older heavier pattern based on broad product-ID collection
+  followed by secondary meta resolution
+- on normal HTTP requests, a missing advanced-filter index does not block the
+  current request on a full rebuild
+  - an async cron rebuild is scheduled
+  - the real expensive rebuild runs in cron context with lock protection
+  - this is intentional to keep frontend request latency flatter on cold misses
 
 ### 5.3.3 When Adding A New Filter
 

@@ -427,6 +427,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'cart-popup/cart-popup.php')) {
 }
 
 // Includi la pagina unificata Blackwork Site Settings
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/woocommerce-overrides/product-labels.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/woocommerce-overrides/product-labels.php';
+}
+
+// Includi la pagina unificata Blackwork Site Settings
 if (file_exists(plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php')) {
     require_once plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php';
 }
@@ -1027,6 +1032,16 @@ function bw_register_wallpost_widget_assets()
 
 function bw_register_related_products_widget_assets()
 {
+    $product_labels_css_file = __DIR__ . '/assets/css/bw-product-labels.css';
+    $product_labels_css_version = file_exists($product_labels_css_file) ? filemtime($product_labels_css_file) : '1.0.0';
+
+    wp_register_style(
+        'bw-product-labels-style',
+        plugin_dir_url(__FILE__) . 'assets/css/bw-product-labels.css',
+        [],
+        $product_labels_css_version
+    );
+
     // Register product card CSS (shared)
     $product_card_css_file = __DIR__ . '/assets/css/bw-product-card.css';
     $product_card_css_version = file_exists($product_card_css_file) ? filemtime($product_card_css_file) : '1.0.0';
@@ -1036,7 +1051,7 @@ function bw_register_related_products_widget_assets()
     wp_register_style(
         'bw-product-card-style',
         plugin_dir_url(__FILE__) . 'assets/css/bw-product-card.css',
-        [],
+        ['bw-product-labels-style'],
         $product_card_css_version
     );
 

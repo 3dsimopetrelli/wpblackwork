@@ -181,6 +181,7 @@ function bw_site_settings_admin_assets($hook)
     $site_settings_tabs = [
         'info',
         'layout',
+        'product-labels',
         'cart-popup',
         'bw-coming-soon',
         'account-page',
@@ -196,16 +197,61 @@ function bw_site_settings_admin_assets($hook)
     $current_mail_marketing_tab = in_array($current_tab_raw, $mail_marketing_tabs, true) ? $current_tab_raw : 'general';
 
     // Base Site Settings admin CSS (used by Site Settings and Mail Marketing controls).
+    $site_settings_css_path = BW_MEW_PATH . 'admin/css/blackwork-site-settings.css';
+    $site_settings_css_version = file_exists($site_settings_css_path) ? filemtime($site_settings_css_path) : '1.0.0';
+
     wp_enqueue_style(
         'bw-site-settings-admin',
         BW_MEW_URL . 'admin/css/blackwork-site-settings.css',
         [],
-        '1.0.0'
+        $site_settings_css_version
     );
 
     // Enqueue only where media upload/select controls are present.
     if ($is_site_settings_page && in_array($current_site_settings_tab, ['account-page', 'checkout'], true)) {
         wp_enqueue_media();
+    }
+
+    if ($is_site_settings_page && 'product-labels' === $current_site_settings_tab) {
+        $select2_css_path = BW_MEW_PATH . 'assets/lib/select2/css/select2.css';
+        $select2_js_path = BW_MEW_PATH . 'assets/lib/select2/js/select2.full.min.js';
+        $product_labels_admin_js_path = BW_MEW_PATH . 'admin/js/bw-product-labels-admin.js';
+
+        wp_enqueue_style(
+            'bw-select2-admin',
+            BW_MEW_URL . 'assets/lib/select2/css/select2.css',
+            [],
+            file_exists($select2_css_path) ? filemtime($select2_css_path) : '4.0.3'
+        );
+
+        wp_enqueue_script(
+            'bw-select2-admin',
+            BW_MEW_URL . 'assets/lib/select2/js/select2.full.min.js',
+            ['jquery'],
+            file_exists($select2_js_path) ? filemtime($select2_js_path) : '4.0.3',
+            true
+        );
+
+        wp_enqueue_script('jquery-ui-sortable');
+
+        wp_enqueue_script(
+            'bw-product-labels-admin',
+            BW_MEW_URL . 'admin/js/bw-product-labels-admin.js',
+            ['jquery', 'bw-select2-admin', 'jquery-ui-sortable'],
+            file_exists($product_labels_admin_js_path) ? filemtime($product_labels_admin_js_path) : '1.0.0',
+            true
+        );
+
+        wp_localize_script(
+            'bw-product-labels-admin',
+            'bwProductLabelsAdmin',
+            [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('bw_search_products'),
+                'searchPlaceholder' => esc_html__('Search products...', 'bw'),
+                'manualOrderEmpty' => esc_html__('Selected products will appear here.', 'bw'),
+            ]
+        );
     }
 
     if ($is_site_settings_page && 'redirect' === $current_site_settings_tab) {
@@ -1067,7 +1113,7 @@ function bw_site_settings_page()
     }
 
     // Determina quale tab è attivo
-    $allowed_tabs = ['info', 'layout', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
+    $allowed_tabs = ['info', 'layout', 'product-labels', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
     $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'info';
     if (!in_array($active_tab, $allowed_tabs, true)) {
         $active_tab = 'info';
@@ -1075,6 +1121,7 @@ function bw_site_settings_page()
 
     $save_button_map = [
         'layout' => 'bw_layout_settings_submit',
+        'product-labels' => 'bw_product_labels_settings_submit',
         'cart-popup' => 'bw_cart_popup_submit',
         'bw-coming-soon' => 'bw_coming_soon_submit',
         'account-page' => 'bw_account_page_submit',
@@ -1118,6 +1165,10 @@ function bw_site_settings_page()
                     class="nav-tab <?php echo $active_tab === 'layout' ? 'nav-tab-active' : ''; ?>">
                     Layout
                 </a>
+                <a href="?page=blackwork-site-settings&tab=product-labels"
+                    class="nav-tab <?php echo $active_tab === 'product-labels' ? 'nav-tab-active' : ''; ?>">
+                    Promotions &amp; Labels
+                </a>
                 <a href="?page=blackwork-site-settings&tab=cart-popup"
                     class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
                     Cart Pop-up
@@ -1160,6 +1211,8 @@ function bw_site_settings_page()
                     bw_site_render_info_tab();
                 } elseif ($active_tab === 'layout') {
                     bw_site_render_layout_tab();
+                } elseif ($active_tab === 'product-labels') {
+                    bw_site_render_product_labels_tab();
                 } elseif ($active_tab === 'cart-popup') {
                     bw_site_render_cart_popup_tab();
                 } elseif ($active_tab === 'bw-coming-soon') {
@@ -1456,6 +1509,288 @@ function bw_site_render_layout_tab()
         </section>
 
         <?php submit_button(__('Save Layout Settings', 'bw'), 'primary', 'bw_layout_settings_submit'); ?>
+    </form>
+    <?php
+}
+
+/**
+ * Return selected products for Promotions & Labels admin controls.
+ *
+ * @param int[] $product_ids Product IDs.
+ * @return array<int,array<string,mixed>>
+ */
+function bw_get_product_labels_admin_selected_products($product_ids)
+{
+    $product_ids = array_values(array_filter(array_map('absint', (array) $product_ids)));
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $products = [];
+
+    foreach ($product_ids as $product_id) {
+        $product = function_exists('wc_get_product') ? wc_get_product($product_id) : null;
+        if (!$product instanceof WC_Product) {
+            continue;
+        }
+
+        $products[] = [
+            'id' => $product_id,
+            'title' => $product->get_name(),
+        ];
+    }
+
+    return $products;
+}
+
+/**
+ * Render Promotions & Labels tab.
+ *
+ * @return void
+ */
+function bw_site_render_product_labels_tab()
+{
+    if (isset($_POST['bw_product_labels_settings_submit'])) {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to manage these settings.', 'bw'));
+        }
+
+        check_admin_referer('bw_product_labels_settings_save', 'bw_product_labels_settings_nonce');
+
+        $raw_settings = isset($_POST['bw_product_labels_settings']) ? wp_unslash($_POST['bw_product_labels_settings']) : [];
+        $settings = function_exists('bw_sanitize_product_labels_settings')
+            ? bw_sanitize_product_labels_settings($raw_settings)
+            : [];
+
+        update_option('bw_product_labels_settings_v1', $settings, false);
+
+        $labels_tab = isset($_GET['labels_tab']) ? sanitize_key(wp_unslash($_GET['labels_tab'])) : 'general';
+        $allowed_labels_tabs = ['general', 'new', 'sale', 'free-download', 'staff-select'];
+        if (!in_array($labels_tab, $allowed_labels_tabs, true)) {
+            $labels_tab = 'general';
+        }
+
+        wp_safe_redirect(add_query_arg([
+            'page' => 'blackwork-site-settings',
+            'tab' => 'product-labels',
+            'labels_tab' => $labels_tab,
+            'saved' => '1',
+        ], admin_url('admin.php')));
+        exit;
+    }
+
+    $settings = function_exists('bw_get_product_labels_settings')
+        ? bw_get_product_labels_settings()
+        : [];
+    $priority_choices = function_exists('bw_get_product_label_priority_choices')
+        ? bw_get_product_label_priority_choices()
+        : [
+            'staff_select' => __('Staff Select', 'bw'),
+            'sale' => __('Sale', 'bw'),
+            'free_download' => __('Free Download', 'bw'),
+            'new' => __('New', 'bw'),
+        ];
+
+    $active_labels_tab = isset($_GET['labels_tab']) ? sanitize_key(wp_unslash($_GET['labels_tab'])) : 'general';
+    $allowed_labels_tabs = ['general', 'new', 'sale', 'free-download', 'staff-select'];
+    if (!in_array($active_labels_tab, $allowed_labels_tabs, true)) {
+        $active_labels_tab = 'general';
+    }
+
+    $saved = isset($_GET['saved']) && '1' === sanitize_key(wp_unslash($_GET['saved']));
+    $priority_order = isset($settings['priority_order']) ? (array) $settings['priority_order'] : array_keys($priority_choices);
+    $selected_staff_products = bw_get_product_labels_admin_selected_products(
+        function_exists('bw_get_product_label_staff_ids') ? bw_get_product_label_staff_ids($settings) : []
+    );
+
+    $general_tab_url = add_query_arg('labels_tab', 'general');
+    $new_tab_url = add_query_arg('labels_tab', 'new');
+    $sale_tab_url = add_query_arg('labels_tab', 'sale');
+    $free_tab_url = add_query_arg('labels_tab', 'free-download');
+    $staff_tab_url = add_query_arg('labels_tab', 'staff-select');
+    ?>
+    <?php if ($saved) : ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong><?php esc_html_e('Product label settings saved successfully.', 'bw'); ?></strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="" class="bw-product-labels-admin">
+        <?php wp_nonce_field('bw_product_labels_settings_save', 'bw_product_labels_settings_nonce'); ?>
+
+        <h2 class="nav-tab-wrapper">
+            <a class="nav-tab <?php echo 'general' === $active_labels_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url($general_tab_url); ?>"><?php esc_html_e('General', 'bw'); ?></a>
+            <a class="nav-tab <?php echo 'new' === $active_labels_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url($new_tab_url); ?>"><?php esc_html_e('New', 'bw'); ?></a>
+            <a class="nav-tab <?php echo 'sale' === $active_labels_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url($sale_tab_url); ?>"><?php esc_html_e('Sale', 'bw'); ?></a>
+            <a class="nav-tab <?php echo 'free-download' === $active_labels_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url($free_tab_url); ?>"><?php esc_html_e('Free Download', 'bw'); ?></a>
+            <a class="nav-tab <?php echo 'staff-select' === $active_labels_tab ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url($staff_tab_url); ?>"><?php esc_html_e('Staff Select', 'bw'); ?></a>
+        </h2>
+
+        <div class="bw-tab-panel" data-bw-tab="general" <?php echo 'general' === $active_labels_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table bw-admin-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e('Enable product labels', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[enabled]" value="1" <?php checked(!empty($settings['enabled'])); ?> />
+                            <?php esc_html_e('Enable the Blackwork product label system.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Show labels on archive cards', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[show_archive]" value="1" <?php checked(!empty($settings['show_archive'])); ?> />
+                            <?php esc_html_e('Render labels on shared Blackwork WooCommerce product cards.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Show labels on single product', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[show_single]" value="1" <?php checked(!empty($settings['show_single'])); ?> />
+                            <?php esc_html_e('Render labels on WooCommerce single product pages.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-product-labels-max-visible"><?php esc_html_e('Max visible labels per product', 'bw'); ?></label></th>
+                    <td>
+                        <input type="number" min="1" max="4" step="1" id="bw-product-labels-max-visible" name="bw_product_labels_settings[max_visible]" value="<?php echo esc_attr((string) ($settings['max_visible'] ?? 2)); ?>" class="small-text" />
+                        <p class="description"><?php esc_html_e('Controls how many badges can be shown at the same time for a product.', 'bw'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Priority order', 'bw'); ?></th>
+                    <td>
+                        <p class="description"><?php esc_html_e('Drag to reorder. Higher items win when a product matches multiple labels.', 'bw'); ?></p>
+                        <ul class="bw-product-labels-sortable" data-target-input="#bw-product-labels-priority-order">
+                            <?php foreach ($priority_order as $label_key) : ?>
+                                <?php if (!isset($priority_choices[$label_key])) { continue; } ?>
+                                <li class="bw-product-labels-sortable__item" data-key="<?php echo esc_attr($label_key); ?>">
+                                    <span class="dashicons dashicons-menu-alt2" aria-hidden="true"></span>
+                                    <span><?php echo esc_html($priority_choices[$label_key]); ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <input type="hidden" id="bw-product-labels-priority-order" name="bw_product_labels_settings[priority_order]" value="<?php echo esc_attr(implode(',', $priority_order)); ?>" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="new" <?php echo 'new' === $active_labels_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table bw-admin-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e('Enable New label', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[new_enabled]" value="1" <?php checked(!empty($settings['new_enabled'])); ?> />
+                            <?php esc_html_e('Automatically label recently published products as New.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-product-labels-new-days"><?php esc_html_e('Duration in days', 'bw'); ?></label></th>
+                    <td>
+                        <input type="number" min="1" max="3650" step="1" id="bw-product-labels-new-days" name="bw_product_labels_settings[new_days]" value="<?php echo esc_attr((string) ($settings['new_days'] ?? 30)); ?>" class="small-text" />
+                        <p class="description"><?php esc_html_e('Products published within this number of days will receive the New label automatically.', 'bw'); ?></p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="sale" <?php echo 'sale' === $active_labels_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table bw-admin-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e('Enable Sale label', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[sale_enabled]" value="1" <?php checked(!empty($settings['sale_enabled'])); ?> />
+                            <?php esc_html_e('Use WooCommerce pricing to automatically label on-sale products.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-product-labels-sale-display-mode"><?php esc_html_e('Display mode', 'bw'); ?></label></th>
+                    <td>
+                        <select id="bw-product-labels-sale-display-mode" name="bw_product_labels_settings[sale_display_mode]">
+                            <option value="save_percentage" <?php selected(($settings['sale_display_mode'] ?? 'save_percentage'), 'save_percentage'); ?>><?php esc_html_e('Save %', 'bw'); ?></option>
+                            <option value="sale" <?php selected(($settings['sale_display_mode'] ?? 'save_percentage'), 'sale'); ?>><?php esc_html_e('Sale', 'bw'); ?></option>
+                            <option value="discount_percentage" <?php selected(($settings['sale_display_mode'] ?? 'save_percentage'), 'discount_percentage'); ?>><?php esc_html_e('-%', 'bw'); ?></option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="free-download" <?php echo 'free-download' === $active_labels_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table bw-admin-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e('Enable Free Download label', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[free_enabled]" value="1" <?php checked(!empty($settings['free_enabled'])); ?> />
+                            <?php esc_html_e('Automatically label free products according to the selected rule.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-product-labels-free-rule-mode"><?php esc_html_e('Rule mode', 'bw'); ?></label></th>
+                    <td>
+                        <select id="bw-product-labels-free-rule-mode" name="bw_product_labels_settings[free_rule_mode]">
+                            <option value="price_zero_only" <?php selected(($settings['free_rule_mode'] ?? 'price_zero_only'), 'price_zero_only'); ?>><?php esc_html_e('price = 0 only', 'bw'); ?></option>
+                            <option value="price_zero_downloadable" <?php selected(($settings['free_rule_mode'] ?? 'price_zero_only'), 'price_zero_downloadable'); ?>><?php esc_html_e('price = 0 + downloadable only', 'bw'); ?></option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="bw-tab-panel" data-bw-tab="staff-select" <?php echo 'staff-select' === $active_labels_tab ? '' : 'style="display:none;"'; ?>>
+            <table class="form-table bw-admin-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e('Enable Staff Select label', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[staff_enabled]" value="1" <?php checked(!empty($settings['staff_enabled'])); ?> />
+                            <?php esc_html_e('Allow manually curated products to receive the Staff Select label.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-product-labels-staff-products"><?php esc_html_e('Product multi-select', 'bw'); ?></label></th>
+                    <td>
+                        <select id="bw-product-labels-staff-products" class="bw-product-labels-product-select" multiple="multiple" style="width: 100%;">
+                            <?php foreach ($selected_staff_products as $selected_product) : ?>
+                                <option value="<?php echo esc_attr((string) $selected_product['id']); ?>" selected="selected"><?php echo esc_html($selected_product['title']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php esc_html_e('Search and select the products that should show the Staff Select label.', 'bw'); ?></p>
+                        <input type="hidden" id="bw-product-labels-staff-product-ids" name="bw_product_labels_settings[staff_product_ids]" value="<?php echo esc_attr(implode(',', wp_list_pluck($selected_staff_products, 'id'))); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Manual order', 'bw'); ?></th>
+                    <td>
+                        <p class="description"><?php esc_html_e('Drag to preserve the manual order of selected Staff Select products.', 'bw'); ?></p>
+                        <ul class="bw-product-labels-sortable bw-product-labels-sortable--products" id="bw-product-labels-staff-order" data-target-input="#bw-product-labels-staff-manual-order" data-empty-text="<?php echo esc_attr__('Selected products will appear here.', 'bw'); ?>">
+                            <?php foreach ($selected_staff_products as $selected_product) : ?>
+                                <li class="bw-product-labels-sortable__item" data-key="<?php echo esc_attr((string) $selected_product['id']); ?>">
+                                    <span class="dashicons dashicons-menu-alt2" aria-hidden="true"></span>
+                                    <span><?php echo esc_html($selected_product['title']); ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <input type="hidden" id="bw-product-labels-staff-manual-order" name="bw_product_labels_settings[staff_manual_order]" value="<?php echo esc_attr(implode(',', wp_list_pluck($selected_staff_products, 'id'))); ?>" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <?php submit_button(__('Save Promotions & Labels', 'bw'), 'primary', 'bw_product_labels_settings_submit'); ?>
     </form>
     <?php
 }

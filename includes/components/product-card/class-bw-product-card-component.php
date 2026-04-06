@@ -250,6 +250,19 @@ class BW_Product_Card_Component {
 		ob_start();
 		?>
 		<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
+			<?php
+			if ( function_exists( 'bw_render_product_labels' ) ) {
+				$labels_markup = bw_render_product_labels( $product, 'archive' );
+
+				if ( '' !== $labels_markup && wp_style_is( 'bw-product-labels-style', 'registered' ) ) {
+					wp_enqueue_style( 'bw-product-labels-style' );
+				}
+
+				if ( '' !== $labels_markup ) {
+					echo $labels_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
+			}
+			?>
 			<?php if ( $thumbnail_html ) : ?>
 				<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $image_wrapper_classes ) ) ); ?>">
 					<?php echo wp_kses_post( $thumbnail_html ); ?>
