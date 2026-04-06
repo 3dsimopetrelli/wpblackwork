@@ -23,6 +23,7 @@ if ( ! function_exists( 'bw_get_product_labels_default_settings' ) ) {
 			'enabled'             => 1,
 			'show_archive'        => 1,
 			'show_single'         => 0,
+			'show_icons'          => 1,
 			'max_visible'         => 2,
 			'priority_order'      => [ 'staff_select', 'sale', 'free_download', 'new' ],
 			'new_enabled'         => 1,
@@ -176,6 +177,7 @@ if ( ! function_exists( 'bw_sanitize_product_labels_settings' ) ) {
 			'enabled'            => ! empty( $input['enabled'] ) ? 1 : 0,
 			'show_archive'       => ! empty( $input['show_archive'] ) ? 1 : 0,
 			'show_single'        => ! empty( $input['show_single'] ) ? 1 : 0,
+			'show_icons'         => ! empty( $input['show_icons'] ) ? 1 : 0,
 			'max_visible'        => max( 1, min( 4, absint( $input['max_visible'] ?? $defaults['max_visible'] ) ) ),
 			'priority_order'     => $priority_order,
 			'new_enabled'        => ! empty( $input['new_enabled'] ) ? 1 : 0,
@@ -452,10 +454,13 @@ if ( ! function_exists( 'bw_get_product_labels_icon_svg' ) ) {
 	function bw_get_product_labels_icon_svg( $label_key ) {
 		switch ( sanitize_key( $label_key ) ) {
 			case 'staff_select':
-				return '<svg class="bw-product-label__icon-svg bw-product-label__icon-svg--staff" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 1.5 14 8l-6 6.5L2 8 8 1.5Z" fill="currentColor"/></svg>';
+				return '<svg class="bw-product-label__icon-svg bw-product-label__icon-svg--staff" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 3 8 9l4 13 4-13-2.5-6"/><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z"/><path d="M2 9h20"/></svg>';
 
 			case 'free_download':
-				return '<svg class="bw-product-label__icon-svg bw-product-label__icon-svg--download" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.25a.75.75 0 0 1 .75.75v5.44l1.72-1.72a.75.75 0 1 1 1.06 1.06L8.53 10.78a.75.75 0 0 1-1.06 0L4.47 7.78a.75.75 0 1 1 1.06-1.06l1.72 1.72V3A.75.75 0 0 1 8 2.25Z" fill="currentColor"/><path d="M3 12.25c0-.41.34-.75.75-.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1-.75-.75Z" fill="currentColor"/></svg>';
+				return '<svg class="bw-product-label__icon-svg bw-product-label__icon-svg--download" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>';
+
+			case 'new':
+				return '<svg class="bw-product-label__icon-svg bw-product-label__icon-svg--new" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>';
 
 			default:
 				return '';
@@ -500,6 +505,8 @@ if ( ! function_exists( 'bw_render_product_labels' ) ) {
 			return '';
 		}
 
+		$show_icons = ! empty( $settings['show_icons'] );
+
 		ob_start();
 		?>
 		<div class="bw-product-labels bw-product-labels--<?php echo esc_attr( $context ); ?>" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>">
@@ -511,11 +518,11 @@ if ( ! function_exists( 'bw_render_product_labels' ) ) {
 					continue;
 				}
 
-				$icon_svg = bw_get_product_labels_icon_svg( $label_key );
+				$icon_svg = $show_icons ? bw_get_product_labels_icon_svg( $label_key ) : '';
 				?>
 				<span class="bw-product-label bw-product-label--<?php echo esc_attr( $label_key ); ?>" data-label-key="<?php echo esc_attr( $label_key ); ?>">
 					<?php if ( '' !== $icon_svg ) : ?>
-						<span class="bw-product-label__icon" aria-hidden="true"><?php echo wp_kses( $icon_svg, [ 'svg' => [ 'class' => true, 'viewBox' => true, 'viewbox' => true, 'aria-hidden' => true, 'focusable' => true ], 'path' => [ 'd' => true, 'fill' => true ] ] ); ?></span>
+						<span class="bw-product-label__icon" aria-hidden="true"><?php echo wp_kses( $icon_svg, [ 'svg' => [ 'class' => true, 'xmlns' => true, 'width' => true, 'height' => true, 'viewBox' => true, 'viewbox' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'aria-hidden' => true, 'focusable' => true ], 'path' => [ 'd' => true, 'fill' => true ], 'circle' => [ 'cx' => true, 'cy' => true, 'r' => true ] ] ); ?></span>
 					<?php endif; ?>
 					<span class="bw-product-label__text"><?php echo esc_html( $label_text ); ?></span>
 				</span>
