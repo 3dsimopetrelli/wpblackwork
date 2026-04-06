@@ -852,8 +852,76 @@ function bw_enqueue_elementor_widget_panel_assets()
         $panel_js_version,
         true
     );
+
+    wp_localize_script(
+        'bw-elementor-widget-panel-script',
+        'bwElementorWidgetPanelData',
+        [
+            'productGridDesktopFilterGroupsByContext' => bw_get_product_grid_desktop_filter_groups_by_context(),
+            'productCategoryContextByTermId' => bw_get_product_category_context_map_for_editor(),
+        ]
+    );
 }
 add_action('elementor/editor/after_enqueue_scripts', 'bw_enqueue_elementor_widget_panel_assets');
+
+function bw_get_product_grid_desktop_filter_groups_by_context()
+{
+    $all_groups = ['types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years'];
+    $contexts = ['', 'mixed', 'books', 'digital-collections', 'prints'];
+    $map = [];
+
+    foreach ($contexts as $context_slug) {
+        $groups = ['types', 'tags', 'years'];
+
+        if (
+            '' !== $context_slug
+            && 'mixed' !== $context_slug
+            && function_exists('bw_fpw_get_supported_advanced_filter_groups_for_context')
+        ) {
+            $groups = array_merge(
+                $groups,
+                array_keys((array) bw_fpw_get_supported_advanced_filter_groups_for_context($context_slug))
+            );
+        } else {
+            $groups = $all_groups;
+        }
+
+        $map[$context_slug] = array_values(array_unique(array_filter($groups)));
+    }
+
+    return $map;
+}
+
+function bw_get_product_category_context_map_for_editor()
+{
+    if (!function_exists('bw_fpw_resolve_product_family_slug_from_term_id')) {
+        return [];
+    }
+
+    $term_ids = get_terms(
+        [
+            'taxonomy' => 'product_cat',
+            'hide_empty' => false,
+            'fields' => 'ids',
+        ]
+    );
+
+    if (is_wp_error($term_ids) || empty($term_ids)) {
+        return [];
+    }
+
+    $map = [];
+
+    foreach ($term_ids as $term_id) {
+        $resolved_context = (string) bw_fpw_resolve_product_family_slug_from_term_id((int) $term_id, 'product_cat');
+
+        if ('' !== $resolved_context) {
+            $map[(string) (int) $term_id] = $resolved_context;
+        }
+    }
+
+    return $map;
+}
 
 function bw_register_divider_style()
 {
