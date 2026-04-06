@@ -1430,6 +1430,14 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $include_ids      = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
         $show_order_by    = $this->is_runtime_sort_enabled( $settings, $include_ids );
         $show_visible_filters = $this->is_visible_filters_enabled( $settings );
+        $desktop_filter_groups = $this->sanitize_desktop_filter_groups(
+            $settings['desktop_filter_groups'] ?? $this->get_default_desktop_filter_groups()
+        );
+        if ( empty( $desktop_filter_groups ) ) {
+            $desktop_filter_groups = $this->get_default_desktop_filter_groups();
+        }
+        $desktop_filter_order = $this->sanitize_desktop_filter_order( $settings['desktop_filter_order'] ?? [] );
+        $show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
         $order_trigger_style = $this->get_runtime_sort_trigger_style( $settings );
 
         $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
