@@ -47,6 +47,8 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 return '';
             }
 
+            $view['render_modal'] = $this->should_render_modal();
+
             ob_start();
             $this->include_template( 'widget.php', [ 'view' => $view ] );
             return (string) ob_get_clean();
@@ -201,7 +203,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && absint( $summary['approved_count'] ) > 0,
                 'review_source'        => $review_source,
                 'config'               => $config,
-                'render_modal'         => $this->should_render_modal(),
+                'render_modal'         => false,
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
                 'modal_title_edit'     => __( 'Edit your review', 'bw' ),
                 'empty_title'          => __( 'No reviews yet', 'bw' ),
