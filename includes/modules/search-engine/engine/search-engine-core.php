@@ -116,6 +116,7 @@ function bw_fpw_execute_search(array $request): array
         && ($has_active_advanced_filters || '' !== $request['search']);
 
     if ($use_php_year_sort) {
+        // TODO: extract this PHP-sort execution path to a dedicated execution-planner surface in Phase 2 before adding new execution paths.
         if ($has_active_advanced_filters) {
             $candidate_ids = bw_fpw_apply_advanced_filters_to_post_ids($base_candidate_post_ids, $effective_context_slug, $request['advanced_filters']);
         } else {

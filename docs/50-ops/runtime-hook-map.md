@@ -45,6 +45,21 @@ Scope note:
 | `woocommerce_add_to_cart_fragments` | 10 (default) | `bw_header_cart_count_fragment` | `includes/modules/header/frontend/fragments.php` | Header/Woo | 1 | No | Fragment-based cart badge sync for header. |
 | `wp_ajax_bw_live_search_products` | 10 (default) | `bw_header_live_search_products` | `includes/modules/header/frontend/ajax-search.php` | Header | 1 | No | Header live search AJAX endpoint. |
 | `wp_ajax_nopriv_bw_live_search_products` | 10 (default) | `bw_header_live_search_products` | `includes/modules/header/frontend/ajax-search.php` | Header | 1 | No | Guest live search endpoint. |
+| `wp_ajax_bw_fpw_filter_posts` | 10 (default) | `bw_fpw_filter_posts` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Registered by module bootstrap; callback implemented in Product Grid adapter over shared search engine. |
+| `wp_ajax_nopriv_bw_fpw_filter_posts` | 10 (default) | `bw_fpw_filter_posts` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Guest Product Grid filter endpoint; same adapter/runtime contract. |
+| `wp_ajax_bw_fpw_get_subcategories` | 10 (default) | `bw_fpw_get_subcategories` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Product Grid subcategory AJAX surface; registration moved out of monolith. |
+| `wp_ajax_nopriv_bw_fpw_get_subcategories` | 10 (default) | `bw_fpw_get_subcategories` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Guest subcategory endpoint; still uses separate transient path by design. |
+| `wp_ajax_bw_fpw_get_tags` | 10 (default) | `bw_fpw_get_tags` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Product Grid tags AJAX surface; adapter endpoint over shared engine/facet data. |
+| `wp_ajax_nopriv_bw_fpw_get_tags` | 10 (default) | `bw_fpw_get_tags` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Guest tags endpoint. |
+| `wp_ajax_bw_fpw_refresh_nonce` | 10 (default) | `bw_fpw_ajax_refresh_nonce` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Product Grid nonce refresh endpoint; contract preserved after extraction. |
+| `wp_ajax_nopriv_bw_fpw_refresh_nonce` | 10 (default) | `bw_fpw_ajax_refresh_nonce` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Guest nonce refresh endpoint. |
+| `save_post` | 10 (default) | `bw_fpw_clear_grid_transients` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Search-domain invalidation registration moved to module bootstrap; callback clears search/filter cache generations and syncs canonical filter state. |
+| `added_post_meta` | 10 | `bw_fpw_handle_product_filter_meta_change` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Search-domain canonical filter-meta sync / invalidation hook registration. |
+| `updated_post_meta` | 10 | `bw_fpw_handle_product_filter_meta_change` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Search-domain canonical filter-meta sync / invalidation hook registration. |
+| `deleted_post_meta` | 10 | `bw_fpw_handle_product_filter_meta_change` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Search-domain canonical filter-meta sync / invalidation hook registration. |
+| `set_object_terms` | 10 | `bw_fpw_handle_product_filter_term_change` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Search-domain term-change invalidation registration. |
+| `transition_post_status` | 10 | `bw_fpw_handle_product_filter_status_change` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Search-domain status-change invalidation registration. |
+| `bw_fpw_async_rebuild_advanced_filter_index` | 10 (default) | `bw_fpw_async_rebuild_advanced_filter_index_callback` | `includes/modules/search-engine/search-engine-module.php` | Search / Product Grid | 1 | No | Async advanced-filter index rebuild trigger now registered by module bootstrap with named callback. |
 | `wp_enqueue_scripts` | 10 (default) | `bw_cart_popup_register_assets` | `cart-popup/cart-popup.php` | Cart Popup | 2 | No | Registers cart popup assets + localized config. |
 | `wp_enqueue_scripts` | 20 | `bw_cart_popup_enqueue_assets` | `cart-popup/cart-popup.php` | Cart Popup | 2 | No | Enqueues cart popup runtime assets. |
 | `woocommerce_loop_add_to_cart_link` | 10 | `bw_cart_popup_hide_view_cart_button` | `cart-popup/cart-popup.php` | Cart Popup | 1 | No | Suppresses View Cart loop behavior coupling. |
@@ -93,6 +108,19 @@ Scope note:
 | `woocommerce_checkout_order_processed` | 20 | `BW_Checkout_Subscribe_Frontend::maybe_subscribe_on_created` | `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-frontend.php` | Brevo/Checkout | 1 | No | Optional subscribe timing at order processed. |
 
 ## 3) Special attention
+
+### 3.0 Search-domain module bootstrap (Product Grid search/filter runtime)
+Search-domain runtime registrations now live in:
+- `includes/modules/search-engine/search-engine-module.php`
+
+Operational ownership split:
+- module bootstrap owns hook registration only
+- Product Grid adapter owns AJAX surface behavior and response assembly
+- shared engine owns normalization, query planning, candidate resolution, indexes, cache, and invalidation callbacks
+
+Governance note:
+- search-domain hook additions/priority changes should now be reviewed against the shared search-engine boundary, not added back into `blackwork-core-plugin.php`
+- Product Grid AJAX contract remains a regression-sensitive surface even though ownership moved out of the monolith
 
 ### 3.1 `template_redirect` usage (Redirect + Checkout/Auth stack)
 `template_redirect` is a collision-prone Tier 0 surface in this codebase.
