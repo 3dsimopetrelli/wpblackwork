@@ -622,8 +622,49 @@ body.bw-search-overlay-active {
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    border-image: none !important;
     font-family: "Inter", sans-serif !important;
     text-decoration: none !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger {
+    min-height: 42px !important;
+    padding: 0 16px !important;
+    border-radius: 16px !important;
+    font-size: 0.98rem !important;
+    font-weight: 600 !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 16px !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option {
+    min-height: 52px !important;
+    padding: 0 18px !important;
+    border-radius: 18px !important;
+    font-size: 0.98rem !important;
+    font-weight: 600 !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger:hover,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger:focus-visible,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:hover,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:focus-visible,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:hover,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:focus-visible,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option.is-selected {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+    outline: none !important;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__sidebar .bw-search-surface__nav-icon,
