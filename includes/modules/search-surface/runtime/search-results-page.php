@@ -86,8 +86,8 @@ function bw_ss_render_search_results_page() {
     status_header( 200 );
     get_header();
     ?>
-    <main id="primary" class="site-main entry-content bw-search-results-page__main">
-        <div class="bw-search-results-page__container">
+    <main id="primary" class="site-main bw-tbl-runtime-template bw-search-results-page__main">
+        <div class="bw-tbl-runtime-template-content bw-search-results-page__container">
             <header class="bw-search-results-page__titlebar">
                 <h1 class="bw-search-results-page__title"><?php echo esc_html( $title ); ?></h1>
                 <p class="bw-search-results-page__result-count"><?php echo esc_html( $result_label ); ?></p>

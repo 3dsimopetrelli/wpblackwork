@@ -375,25 +375,31 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
 
     ob_start();
     ?>
-    <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
-        <div class="bw-search-results-page__header">
-            <div class="bw-search-results-page__chips">
-                <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
-            </div>
-        </div>
-
-        <?php bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload ); ?>
-
-        <div class="bw-product-grid" style="<?php echo esc_attr( $wrapper_style ); ?>" data-disable-hover-on-touch="<?php echo esc_attr( $settings['disable_hover_on_touch'] ? 'yes' : 'no' ); ?>">
-            <div<?php echo $grid_attr_html; ?>>
-                <?php echo $grid_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            </div>
-            <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
-                <div class="bw-fpw-load-indicator" role="status">
-                    <span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
-                    <span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
+    <div class="bw-search-results-page__grid elementor-widget elementor-widget-bw-product-grid">
+        <div class="elementor-widget-container">
+            <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
+                <?php if ( ! empty( $active_chips ) ) : ?>
+                <div class="bw-search-results-page__header">
+                    <div class="bw-search-results-page__chips">
+                        <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
+                    </div>
                 </div>
-                <div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
+                <?php endif; ?>
+
+                <?php bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload ); ?>
+
+                <div class="bw-product-grid" style="<?php echo esc_attr( $wrapper_style ); ?>" data-disable-hover-on-touch="<?php echo esc_attr( $settings['disable_hover_on_touch'] ? 'yes' : 'no' ); ?>">
+                    <div<?php echo $grid_attr_html; ?>>
+                        <?php echo $grid_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    </div>
+                    <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
+                        <div class="bw-fpw-load-indicator" role="status">
+                            <span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
+                            <span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
+                        </div>
+                        <div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
