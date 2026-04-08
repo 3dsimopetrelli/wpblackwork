@@ -223,6 +223,12 @@ body.bw-search-overlay-active {
 .bw-search-surface__scope-chevron {
     width: 14px;
     height: 14px;
+    transition: transform 0.18s ease;
+    transform-origin: center;
+}
+
+.bw-search-surface__scope.is-open .bw-search-surface__scope-chevron {
+    transform: rotate(180deg);
 }
 
 .bw-search-surface__scope-menu {
@@ -283,6 +289,11 @@ body.bw-search-overlay-active {
     cursor: pointer;
     box-shadow: none;
     transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.bw-search-surface__close svg {
+    width: 18px;
+    height: 18px;
 }
 
 .bw-search-surface__close:hover,
