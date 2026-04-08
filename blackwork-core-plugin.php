@@ -446,6 +446,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/search-engine/sear
     require_once plugin_dir_path(__FILE__) . 'includes/modules/search-engine/search-engine-module.php';
 }
 
+// Search Surface module (plugin-owned results page consumer)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/search-surface/search-surface-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/search-surface/search-surface-module.php';
+}
+
 // Theme Builder Lite module (fonts + footer template runtime)
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php';
