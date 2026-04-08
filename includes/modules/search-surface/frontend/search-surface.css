@@ -422,6 +422,7 @@ body.bw-search-overlay-active {
     min-height: 0;
     overflow: auto;
     padding-right: 6px;
+    align-content: start;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
@@ -444,11 +445,14 @@ body.bw-search-overlay-active {
 .bw-search-surface__facet-group {
     display: grid;
     gap: 12px;
+    align-content: start;
+    align-self: start;
 }
 
 .bw-search-surface__facet-list {
     display: grid;
     gap: 6px;
+    align-content: start;
 }
 
 .bw-search-surface__facet-link {
