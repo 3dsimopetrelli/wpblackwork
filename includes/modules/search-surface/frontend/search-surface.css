@@ -98,7 +98,7 @@ body.bw-search-overlay-active {
     top: 120px;
     display: flex;
     flex-direction: column;
-    width: min(96vw, 1160px);
+    width: min(92vw, 980px);
     height: min(620px, calc(100dvh - 240px));
     margin: 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -714,7 +714,7 @@ body.bw-search-overlay-active {
 
 @media (max-width: 1180px) {
     .bw-search-surface__dialog {
-        width: min(96vw, 1040px);
+        width: min(94vw, 920px);
     }
 
     .bw-search-surface__body {
