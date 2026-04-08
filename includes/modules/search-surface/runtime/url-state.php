@@ -50,6 +50,10 @@ function bw_ss_is_search_results_request() {
         return false;
     }
 
+    if ( '1' === (string) get_query_var( 'bw_search_results', '' ) ) {
+        return true;
+    }
+
     return in_array( bw_ss_get_current_request_path(), bw_ss_get_search_results_route_candidates(), true );
 }
 
