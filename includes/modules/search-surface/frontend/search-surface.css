@@ -7,10 +7,36 @@ body.bw-search-overlay-active {
     box-sizing: border-box;
 }
 
+.bw-search-surface {
+    --bw-search-surface-text: #fafafa;
+    --bw-search-surface-text-muted: rgba(250, 250, 250, 0.68);
+    --bw-search-surface-text-soft: rgba(250, 250, 250, 0.5);
+    --bw-search-surface-panel-bg: rgba(23, 23, 23, 0.95);
+    --bw-search-surface-card-bg: rgba(255, 255, 255, 0.04);
+    --bw-search-surface-card-border: rgba(255, 255, 255, 0.06);
+    --bw-search-surface-chip-active: #9bf833;
+    --bw-search-surface-chip-active-text: #111111;
+    font-family: "Inter", sans-serif;
+}
+
 .bw-search-surface button,
 .bw-search-surface input,
 .bw-search-surface a {
     font: inherit;
+}
+
+.bw-search-surface .bw-search-surface__dialog,
+.bw-search-surface .bw-search-surface__dialog h1,
+.bw-search-surface .bw-search-surface__dialog h2,
+.bw-search-surface .bw-search-surface__dialog h3,
+.bw-search-surface .bw-search-surface__dialog h4,
+.bw-search-surface .bw-search-surface__dialog p,
+.bw-search-surface .bw-search-surface__dialog span,
+.bw-search-surface .bw-search-surface__dialog a,
+.bw-search-surface .bw-search-surface__dialog button,
+.bw-search-surface .bw-search-surface__dialog label,
+.bw-search-surface .bw-search-surface__dialog strong {
+    color: var(--bw-search-surface-text);
 }
 
 .bw-search-results-page__main {
@@ -77,8 +103,8 @@ body.bw-search-overlay-active {
     margin: 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 30px;
-    background: rgba(23, 23, 23, 0.95);
-    color: #fafafa;
+    background: var(--bw-search-surface-panel-bg);
+    color: var(--bw-search-surface-text);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
@@ -133,7 +159,7 @@ body.bw-search-overlay-active {
     padding: 0;
     border: 0;
     background: transparent;
-    color: #fafafa;
+    color: var(--bw-search-surface-text) !important;
     font-size: 1rem;
     outline: none;
 }
@@ -204,7 +230,7 @@ body.bw-search-overlay-active {
 .bw-search-surface__scope-option:hover,
 .bw-search-surface__scope-option.is-selected {
     background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    color: var(--bw-search-surface-text) !important;
 }
 
 .bw-search-surface__close {
@@ -260,7 +286,7 @@ body.bw-search-overlay-active {
     border: 1px solid transparent;
     border-radius: 16px;
     background: transparent;
-    color: rgba(250, 250, 250, 0.78);
+    color: rgba(250, 250, 250, 0.78) !important;
     text-align: left;
     cursor: pointer;
     box-shadow: none;
@@ -271,24 +297,24 @@ body.bw-search-overlay-active {
 .bw-search-surface__sidebar button:hover,
 .bw-search-surface__sidebar button:focus-visible {
     background: rgba(255, 255, 255, 0.06);
-    color: #fafafa;
+    color: var(--bw-search-surface-text) !important;
     border-color: rgba(255, 255, 255, 0.08);
     outline: none;
 }
 
 .bw-search-surface__sidebar button.is-active {
-    background: #9bf833;
-    color: #111111;
+    background: var(--bw-search-surface-chip-active);
+    color: var(--bw-search-surface-chip-active-text) !important;
     border-color: transparent;
 }
 
 .bw-search-surface__sidebar button.is-active .bw-search-surface__nav-label {
-    color: #111111;
+    color: var(--bw-search-surface-chip-active-text) !important;
 }
 
 .bw-search-surface__nav-label {
     display: block;
-    color: inherit;
+    color: inherit !important;
     font-size: 1rem;
     font-weight: 600;
     line-height: 1.2;
@@ -311,7 +337,8 @@ body.bw-search-overlay-active {
     margin: 0;
     font-size: 1.2rem;
     line-height: 1.2;
-    color: #ffffff;
+    color: #ffffff !important;
+    font-weight: 700;
 }
 
 .bw-search-surface__content {
@@ -327,7 +354,7 @@ body.bw-search-overlay-active {
 
 .bw-search-surface__empty {
     padding: 18px 0;
-    color: rgba(250, 250, 250, 0.68);
+    color: var(--bw-search-surface-text-muted) !important;
 }
 
 .bw-search-surface__rows {
@@ -344,7 +371,7 @@ body.bw-search-overlay-active {
     font-size: 0.88rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: rgba(250, 250, 250, 0.5);
+    color: var(--bw-search-surface-text-soft) !important;
 }
 
 .bw-search-surface__action-row,
@@ -357,9 +384,9 @@ body.bw-search-overlay-active {
     padding: 10px 14px;
     border-radius: 18px;
     text-decoration: none;
-    color: #fafafa;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--bw-search-surface-text) !important;
+    background: var(--bw-search-surface-card-bg);
+    border: 1px solid var(--bw-search-surface-card-border);
 }
 
 .bw-search-surface__action-row:hover,
@@ -411,17 +438,17 @@ body.bw-search-overlay-active {
 .bw-search-surface__row-title-text {
     font-size: 1.03rem;
     font-weight: 600;
-    color: #fff;
+    color: #ffffff !important;
 }
 
 .bw-search-surface__row-meta {
     margin-top: 4px;
-    color: rgba(250, 250, 250, 0.62);
+    color: rgba(250, 250, 250, 0.62) !important;
     font-size: 0.92rem;
 }
 
 .bw-search-surface__row-action {
-    color: rgba(250, 250, 250, 0.5);
+    color: var(--bw-search-surface-text-soft) !important;
     font-size: 0.88rem;
 }
 
@@ -440,7 +467,8 @@ body.bw-search-overlay-active {
 .bw-search-surface__trending-title {
     margin: 0;
     font-size: 1rem;
-    color: #fff;
+    color: #ffffff !important;
+    font-weight: 700;
 }
 
 .bw-search-surface__trending-grid {
@@ -457,8 +485,8 @@ body.bw-search-overlay-active {
     border-radius: 18px;
     text-decoration: none;
     color: inherit;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bw-search-surface-card-bg);
+    border: 1px solid var(--bw-search-surface-card-border);
 }
 
 .bw-search-surface__trending-card:hover {
@@ -509,13 +537,35 @@ body.bw-search-overlay-active {
 .bw-search-surface__preview-title {
     margin: 0 0 10px;
     font-size: 1rem;
-    color: #ffffff;
+    color: #ffffff !important;
+    font-weight: 700;
 }
 
 .bw-search-surface__preview-copy {
     margin: 0;
-    color: rgba(250, 250, 250, 0.64);
+    color: rgba(250, 250, 250, 0.64) !important;
     line-height: 1.55;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__title,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__section-title,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__trending-title,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__row-title-text,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__preview-title,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__nav-label {
+    color: #ffffff !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__row-meta,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__preview-copy,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__empty,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__row-action {
+    color: rgba(250, 250, 250, 0.64) !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__sidebar button.is-active,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__sidebar button.is-active .bw-search-surface__nav-label {
+    color: #111111 !important;
 }
 
 @media (max-width: 1180px) {
