@@ -1493,6 +1493,61 @@
         }
     }
 
+    function hydrateDiscoveryStateFromBootstrap(state, bootstrapPayload, defaultCategory) {
+        var selected;
+        var advanced;
+        var yearSelection;
+
+        if (!state || !bootstrapPayload || typeof bootstrapPayload !== 'object') {
+            return;
+        }
+
+        selected = bootstrapPayload.selected;
+
+        if (!selected || typeof selected !== 'object') {
+            return;
+        }
+
+        if (selected.category !== undefined && selected.category !== null && String(selected.category) !== '') {
+            state.category = String(selected.category);
+        } else if (defaultCategory && defaultCategory !== 'all') {
+            state.category = defaultCategory;
+        }
+
+        state.subcategories = Array.isArray(selected.subcategories)
+            ? selected.subcategories.map(function (value) {
+                return parseInteger(value, 0);
+            }).filter(function (value) {
+                return value > 0;
+            })
+            : [];
+
+        state.tags = Array.isArray(selected.tags)
+            ? selected.tags.map(function (value) {
+                return parseInteger(value, 0);
+            }).filter(function (value) {
+                return value > 0;
+            })
+            : [];
+
+        state.search = typeof selected.search === 'string' ? selected.search : '';
+        state.appliedSearch = state.search;
+
+        yearSelection = selected.year && typeof selected.year === 'object' ? selected.year : {};
+        state.year = normalizeYearRange(yearSelection.from, yearSelection.to);
+        state.ui.yearDraft = {
+            from: state.year.from,
+            to: state.year.to
+        };
+
+        advanced = selected.advanced && typeof selected.advanced === 'object' ? selected.advanced : {};
+        state.artists = uniqueStringArray(Array.isArray(advanced.artist) ? advanced.artist : []);
+        state.authors = uniqueStringArray(Array.isArray(advanced.author) ? advanced.author : []);
+        state.publishers = uniqueStringArray(Array.isArray(advanced.publisher) ? advanced.publisher : []);
+        state.sources = uniqueStringArray(Array.isArray(advanced.source) ? advanced.source : []);
+        state.techniques = uniqueStringArray(Array.isArray(advanced.technique) ? advanced.technique : []);
+    }
+
     function isDiscoveryDrawerMode(widgetId) {
         return isResponsiveFilterDrawerMode(widgetId);
     }
@@ -4746,6 +4801,7 @@
             if (isDiscoveryDrawerMode(widgetId)) {
                 ensureDetachedDiscoveryDrawer(widgetId);
                 var bootstrapPayload = getDiscoveryBootstrapPayload(widgetId) || {};
+                var defaultCategory = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]').attr('data-default-category') || 'all';
 
                 state.ui.searchEnabled = !!bootstrapPayload.search_enabled;
                 state.ui.showTypes = !!bootstrapPayload.show_types;
@@ -4762,6 +4818,7 @@
                 );
                 state.ui.orderTriggerStyle = bootstrapPayload.order_trigger_style === 'dropdown' ? 'dropdown' : 'icon';
                 state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || 'default');
+                hydrateDiscoveryStateFromBootstrap(state, bootstrapPayload, defaultCategory);
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
 
                 updateDiscoveryOptions(widgetId, {
