@@ -145,7 +145,7 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
         <div class="bw-search-surface__backdrop" data-bw-search-close></div>
         <div class="bw-search-surface__dialog" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Search', 'bw-elementor-widgets' ); ?>">
             <div class="bw-search-surface__topbar">
-                <form class="bw-search-surface__form" data-bw-search-form>
+                <form class="bw-search-surface__form" data-bw-search-form method="get" action="<?php echo esc_url( home_url( '/search/' ) ); ?>">
                     <label class="bw-search-surface__input-shell">
                         <span class="bw-search-surface__search-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -157,10 +157,12 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                             type="search"
                             class="bw-search-surface__input"
                             data-bw-search-input
+                            name="q"
                             placeholder="<?php echo esc_attr( $placeholder ); ?>"
                             autocomplete="off"
                         />
                     </label>
+                    <input type="hidden" name="scope" value="all" data-bw-search-scope-input />
                 </form>
 
                 <div class="bw-search-surface__scope" data-bw-search-scope>

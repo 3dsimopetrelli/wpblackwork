@@ -11,12 +11,10 @@
         var baseUrl = typeof config.searchResultsUrl === 'string' && config.searchResultsUrl ? config.searchResultsUrl : '/search/';
         var url = new URL(baseUrl, window.location.origin);
 
+        url.searchParams.set('scope', scope || 'all');
+
         if (query) {
             url.searchParams.set('q', query);
-        }
-
-        if (scope && scope !== 'all') {
-            url.searchParams.set('scope', scope);
         }
 
         return url.toString();
@@ -88,6 +86,9 @@
         surfaceState.scope = scope in scopeOptions ? scope : 'all';
         surfaceState.activeGroup = 'trending';
         surfaceState.scopeCurrent.textContent = getScopeLabel(surfaceState.scope);
+        if (surfaceState.scopeInput) {
+            surfaceState.scopeInput.value = surfaceState.scope;
+        }
 
         Array.prototype.forEach.call(surfaceState.scopeMenu.querySelectorAll('[data-bw-scope-option]'), function (button) {
             var selected = button.getAttribute('data-bw-scope-option') === surfaceState.scope;
@@ -388,6 +389,7 @@
             content: surface.querySelector('[data-bw-search-content]'),
             preview: surface.querySelector('[data-bw-search-preview]'),
             title: surface.querySelector('[data-bw-search-title]'),
+            scopeInput: surface.querySelector('[data-bw-search-scope-input]'),
             scopeRoot: surface.querySelector('[data-bw-search-scope]'),
             scopeCurrent: surface.querySelector('[data-bw-scope-current]'),
             scopeMenu: surface.querySelector('[data-bw-scope-menu]'),

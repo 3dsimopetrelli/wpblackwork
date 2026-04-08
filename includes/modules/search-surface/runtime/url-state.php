@@ -177,12 +177,10 @@ function bw_ss_build_search_results_query_args( $query = '', $scope = 'all' ) {
         : sanitize_text_field( (string) $query );
     $scope = bw_ss_normalize_scope_param( $scope );
 
+    $args['scope'] = $scope;
+
     if ( '' !== $query ) {
         $args['q'] = $query;
-    }
-
-    if ( 'all' !== $scope ) {
-        $args['scope'] = $scope;
     }
 
     return $args;
