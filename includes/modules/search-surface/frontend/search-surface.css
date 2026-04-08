@@ -72,7 +72,7 @@ body.bw-search-overlay-active {
     top: 120px;
     display: flex;
     flex-direction: column;
-    width: min(96vw, 1080px);
+    width: min(96vw, 1160px);
     height: min(620px, calc(100dvh - 240px));
     margin: 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -224,10 +224,11 @@ body.bw-search-overlay-active {
 
 .bw-search-surface__body {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr) 280px;
+    grid-template-columns: 240px minmax(0, 1fr) 300px;
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
+    background: linear-gradient(180deg, rgba(30, 30, 30, 0.38) 0%, rgba(20, 20, 20, 0.24) 100%);
 }
 
 .bw-search-surface__sidebar,
@@ -240,7 +241,7 @@ body.bw-search-overlay-active {
 .bw-search-surface__sidebar {
     padding: 18px 14px 20px;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.025);
     display: grid;
     gap: 8px;
     align-content: start;
@@ -248,9 +249,9 @@ body.bw-search-overlay-active {
     overscroll-behavior: contain;
 }
 
-button.bw-search-surface__nav-item {
-    appearance: none;
-    -webkit-appearance: none;
+.bw-search-surface__sidebar button {
+    all: unset;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     width: 100%;
@@ -267,18 +268,22 @@ button.bw-search-surface__nav-item {
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-button.bw-search-surface__nav-item:hover,
-button.bw-search-surface__nav-item:focus-visible {
+.bw-search-surface__sidebar button:hover,
+.bw-search-surface__sidebar button:focus-visible {
     background: rgba(255, 255, 255, 0.06);
     color: #fafafa;
     border-color: rgba(255, 255, 255, 0.08);
     outline: none;
 }
 
-button.bw-search-surface__nav-item.is-active {
-    background: rgba(255, 255, 255, 0.11);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.12);
+.bw-search-surface__sidebar button.is-active {
+    background: #9bf833;
+    color: #111111;
+    border-color: transparent;
+}
+
+.bw-search-surface__sidebar button.is-active .bw-search-surface__nav-label {
+    color: #111111;
 }
 
 .bw-search-surface__nav-label {
@@ -294,17 +299,19 @@ button.bw-search-surface__nav-item.is-active {
     flex-direction: column;
     padding: 22px 22px 24px;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.012);
 }
 
 .bw-search-surface__section-header {
     margin-bottom: 18px;
 }
 
+.bw-search-surface__title,
 .bw-search-surface__section-title {
     margin: 0;
     font-size: 1.2rem;
     line-height: 1.2;
-    color: rgba(250, 250, 250, 0.96);
+    color: #ffffff;
 }
 
 .bw-search-surface__content {
@@ -487,21 +494,22 @@ button.bw-search-surface__nav-item.is-active {
 .bw-search-surface__preview {
     padding: 22px;
     border-left: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(255, 255, 255, 0.015);
+    background: rgba(255, 255, 255, 0.035);
     overflow: auto;
     overscroll-behavior: contain;
 }
 
 .bw-search-surface__preview-card {
     padding: 18px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .bw-search-surface__preview-title {
     margin: 0 0 10px;
     font-size: 1rem;
+    color: #ffffff;
 }
 
 .bw-search-surface__preview-copy {
@@ -512,7 +520,7 @@ button.bw-search-surface__nav-item.is-active {
 
 @media (max-width: 1180px) {
     .bw-search-surface__dialog {
-        width: min(96vw, 920px);
+        width: min(96vw, 1040px);
     }
 
     .bw-search-surface__body {
@@ -564,7 +572,7 @@ button.bw-search-surface__nav-item.is-active {
         padding: 12px 16px;
     }
 
-    .bw-search-surface__nav-item {
+    .bw-search-surface__sidebar button {
         min-height: 44px;
         padding: 0 14px;
         border-radius: 999px;
