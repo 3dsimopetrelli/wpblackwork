@@ -34,6 +34,7 @@ function bw_get_protected_redirect_route_families() {
         '/wp-admin',
         '/wp-login.php',
         '/wp-json',
+        '/search',
         '/cart',
         '/checkout',
         '/my-account',

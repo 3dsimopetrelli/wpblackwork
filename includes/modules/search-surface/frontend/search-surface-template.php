@@ -116,7 +116,7 @@ function bw_ss_enqueue_frontend_assets() {
         [
             'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
             'nonce'            => wp_create_nonce( 'bw_ss_overlay_nonce' ),
-            'searchResultsUrl' => home_url( '/search/' ),
+            'searchResultsUrl' => bw_ss_get_search_results_url(),
             'scopeOptions'     => bw_ss_get_overlay_scope_options(),
             'sidebarGroups'    => bw_ss_get_overlay_sidebar_groups_map(),
             'strings'          => [
@@ -176,7 +176,7 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
         <div class="bw-search-surface__backdrop" data-bw-search-close></div>
         <div class="bw-search-surface__dialog" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Search', 'bw-elementor-widgets' ); ?>">
             <div class="bw-search-surface__topbar">
-                <form class="bw-search-surface__form" data-bw-search-form method="get" action="<?php echo esc_url( home_url( '/search/' ) ); ?>">
+                <form class="bw-search-surface__form" data-bw-search-form method="get" action="<?php echo esc_url( bw_ss_get_search_results_url() ); ?>">
                     <label class="bw-search-surface__input-shell">
                         <span class="bw-search-surface__search-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

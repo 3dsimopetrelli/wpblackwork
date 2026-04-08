@@ -13,6 +13,27 @@ function bw_ss_get_search_results_route_path() {
     return untrailingslashit( $path );
 }
 
+function bw_ss_get_search_results_route_candidates() {
+    $candidates = [
+        bw_ss_get_search_results_route_path(),
+        '/search',
+    ];
+
+    $normalized = [];
+
+    foreach ( $candidates as $candidate ) {
+        $candidate = untrailingslashit( (string) $candidate );
+
+        if ( '' === $candidate ) {
+            $candidate = '/';
+        }
+
+        $normalized[ $candidate ] = $candidate;
+    }
+
+    return array_values( $normalized );
+}
+
 function bw_ss_get_current_request_path() {
     $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
     $request_path = wp_parse_url( (string) $request_uri, PHP_URL_PATH );
@@ -29,7 +50,7 @@ function bw_ss_is_search_results_request() {
         return false;
     }
 
-    return bw_ss_get_current_request_path() === bw_ss_get_search_results_route_path();
+    return in_array( bw_ss_get_current_request_path(), bw_ss_get_search_results_route_candidates(), true );
 }
 
 function bw_ss_normalize_scope_param( $raw_scope ) {
