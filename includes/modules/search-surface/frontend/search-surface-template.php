@@ -228,10 +228,21 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                 </aside>
 
                 <section class="bw-search-surface__main">
+                    <div class="bw-search-surface__section-header">
+                        <h2 class="bw-search-surface__section-title" data-bw-search-title><?php esc_html_e( 'Trending', 'bw-elementor-widgets' ); ?></h2>
+                    </div>
+
                     <div class="bw-search-surface__content" data-bw-search-content>
                         <div class="bw-search-surface__empty"><?php esc_html_e( 'Loading…', 'bw-elementor-widgets' ); ?></div>
                     </div>
                 </section>
+
+                <aside class="bw-search-surface__preview" data-bw-search-preview>
+                    <div class="bw-search-surface__preview-card">
+                        <h3 class="bw-search-surface__preview-title"><?php esc_html_e( 'Preview', 'bw-elementor-widgets' ); ?></h3>
+                        <p class="bw-search-surface__preview-copy"><?php esc_html_e( 'Start typing to search, or browse a group to refine the next view.', 'bw-elementor-widgets' ); ?></p>
+                    </div>
+                </aside>
             </div>
         </div>
     </div>
