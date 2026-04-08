@@ -177,75 +177,100 @@ body.bw-search-overlay-active {
     -webkit-appearance: none;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    min-height: 48px;
-    padding: 0 18px;
-    border: 0;
-    border-radius: 999px;
-    background: #84b73f;
-    color: #111;
-    font-weight: 700;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-size: 0.98rem;
+    font-weight: 600;
     cursor: pointer;
+    box-shadow: none;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
-.bw-search-surface__scope-trigger:hover {
-    background: #93c94a;
+.bw-search-surface__scope-trigger:hover,
+.bw-search-surface__scope-trigger:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    outline: none;
 }
 
 .bw-search-surface__scope-chevron {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 }
 
 .bw-search-surface__scope-menu {
     position: absolute;
     top: calc(100% + 10px);
     right: 0;
-    min-width: 220px;
+    min-width: 250px;
     display: none;
-    padding: 10px;
-    border-radius: 18px;
-    background: rgba(20, 20, 20, 0.98);
+    padding: 12px;
+    border-radius: 20px;
+    background: rgba(28, 28, 28, 0.96);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
 }
 
 .bw-search-surface__scope.is-open .bw-search-surface__scope-menu {
     display: grid;
-    gap: 6px;
+    gap: 8px;
 }
 
 .bw-search-surface__scope-option {
     appearance: none;
     -webkit-appearance: none;
-    padding: 12px 14px;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: rgba(250, 250, 250, 0.78);
+    min-height: 52px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    font-size: 0.98rem;
+    font-weight: 600;
     text-align: left;
     cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .bw-search-surface__scope-option:hover,
 .bw-search-surface__scope-option.is-selected {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
     color: var(--bw-search-surface-text) !important;
 }
 
 .bw-search-surface__close {
     appearance: none;
     -webkit-appearance: none;
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 0;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(250, 250, 250, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(250, 250, 250, 0.9);
     cursor: pointer;
+    box-shadow: none;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.bw-search-surface__close:hover,
+.bw-search-surface__close:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    outline: none;
 }
 
 .bw-search-surface__body {
@@ -582,6 +607,23 @@ body.bw-search-overlay-active {
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__empty,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__row-action {
     color: rgba(250, 250, 250, 0.64) !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger span,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger svg,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close svg {
+    color: #ffffff !important;
+    stroke: currentColor !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-trigger,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close {
+    font-family: "Inter", sans-serif !important;
+    text-decoration: none !important;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__sidebar .bw-search-surface__nav-icon,
