@@ -271,11 +271,12 @@
         surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + rows.join('') + '</div>';
     }
 
-    function renderBrowsePlaceholder(surfaceState, groupKey) {
+    function renderBrowse(surfaceState, groupKey, payload) {
         var groups = getScopeGroups(surfaceState.scope);
         var active = null;
-        var title = active ? active.label : (strings.previewTitle || 'Preview');
+        var items = payload && Array.isArray(payload.items) ? payload.items : [];
         var index;
+        var rows;
 
         for (index = 0; index < groups.length; index += 1) {
             if (groups[index].key === groupKey) {
@@ -284,14 +285,47 @@
             }
         }
 
-        title = active ? active.label : (strings.previewTitle || 'Preview');
-
         surfaceState.mode = 'browse';
         surfaceState.activeGroup = groupKey;
         renderSidebar(surfaceState);
-        setContentTitle(surfaceState, title);
-        surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.browsePlaceholder || 'Facet browsing will be expanded in the next milestone.') + '</div>';
-        renderPreview(surfaceState, title, strings.browsePlaceholder || 'Facet browsing will be expanded in the next milestone.');
+
+        if (!items.length) {
+            surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyBrowse || 'No values are available for this filter.') + '</div>';
+            return;
+        }
+
+        rows = items.map(function (item) {
+            return (
+                '<a class="bw-search-surface__facet-link" href="' + escapeHtml(item.url || '#') + '" data-bw-search-facet-link>' +
+                    '<span class="bw-search-surface__facet-label">' + escapeHtml(item.label || '') + '</span>' +
+                    '<span class="bw-search-surface__facet-count">' + escapeHtml(item.count || 0) + '</span>' +
+                '</a>'
+            );
+        }).join('');
+
+        surfaceState.content.innerHTML =
+            '<div class="bw-search-surface__facet-group">' +
+                '<div class="bw-search-surface__facet-list">' + rows + '</div>' +
+            '</div>';
+    }
+
+    function requestBrowse(surfaceState, groupKey) {
+        setLoadingState(surfaceState);
+
+        requestPayload(surfaceState, 'browse', { group: groupKey }).then(function (response) {
+            if (!response || !response.success || !response.data) {
+                renderBrowse(surfaceState, groupKey, { items: [] });
+                return;
+            }
+
+            renderBrowse(surfaceState, groupKey, response.data);
+        }).catch(function (error) {
+            if (error && error.name === 'AbortError') {
+                return;
+            }
+
+            renderBrowse(surfaceState, groupKey, { items: [] });
+        });
     }
 
     function requestPayload(surfaceState, mode, extra) {
@@ -308,6 +342,7 @@
         params.set('mode', mode);
         params.set('scope', surfaceState.scope);
         params.set('query', requestOptions.query || surfaceState.query || '');
+        params.set('group', requestOptions.group || '');
 
         return window.fetch(config.ajaxUrl, {
             method: 'POST',
@@ -462,7 +497,7 @@
                 return;
             }
 
-            renderBrowsePlaceholder(surfaceState, groupButton.getAttribute('data-bw-search-group'));
+            requestBrowse(surfaceState, groupButton.getAttribute('data-bw-search-group'));
         });
 
         surfaceState.scopeRoot.addEventListener('click', function (event) {

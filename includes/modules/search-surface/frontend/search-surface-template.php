@@ -125,6 +125,7 @@ function bw_ss_enqueue_frontend_assets() {
                 'suggestionsTitle'    => __( 'Suggested products', 'bw-elementor-widgets' ),
                 'trendingTitle'       => __( 'Trending', 'bw-elementor-widgets' ),
                 'browsePlaceholder'   => __( 'Facet browsing will be expanded in the next milestone.', 'bw-elementor-widgets' ),
+                'emptyBrowse'         => __( 'No values are available for this filter.', 'bw-elementor-widgets' ),
                 'previewTitle'        => __( 'Preview', 'bw-elementor-widgets' ),
                 'previewBody'         => __( 'Start typing to search, or browse a group to refine the next view.', 'bw-elementor-widgets' ),
                 'emptySuggestions'    => __( 'No matching products found.', 'bw-elementor-widgets' ),

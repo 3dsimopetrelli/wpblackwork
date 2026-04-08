@@ -105,11 +105,16 @@ function bw_ss_normalize_headless_product_grid_settings( $settings = [] ) {
 }
 
 function bw_ss_build_headless_product_grid_request( $state, $settings, $page = null ) {
-    $page            = null === $page ? (int) $state['page'] : max( 1, (int) $page );
-    $per_page        = (int) $settings['per_page'];
-    $offset          = $page > 1 ? $per_page * ( $page - 1 ) : 0;
-    $advanced_author = isset( $state['advanced']['author'] ) ? wp_list_pluck( (array) $state['advanced']['author'], 'label' ) : [];
-    $advanced_source = isset( $state['advanced']['source'] ) ? wp_list_pluck( (array) $state['advanced']['source'], 'label' ) : [];
+    $page                = null === $page ? (int) $state['page'] : max( 1, (int) $page );
+    $per_page            = (int) $settings['per_page'];
+    $offset              = $page > 1 ? $per_page * ( $page - 1 ) : 0;
+    $advanced_artist     = isset( $state['advanced']['artist'] ) ? wp_list_pluck( (array) $state['advanced']['artist'], 'label' ) : [];
+    $advanced_author     = isset( $state['advanced']['author'] ) ? wp_list_pluck( (array) $state['advanced']['author'], 'label' ) : [];
+    $advanced_publisher  = isset( $state['advanced']['publisher'] ) ? wp_list_pluck( (array) $state['advanced']['publisher'], 'label' ) : [];
+    $advanced_source     = isset( $state['advanced']['source'] ) ? wp_list_pluck( (array) $state['advanced']['source'], 'label' ) : [];
+    $advanced_technique  = isset( $state['advanced']['technique'] ) ? wp_list_pluck( (array) $state['advanced']['technique'], 'label' ) : [];
+    $year_from           = isset( $state['year']['from'] ) ? $state['year']['from'] : null;
+    $year_to             = isset( $state['year']['to'] ) ? $state['year']['to'] : null;
 
     return bw_fpw_build_engine_request(
         [
@@ -117,10 +122,16 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
             'post_type'       => $settings['post_type'],
             'context_slug'    => $state['context_slug'],
             'category'        => $state['category'],
+            'tags'            => isset( $state['tags'] ) ? (array) $state['tags'] : [],
             'search_enabled'  => 'yes',
             'search'          => $state['query'],
+            'artist'          => $advanced_artist,
             'author'          => $advanced_author,
+            'publisher'       => $advanced_publisher,
             'source'          => $advanced_source,
+            'technique'       => $advanced_technique,
+            'year_from'       => $year_from,
+            'year_to'         => $year_to,
             'image_toggle'    => 'yes',
             'image_size'      => $settings['image_size'],
             'image_mode'      => $settings['image_mode'],
@@ -180,14 +191,17 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
             'category'      => $state['category'],
             'search'        => $state['query'],
             'subcategories' => [],
-            'tags'          => [],
-            'year'          => [ 'from' => null, 'to' => null ],
+            'tags'          => isset( $state['tags'] ) ? array_values( array_map( 'absint', (array) $state['tags'] ) ) : [],
+            'year'          => [
+                'from' => isset( $state['year']['from'] ) ? $state['year']['from'] : null,
+                'to'   => isset( $state['year']['to'] ) ? $state['year']['to'] : null,
+            ],
             'advanced'      => [
-                'artist'    => [],
+                'artist'    => isset( $state['advanced']['artist'] ) ? wp_list_pluck( (array) $state['advanced']['artist'], 'value' ) : [],
                 'author'    => isset( $state['advanced']['author'] ) ? wp_list_pluck( (array) $state['advanced']['author'], 'value' ) : [],
-                'publisher' => [],
+                'publisher' => isset( $state['advanced']['publisher'] ) ? wp_list_pluck( (array) $state['advanced']['publisher'], 'value' ) : [],
                 'source'    => isset( $state['advanced']['source'] ) ? wp_list_pluck( (array) $state['advanced']['source'], 'value' ) : [],
-                'technique' => [],
+                'technique' => isset( $state['advanced']['technique'] ) ? wp_list_pluck( (array) $state['advanced']['technique'], 'value' ) : [],
             ],
         ],
     ];
