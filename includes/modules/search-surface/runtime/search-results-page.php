@@ -48,6 +48,7 @@ function bw_ss_get_search_results_render_settings() {
             'post_type'            => 'product',
             'desktop_filter_groups'=> [ 'types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years' ],
             'desktop_filter_order' => [ 'types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years' ],
+            'search_placeholder'   => __( 'Search in products...', 'bw-elementor-widgets' ),
         ]
     );
 }

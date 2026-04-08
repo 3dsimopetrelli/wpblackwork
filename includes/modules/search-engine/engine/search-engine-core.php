@@ -5,6 +5,8 @@ if (!defined('ABSPATH')) {
 
 function bw_fpw_execute_search(array $request): array
 {
+    $request_profile = isset($request['request_profile']) ? bw_fpw_normalize_request_profile($request['request_profile']) : 'full';
+    $request['request_profile'] = $request_profile;
     $sort_config = bw_fpw_resolve_sort_config(
         $request['sort_key'],
         $request['default_order_by'],
@@ -44,13 +46,14 @@ function bw_fpw_execute_search(array $request): array
     }
 
     $query_args = bw_fpw_build_engine_query_args($request, $sort_config, $is_append);
+    $is_suggest = 'suggest' === $request_profile;
     $base_candidate_post_ids = [];
     $final_candidate_post_ids = [];
     $filter_ui_candidate_post_ids = null;
     $php_sort_result_count = null;
     $has_active_advanced_filters = bw_fpw_has_active_advanced_filter_selections($request['advanced_filters']);
     $supports_advanced_filters = !empty(bw_fpw_get_supported_advanced_filter_groups_for_context($effective_context_slug));
-    $should_build_filter_ui = !$is_append;
+    $should_build_filter_ui = !$is_append && !$is_suggest;
     $needs_refined_advanced_filter_scope = $should_build_filter_ui
         && $supports_advanced_filters
         && (
@@ -109,6 +112,10 @@ function bw_fpw_execute_search(array $request): array
                 );
             }
         }
+    }
+
+    if ($is_suggest) {
+        $query_args['no_found_rows'] = true;
     }
 
     $use_php_year_sort = 'year_int' === $request['effective_order_by']
@@ -218,6 +225,8 @@ function bw_fpw_execute_search(array $request): array
 
     if (null !== $php_sort_result_count) {
         $result_count = $php_sort_result_count;
+    } elseif ($is_suggest) {
+        $result_count = null;
     } else {
         $result_count = $is_append ? null : (int) $query->found_posts;
     }

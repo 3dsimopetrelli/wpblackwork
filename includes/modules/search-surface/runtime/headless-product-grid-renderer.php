@@ -3,6 +3,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+function bw_ss_get_empty_state_message( $search_query = '' ) {
+    $search_query = trim( (string) $search_query );
+
+    if ( '' !== $search_query ) {
+        return __( 'No results found.', 'bw-elementor-widgets' );
+    }
+
+    return __( 'There is nothing in this archive yet.', 'bw-elementor-widgets' );
+}
+
 function bw_ss_get_default_headless_product_grid_settings() {
     return [
         // Temporary parity defaults for Milestone 1 until Search admin settings exist.
@@ -44,6 +54,7 @@ function bw_ss_get_default_headless_product_grid_settings() {
         'default_order'               => 'DESC',
         'infinite_enabled'            => true,
         'load_trigger_offset'         => 300,
+        'search_placeholder'          => __( 'Search in collections...', 'bw-elementor-widgets' ),
     ];
 }
 
@@ -88,6 +99,7 @@ function bw_ss_normalize_headless_product_grid_settings( $settings = [] ) {
     $settings['default_order']                = function_exists( 'bw_fpw_normalize_order' ) ? bw_fpw_normalize_order( $settings['default_order'] ) : 'DESC';
     $settings['infinite_enabled']             = ! empty( $settings['infinite_enabled'] );
     $settings['load_trigger_offset']          = max( 0, absint( $settings['load_trigger_offset'] ) );
+    $settings['search_placeholder']           = sanitize_text_field( (string) $settings['search_placeholder'] );
 
     return $settings;
 }
@@ -120,6 +132,7 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
             'per_page'        => $per_page,
             'page'            => $page,
             'offset'          => $offset,
+            'request_profile' => 'full',
         ]
     );
 }
@@ -155,6 +168,8 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
         'show_visible_filters' => ! empty( $settings['show_visible_filters'] ),
         'order_trigger_style'  => $settings['order_trigger_style'],
         'default_sort_key'     => $settings['default_sort_key'],
+        // "mixed" here is UI metadata only; engine requests already normalize
+        // All scope to an explicit empty context slug at the consumer boundary.
         'context'              => $state['context_slug'] ? $state['context_slug'] : 'mixed',
         'types'                => isset( $filter_ui['types'] ) && is_array( $filter_ui['types'] ) ? array_values( $filter_ui['types'] ) : [],
         'tags'                 => isset( $filter_ui['tags'] ) && is_array( $filter_ui['tags'] ) ? array_values( $filter_ui['tags'] ) : [],
@@ -183,7 +198,7 @@ function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id,
     $drawer_title          = __( 'Filters', 'bw-elementor-widgets' );
     $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
     $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
-    $global_search_label   = __( 'Search in collections...', 'bw-elementor-widgets' );
+    $global_search_label   = $settings['search_placeholder'];
     $reset_filters_label   = __( 'Reset filters', 'bw-elementor-widgets' );
     $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
     $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
@@ -309,7 +324,7 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
         ob_start();
         ?>
         <div class="bw-fpw-empty-state">
-            <p class="bw-fpw-empty-message"><?php echo esc_html( bw_fpw_get_empty_state_message( [], [], $state['query'] ) ); ?></p>
+            <p class="bw-fpw-empty-message"><?php echo esc_html( bw_ss_get_empty_state_message( $state['query'] ) ); ?></p>
             <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                 <?php esc_html_e( 'RESET FILTERS', 'bw-elementor-widgets' ); ?>
             </button>
@@ -407,7 +422,7 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
     ?>
     <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
         <div class="bw-search-results-page__header">
-            <div class="bw-search-results-page__chips bw-fpw-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <div class="bw-search-results-page__chips">
                 <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
             </div>
         </div>

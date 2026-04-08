@@ -67,13 +67,16 @@ function bw_ss_get_scope_label( $scope ) {
 }
 
 function bw_ss_get_scope_context_slug( $scope ) {
-    return 'all' === $scope ? 'mixed' : $scope;
+    // "All" is the explicit mixed-mode boundary for Search Surface consumers:
+    // pass an empty engine context slug instead of relying on implicit mixed->''
+    // conversion later in the stack.
+    return 'all' === $scope ? '' : $scope;
 }
 
 function bw_ss_get_scope_default_category( $scope ) {
     $context_slug = bw_ss_get_scope_context_slug( $scope );
 
-    if ( 'mixed' === $context_slug || '' === $context_slug ) {
+    if ( '' === $context_slug ) {
         return 'all';
     }
 
@@ -165,6 +168,28 @@ function bw_ss_get_search_results_url( $args = [] ) {
     );
 
     return empty( $args ) ? $base_url : add_query_arg( $args, $base_url );
+}
+
+function bw_ss_build_search_results_query_args( $query = '', $scope = 'all' ) {
+    $args  = [];
+    $query = function_exists( 'bw_fpw_normalize_search_query' )
+        ? bw_fpw_normalize_search_query( $query )
+        : sanitize_text_field( (string) $query );
+    $scope = bw_ss_normalize_scope_param( $scope );
+
+    if ( '' !== $query ) {
+        $args['q'] = $query;
+    }
+
+    if ( 'all' !== $scope ) {
+        $args['scope'] = $scope;
+    }
+
+    return $args;
+}
+
+function bw_ss_build_search_results_navigation_url( $query = '', $scope = 'all' ) {
+    return bw_ss_get_search_results_url( bw_ss_build_search_results_query_args( $query, $scope ) );
 }
 
 function bw_ss_build_active_chip_links( $state ) {
