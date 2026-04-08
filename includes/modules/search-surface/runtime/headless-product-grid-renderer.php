@@ -207,15 +207,15 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
     ];
 }
 
-function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload ) {
+function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload, $active_chips = [] ) {
     $default_category  = $state['category'];
     $sort_chevron_html     = '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
     $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
     ?>
     <div class="bw-fpw-discovery-toolbar bw-fpw-discovery-toolbar--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-        <div class="bw-fpw-discovery-toolbar__controls bw-fpw-discovery-toolbar__controls--search-results">
-            <div class="bw-fpw-visible-filters bw-fpw-visible-filters--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo ! empty( $settings['show_visible_filters'] ) ? 'false' : 'true'; ?>"></div>
+        <div class="bw-fpw-visible-filters bw-fpw-visible-filters--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo ! empty( $settings['show_visible_filters'] ) ? 'false' : 'true'; ?>"></div>
 
+        <div class="bw-fpw-discovery-toolbar__controls bw-fpw-discovery-toolbar__controls--search-results">
             <?php if ( ! empty( $settings['show_order_by'] ) ) : ?>
                 <div class="bw-fpw-sort bw-fpw-sort--<?php echo esc_attr( $settings['order_trigger_style'] ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                     <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--<?php echo esc_attr( $settings['order_trigger_style'] ); ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
@@ -237,7 +237,9 @@ function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id,
             <?php endif; ?>
         </div>
 
-        <div class="bw-fpw-active-chips bw-fpw-quick-filters bw-fpw-quick-filters--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+        <div class="bw-fpw-active-chips bw-fpw-quick-filters bw-fpw-quick-filters--search-results<?php echo empty( $active_chips ) ? ' is-empty' : ''; ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
+        </div>
     </div>
 
     <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
@@ -378,15 +380,7 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
     <div class="bw-search-results-page__grid elementor-widget elementor-widget-bw-product-grid">
         <div class="elementor-widget-container">
             <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
-                <?php if ( ! empty( $active_chips ) ) : ?>
-                <div class="bw-search-results-page__header">
-                    <div class="bw-search-results-page__chips">
-                        <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <?php bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload ); ?>
+                <?php bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload, $active_chips ); ?>
 
                 <div class="bw-product-grid" style="<?php echo esc_attr( $wrapper_style ); ?>" data-disable-hover-on-touch="<?php echo esc_attr( $settings['disable_hover_on_touch'] ? 'yes' : 'no' ); ?>">
                     <div<?php echo $grid_attr_html; ?>>
