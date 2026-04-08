@@ -46,6 +46,11 @@ function bw_ss_get_search_results_render_settings() {
         [
             'widget_id'            => 'bw-search-results-grid',
             'post_type'            => 'product',
+            'show_description'     => false,
+            'show_search'          => false,
+            'show_order_by'        => true,
+            'show_desktop_filter_icon' => false,
+            'order_trigger_style'  => 'dropdown',
             'desktop_filter_groups'=> [ 'types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years' ],
             'desktop_filter_order' => [ 'types', 'tags', 'artist', 'author', 'publisher', 'source', 'technique', 'years' ],
             'search_placeholder'   => __( 'Search in products...', 'bw-elementor-widgets' ),
@@ -71,13 +76,21 @@ function bw_ss_render_search_results_page() {
         $wp_query->is_page   = true;
     }
 
+    $result_count = isset( $render_result['requested_result']['result_count'] ) ? (int) $render_result['requested_result']['result_count'] : 0;
+    $result_label = sprintf(
+        /* translators: %s is the result count. */
+        _n( '%s result', '%s results', $result_count, 'bw-elementor-widgets' ),
+        number_format_i18n( $result_count )
+    );
+
     status_header( 200 );
     get_header();
     ?>
-    <main id="primary" class="site-main bw-search-results-page__main">
+    <main id="primary" class="site-main entry-content bw-search-results-page__main">
         <div class="bw-search-results-page__container">
             <header class="bw-search-results-page__titlebar">
                 <h1 class="bw-search-results-page__title"><?php echo esc_html( $title ); ?></h1>
+                <p class="bw-search-results-page__result-count"><?php echo esc_html( $result_label ); ?></p>
             </header>
 
             <?php echo $render_result['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
