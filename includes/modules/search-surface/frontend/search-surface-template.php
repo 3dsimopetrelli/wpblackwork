@@ -200,7 +200,7 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                         <span data-bw-scope-current><?php echo esc_html( $scope_label ); ?></span>
                         <span class="bw-search-surface__scope-chevron" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 9L12 15L18 9"></path>
+                                <path d="m6 9 6 6 6-6"></path>
                             </svg>
                         </span>
                     </button>
@@ -216,8 +216,8 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
 
                 <button class="bw-search-surface__close" type="button" data-bw-search-close aria-label="<?php esc_attr_e( 'Close search', 'bw-elementor-widgets' ); ?>">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 6L18 18"></path>
-                        <path d="M18 6L6 18"></path>
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
                     </svg>
                 </button>
             </div>
