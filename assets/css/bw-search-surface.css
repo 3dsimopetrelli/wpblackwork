@@ -5,6 +5,10 @@
    All rules are scoped to .bw-search-results-page (added by bw_ss_filter_search_results_body_class)
    to prevent any leakage to other page types. */
 
+.bw-search-results-page {
+    --bw-search-results-inline-gutter: 32px;
+}
+
 /* ── Main container: strip the theme's .site-main max-width / padding ── */
 .bw-search-results-page .bw-search-results-page__main {
     max-width: none !important;
@@ -22,7 +26,7 @@
 
 /* ── Title bar ── */
 .bw-search-results-page .bw-search-results-page__titlebar {
-    padding: 40px 40px 0;
+    padding: 0 var(--bw-search-results-inline-gutter) 0;
     box-sizing: border-box;
 }
 
@@ -60,7 +64,7 @@
 
 /* ── Active chips strip (server-rendered remove-filter links) ── */
 .bw-search-results-page .bw-fpw-active-chips {
-    padding: 12px 40px 0;
+    padding: 12px var(--bw-search-results-inline-gutter) 0;
     box-sizing: border-box;
 }
 
@@ -74,5 +78,17 @@
 
 /* ── Add top breathing room between title/chips and the grid toolbar ── */
 .bw-search-results-page .bw-product-grid-wrapper {
-    padding-top: 32px;
+    padding-top: 24px;
+}
+
+@media (max-width: 1024px) {
+    .bw-search-results-page {
+        --bw-search-results-inline-gutter: 24px;
+    }
+}
+
+@media (max-width: 767px) {
+    .bw-search-results-page {
+        --bw-search-results-inline-gutter: 20px;
+    }
 }
