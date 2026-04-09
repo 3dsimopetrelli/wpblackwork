@@ -453,6 +453,7 @@ function bw_fpw_build_engine_request(array $source = [])
         'search_enabled' => $search_enabled,
         'search' => $search,
         'request_profile' => $request_profile,
+        'include_filter_ui' => bw_fpw_normalize_bool(isset($source['include_filter_ui']) ? wp_unslash($source['include_filter_ui']) : null, false),
         'year_from' => $normalized_year_range['from'],
         'year_to' => $normalized_year_range['to'],
         'advanced_filters' => bw_fpw_normalize_advanced_filter_selections([

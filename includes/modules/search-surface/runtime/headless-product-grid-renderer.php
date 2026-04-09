@@ -184,6 +184,7 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
             'page'            => $page,
             'offset'          => $offset,
             'request_profile' => 'full',
+            'include_filter_ui' => $page > 1,
         ]
     );
 }
@@ -191,19 +192,12 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
 function bw_ss_get_headless_product_grid_results( $state, $settings ) {
     $requested_request = bw_ss_build_headless_product_grid_request( $state, $settings, (int) $state['page'] );
     $requested_result  = bw_fpw_execute_search( $requested_request );
-    $ui_request        = $requested_request;
-    $ui_result         = $requested_result;
-
-    if ( (int) $state['page'] > 1 ) {
-        $ui_request = bw_ss_build_headless_product_grid_request( $state, $settings, 1 );
-        $ui_result  = bw_fpw_execute_search( $ui_request );
-    }
 
     return [
         'requested_request' => $requested_request,
         'requested_result'  => $requested_result,
-        'ui_request'        => $ui_request,
-        'ui_result'         => $ui_result,
+        'ui_request'        => $requested_request,
+        'ui_result'         => $requested_result,
     ];
 }
 

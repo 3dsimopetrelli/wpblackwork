@@ -23,6 +23,7 @@ function bw_fpw_execute_search(array $request): array
     }
 
     $is_append = ($request['page'] > 1 || $request['offset'] > 0);
+    $force_filter_ui = !empty($request['include_filter_ui']) && 'suggest' !== $request_profile;
     $effective_context_slug = $request['context_slug'];
 
     if ('' === $effective_context_slug && 'product' === $request['post_type'] && 'all' !== $request['category']) {
@@ -53,7 +54,7 @@ function bw_fpw_execute_search(array $request): array
     $php_sort_result_count = null;
     $has_active_advanced_filters = bw_fpw_has_active_advanced_filter_selections($request['advanced_filters']);
     $supports_advanced_filters = !empty(bw_fpw_get_supported_advanced_filter_groups_for_context($effective_context_slug));
-    $should_build_filter_ui = !$is_append && !$is_suggest;
+    $should_build_filter_ui = !$is_suggest && (!$is_append || $force_filter_ui);
     $needs_refined_advanced_filter_scope = $should_build_filter_ui
         && $supports_advanced_filters
         && (
@@ -228,7 +229,7 @@ function bw_fpw_execute_search(array $request): array
     } elseif ($is_suggest) {
         $result_count = null;
     } else {
-        $result_count = $is_append ? null : (int) $query->found_posts;
+        $result_count = ($is_append && !$should_build_filter_ui) ? null : (int) $query->found_posts;
     }
 
     $result = [
@@ -247,7 +248,7 @@ function bw_fpw_execute_search(array $request): array
         'effective_context_slug' => $effective_context_slug,
     ];
 
-    if (!$is_append) {
+    if ($should_build_filter_ui) {
         $result = array_merge(
             $result,
             bw_fpw_build_filter_ui_payload(
