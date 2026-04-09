@@ -609,7 +609,7 @@ body.bw-fpw-drawer-no-scroll {
   flex-direction: column;
   align-items: flex-end;
   justify-content: flex-start;
-  gap: 4px;
+  gap: 14px;
   flex-wrap: nowrap;
   text-align: right;
 }
