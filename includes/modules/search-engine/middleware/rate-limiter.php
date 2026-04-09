@@ -58,6 +58,89 @@ function bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint)
     return 'bw_fpw_rl_' . md5((string) $action_key . '|' . (string) $fingerprint);
 }
 
+function bw_fpw_get_rate_limit_cache_group()
+{
+    return 'bw_fpw_rate_limit';
+}
+
+function bw_fpw_get_rate_limit_cached_value($key, &$found = false)
+{
+    if (wp_using_ext_object_cache()) {
+        $value = wp_cache_get($key, bw_fpw_get_rate_limit_cache_group(), false, $found);
+        return $value;
+    }
+
+    $found = false;
+    $value = get_transient($key);
+
+    if (false !== $value) {
+        $found = true;
+    }
+
+    return $value;
+}
+
+function bw_fpw_set_rate_limit_cached_value($key, $value, $ttl)
+{
+    $ttl = max(1, (int) $ttl);
+
+    if (wp_using_ext_object_cache()) {
+        return wp_cache_set($key, $value, bw_fpw_get_rate_limit_cache_group(), $ttl);
+    }
+
+    return set_transient($key, $value, $ttl);
+}
+
+function bw_fpw_add_rate_limit_cached_value($key, $value, $ttl)
+{
+    $ttl = max(1, (int) $ttl);
+
+    if (wp_using_ext_object_cache()) {
+        return wp_cache_add($key, $value, bw_fpw_get_rate_limit_cache_group(), $ttl);
+    }
+
+    if (false !== get_transient($key)) {
+        return false;
+    }
+
+    return set_transient($key, $value, $ttl);
+}
+
+function bw_fpw_increment_rate_limit_cached_counter($key, $ttl)
+{
+    $ttl = max(1, (int) $ttl);
+
+    if (!wp_using_ext_object_cache()) {
+        $bucket = get_transient($key);
+
+        if (!is_array($bucket) || !isset($bucket['count'])) {
+            $bucket = ['count' => 0];
+        }
+
+        $bucket['count'] = (int) $bucket['count'] + 1;
+        set_transient($key, $bucket, $ttl);
+
+        return (int) $bucket['count'];
+    }
+
+    if (bw_fpw_add_rate_limit_cached_value($key, 1, $ttl)) {
+        return 1;
+    }
+
+    $count = wp_cache_incr($key, 1, bw_fpw_get_rate_limit_cache_group());
+
+    if (false !== $count) {
+        return (int) $count;
+    }
+
+    $found = false;
+    $existing = bw_fpw_get_rate_limit_cached_value($key, $found);
+    $count = $found ? ((int) $existing + 1) : 1;
+    bw_fpw_set_rate_limit_cached_value($key, $count, $ttl);
+
+    return $count;
+}
+
 function bw_fpw_get_rate_limit_cookie_state_result($fingerprint, $window_seconds)
 {
     $cookie_name = bw_fpw_get_rate_limit_cookie_name();
@@ -130,16 +213,7 @@ function bw_fpw_get_rate_limit_cookie_state_result($fingerprint, $window_seconds
 function bw_fpw_increment_rate_limit_server_counter($action_key, $fingerprint, $window_seconds)
 {
     $transient_key = bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint);
-    $bucket = get_transient($transient_key);
-
-    if (!is_array($bucket) || !isset($bucket['count'])) {
-        $bucket = ['count' => 0];
-    }
-
-    $bucket['count'] = (int) $bucket['count'] + 1;
-    set_transient($transient_key, $bucket, max(1, (int) $window_seconds));
-
-    return (int) $bucket['count'];
+    return bw_fpw_increment_rate_limit_cached_counter($transient_key, $window_seconds);
 }
 
 function bw_fpw_set_rate_limit_cookie_state($fingerprint, $window_seconds, $state)
@@ -188,17 +262,10 @@ function bw_fpw_is_throttled_request($action_key)
 
     if ($is_logged_in) {
         $fingerprint = 'u' . get_current_user_id();
-        $transient_key = 'bw_fpw_rl_' . md5($action_key . '|' . $fingerprint);
-        $bucket = get_transient($transient_key);
+        $transient_key = bw_fpw_get_rate_limit_counter_transient_key($action_key, $fingerprint);
+        $count = bw_fpw_increment_rate_limit_cached_counter($transient_key, (int) $config['window']);
 
-        if (!is_array($bucket) || !isset($bucket['count'])) {
-            $bucket = ['count' => 0];
-        }
-
-        $bucket['count'] = (int) $bucket['count'] + 1;
-        set_transient($transient_key, $bucket, (int) $config['window']);
-
-        return $bucket['count'] > (int) $config['limit'];
+        return $count > (int) $config['limit'];
     }
 
     $fingerprint = bw_fpw_get_request_fingerprint();
@@ -208,7 +275,10 @@ function bw_fpw_is_throttled_request($action_key)
     $cookie_state = isset($cookie_result['state']) && is_array($cookie_result['state']) ? $cookie_result['state'] : [];
     $current_window_start = (int) (floor(time() / $window_seconds) * $window_seconds);
 
-    if (false !== get_transient($block_key)) {
+    $is_blocked = false;
+    bw_fpw_get_rate_limit_cached_value($block_key, $is_blocked);
+
+    if ($is_blocked) {
         return true;
     }
 
@@ -228,7 +298,7 @@ function bw_fpw_is_throttled_request($action_key)
 
         if ($server_count > (int) $config['limit']) {
             $ttl = max(1, ($current_window_start + $window_seconds) - time());
-            set_transient($block_key, 1, $ttl);
+            bw_fpw_set_rate_limit_cached_value($block_key, 1, $ttl);
 
             return true;
         }
@@ -245,7 +315,7 @@ function bw_fpw_is_throttled_request($action_key)
 
         if ($server_count > (int) $config['limit']) {
             $ttl = max(1, ($current_window_start + $window_seconds) - time());
-            set_transient($block_key, 1, $ttl);
+            bw_fpw_set_rate_limit_cached_value($block_key, 1, $ttl);
 
             return true;
         }
@@ -255,7 +325,7 @@ function bw_fpw_is_throttled_request($action_key)
 
     if ((int) $counts[$action_key] > (int) $config['limit']) {
         $ttl = max(1, ($current_window_start + $window_seconds) - time());
-        set_transient($block_key, 1, $ttl);
+        bw_fpw_set_rate_limit_cached_value($block_key, 1, $ttl);
 
         return true;
     }
