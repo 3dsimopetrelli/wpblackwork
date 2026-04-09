@@ -8,10 +8,17 @@ function bw_ss_maybe_enqueue_search_results_assets() {
         return;
     }
 
-    // The virtual /search/ route has no WP post, so Elementor does not automatically
-    // bootstrap frontend kit/global styles for this request.
+    // The virtual /search/ route bypasses the normal template_include + builder-content
+    // flow, so we need to explicitly enqueue both Elementor frontend base styles and
+    // the active kit CSS that defines the global typography/color variables used by the page.
     if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->frontend ) ) {
-        \Elementor\Plugin::$instance->frontend->enqueue_styles();
+        $elementor = \Elementor\Plugin::$instance;
+
+        $elementor->frontend->enqueue_styles();
+
+        if ( isset( $elementor->kits_manager ) && method_exists( $elementor->kits_manager, 'frontend_before_enqueue_styles' ) ) {
+            $elementor->kits_manager->frontend_before_enqueue_styles();
+        }
 
         if ( wp_style_is( 'elementor-frontend', 'registered' ) ) {
             wp_enqueue_style( 'elementor-frontend' );
