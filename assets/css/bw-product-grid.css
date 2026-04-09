@@ -552,13 +552,12 @@ body.bw-fpw-drawer-no-scroll {
   position: relative;
   z-index: 30;
   isolation: isolate;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas:
-    "summary summary"
-    "visible controls"
-    "quick quick";
-  align-items: start;
-  column-gap: 24px;
+    "visible summary controls"
+    "quick quick quick";
+  align-items: center;
+  column-gap: 16px;
   row-gap: 16px;
   margin: 0 0 24px 0;
 }
@@ -567,21 +566,25 @@ body.bw-fpw-drawer-no-scroll {
   grid-area: summary;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 16px;
   flex-wrap: wrap;
+  justify-self: end;
+  align-self: center;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls {
   grid-area: controls;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   gap: 12px;
   align-self: center;
-  width: 100%;
+  width: auto;
   min-width: 0;
+  border-left: 1px solid rgba(17, 17, 17, 0.14);
+  padding-left: 16px;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filters {
@@ -603,10 +606,12 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 4px;
+  flex-wrap: nowrap;
+  text-align: right;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-result-count {
@@ -1967,6 +1972,21 @@ body.bw-fpw-drawer-no-scroll {
     align-self: stretch;
     width: 100%;
     max-width: none;
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__summary {
+    justify-self: stretch;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-meta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    text-align: left;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls > * {
