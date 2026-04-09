@@ -153,6 +153,56 @@ function bw_ss_parse_query_value_list( $raw_value ) {
     return array_values( array_unique( $results ) );
 }
 
+function bw_ss_sanitize_query_arg_text_value( $raw_value ) {
+    if ( is_array( $raw_value ) ) {
+        return '';
+    }
+
+    return sanitize_text_field( wp_unslash( (string) $raw_value ) );
+}
+
+function bw_ss_sanitize_query_arg_list_value( $raw_value ) {
+    if ( is_array( $raw_value ) ) {
+        return array_values(
+            array_filter(
+                array_map( 'sanitize_text_field', wp_unslash( $raw_value ) ),
+                static function ( $value ) {
+                    return '' !== trim( (string) $value );
+                }
+            )
+        );
+    }
+
+    return sanitize_text_field( wp_unslash( (string) $raw_value ) );
+}
+
+function bw_ss_sanitize_current_query_arg_value( $key, $raw_value ) {
+    $key = sanitize_key( (string) $key );
+
+    switch ( $key ) {
+        case 'scope':
+            return sanitize_key( bw_ss_sanitize_query_arg_text_value( $raw_value ) );
+        case 'page':
+            return max( 1, absint( bw_ss_sanitize_query_arg_text_value( $raw_value ) ) );
+        case 'year':
+        case 'q':
+        case 'category':
+            return bw_ss_sanitize_query_arg_text_value( $raw_value );
+        case 'tag':
+        case 'tags':
+        case 'artist':
+        case 'author':
+        case 'publisher':
+        case 'source':
+        case 'technique':
+            return bw_ss_sanitize_query_arg_list_value( $raw_value );
+        default:
+            return is_array( $raw_value )
+                ? array_map( 'sanitize_text_field', wp_unslash( $raw_value ) )
+                : sanitize_text_field( wp_unslash( (string) $raw_value ) );
+    }
+}
+
 function bw_ss_build_filter_value_slug( $value ) {
     return sanitize_title( remove_accents( sanitize_text_field( (string) $value ) ) );
 }
@@ -292,7 +342,7 @@ function bw_ss_get_current_query_args() {
             continue;
         }
 
-        $query_args[ $sanitized_key ] = $value;
+        $query_args[ $sanitized_key ] = bw_ss_sanitize_current_query_arg_value( $sanitized_key, $value );
     }
 
     return $query_args;

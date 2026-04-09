@@ -3,6 +3,48 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+function bw_ss_get_active_elementor_search_results_kit_id() {
+    if (
+        ! class_exists( '\Elementor\Plugin' ) ||
+        ! isset( \Elementor\Plugin::$instance->kits_manager ) ||
+        ! method_exists( \Elementor\Plugin::$instance->kits_manager, 'get_kit_for_frontend' )
+    ) {
+        return 0;
+    }
+
+    $kit = \Elementor\Plugin::$instance->kits_manager->get_kit_for_frontend();
+
+    if ( ! $kit || ! method_exists( $kit, 'get_main_id' ) ) {
+        return 0;
+    }
+
+    return absint( $kit->get_main_id() );
+}
+
+function bw_ss_maybe_enqueue_elementor_search_results_kit_css( $kit_id ) {
+    $kit_id = absint( $kit_id );
+
+    if ( $kit_id <= 0 ) {
+        return;
+    }
+
+    $kit_style_handle = 'elementor-post-' . $kit_id;
+
+    if ( wp_style_is( $kit_style_handle, 'enqueued' ) ) {
+        return;
+    }
+
+    if ( wp_style_is( $kit_style_handle, 'registered' ) ) {
+        wp_enqueue_style( $kit_style_handle );
+        return;
+    }
+
+    if ( class_exists( '\Elementor\Core\Files\CSS\Post' ) ) {
+        $kit_css = new \Elementor\Core\Files\CSS\Post( $kit_id );
+        $kit_css->enqueue();
+    }
+}
+
 function bw_ss_maybe_enqueue_search_results_assets() {
     if ( ! bw_ss_is_search_results_request() ) {
         return;
@@ -13,6 +55,7 @@ function bw_ss_maybe_enqueue_search_results_assets() {
     // the active kit CSS that defines the global typography/color variables used by the page.
     if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->frontend ) ) {
         $elementor = \Elementor\Plugin::$instance;
+        $kit_id    = bw_ss_get_active_elementor_search_results_kit_id();
 
         $elementor->frontend->enqueue_styles();
 
@@ -23,6 +66,11 @@ function bw_ss_maybe_enqueue_search_results_assets() {
         if ( wp_style_is( 'elementor-frontend', 'registered' ) ) {
             wp_enqueue_style( 'elementor-frontend' );
         }
+
+        // The /search/ page does not pass through Elementor's normal template flow, so
+        // keep the active kit handle explicit and verifiable here in case future runtime
+        // changes stop enqueueing it indirectly.
+        bw_ss_maybe_enqueue_elementor_search_results_kit_css( $kit_id );
     }
 
     if ( function_exists( 'bw_enqueue_product_grid_widget_assets' ) ) {
@@ -59,16 +107,10 @@ function bw_ss_get_elementor_search_results_body_classes() {
     }
 
     $classes = [ 'elementor-default' ];
+    $kit_id  = bw_ss_get_active_elementor_search_results_kit_id();
 
-    if (
-        isset( \Elementor\Plugin::$instance->kits_manager ) &&
-        method_exists( \Elementor\Plugin::$instance->kits_manager, 'get_kit_for_frontend' )
-    ) {
-        $kit = \Elementor\Plugin::$instance->kits_manager->get_kit_for_frontend();
-
-        if ( $kit && method_exists( $kit, 'get_main_id' ) ) {
-            $classes[] = 'elementor-kit-' . absint( $kit->get_main_id() );
-        }
+    if ( $kit_id > 0 ) {
+        $classes[] = 'elementor-kit-' . $kit_id;
     }
 
     return array_values( array_unique( array_filter( $classes ) ) );
