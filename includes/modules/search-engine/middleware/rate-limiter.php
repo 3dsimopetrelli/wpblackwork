@@ -19,12 +19,14 @@ function bw_fpw_get_rate_limit_config($action_key, $is_logged_in)
             'bw_fpw_get_subcategories' => ['limit' => 300, 'window' => 60],
             'bw_fpw_get_tags' => ['limit' => 300, 'window' => 60],
             'bw_fpw_filter_posts' => ['limit' => 200, 'window' => 60],
+            'bw_header_live_search' => ['limit' => 180, 'window' => 60],
         ];
     } else {
         $limits = [
             'bw_fpw_get_subcategories' => ['limit' => 60, 'window' => 60],
             'bw_fpw_get_tags' => ['limit' => 50, 'window' => 60],
             'bw_fpw_filter_posts' => ['limit' => 35, 'window' => 60],
+            'bw_header_live_search' => ['limit' => 60, 'window' => 60],
         ];
     }
 

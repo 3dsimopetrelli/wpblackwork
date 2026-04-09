@@ -22,6 +22,8 @@
             this.isOpen = false;
             this.searchTimeout = null;
             this.ajaxRequest = null;
+            this.minSearchLength = 2;
+            this.searchDebounceMs = 400;
 
             this.moveOverlayToBody();
             this.init();
@@ -130,7 +132,7 @@
             }
 
             const searchTerm = this.$input.val().trim();
-            if (!searchTerm || searchTerm.length < 2) {
+            if (!searchTerm || searchTerm.length < this.minSearchLength) {
                 this.hideResults();
                 return;
             }
@@ -138,7 +140,7 @@
             this.showLoading();
             this.searchTimeout = setTimeout(() => {
                 this.performLiveSearch(searchTerm);
-            }, 300);
+            }, this.searchDebounceMs);
         }
 
         performLiveSearch(searchTerm) {

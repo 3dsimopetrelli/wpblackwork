@@ -25,6 +25,94 @@ if (!function_exists('bw_header_live_search_safe_empty')) {
     }
 }
 
+if (!function_exists('bw_header_live_search_get_cache_ttl')) {
+    function bw_header_live_search_get_cache_ttl()
+    {
+        return 3 * MINUTE_IN_SECONDS;
+    }
+}
+
+if (!function_exists('bw_header_live_search_get_cache_generation')) {
+    function bw_header_live_search_get_cache_generation()
+    {
+        return (int) get_option('bw_header_live_search_cache_gen', 0);
+    }
+}
+
+if (!function_exists('bw_header_live_search_bump_cache_generation')) {
+    function bw_header_live_search_bump_cache_generation()
+    {
+        update_option('bw_header_live_search_cache_gen', bw_header_live_search_get_cache_generation() + 1, false);
+    }
+}
+
+if (!function_exists('bw_header_live_search_maybe_invalidate_cache')) {
+    function bw_header_live_search_maybe_invalidate_cache($post_id)
+    {
+        $post_id = absint($post_id);
+
+        if ($post_id <= 0 || 'product' !== get_post_type($post_id)) {
+            return;
+        }
+
+        bw_header_live_search_bump_cache_generation();
+    }
+}
+
+add_action('save_post_product', 'bw_header_live_search_maybe_invalidate_cache');
+add_action('deleted_post', 'bw_header_live_search_maybe_invalidate_cache');
+
+if (!function_exists('bw_header_live_search_build_cache_key')) {
+    function bw_header_live_search_build_cache_key($search_term, $categories, $product_type)
+    {
+        $payload = [
+            'schema' => 'v1',
+            'gen' => bw_header_live_search_get_cache_generation(),
+            'term' => bw_header_live_search_normalize_term($search_term),
+            'categories' => bw_header_live_search_normalize_categories($categories),
+            'product_type' => sanitize_key((string) $product_type),
+        ];
+        $payload_json = wp_json_encode($payload);
+
+        if (!is_string($payload_json) || '' === $payload_json) {
+            $payload_json = serialize($payload);
+        }
+
+        return 'bw_hdr_search_' . hash('sha256', $payload_json);
+    }
+}
+
+if (!function_exists('bw_header_live_search_get_cached_response')) {
+    function bw_header_live_search_get_cached_response($cache_key)
+    {
+        $cached = get_transient($cache_key);
+        return is_array($cached) ? $cached : false;
+    }
+}
+
+if (!function_exists('bw_header_live_search_store_cached_response')) {
+    function bw_header_live_search_store_cached_response($cache_key, $payload)
+    {
+        if (!is_array($payload)) {
+            return false;
+        }
+
+        return set_transient($cache_key, $payload, bw_header_live_search_get_cache_ttl());
+    }
+}
+
+if (!function_exists('bw_header_live_search_send_throttled_response')) {
+    function bw_header_live_search_send_throttled_response()
+    {
+        wp_send_json_success([
+            'products' => [],
+            'results' => [],
+            'message' => '',
+            'throttled' => true,
+        ]);
+    }
+}
+
 if (!function_exists('bw_header_live_search_normalize_term')) {
     function bw_header_live_search_normalize_term($raw_term)
     {
@@ -111,6 +199,72 @@ if (!function_exists('bw_header_live_search_build_visibility_tax_query')) {
     }
 }
 
+if (!function_exists('bw_header_live_search_build_products_payload')) {
+    function bw_header_live_search_build_products_payload($product_ids)
+    {
+        $product_ids = array_values(array_filter(array_map('absint', (array) $product_ids)));
+
+        if (empty($product_ids)) {
+            return [];
+        }
+
+        $products = wc_get_products([
+            'include' => $product_ids,
+            'limit' => count($product_ids),
+            'status' => 'publish',
+        ]);
+
+        if (empty($products)) {
+            return [];
+        }
+
+        $products_by_id = [];
+
+        foreach ($products as $product) {
+            if (!$product instanceof WC_Product) {
+                continue;
+            }
+
+            $product_id = $product->get_id();
+            if ($product_id <= 0) {
+                continue;
+            }
+
+            $products_by_id[$product_id] = $product;
+        }
+
+        $payload = [];
+
+        foreach ($product_ids as $product_id) {
+            if (!isset($products_by_id[$product_id])) {
+                continue;
+            }
+
+            $product = $products_by_id[$product_id];
+            $image_id = $product->get_image_id();
+            $image_url = '';
+
+            if ($image_id) {
+                $image_url = wp_get_attachment_image_url($image_id, 'medium');
+            }
+
+            if (!$image_url) {
+                $image_url = wc_placeholder_img_src('medium');
+            }
+
+            $payload[] = [
+                'id' => $product_id,
+                'title' => get_the_title($product_id),
+                'price_html' => $product->get_price_html(),
+                'image_url' => $image_url,
+                'permalink' => get_permalink($product_id),
+            ];
+        }
+
+        return $payload;
+    }
+}
+
 if (!function_exists('bw_header_live_search_products')) {
     function bw_header_live_search_products()
     {
@@ -124,6 +278,11 @@ if (!function_exists('bw_header_live_search_products')) {
         $search_length = function_exists('mb_strlen') ? mb_strlen($search_term) : strlen($search_term);
         if ('' === $search_term || $search_length < 2) {
             bw_header_live_search_safe_empty();
+            return;
+        }
+
+        if (function_exists('bw_fpw_is_throttled_request') && bw_fpw_is_throttled_request('bw_header_live_search')) {
+            bw_header_live_search_send_throttled_response();
             return;
         }
 
@@ -142,6 +301,13 @@ if (!function_exists('bw_header_live_search_products')) {
                 bw_header_live_search_safe_empty();
                 return;
             }
+        }
+
+        $cache_key = bw_header_live_search_build_cache_key($search_term, $categories, $product_type);
+        $cached_response = bw_header_live_search_get_cached_response($cache_key);
+
+        if (is_array($cached_response)) {
+            wp_send_json_success($cached_response);
         }
 
         $args = [
@@ -165,43 +331,15 @@ if (!function_exists('bw_header_live_search_products')) {
         }
 
         $query = new WP_Query($args);
-        $products = [];
-
-        if ($query->have_posts()) {
-            foreach ((array) $query->posts as $product_id) {
-                $product_id = absint($product_id);
-                if ($product_id <= 0) {
-                    continue;
-                }
-
-                $product = wc_get_product($product_id);
-                if (!$product) {
-                    continue;
-                }
-
-                $image_id = $product->get_image_id();
-                $image_url = '';
-                if ($image_id) {
-                    $image_url = wp_get_attachment_image_url($image_id, 'medium');
-                }
-                if (!$image_url) {
-                    $image_url = wc_placeholder_img_src('medium');
-                }
-
-                $products[] = [
-                    'id' => $product_id,
-                    'title' => get_the_title($product_id),
-                    'price_html' => $product->get_price_html(),
-                    'image_url' => $image_url,
-                    'permalink' => get_permalink($product_id),
-                ];
-            }
-        }
-
-        wp_send_json_success([
+        $products = bw_header_live_search_build_products_payload($query->posts);
+        $response_payload = [
             'products' => $products,
             'results' => $products,
             'message' => empty($products) ? __('Nessun prodotto trovato', 'bw') : '',
-        ]);
+        ];
+
+        bw_header_live_search_store_cached_response($cache_key, $response_payload);
+
+        wp_send_json_success($response_payload);
     }
 }
