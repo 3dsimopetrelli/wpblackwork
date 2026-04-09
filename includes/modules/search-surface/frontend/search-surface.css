@@ -40,7 +40,7 @@ body.bw-search-overlay-active {
 }
 
 .bw-search-results-page__main {
-    padding: clamp(42px, 6vw, 72px) 0 72px;
+    padding: 0 0 72px;
     color: var(--e-global-color-text, #111111);
     font-family: var(--e-global-typography-text-font-family, inherit);
     font-size: var(--e-global-typography-text-font-size, inherit);
@@ -51,48 +51,6 @@ body.bw-search-overlay-active {
 .bw-search-results-page__container {
     width: min(1640px, calc(100vw - 48px));
     margin: 0 auto;
-}
-
-.bw-search-results-page__titlebar {
-    margin-bottom: 20px;
-}
-
-.bw-search-results-page__title {
-    margin: 0;
-    padding: 0;
-    display: block;
-    inline-size: 100%;
-    max-inline-size: min(var(--bw-search-results-title-max-width, 100%), 100%);
-    --bw-search-results-title-fluid-size: clamp(36px, calc(8.5714px + 5.7143vw), 100px);
-    color: var(--e-global-color-primary, #111111);
-    font-family: var(--e-global-typography-primary-font-family, inherit);
-    font-size: var(--bw-search-results-title-fluid-size);
-    font-weight: 500;
-    line-height: 110%;
-    letter-spacing: -3px;
-}
-
-.bw-search-results-page__result-count {
-    margin: 12px 0 0;
-    color: var(--e-global-color-text, #111111);
-    font-family: var(--e-global-typography-text-font-family, inherit);
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.4;
-}
-
-@media (max-width: 1024px) {
-    .bw-search-results-page__title {
-        letter-spacing: -2px;
-    }
-}
-
-@media (max-width: 767px) {
-    .bw-search-results-page__title {
-        --bw-search-results-title-fluid-size: clamp(32px, calc(18px + 4vw), 56px);
-        letter-spacing: -1.5px;
-        line-height: 1.04;
-    }
 }
 
 .bw-search-results-page__grid,

@@ -5,13 +5,10 @@
    All rules are scoped to .bw-search-results-page (added by bw_ss_filter_search_results_body_class)
    to prevent any leakage to other page types. */
 
-.bw-search-results-page {
-    --bw-search-results-inline-gutter: 32px;
-}
-
 /* ── Main container: strip the theme's .site-main max-width / padding ── */
 .bw-search-results-page .bw-search-results-page__main {
     max-width: none !important;
+    padding-top: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     width: 100%;
@@ -24,50 +21,6 @@
     padding: 0;
 }
 
-/* ── Title bar ── */
-.bw-search-results-page .bw-search-results-page__titlebar {
-    padding: 0 var(--bw-search-results-inline-gutter) 0;
-    box-sizing: border-box;
-}
-
-/* ── Page title: align with the Product Title widget typography rather than the
-       generic Elementor h1 preset used by the active kit. ── */
-.bw-search-results-page h1.bw-search-results-page__title {
-    margin: 0;
-    padding: 0;
-    display: block;
-    inline-size: 100%;
-    max-inline-size: min(var(--bw-search-results-title-max-width, 100%), 100%);
-    --bw-search-results-title-fluid-size: clamp(28px, calc(10px + 4vw), 72px);
-    color: var(--e-global-color-primary, #111111);
-    font-family: var(--e-global-typography-primary-font-family, inherit);
-    font-size: var(--bw-search-results-title-fluid-size) !important;
-    font-weight: 500 !important;
-    line-height: 1.08 !important;
-    letter-spacing: -2px !important;
-}
-
-@media (max-width: 1024px) {
-    .bw-search-results-page h1.bw-search-results-page__title {
-        --bw-search-results-title-fluid-size: clamp(26px, calc(12px + 3.2vw), 58px);
-        letter-spacing: -1.5px !important;
-    }
-}
-
-@media (max-width: 767px) {
-    .bw-search-results-page h1.bw-search-results-page__title {
-        --bw-search-results-title-fluid-size: clamp(24px, calc(14px + 3vw), 40px);
-        letter-spacing: -1px !important;
-        line-height: 1.04 !important;
-    }
-}
-
-/* ── Active chips strip (server-rendered remove-filter links) ── */
-.bw-search-results-page .bw-fpw-active-chips {
-    padding: 12px var(--bw-search-results-inline-gutter) 0;
-    box-sizing: border-box;
-}
-
 /* ── Bring the product grid wrapper flush so it respects its own
        --bw-fpw-max-width (2000 px default) rather than the theme container. ── */
 .bw-search-results-page .bw-search-results-grid-wrapper {
@@ -78,17 +31,5 @@
 
 /* ── Add top breathing room between title/chips and the grid toolbar ── */
 .bw-search-results-page .bw-product-grid-wrapper {
-    padding-top: 24px;
-}
-
-@media (max-width: 1024px) {
-    .bw-search-results-page {
-        --bw-search-results-inline-gutter: 24px;
-    }
-}
-
-@media (max-width: 767px) {
-    .bw-search-results-page {
-        --bw-search-results-inline-gutter: 20px;
-    }
+    padding-top: 0;
 }

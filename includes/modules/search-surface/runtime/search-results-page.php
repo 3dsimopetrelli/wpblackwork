@@ -108,7 +108,6 @@ function bw_ss_render_search_results_page() {
     global $wp_query;
 
     $state         = bw_ss_build_search_results_state_from_url();
-    $title         = bw_ss_build_search_results_title( $state );
     $render_result = bw_ss_render_headless_product_grid(
         [
             'state'    => $state,
@@ -127,10 +126,6 @@ function bw_ss_render_search_results_page() {
     ?>
     <main id="primary" class="site-main bw-tbl-runtime-template bw-search-results-page__main">
         <div class="bw-tbl-runtime-template-content bw-search-results-page__container">
-            <header class="bw-search-results-page__titlebar">
-                <h1 class="bw-search-results-page__title"><?php echo esc_html( $title ); ?></h1>
-            </header>
-
             <?php echo $render_result['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         </div>
     </main>
