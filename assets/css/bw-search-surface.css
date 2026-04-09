@@ -26,10 +26,35 @@
     box-sizing: border-box;
 }
 
-/* ── Page title: normalise margin; typography comes from theme h1 styles once
-       Elementor kit CSS is loaded (--e-global-typography-* custom properties). ── */
-.bw-search-results-page .bw-search-results-page__title {
+/* ── Page title: align with the Product Title widget typography rather than the
+       generic Elementor h1 preset used by the active kit. ── */
+.bw-search-results-page h1.bw-search-results-page__title {
     margin: 0;
+    padding: 0;
+    display: block;
+    inline-size: 100%;
+    max-inline-size: min(var(--bw-search-results-title-max-width, 100%), 100%);
+    --bw-search-results-title-fluid-size: clamp(36px, calc(8.5714px + 5.7143vw), 100px);
+    color: var(--e-global-color-primary, #111111);
+    font-family: var(--e-global-typography-primary-font-family, inherit);
+    font-size: var(--bw-search-results-title-fluid-size) !important;
+    font-weight: 500 !important;
+    line-height: 110% !important;
+    letter-spacing: -3px !important;
+}
+
+@media (max-width: 1024px) {
+    .bw-search-results-page h1.bw-search-results-page__title {
+        letter-spacing: -2px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .bw-search-results-page h1.bw-search-results-page__title {
+        --bw-search-results-title-fluid-size: clamp(32px, calc(18px + 4vw), 56px);
+        letter-spacing: -1.5px !important;
+        line-height: 1.04 !important;
+    }
 }
 
 /* ── Active chips strip (server-rendered remove-filter links) ── */
