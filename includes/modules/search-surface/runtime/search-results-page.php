@@ -53,6 +53,27 @@ function bw_ss_filter_search_results_document_title( $title ) {
     return bw_ss_build_search_results_title( bw_ss_build_search_results_state_from_url() );
 }
 
+function bw_ss_get_elementor_search_results_body_classes() {
+    if ( ! class_exists( '\Elementor\Plugin' ) ) {
+        return [];
+    }
+
+    $classes = [ 'elementor-default' ];
+
+    if (
+        isset( \Elementor\Plugin::$instance->kits_manager ) &&
+        method_exists( \Elementor\Plugin::$instance->kits_manager, 'get_kit_for_frontend' )
+    ) {
+        $kit = \Elementor\Plugin::$instance->kits_manager->get_kit_for_frontend();
+
+        if ( $kit && method_exists( $kit, 'get_main_id' ) ) {
+            $classes[] = 'elementor-kit-' . absint( $kit->get_main_id() );
+        }
+    }
+
+    return array_values( array_unique( array_filter( $classes ) ) );
+}
+
 function bw_ss_filter_search_results_body_class( $classes ) {
     if ( ! bw_ss_is_search_results_request() ) {
         return $classes;
@@ -61,6 +82,7 @@ function bw_ss_filter_search_results_body_class( $classes ) {
     $classes   = is_array( $classes ) ? $classes : [];
     $classes[] = 'bw-search-results-page';
     $classes[] = 'bw-search-results-page--plugin-owned';
+    $classes   = array_merge( $classes, bw_ss_get_elementor_search_results_body_classes() );
 
     return array_values( array_unique( $classes ) );
 }
