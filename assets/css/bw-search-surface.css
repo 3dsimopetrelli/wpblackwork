@@ -8,7 +8,7 @@
 /* ── Main container: strip the theme's .site-main max-width / padding ── */
 .bw-search-results-page .bw-search-results-page__main {
     max-width: none !important;
-    padding-top: 0 !important;
+    padding-top: 80px !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     width: 100%;
