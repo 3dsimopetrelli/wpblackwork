@@ -8,24 +8,26 @@ function bw_ss_maybe_enqueue_search_results_assets() {
         return;
     }
 
-    // Load Elementor kit styles (global typography CSS custom properties + Google Fonts).
-    // The virtual /search/ route has no WP post, so Elementor never self-initialises and its
-    // kit CSS never fires — leaving --e-global-typography-* undefined and fonts falling back
-    // to browser defaults.  Calling enqueue_styles() here injects exactly what a normal
-    // Elementor page would load, restoring correct typography everywhere on the page.
+    // The virtual /search/ route has no WP post, so Elementor does not automatically
+    // bootstrap frontend kit/global styles for this request.
     if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->frontend ) ) {
         \Elementor\Plugin::$instance->frontend->enqueue_styles();
+
+        if ( wp_style_is( 'elementor-frontend', 'registered' ) ) {
+            wp_enqueue_style( 'elementor-frontend' );
+        }
     }
 
     if ( function_exists( 'bw_enqueue_product_grid_widget_assets' ) ) {
         bw_enqueue_product_grid_widget_assets();
     }
 
-    // Enqueue search surface layout CSS (resets .site-main constraints, title styles, etc.).
+    // Keep the /search/ page-specific shell reset CSS separate from the main
+    // Search Surface stylesheet to avoid handle collisions with the overlay asset.
     $css_file = BW_MEW_PATH . 'assets/css/bw-search-surface.css';
     $css_url  = BW_MEW_URL . 'assets/css/bw-search-surface.css';
     $version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
-    wp_enqueue_style( 'bw-search-surface-style', $css_url, [ 'bw-product-grid-style' ], $version );
+    wp_enqueue_style( 'bw-search-results-page-style', $css_url, [ 'bw-product-grid-style' ], $version );
 }
 
 function bw_ss_disable_canonical_redirect_for_results_route( $redirect_url, $requested_url ) {
