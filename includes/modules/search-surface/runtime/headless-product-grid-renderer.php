@@ -13,6 +13,46 @@ function bw_ss_get_empty_state_message( $search_query = '' ) {
     return __( 'There is nothing in this archive yet.', 'bw-elementor-widgets' );
 }
 
+function bw_ss_get_result_count_label( $result_count ) {
+    $result_count = max( 0, (int) $result_count );
+
+    return sprintf(
+        /* translators: %s is the result count. */
+        _n( '%s result', '%s results', $result_count, 'bw-elementor-widgets' ),
+        number_format_i18n( $result_count )
+    );
+}
+
+function bw_ss_state_has_active_filters( $state ) {
+    $state = is_array( $state ) ? $state : [];
+
+    if ( ! empty( $state['query'] ) ) {
+        return true;
+    }
+
+    if ( ! empty( $state['category'] ) && 'all' !== (string) $state['category'] ) {
+        return true;
+    }
+
+    if ( ! empty( $state['tags'] ) ) {
+        return true;
+    }
+
+    if ( ! empty( $state['year']['from'] ) || ! empty( $state['year']['to'] ) ) {
+        return true;
+    }
+
+    if ( ! empty( $state['advanced'] ) ) {
+        foreach ( (array) $state['advanced'] as $values ) {
+            if ( ! empty( $values ) ) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function bw_ss_get_default_headless_product_grid_settings() {
     return [
         // Temporary parity defaults for Milestone 1 until Search admin settings exist.
@@ -209,11 +249,23 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
 
 function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload, $active_chips = [] ) {
     $default_category  = $state['category'];
+    $result_count      = isset( $bootstrap_payload['result_count'] ) ? (int) $bootstrap_payload['result_count'] : 0;
+    $result_label      = bw_ss_get_result_count_label( $result_count );
+    $has_active_filters = bw_ss_state_has_active_filters( $state );
     $sort_chevron_html     = '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
     $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
     ?>
     <div class="bw-fpw-discovery-toolbar bw-fpw-discovery-toolbar--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
         <div class="bw-fpw-visible-filters bw-fpw-visible-filters--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo ! empty( $settings['show_visible_filters'] ) ? 'false' : 'true'; ?>"></div>
+
+        <div class="bw-fpw-discovery-toolbar__summary bw-fpw-discovery-toolbar__summary--search-results">
+            <div class="bw-fpw-discovery-meta bw-fpw-discovery-meta--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                <span class="bw-fpw-discovery-result-count bw-fpw-discovery-result-count--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $result_label ); ?></span>
+                <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--search-results<?php echo ! $has_active_filters ? ' is-hidden' : ''; ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                    <?php esc_html_e( 'Reset Filters', 'bw-elementor-widgets' ); ?>
+                </button>
+            </div>
+        </div>
 
         <div class="bw-fpw-discovery-toolbar__controls bw-fpw-discovery-toolbar__controls--search-results">
             <?php if ( ! empty( $settings['show_order_by'] ) ) : ?>

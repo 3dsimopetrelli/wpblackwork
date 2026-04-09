@@ -122,13 +122,6 @@ function bw_ss_render_search_results_page() {
         $wp_query->is_page   = true;
     }
 
-    $result_count = isset( $render_result['requested_result']['result_count'] ) ? (int) $render_result['requested_result']['result_count'] : 0;
-    $result_label = sprintf(
-        /* translators: %s is the result count. */
-        _n( '%s result', '%s results', $result_count, 'bw-elementor-widgets' ),
-        number_format_i18n( $result_count )
-    );
-
     status_header( 200 );
     get_header();
     ?>
@@ -136,7 +129,6 @@ function bw_ss_render_search_results_page() {
         <div class="bw-tbl-runtime-template-content bw-search-results-page__container">
             <header class="bw-search-results-page__titlebar">
                 <h1 class="bw-search-results-page__title"><?php echo esc_html( $title ); ?></h1>
-                <p class="bw-search-results-page__result-count"><?php echo esc_html( $result_label ); ?></p>
             </header>
 
             <?php echo $render_result['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
