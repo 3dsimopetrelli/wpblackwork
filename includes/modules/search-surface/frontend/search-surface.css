@@ -85,7 +85,7 @@ body.bw-search-overlay-active {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 14px;
+    gap: 0;
     text-align: right;
 }
 
@@ -94,15 +94,6 @@ body.bw-search-overlay-active {
     font-weight: 600;
     line-height: 1.2;
     color: var(--e-global-color-text, #111111);
-}
-
-.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-reset--search-results {
-    color: rgba(17, 17, 17, 0.68);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.2;
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
 }
 
 .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls--search-results {

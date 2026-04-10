@@ -623,29 +623,6 @@
         return ($grid.attr('data-search-enabled') || 'yes') === 'yes';
     }
 
-    function hasActiveDiscoveryFilters(state) {
-        var hasActiveTokenGroups = false;
-        var searchEnabled = false;
-
-        if (!state) {
-            return false;
-        }
-
-        searchEnabled = isWidgetSearchEnabled(null, state);
-
-        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
-            if (!hasActiveTokenGroups && getDiscoverySelections(state, groupKey).length > 0) {
-                hasActiveTokenGroups = true;
-            }
-        });
-
-        return state.subcategories.length > 0 ||
-            state.tags.length > 0 ||
-            hasActiveTokenGroups ||
-            hasActiveYearFilter(state) ||
-            (searchEnabled && $.trim(state.search || '') !== '');
-    }
-
     function disconnectInfiniteObserver(widgetId) {
         var state = widgetPagingState[widgetId];
 
@@ -1782,11 +1759,9 @@
     function renderDiscoveryResultCount(widgetId) {
         var state = filterState[widgetId];
         var resultText = formatResultCount(state && typeof state.resultCount !== 'undefined' ? state.resultCount : 0);
-        var hasActiveFilters = hasActiveDiscoveryFilters(state);
 
         $('.bw-fpw-discovery-result-count[data-widget-id="' + widgetId + '"]').text(resultText);
         $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').attr('data-result-count', state.resultCount || 0);
-        $('.bw-fpw-discovery-reset[data-widget-id="' + widgetId + '"]').toggleClass('is-hidden', !hasActiveFilters);
     }
 
     function getDiscoveryActiveChips(widgetId) {
@@ -2830,60 +2805,6 @@
         }
 
         setDiscoverySelectionState(state, groupKey, selections);
-    }
-
-    function resetDiscoveryFilters(widgetId, closePanel) {
-        var state = getDiscoveryState(widgetId);
-        var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
-        var defaultCategory = $filters.attr('data-default-category') || 'all';
-
-        state.category = defaultCategory;
-        state.subcategories = [];
-        state.tags = [];
-        state.artists = [];
-        state.authors = [];
-        state.publishers = [];
-        state.sources = [];
-        state.techniques = [];
-        state.search = '';
-        state.appliedSearch = '';
-        state.year = createEmptyYearState();
-        state.ui.optionSearches.types = '';
-        state.ui.optionSearches.tags = '';
-        state.ui.optionSearches.artist = '';
-        state.ui.optionSearches.author = '';
-        state.ui.optionSearches.publisher = '';
-        state.ui.optionSearches.source = '';
-        state.ui.optionSearches.technique = '';
-        state.ui.openGroups.types = false;
-        state.ui.openGroups.tags = false;
-        state.ui.openGroups.years = false;
-        state.ui.openGroups.artist = false;
-        state.ui.openGroups.author = false;
-        state.ui.openGroups.publisher = false;
-        state.ui.openGroups.source = false;
-        state.ui.openGroups.technique = false;
-        state.ui.sortMenuOpen = false;
-        state.ui.visibleFilterOpenGroup = '';
-        state.ui.visibleFilterFeedback = null;
-        state.ui.yearDraft = createEmptyYearState();
-
-        if (yearInputCommitTimers[widgetId]) {
-            clearTimeout(yearInputCommitTimers[widgetId]);
-            delete yearInputCommitTimers[widgetId];
-        }
-
-        if (visibleFilterFeedbackTimers[widgetId]) {
-            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
-            delete visibleFilterFeedbackTimers[widgetId];
-        }
-
-        renderDiscoveryUi(widgetId);
-        filterPosts(widgetId);
-
-        if (closePanel) {
-            closeMobilePanel(widgetId);
-        }
     }
 
     function commitYearRange(widgetId, from, to) {
@@ -4182,7 +4103,6 @@
 
             var emptyStateHtml = '<div class="bw-fpw-empty-state">';
             emptyStateHtml += '<p class="bw-fpw-empty-message">No results found.</p>';
-            emptyStateHtml += '<button class="elementor-button bw-fpw-reset-filters" data-widget-id="' + widgetId + '">RESET FILTERS</button>';
             emptyStateHtml += '</div>';
             clearStaggerTimers(widgetId);
             $grid.html(emptyStateHtml);
@@ -4518,17 +4438,6 @@
             removeActiveDiscoveryFilter(widgetId, groupKey, filterValue);
         });
 
-        $(document).on('click', '.bw-fpw-discovery-reset', function (e) {
-            e.preventDefault();
-
-            var widgetId = $(this).attr('data-widget-id');
-
-            if (widgetId && isDiscoveryDrawerMode(widgetId)) {
-                closeDiscoveryVisibleFilterPanel(widgetId);
-                resetDiscoveryFilters(widgetId, false);
-            }
-        });
-
         $(document).on('click', '.bw-fpw-cat-button', function (e) {
             e.preventDefault();
 
@@ -4823,165 +4732,6 @@
             }
 
             commitYearRange(widgetId, $button.attr('data-year-from'), $button.attr('data-year-to'));
-        });
-
-        // Reset filters button
-        $(document).on('click', '.bw-fpw-reset-filters', function (e) {
-            e.preventDefault();
-
-            var $button = $(this);
-            var widgetId = $button.attr('data-widget-id');
-
-            if (!widgetId) {
-                return;
-            }
-
-            if (isDiscoveryDrawerMode(widgetId)) {
-                resetDiscoveryFilters(widgetId, isInMobileMode(widgetId));
-                return;
-            }
-
-            initFilterState(widgetId);
-
-            // Get default category from filters
-            var $filters = $('.bw-fpw-filters[data-widget-id="' + widgetId + '"]');
-            var defaultCategory = $filters.attr('data-default-category') || 'all';
-
-            // Reset filter state (preserve options/labels caches from discovery state if present)
-            var prevState = filterState[widgetId] || {};
-            filterState[widgetId] = {
-                sortKey: prevState.sortKey || normalizeDiscoverySortKey($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-default-sort-key') || 'default'),
-                category: defaultCategory,
-                subcategories: [],
-                tags: [],
-                artists: [],
-                authors: [],
-                publishers: [],
-                sources: [],
-                techniques: [],
-                search: '',
-                appliedSearch: '',
-                year: createEmptyYearState(),
-                yearBounds: prevState.yearBounds || createEmptyYearBounds(),
-                yearQuickRanges: prevState.yearQuickRanges || [],
-                resultCount: 0,
-                options: {
-                    types: [],
-                    tags: [],
-                    artist: [],
-                    author: [],
-                    publisher: [],
-                    source: [],
-                    technique: []
-                },
-                labels: prevState.labels || {
-                    types: {},
-                    tags: {},
-                    artist: {},
-                    author: {},
-                    publisher: {},
-                    source: {},
-                    technique: {}
-                },
-                ui: {
-                    showTypes: true,
-                    showTags: true,
-                    showYears: !!(prevState.ui && prevState.ui.showYears),
-                    showArtist: !!(prevState.ui && prevState.ui.showArtist),
-                    showAuthor: !!(prevState.ui && prevState.ui.showAuthor),
-                    showPublisher: !!(prevState.ui && prevState.ui.showPublisher),
-                    showSource: !!(prevState.ui && prevState.ui.showSource),
-                    showTechnique: !!(prevState.ui && prevState.ui.showTechnique),
-                    showOrderBy: !!(prevState.ui && prevState.ui.showOrderBy),
-                    orderTriggerStyle: prevState.ui && prevState.ui.orderTriggerStyle
-                        ? prevState.ui.orderTriggerStyle
-                        : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon'),
-                    sortMenuOpen: false,
-                    searchEnabled: prevState.ui && typeof prevState.ui.searchEnabled === 'boolean'
-                        ? prevState.ui.searchEnabled
-                        : (($('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').first().attr('data-search-enabled') || 'yes') === 'yes'),
-                    lastFilterUiSignature: '',
-                    filterUiHashes: prevState.ui && prevState.ui.filterUiHashes ? $.extend({}, prevState.ui.filterUiHashes) : {},
-                    drawerGroupMarkup: prevState.ui && prevState.ui.drawerGroupMarkup ? $.extend({}, prevState.ui.drawerGroupMarkup) : {},
-                    sortConfigCacheKey: prevState.ui && prevState.ui.sortConfigCacheKey ? prevState.ui.sortConfigCacheKey : '',
-                    sortConfigCacheValue: prevState.ui && prevState.ui.sortConfigCacheValue ? $.extend({}, prevState.ui.sortConfigCacheValue) : null,
-                    visibleFilterFeedback: prevState.ui && prevState.ui.visibleFilterFeedback ? $.extend({}, prevState.ui.visibleFilterFeedback) : null,
-                    optionSearches: {
-                        types: '',
-                        tags: '',
-                        artist: '',
-                        author: '',
-                        publisher: '',
-                        source: '',
-                        technique: ''
-                    },
-                    openGroups: {
-                        types: false,
-                        tags: false,
-                        years: false,
-                        artist: false,
-                        author: false,
-                        publisher: false,
-                        source: false,
-                        technique: false
-                    },
-                    yearDraft: createEmptyYearState()
-                }
-            };
-
-            // Clear search timers and inputs
-            if (discoverySearchTimers[widgetId]) {
-                clearTimeout(discoverySearchTimers[widgetId]);
-                delete discoverySearchTimers[widgetId];
-            }
-            if (searchDebounceTimers[widgetId]) {
-                clearTimeout(searchDebounceTimers[widgetId]);
-                delete searchDebounceTimers[widgetId];
-            }
-            if (visibleFilterFeedbackTimers[widgetId]) {
-                clearTimeout(visibleFilterFeedbackTimers[widgetId]);
-                delete visibleFilterFeedbackTimers[widgetId];
-            }
-            clearGridRefreshTransition(widgetId);
-            $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
-                .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
-                .removeAttr('data-bw-refresh-cycle');
-            $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]').val('');
-
-            // Reset all category buttons
-            $filters.find('.bw-fpw-cat-button').removeClass('active');
-
-            // Activate the default category button
-            var $defaultCatButton = $filters.find('.bw-fpw-cat-button[data-category="' + defaultCategory + '"]');
-            $defaultCatButton.addClass('active');
-
-            // Reset all subcategory buttons
-            $filters.find('.bw-fpw-subcat-button').removeClass('active');
-
-            // Reset all tag buttons
-            $filters.find('.bw-fpw-tag-button').removeClass('active');
-
-            // Close mobile panel if open
-            var isMobile = isInMobileMode(widgetId);
-            if (isMobile) {
-                closeMobilePanel(widgetId);
-            }
-
-            // Reload subcategories if default category is not 'all'
-            var $subcatContainer = $('.bw-fpw-subcategories-container[data-widget-id="' + widgetId + '"]');
-            if ($subcatContainer.length && defaultCategory !== 'all') {
-                loadSubcategories(defaultCategory, widgetId, false);
-            }
-
-            // Reload tags if default category is not 'all'
-            var $tagOptions = $('.bw-fpw-tag-options[data-widget-id="' + widgetId + '"]');
-            if ($tagOptions.length && defaultCategory !== 'all') {
-                loadTags(defaultCategory, widgetId, [], false);
-            }
-
-            // Filter posts to show initial state
-            filterPosts(widgetId);
-
         });
 
         $(document).on('keyup', function (e) {
