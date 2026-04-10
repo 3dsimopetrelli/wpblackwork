@@ -865,9 +865,14 @@ body.bw-fpw-drawer-no-scroll {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
   color: currentColor;
   opacity: 0.8;
-  transition: opacity 0.12s ease;
+  box-shadow: none !important;
+  transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort.is-open .bw-fpw-sort-trigger__chevron {
@@ -1356,8 +1361,13 @@ body.bw-fpw-drawer-no-scroll {
   justify-content: center;
   width: 16px;
   height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
   color: currentColor;
   opacity: 0.8;
+  box-shadow: none !important;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__chevron-icon {
