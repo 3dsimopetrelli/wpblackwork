@@ -71,7 +71,6 @@ function bw_fpw_run_matching_post_ids_query($post_type, $category, $subcategorie
 
     if ('' !== $normalized_search) {
         $like = '%' . $wpdb->esc_like($normalized_search) . '%';
-        $like_sql = "'" . esc_sql($like) . "'";
         $searchable_meta_keys = array_values(
             array_unique(
                 array_merge(
@@ -100,12 +99,19 @@ function bw_fpw_run_matching_post_ids_query($post_type, $category, $subcategorie
                     ON pm_search.post_id = p.ID
                    AND pm_search.meta_key IN ({$searchable_meta_keys_sql})";
 
-        $wheres[] = "(LOWER(p.post_title) LIKE {$like_sql}"
-            . " OR LOWER(p.post_name) LIKE {$like_sql}"
-            . " OR LOWER(p.post_excerpt) LIKE {$like_sql}"
-            . " OR LOWER(COALESCE(t_search.name, '')) LIKE {$like_sql}"
-            . " OR LOWER(COALESCE(pm_search.meta_value, '')) LIKE {$like_sql}"
-            . ")";
+        $wheres[] = $wpdb->prepare(
+            "(LOWER(p.post_title) LIKE %s"
+            . " OR LOWER(p.post_name) LIKE %s"
+            . " OR LOWER(p.post_excerpt) LIKE %s"
+            . " OR LOWER(COALESCE(t_search.name, '')) LIKE %s"
+            . " OR LOWER(COALESCE(pm_search.meta_value, '')) LIKE %s"
+            . ")",
+            $like,
+            $like,
+            $like,
+            $like,
+            $like
+        );
     }
 
     $sql = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p"
