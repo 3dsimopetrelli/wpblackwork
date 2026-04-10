@@ -452,6 +452,9 @@
     var discoverySearchTimers = {};
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
+    var VISIBLE_FILTER_ADD_EXIT_MS = 180;
+    var VISIBLE_FILTER_ADD_HOLD_MS = 360;
+    var VISIBLE_FILTER_ADD_FADE_MS = 180;
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
     var CACHE_MAX_ENTRIES = 80;
     var AJAX_CACHE_NAMESPACE = 'bwpg';
@@ -1943,6 +1946,11 @@
         var activeFeedback = (surfaceKey || 'drawer') === 'visible' && state && state.ui && state.ui.visibleFilterFeedback && state.ui.visibleFilterFeedback.groupKey === groupKey
             ? state.ui.visibleFilterFeedback
             : null;
+        var selectedIdsForOrdering = activeFeedback && activeFeedback.phase !== 'done'
+            ? selectedIds.filter(function (value) {
+                return String(value) !== String(activeFeedback.value);
+            })
+            : selectedIds.slice();
         var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
         var visibleOptions = options.filter(function (option) {
             if (!termSearch) {
@@ -1953,13 +1961,15 @@
         });
         var orderedVisibleOptions = visibleOptions.slice();
         var html = '';
+        var renderedIndex = 0;
+        var placeholderInserted = false;
 
-        if ((surfaceKey || 'drawer') === 'visible' && selectedIds.length) {
+        if ((surfaceKey || 'drawer') === 'visible' && selectedIdsForOrdering.length) {
             orderedVisibleOptions.sort(function (optionA, optionB) {
                 var optionAValue = getDiscoveryOptionKey(groupKey, optionA);
                 var optionBValue = getDiscoveryOptionKey(groupKey, optionB);
-                var optionASelected = selectedIds.indexOf(optionAValue) > -1 ? 0 : 1;
-                var optionBSelected = selectedIds.indexOf(optionBValue) > -1 ? 0 : 1;
+                var optionASelected = selectedIdsForOrdering.indexOf(optionAValue) > -1 ? 0 : 1;
+                var optionBSelected = selectedIdsForOrdering.indexOf(optionBValue) > -1 ? 0 : 1;
 
                 if (optionASelected !== optionBSelected) {
                     return optionASelected - optionBSelected;
@@ -1967,6 +1977,20 @@
 
                 return 0;
             });
+        }
+
+        function injectFeedbackPlaceholder() {
+            if (!activeFeedback || activeFeedback.phase === 'exiting' || placeholderInserted) {
+                return;
+            }
+
+            if (renderedIndex !== parseInteger(activeFeedback.placeholderIndex, -1)) {
+                return;
+            }
+
+            html += '<div class="bw-fpw-discovery-feedback-slot' + (activeFeedback.phase === 'placeholder-exit' ? ' is-fading' : '') + '">' + escapeHtml(activeFeedback.label || 'Added filter') + '</div>';
+            placeholderInserted = true;
+            renderedIndex += 1;
         }
 
         html += '<label class="bw-fpw-discovery-group-search">';
@@ -1980,17 +2004,28 @@
                 var optionValue = getDiscoveryOptionKey(groupKey, option);
                 var isSelected = selectedIds.indexOf(optionValue) > -1;
                 var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
-                var isFeedbackAdded = !!(activeFeedback && String(activeFeedback.value) === String(optionValue));
+                var isFeedbackOption = !!(activeFeedback && activeFeedback.phase !== 'done' && String(activeFeedback.value) === String(optionValue));
 
-                html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + (isFeedbackAdded ? ' is-feedback-added' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isFeedbackAdded ? ' data-feedback-label="' + escapeHtml(activeFeedback.label || 'Added') + '"' : '') + (isDisabled ? ' disabled' : '') + '>';
+                if (isFeedbackOption) {
+                    injectFeedbackPlaceholder();
+                    return;
+                }
+
+                injectFeedbackPlaceholder();
+
+                html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
                 html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
                 html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
                 html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
                 html += '</button>';
+                renderedIndex += 1;
             });
         } else {
+            injectFeedbackPlaceholder();
             html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
         }
+
+        injectFeedbackPlaceholder();
 
         html += '</div>';
 
@@ -2253,17 +2288,10 @@
         state.ui.visibleFilterFeedback = {
             groupKey: groupKey,
             value: String(optionValue),
-            label: label || 'Added'
+            label: label || 'Added filter',
+            placeholderIndex: 0,
+            phase: 'exiting'
         };
-
-        visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
-            delete visibleFilterFeedbackTimers[widgetId];
-            if (!filterState[widgetId] || !filterState[widgetId].ui) {
-                return;
-            }
-            filterState[widgetId].ui.visibleFilterFeedback = null;
-            renderDiscoveryVisibleFilters(widgetId);
-        }, 960);
     }
 
     function captureDiscoveryVisibleFilterPanelState(widgetId) {
@@ -2388,6 +2416,10 @@
         var html = '';
 
         if (!state || !$containers.length) {
+            return;
+        }
+
+        if (state.ui && state.ui.visibleFilterFeedback && state.ui.visibleFilterFeedback.phase === 'exiting' && $containers.children().length) {
             return;
         }
 
@@ -4325,6 +4357,7 @@
             var rawValue = $button.attr('data-filter-value');
             var isVisibleSurface = $button.closest('.bw-fpw-visible-filter__panel').length > 0;
             var wasSelected = $button.hasClass('is-selected');
+            var placeholderIndex = $button.index();
             var selectionValue = isDiscoveryTokenGroup(groupKey)
                 ? normalizeDiscoveryTokenValue(rawValue)
                 : parseInteger(rawValue, 0);
@@ -4336,12 +4369,54 @@
             toggleDiscoverySelection(widgetId, groupKey, selectionValue);
 
             if (isVisibleSurface && !wasSelected) {
-                setDiscoveryVisibleFilterFeedback(widgetId, groupKey, selectionValue, 'Added');
+                setDiscoveryVisibleFilterFeedback(widgetId, groupKey, selectionValue, 'Added filter');
+                if (filterState[widgetId] && filterState[widgetId].ui && filterState[widgetId].ui.visibleFilterFeedback) {
+                    filterState[widgetId].ui.visibleFilterFeedback.placeholderIndex = placeholderIndex;
+                }
+                $button.addClass('is-feedback-exiting');
+
+                if (visibleFilterFeedbackTimers[widgetId]) {
+                    clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+                }
+
+                visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                    var state = filterState[widgetId];
+
+                    if (!state || !state.ui || !state.ui.visibleFilterFeedback || String(state.ui.visibleFilterFeedback.value) !== String(selectionValue) || state.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                        return;
+                    }
+
+                    state.ui.visibleFilterFeedback.phase = 'placeholder';
+                    renderDiscoveryUi(widgetId);
+
+                    visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                        var innerState = filterState[widgetId];
+
+                        if (!innerState || !innerState.ui || !innerState.ui.visibleFilterFeedback || String(innerState.ui.visibleFilterFeedback.value) !== String(selectionValue) || innerState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                            return;
+                        }
+
+                        innerState.ui.visibleFilterFeedback.phase = 'placeholder-exit';
+                        renderDiscoveryVisibleFilters(widgetId);
+
+                        visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                            var finalState = filterState[widgetId];
+
+                            delete visibleFilterFeedbackTimers[widgetId];
+
+                            if (!finalState || !finalState.ui || !finalState.ui.visibleFilterFeedback || String(finalState.ui.visibleFilterFeedback.value) !== String(selectionValue) || finalState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                                return;
+                            }
+
+                            finalState.ui.visibleFilterFeedback = null;
+                            renderDiscoveryUi(widgetId);
+                        }, VISIBLE_FILTER_ADD_FADE_MS);
+                    }, VISIBLE_FILTER_ADD_HOLD_MS);
+                }, VISIBLE_FILTER_ADD_EXIT_MS);
             } else {
                 clearDiscoveryVisibleFilterFeedback(widgetId, false);
+                renderDiscoveryUi(widgetId);
             }
-
-            renderDiscoveryUi(widgetId);
             filterPosts(widgetId);
         });
 
