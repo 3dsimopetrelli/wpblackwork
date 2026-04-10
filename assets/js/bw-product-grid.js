@@ -452,6 +452,7 @@
     var discoverySearchTimers = {};
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
+    var gridRefreshTimers = {};
     var VISIBLE_FILTER_ADD_EXIT_MS = 180;
     var VISIBLE_FILTER_ADD_HOLD_MS = 360;
     var VISIBLE_FILTER_ADD_FADE_MS = 180;
@@ -3256,6 +3257,63 @@
         return $($.parseHTML(trimmedHtml, document, true));
     }
 
+    function clearGridRefreshTransition(widgetId) {
+        if (!widgetId) {
+            return;
+        }
+
+        if (gridRefreshTimers[widgetId]) {
+            clearTimeout(gridRefreshTimers[widgetId]);
+            delete gridRefreshTimers[widgetId];
+        }
+    }
+
+    function beginGridRefreshTransition($grid) {
+        var refreshCycle;
+        var widgetId;
+
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        widgetId = $grid.attr('data-widget-id');
+        refreshCycle = parseInteger($grid.attr('data-bw-refresh-cycle'), 0) + 1;
+        clearGridRefreshTransition(widgetId);
+        $grid.attr('data-bw-refresh-cycle', refreshCycle);
+        $grid.removeClass('bw-fpw-grid--settling').addClass('bw-fpw-grid--refreshing');
+    }
+
+    function finishGridRefreshTransition($grid) {
+        var refreshCycle;
+        var widgetId;
+
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        widgetId = $grid.attr('data-widget-id');
+        refreshCycle = String($grid.attr('data-bw-refresh-cycle') || '');
+        clearGridRefreshTransition(widgetId);
+
+        window.requestAnimationFrame(function () {
+            if (String($grid.attr('data-bw-refresh-cycle') || '') !== refreshCycle) {
+                return;
+            }
+
+            $grid.removeClass('bw-fpw-grid--refreshing').addClass('bw-fpw-grid--settling');
+
+            gridRefreshTimers[widgetId] = setTimeout(function () {
+                if (String($grid.attr('data-bw-refresh-cycle') || '') !== refreshCycle) {
+                    delete gridRefreshTimers[widgetId];
+                    return;
+                }
+
+                $grid.removeClass('bw-fpw-grid--settling');
+                delete gridRefreshTimers[widgetId];
+            }, 460);
+        });
+    }
+
     function getResponseItems($nodes) {
         if (!$nodes || !$nodes.length) {
             return $();
@@ -3326,6 +3384,11 @@
             clearTimeout(loadingIndicatorTimers[widgetId]);
             delete loadingIndicatorTimers[widgetId];
         }
+
+        clearGridRefreshTransition(widgetId);
+        $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
+            .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
+            .removeAttr('data-bw-refresh-cycle');
 
         if (discoverySearchTimers[widgetId]) {
             clearTimeout(discoverySearchTimers[widgetId]);
@@ -3798,6 +3861,7 @@
                 addLoadSpacer(widgetId);
             } else {
                 $filters.addClass('loading');
+                beginGridRefreshTransition($grid);
             }
 
             processFilterResponse(cachedResponse, widgetId, $grid, $wrapper, $filters, {
@@ -3818,6 +3882,7 @@
         } else {
             removeLoadSpacer(widgetId); // clear any spacer left from a previous append
             $filters.addClass('loading');
+            beginGridRefreshTransition($grid);
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
                 nextPage: 0,
@@ -3911,6 +3976,7 @@
 
                 $grid.html('<div class="bw-fpw-placeholder">Error loading posts.</div>');
                 $filters.removeClass('loading');
+                finishGridRefreshTransition($grid);
                 $filters.attr('data-has-posts', '0');
                 $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
             }
@@ -4087,6 +4153,7 @@
 
             finalizeGridUpdate($grid, $responseItems, false, function () {
                 $filters.removeClass('loading');
+                finishGridRefreshTransition($grid);
                 syncInfiniteObserver(widgetId);
             }, 'initial');
 
@@ -4121,6 +4188,7 @@
 
             // Remove loading state
             $filters.removeClass('loading');
+            finishGridRefreshTransition($grid);
             $filters.attr('data-has-posts', '0');
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
@@ -4863,6 +4931,10 @@
                 clearTimeout(visibleFilterFeedbackTimers[widgetId]);
                 delete visibleFilterFeedbackTimers[widgetId];
             }
+            clearGridRefreshTransition(widgetId);
+            $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
+                .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
+                .removeAttr('data-bw-refresh-cycle');
             $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]').val('');
 
             // Reset all category buttons
@@ -5151,6 +5223,10 @@
                     clearTimeout(visibleFilterFeedbackTimers[widgetId]);
                     delete visibleFilterFeedbackTimers[widgetId];
                 }
+                clearGridRefreshTransition(widgetId);
+                $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
+                    .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
+                    .removeAttr('data-bw-refresh-cycle');
             }
 
             if (!isElementorEditor()) {
