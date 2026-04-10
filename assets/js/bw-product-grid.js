@@ -1946,7 +1946,23 @@
 
             return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
         });
+        var orderedVisibleOptions = visibleOptions.slice();
         var html = '';
+
+        if ((surfaceKey || 'drawer') === 'visible' && selectedIds.length) {
+            orderedVisibleOptions.sort(function (optionA, optionB) {
+                var optionAValue = getDiscoveryOptionKey(groupKey, optionA);
+                var optionBValue = getDiscoveryOptionKey(groupKey, optionB);
+                var optionASelected = selectedIds.indexOf(optionAValue) > -1 ? 0 : 1;
+                var optionBSelected = selectedIds.indexOf(optionBValue) > -1 ? 0 : 1;
+
+                if (optionASelected !== optionBSelected) {
+                    return optionASelected - optionBSelected;
+                }
+
+                return 0;
+            });
+        }
 
         html += '<label class="bw-fpw-discovery-group-search">';
         html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
@@ -1954,8 +1970,8 @@
         html += '</label>';
         html += '<div class="bw-fpw-discovery-options">';
 
-        if (visibleOptions.length) {
-            visibleOptions.forEach(function (option) {
+        if (orderedVisibleOptions.length) {
+            orderedVisibleOptions.forEach(function (option) {
                 var optionValue = getDiscoveryOptionKey(groupKey, option);
                 var isSelected = selectedIds.indexOf(optionValue) > -1;
                 var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
@@ -2197,9 +2213,122 @@
         });
     }
 
+    function captureDiscoveryVisibleFilterPanelState(widgetId) {
+        var state = filterState[widgetId];
+        var groupKey;
+        var $options;
+        var snapshot;
+
+        if (!state || !state.ui || !state.ui.visibleFilterOpenGroup) {
+            return null;
+        }
+
+        groupKey = state.ui.visibleFilterOpenGroup;
+        $options = $('.bw-fpw-visible-filter[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-options').first();
+
+        if (!$options.length) {
+            return null;
+        }
+
+        snapshot = {
+            groupKey: groupKey,
+            scrollTop: $options.scrollTop(),
+            optionPositions: {}
+        };
+
+        $options.find('.bw-fpw-discovery-option').each(function () {
+            var optionValue = $(this).attr('data-filter-value');
+
+            if (!optionValue) {
+                return;
+            }
+
+            snapshot.optionPositions[String(optionValue)] = this.getBoundingClientRect().top;
+        });
+
+        return snapshot;
+    }
+
+    function animateDiscoveryVisibleFilterOptionReorder($options, snapshot) {
+        var animatedNodes = [];
+
+        if (!$options || !$options.length || !snapshot || !snapshot.optionPositions) {
+            return;
+        }
+
+        $options.find('.bw-fpw-discovery-option').each(function () {
+            var optionValue = $(this).attr('data-filter-value');
+            var previousTop;
+            var deltaY;
+
+            if (!optionValue || !snapshot.optionPositions.hasOwnProperty(String(optionValue))) {
+                return;
+            }
+
+            previousTop = snapshot.optionPositions[String(optionValue)];
+            deltaY = previousTop - this.getBoundingClientRect().top;
+
+            if (Math.abs(deltaY) < 1) {
+                return;
+            }
+
+            this.style.transition = 'none';
+            this.style.transform = 'translateY(' + deltaY + 'px)';
+            this.style.willChange = 'transform';
+            animatedNodes.push(this);
+        });
+
+        if (!animatedNodes.length) {
+            return;
+        }
+
+        $options[0].offsetHeight;
+
+        window.requestAnimationFrame(function () {
+            animatedNodes.forEach(function (node) {
+                var cleanup = function (event) {
+                    if (event && event.propertyName && event.propertyName !== 'transform') {
+                        return;
+                    }
+
+                    node.style.transition = '';
+                    node.style.transform = '';
+                    node.style.willChange = '';
+                    node.removeEventListener('transitionend', cleanup);
+                };
+
+                node.addEventListener('transitionend', cleanup);
+                node.style.transition = 'transform 260ms cubic-bezier(0.22, 1, 0.36, 1)';
+                node.style.transform = '';
+            });
+        });
+    }
+
+    function restoreDiscoveryVisibleFilterPanelState(widgetId, snapshot) {
+        var $options;
+
+        if (!snapshot || !snapshot.groupKey) {
+            return;
+        }
+
+        $options = $('.bw-fpw-visible-filter[data-widget-id="' + widgetId + '"][data-group="' + snapshot.groupKey + '"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-options').first();
+
+        if (!$options.length) {
+            return;
+        }
+
+        $options.scrollTop(snapshot.scrollTop);
+
+        window.requestAnimationFrame(function () {
+            $options.scrollTop(snapshot.scrollTop);
+            animateDiscoveryVisibleFilterOptionReorder($options, snapshot);
+        });
+    }
+
     function renderDiscoveryVisibleFilters(widgetId) {
         var state = filterState[widgetId];
         var $containers = $('.bw-fpw-visible-filters[data-widget-id="' + widgetId + '"]');
+        var panelSnapshot = captureDiscoveryVisibleFilterPanelState(widgetId);
         var html = '';
 
         if (!state || !$containers.length) {
@@ -2265,6 +2394,8 @@
             .html(html)
             .toggleClass('is-hidden', html === '')
             .attr('aria-hidden', html === '' ? 'true' : 'false');
+
+        restoreDiscoveryVisibleFilterPanelState(widgetId, panelSnapshot);
     }
 
     function closeDiscoverySortMenu(widgetId) {
