@@ -117,6 +117,17 @@ function bw_fpw_normalize_sort_key($raw_sort_key)
     return in_array($sort_key, $valid_sort_keys, true) ? $sort_key : 'default';
 }
 
+function bw_fpw_normalize_request_profile($raw_request_profile)
+{
+    $request_profile = sanitize_key((string) $raw_request_profile);
+
+    if (!in_array($request_profile, ['full', 'suggest'], true)) {
+        return 'full';
+    }
+
+    return $request_profile;
+}
+
 function bw_fpw_normalize_image_size($raw_image_size)
 {
     $image_size = sanitize_key((string) $raw_image_size);
@@ -416,6 +427,7 @@ function bw_fpw_build_engine_request(array $source = [])
     $search = $search_enabled
         ? bw_fpw_normalize_search_query(isset($source['search']) ? wp_unslash($source['search']) : '')
         : '';
+    $request_profile = bw_fpw_normalize_request_profile(isset($source['request_profile']) ? wp_unslash($source['request_profile']) : 'full');
     $normalized_year_range = bw_fpw_normalize_year_range(
         isset($source['year_from']) ? wp_unslash($source['year_from']) : null,
         isset($source['year_to']) ? wp_unslash($source['year_to']) : null
@@ -440,6 +452,8 @@ function bw_fpw_build_engine_request(array $source = [])
         'tags' => bw_fpw_normalize_int_array(isset($source['tags']) ? wp_unslash($source['tags']) : [], 50),
         'search_enabled' => $search_enabled,
         'search' => $search,
+        'request_profile' => $request_profile,
+        'include_filter_ui' => bw_fpw_normalize_bool(isset($source['include_filter_ui']) ? wp_unslash($source['include_filter_ui']) : null, false),
         'year_from' => $normalized_year_range['from'],
         'year_to' => $normalized_year_range['to'],
         'advanced_filters' => bw_fpw_normalize_advanced_filter_selections([

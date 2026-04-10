@@ -178,25 +178,31 @@ It MUST be used as planning reference only and MUST NOT replace ADRs.
   - Admin flow is documented after simplification
 
 ### Search System — vNext Implementation (Filters + Index + Cache)
-- Status: Backlog
+- Status: In progress — Phase 1 shared engine extraction completed (2026-04-07)
 - Risk classification: Medium
-- Short description: Implement Search vNext according to the approved runtime/dataflow contracts, including deterministic query behavior, full filter model, initials indexing, cache layer, and observability.
+- Short description: Search/filter domain ownership has been extracted from `blackwork-core-plugin.php` into the shared procedural module under `includes/modules/search-engine/`, with Product Grid migrated as the first consumer while Search Surface v2 remains future work.
 - Reference docs:
   - `docs/30-features/search/search-vnext-spec.md`
   - `docs/30-features/search/search-vnext-dataflow.md`
+  - `docs/30-features/product-grid/product-grid-architecture.md`
 - Includes:
-  - Deterministic query contract
-  - Full filter coverage
-  - Initial letter indexing
-  - Server-side caching layer
-  - Structured observability
-  - Deterministic sorting and pagination
+  - Phase 1 completed:
+    - shared procedural search engine module created under `includes/modules/search-engine/`
+    - Product Grid now delegates filter/search runtime to the shared engine via its adapter
+    - search-domain hooks and invalidation moved out of `blackwork-core-plugin.php`
+    - candidate cap policy enforced inside engine-owned candidate resolution
+  - Future phases:
+    - Search Surface v2 as a new shared-engine consumer
+    - extract the inline PHP-sort execution path from `bw_fpw_execute_search()` into an execution-planner-style surface before adding new execution paths
 - Acceptance:
-  - Response envelope matches spec
-  - Cache layer functional with measurable hit ratio
-  - Initials index deterministic and convergent
-  - No mutation of commerce authority
-  - Regression journeys pass
+  - Phase 1:
+    - shared module exists and owns the search/filter domain
+    - Product Grid contract remains unchanged
+    - `blackwork-core-plugin.php` stays bootstrap-only for this domain
+    - candidate cap and cache/invalidation behavior remain deterministic
+  - Phase 2+:
+    - Search Surface v2 consumes the shared engine
+    - execution-path planning is separated from engine core orchestration
 
 ## Tier 2 – Refactor & Cleanup
 

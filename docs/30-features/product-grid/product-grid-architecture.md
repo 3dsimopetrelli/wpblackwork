@@ -5,7 +5,10 @@
 `bw-product-grid` renders a filterable or filterless masonry/CSS-grid layout of
 products (or any post type).  The initial HTML is server-rendered by the
 PHP widget class; subsequent filter and pagination changes are handled
-entirely in JS via AJAX calls to handlers in `blackwork-core-plugin.php`.
+entirely in JS via AJAX calls to the Product Grid adapter in
+`includes/modules/search-engine/adapters/product-grid/product-grid-adapter.php`,
+which delegates search/filter runtime work to the shared engine under
+`includes/modules/search-engine/`.
 
 ---
 
@@ -16,7 +19,11 @@ entirely in JS via AJAX calls to handlers in `blackwork-core-plugin.php`.
 | `includes/widgets/class-bw-product-grid-widget.php` | Elementor widget: controls, `render()`, `render_posts()`, `render_post_item()` |
 | `assets/js/bw-product-grid.js` | All frontend behaviour — filter state, AJAX, caching, animations, infinite scroll, Elementor lifecycle |
 | `assets/css/bw-product-grid.css` | Layout (masonry / CSS-grid), filter bar, loading states, animations |
-| `blackwork-core-plugin.php` | AJAX handlers (`bw_fpw_get_subcategories`, `bw_fpw_get_tags`, `bw_fpw_filter_posts`), rate limiting, server-side transient cache |
+| `includes/modules/search-engine/adapters/product-grid/product-grid-adapter.php` | Product Grid AJAX surface: nonce validation, rate limit invocation, engine dispatch, HTML rendering, delta protocol, response contract |
+| `includes/modules/search-engine/engine/` | Shared search/filter engine: orchestration, query planning, candidates, text match, advanced filters, facet builder |
+| `includes/modules/search-engine/cache/` | Search-domain cache keys, transients, generations, invalidation, canonical filter-meta sync |
+| `includes/modules/search-engine/search-engine-module.php` | Search-domain hook registration bootstrap |
+| `blackwork-core-plugin.php` | Bootstrap/wiring only for the search/filter domain |
 
 ---
 
@@ -710,7 +717,14 @@ Current effect:
 
 ## 5) AJAX Handlers (PHP)
 
-All Product Grid AJAX handlers are in `blackwork-core-plugin.php`.
+Product Grid AJAX endpoints are now registered by
+`includes/modules/search-engine/search-engine-module.php` and implemented in
+`includes/modules/search-engine/adapters/product-grid/product-grid-adapter.php`.
+
+Ownership boundary:
+- adapter owns Product Grid-specific request validation, try/catch error handling, HTML rendering, `filter_ui_hashes` delta behavior, and final response assembly
+- shared engine owns normalized request execution, query planning, candidate resolution, search/filter evaluation, indexes, cache, and facet payload generation
+- `blackwork-core-plugin.php` no longer owns Product Grid search/filter business logic
 
 ### 5.1 bw_fpw_get_subcategories
 
@@ -879,9 +893,14 @@ Advanced-filter refinement scope hardening:
   - narrowed category/tag/year scopes
 
 Large candidate safety guard:
-- candidate ID arrays destined for `post__in` are normalized and capped at `12000`
+- candidate ID arrays are first bounded by the engine-owned candidate cap and then normalized/capped for `post__in` safety at `12000`
 - this protects against pathological `IN (...)` growth in very large result scopes
 - the trade-off is explicit: at extreme scale the system may prioritise query safety over perfect completeness of the tail of that request
+
+Candidate cap policy:
+- `bw_fpw_get_max_candidate_set_size()` is the engine-owned cap for candidate retrieval
+- it MUST remain less than or equal to `bw_fpw_get_large_post_in_threshold()`
+- the Product Grid adapter does not own or override this limit
 
 Derived dataset caches:
 - `bw_fpw_get_related_tags_data()` now has dedicated cache lookup/write
@@ -951,7 +970,7 @@ Current scalability position:
 - the largest remaining risk area is still very broad candidate sets combined with expensive refinement scopes
 
 Validation already run:
-- `php -l blackwork-core-plugin.php`
+- `php -l includes/modules/search-engine/engine/search-engine-core.php`
 - `node -c assets/js/bw-product-grid.js`
 - `composer run lint:main`
 

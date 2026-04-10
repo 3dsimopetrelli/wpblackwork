@@ -685,3 +685,14 @@ Plugin slug, text-domain, internal prefixes, and runtime authority model remain 
   - Keep `max-inline-size` as the primary line-length authority.
   - Keep `text-wrap: balance` as an enhancement, not as a guarantee.
   - Keep newline-based manual grouping as the editorial fallback for high-composition layouts.
+
+### Entry 045
+- Date: 2026-04-07
+- Decision summary: Extracted the shared search/filter domain from `blackwork-core-plugin.php` into the procedural module under `includes/modules/search-engine/`, with Product Grid as the first migrated consumer through a rendering-oriented adapter.
+- Affected domain: Search / Filters / Product Grid / Plugin Core Bootstrap
+- Rationale: `blackwork-core-plugin.php` had become the monolithic host for normalization, filter model, context mapping, query planning, indexes, cache/invalidation, and Product Grid AJAX behavior. Phase 1 establishes a shared engine/data boundary while keeping Product Grid runtime and response contracts stable.
+- Risk impact: Medium — runtime behavior remains regression-sensitive because Product Grid is still the primary consumer, but authority is now clearer: the shared engine owns data/query/cache responsibilities, the Product Grid adapter owns rendering/response assembly, and `blackwork-core-plugin.php` returns to bootstrap-only responsibility for this domain.
+- Follow-up actions:
+  - Keep Product Grid as the first consumer on the shared engine until Search Surface v2 is implemented.
+  - Treat `tags_html` inside the engine payload as accepted Phase 1 tech debt; do not expand that exception.
+  - In Phase 2, extract the inline PHP-sort execution path from `bw_fpw_execute_search()` into a dedicated execution-planner surface before adding new execution paths.

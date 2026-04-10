@@ -1732,6 +1732,15 @@ function bw_site_render_product_labels_tab()
                     </td>
                 </tr>
                 <tr>
+                    <th scope="row"><?php esc_html_e('Show icons on labels', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bw_product_labels_settings[show_icons]" value="1" <?php checked(!empty($settings['show_icons'])); ?> />
+                            <?php esc_html_e('Display the icon inside supported labels.', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="bw-product-labels-max-visible"><?php esc_html_e('Max visible labels per product', 'bw'); ?></label></th>
                     <td>
                         <input type="number" min="1" max="4" step="1" id="bw-product-labels-max-visible" name="bw_product_labels_settings[max_visible]" value="<?php echo esc_attr((string) ($settings['max_visible'] ?? 2)); ?>" class="small-text" />

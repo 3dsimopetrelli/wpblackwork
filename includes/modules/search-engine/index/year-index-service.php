@@ -38,10 +38,21 @@ function bw_fpw_clear_year_index_transients($context_slug = '')
 {
     global $wpdb;
 
-    $normalized = bw_fpw_normalize_context_slug($context_slug);
-    if ('' !== $normalized) {
-        delete_transient(bw_fpw_get_year_index_transient_key($normalized));
-        delete_transient(bw_fpw_get_year_postmap_transient_key($normalized));
+    $slugs_to_clear = array_values(
+        array_unique(
+            array_filter(
+                array_map('bw_fpw_normalize_context_slug', (array) $context_slug),
+                'strlen'
+            )
+        )
+    );
+
+    if (!empty($slugs_to_clear)) {
+        foreach ($slugs_to_clear as $normalized) {
+            delete_transient(bw_fpw_get_year_index_transient_key($normalized));
+            delete_transient(bw_fpw_get_year_postmap_transient_key($normalized));
+        }
+
         return;
     }
 

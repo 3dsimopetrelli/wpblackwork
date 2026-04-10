@@ -3,11 +3,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search, $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [], $ignore_advanced_group = '')
+function bw_fpw_run_matching_post_ids_query($post_type, $category, $subcategories, $tags, $normalized_search, $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [], $ignore_advanced_group = '')
 {
     global $wpdb;
-
-    $normalized_search = bw_fpw_normalize_search_value($search);
     $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
     $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
     $post_type_safe = sanitize_key($post_type);
@@ -73,7 +71,6 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
 
     if ('' !== $normalized_search) {
         $like = '%' . $wpdb->esc_like($normalized_search) . '%';
-        $like_sql = "'" . esc_sql($like) . "'";
         $searchable_meta_keys = array_values(
             array_unique(
                 array_merge(
@@ -102,12 +99,19 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
                     ON pm_search.post_id = p.ID
                    AND pm_search.meta_key IN ({$searchable_meta_keys_sql})";
 
-        $wheres[] = "(LOWER(p.post_title) LIKE {$like_sql}"
-            . " OR LOWER(p.post_name) LIKE {$like_sql}"
-            . " OR LOWER(p.post_excerpt) LIKE {$like_sql}"
-            . " OR LOWER(COALESCE(t_search.name, '')) LIKE {$like_sql}"
-            . " OR LOWER(COALESCE(pm_search.meta_value, '')) LIKE {$like_sql}"
-            . ")";
+        $wheres[] = $wpdb->prepare(
+            "(LOWER(p.post_title) LIKE %s"
+            . " OR LOWER(p.post_name) LIKE %s"
+            . " OR LOWER(p.post_excerpt) LIKE %s"
+            . " OR LOWER(COALESCE(t_search.name, '')) LIKE %s"
+            . " OR LOWER(COALESCE(pm_search.meta_value, '')) LIKE %s"
+            . ")",
+            $like,
+            $like,
+            $like,
+            $like,
+            $like
+        );
     }
 
     $sql = "SELECT DISTINCT p.ID FROM {$wpdb->posts} p"
@@ -121,4 +125,59 @@ function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $ta
     }
 
     return bw_fpw_apply_advanced_filters_to_post_ids($post_ids, $context_slug, $advanced_filters, $ignore_advanced_group);
+}
+
+function bw_fpw_get_matching_post_ids($post_type, $category, $subcategories, $tags, $search, $year_from = null, $year_to = null, $context_slug = '', $advanced_filters = [], $ignore_advanced_group = '')
+{
+    $normalized_search = bw_fpw_normalize_search_value($search);
+
+    if ('' === $normalized_search) {
+        return bw_fpw_run_matching_post_ids_query(
+            $post_type,
+            $category,
+            $subcategories,
+            $tags,
+            $normalized_search,
+            $year_from,
+            $year_to,
+            $context_slug,
+            $advanced_filters,
+            $ignore_advanced_group
+        );
+    }
+
+    $dataset = 'matching_post_ids';
+
+    if ('' !== $ignore_advanced_group) {
+        $dataset .= '_' . sanitize_key((string) $ignore_advanced_group);
+    }
+
+    return bw_fpw_get_cached_derived_filter_dataset(
+        $dataset,
+        [
+            'post_type' => $post_type,
+            'category' => $category,
+            'subcategories' => $subcategories,
+            'tags' => $tags,
+            'search' => $normalized_search,
+            'year_from' => $year_from,
+            'year_to' => $year_to,
+            'context_slug' => $context_slug,
+            'advanced_filters' => $advanced_filters,
+        ],
+        static function () use ($post_type, $category, $subcategories, $tags, $normalized_search, $year_from, $year_to, $context_slug, $advanced_filters, $ignore_advanced_group) {
+            return bw_fpw_run_matching_post_ids_query(
+                $post_type,
+                $category,
+                $subcategories,
+                $tags,
+                $normalized_search,
+                $year_from,
+                $year_to,
+                $context_slug,
+                $advanced_filters,
+                $ignore_advanced_group
+            );
+        }
+    );
 }

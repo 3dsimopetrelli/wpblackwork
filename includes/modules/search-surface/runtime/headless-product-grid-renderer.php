@@ -3,6 +3,56 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+function bw_ss_get_empty_state_message( $search_query = '' ) {
+    $search_query = trim( (string) $search_query );
+
+    if ( '' !== $search_query ) {
+        return __( 'No results found.', 'bw-elementor-widgets' );
+    }
+
+    return __( 'There is nothing in this archive yet.', 'bw-elementor-widgets' );
+}
+
+function bw_ss_get_result_count_label( $result_count ) {
+    $result_count = max( 0, (int) $result_count );
+
+    return sprintf(
+        /* translators: %s is the result count. */
+        _n( '%s result', '%s results', $result_count, 'bw-elementor-widgets' ),
+        number_format_i18n( $result_count )
+    );
+}
+
+function bw_ss_state_has_active_filters( $state ) {
+    $state = is_array( $state ) ? $state : [];
+
+    if ( ! empty( $state['query'] ) ) {
+        return true;
+    }
+
+    if ( ! empty( $state['category'] ) && 'all' !== (string) $state['category'] ) {
+        return true;
+    }
+
+    if ( ! empty( $state['tags'] ) ) {
+        return true;
+    }
+
+    if ( ! empty( $state['year']['from'] ) || ! empty( $state['year']['to'] ) ) {
+        return true;
+    }
+
+    if ( ! empty( $state['advanced'] ) ) {
+        foreach ( (array) $state['advanced'] as $values ) {
+            if ( ! empty( $values ) ) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function bw_ss_get_default_headless_product_grid_settings() {
     return [
         // Temporary parity defaults for Milestone 1 until Search admin settings exist.
@@ -44,6 +94,7 @@ function bw_ss_get_default_headless_product_grid_settings() {
         'default_order'               => 'DESC',
         'infinite_enabled'            => true,
         'load_trigger_offset'         => 300,
+        'search_placeholder'          => __( 'Search in collections...', 'bw-elementor-widgets' ),
     ];
 }
 
@@ -88,16 +139,22 @@ function bw_ss_normalize_headless_product_grid_settings( $settings = [] ) {
     $settings['default_order']                = function_exists( 'bw_fpw_normalize_order' ) ? bw_fpw_normalize_order( $settings['default_order'] ) : 'DESC';
     $settings['infinite_enabled']             = ! empty( $settings['infinite_enabled'] );
     $settings['load_trigger_offset']          = max( 0, absint( $settings['load_trigger_offset'] ) );
+    $settings['search_placeholder']           = sanitize_text_field( (string) $settings['search_placeholder'] );
 
     return $settings;
 }
 
 function bw_ss_build_headless_product_grid_request( $state, $settings, $page = null ) {
-    $page            = null === $page ? (int) $state['page'] : max( 1, (int) $page );
-    $per_page        = (int) $settings['per_page'];
-    $offset          = $page > 1 ? $per_page * ( $page - 1 ) : 0;
-    $advanced_author = isset( $state['advanced']['author'] ) ? wp_list_pluck( (array) $state['advanced']['author'], 'label' ) : [];
-    $advanced_source = isset( $state['advanced']['source'] ) ? wp_list_pluck( (array) $state['advanced']['source'], 'label' ) : [];
+    $page                = null === $page ? (int) $state['page'] : max( 1, (int) $page );
+    $per_page            = (int) $settings['per_page'];
+    $offset              = $page > 1 ? $per_page * ( $page - 1 ) : 0;
+    $advanced_artist     = isset( $state['advanced']['artist'] ) ? wp_list_pluck( (array) $state['advanced']['artist'], 'label' ) : [];
+    $advanced_author     = isset( $state['advanced']['author'] ) ? wp_list_pluck( (array) $state['advanced']['author'], 'label' ) : [];
+    $advanced_publisher  = isset( $state['advanced']['publisher'] ) ? wp_list_pluck( (array) $state['advanced']['publisher'], 'label' ) : [];
+    $advanced_source     = isset( $state['advanced']['source'] ) ? wp_list_pluck( (array) $state['advanced']['source'], 'label' ) : [];
+    $advanced_technique  = isset( $state['advanced']['technique'] ) ? wp_list_pluck( (array) $state['advanced']['technique'], 'label' ) : [];
+    $year_from           = isset( $state['year']['from'] ) ? $state['year']['from'] : null;
+    $year_to             = isset( $state['year']['to'] ) ? $state['year']['to'] : null;
 
     return bw_fpw_build_engine_request(
         [
@@ -109,8 +166,13 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
             'tags'            => isset( $state['tags'] ) ? (array) $state['tags'] : [],
             'search_enabled'  => 'yes',
             'search'          => $state['query'],
+            'artist'          => $advanced_artist,
             'author'          => $advanced_author,
+            'publisher'       => $advanced_publisher,
             'source'          => $advanced_source,
+            'technique'       => $advanced_technique,
+            'year_from'       => $year_from,
+            'year_to'         => $year_to,
             'image_toggle'    => 'yes',
             'image_size'      => $settings['image_size'],
             'image_mode'      => $settings['image_mode'],
@@ -122,6 +184,8 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
             'per_page'        => $per_page,
             'page'            => $page,
             'offset'          => $offset,
+            'request_profile' => 'full',
+            'include_filter_ui' => $page > 1,
         ]
     );
 }
@@ -129,19 +193,12 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
 function bw_ss_get_headless_product_grid_results( $state, $settings ) {
     $requested_request = bw_ss_build_headless_product_grid_request( $state, $settings, (int) $state['page'] );
     $requested_result  = bw_fpw_execute_search( $requested_request );
-    $ui_request        = $requested_request;
-    $ui_result         = $requested_result;
-
-    if ( (int) $state['page'] > 1 ) {
-        $ui_request = bw_ss_build_headless_product_grid_request( $state, $settings, 1 );
-        $ui_result  = bw_fpw_execute_search( $ui_request );
-    }
 
     return [
         'requested_request' => $requested_request,
         'requested_result'  => $requested_result,
-        'ui_request'        => $ui_request,
-        'ui_result'         => $ui_result,
+        'ui_request'        => $requested_request,
+        'ui_result'         => $requested_result,
     ];
 }
 
@@ -157,6 +214,8 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
         'show_visible_filters' => ! empty( $settings['show_visible_filters'] ),
         'order_trigger_style'  => $settings['order_trigger_style'],
         'default_sort_key'     => $settings['default_sort_key'],
+        // "mixed" here is UI metadata only; engine requests already normalize
+        // All scope to an explicit empty context slug at the consumer boundary.
         'context'              => $state['context_slug'] ? $state['context_slug'] : 'mixed',
         'types'                => isset( $filter_ui['types'] ) && is_array( $filter_ui['types'] ) ? array_values( $filter_ui['types'] ) : [],
         'tags'                 => isset( $filter_ui['tags'] ) && is_array( $filter_ui['tags'] ) ? array_values( $filter_ui['tags'] ) : [],
@@ -168,64 +227,49 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
             'search'        => $state['query'],
             'subcategories' => isset( $state['subcategories'] ) ? array_values( array_filter( array_map( 'absint', (array) $state['subcategories'] ) ) ) : [],
             'tags'          => isset( $state['tags'] ) ? array_values( array_filter( array_map( 'absint', (array) $state['tags'] ) ) ) : [],
-            'year'          => [ 'from' => null, 'to' => null ],
+            'year'          => [
+                'from' => isset( $state['year']['from'] ) ? $state['year']['from'] : null,
+                'to'   => isset( $state['year']['to'] ) ? $state['year']['to'] : null,
+            ],
             'advanced'      => [
-                'artist'    => [],
+                'artist'    => isset( $state['advanced']['artist'] ) ? wp_list_pluck( (array) $state['advanced']['artist'], 'value' ) : [],
                 'author'    => isset( $state['advanced']['author'] ) ? wp_list_pluck( (array) $state['advanced']['author'], 'value' ) : [],
-                'publisher' => [],
+                'publisher' => isset( $state['advanced']['publisher'] ) ? wp_list_pluck( (array) $state['advanced']['publisher'], 'value' ) : [],
                 'source'    => isset( $state['advanced']['source'] ) ? wp_list_pluck( (array) $state['advanced']['source'], 'value' ) : [],
-                'technique' => [],
+                'technique' => isset( $state['advanced']['technique'] ) ? wp_list_pluck( (array) $state['advanced']['technique'], 'value' ) : [],
             ],
         ],
     ];
 }
 
-function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload ) {
-    $default_category      = $state['category'];
-    $drawer_title          = __( 'Filters', 'bw-elementor-widgets' );
-    $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
-    $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
-    $global_search_label   = __( 'Search in collections...', 'bw-elementor-widgets' );
-    $reset_filters_label   = __( 'Reset filters', 'bw-elementor-widgets' );
-    $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
-    $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
-    $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
-    $search_icon_html      = '<svg class="bw-fpw-discovery-search__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
-    $sort_icon_html        = '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
+function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload, $active_chips = [] ) {
+    $default_category  = $state['category'];
+    $result_count      = isset( $bootstrap_payload['result_count'] ) ? (int) $bootstrap_payload['result_count'] : 0;
+    $result_label      = bw_ss_get_result_count_label( $result_count );
+    $has_active_filters = bw_ss_state_has_active_filters( $state );
     $sort_chevron_html     = '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
     $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
     ?>
-    <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-        <div class="bw-fpw-discovery-toolbar__summary">
-            <div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                <span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
-                <button class="bw-fpw-discovery-reset" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
+    <div class="bw-fpw-discovery-toolbar bw-fpw-discovery-toolbar--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+        <div class="bw-fpw-visible-filters bw-fpw-visible-filters--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo ! empty( $settings['show_visible_filters'] ) ? 'false' : 'true'; ?>"></div>
+
+        <div class="bw-fpw-discovery-toolbar__summary bw-fpw-discovery-toolbar__summary--search-results">
+            <div class="bw-fpw-discovery-meta bw-fpw-discovery-meta--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                <span class="bw-fpw-discovery-result-count bw-fpw-discovery-result-count--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $result_label ); ?></span>
+                <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--search-results<?php echo ! $has_active_filters ? ' is-hidden' : ''; ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                    <?php esc_html_e( 'Reset Filters', 'bw-elementor-widgets' ); ?>
+                </button>
             </div>
         </div>
 
-        <div class="bw-fpw-discovery-toolbar__controls">
-            <?php if ( ! empty( $settings['show_search'] ) ) : ?>
-                <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                    <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
-                    <span class="bw-fpw-discovery-search__icon-shell">
-                        <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    </span>
-                </label>
-            <?php endif; ?>
-
+        <div class="bw-fpw-discovery-toolbar__controls bw-fpw-discovery-toolbar__controls--search-results">
             <?php if ( ! empty( $settings['show_order_by'] ) ) : ?>
                 <div class="bw-fpw-sort bw-fpw-sort--<?php echo esc_attr( $settings['order_trigger_style'] ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                     <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--<?php echo esc_attr( $settings['order_trigger_style'] ); ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
-                        <?php if ( 'dropdown' === $settings['order_trigger_style'] ) : ?>
-                            <span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php esc_html_e( 'Default', 'bw-elementor-widgets' ); ?></span>
-                            <span class="bw-fpw-sort-trigger__chevron" aria-hidden="true">
-                                <?php echo $sort_chevron_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                            </span>
-                        <?php else : ?>
-                            <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
-                                <?php echo $sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                            </span>
-                        <?php endif; ?>
+                        <span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php esc_html_e( 'Default', 'bw-elementor-widgets' ); ?></span>
+                        <span class="bw-fpw-sort-trigger__chevron" aria-hidden="true">
+                            <?php echo $sort_chevron_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </span>
                     </button>
 
                     <div class="bw-fpw-sort-menu" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="menu" aria-hidden="true">
@@ -238,42 +282,11 @@ function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id,
                     </div>
                 </div>
             <?php endif; ?>
-
-            <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
-                <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
-                    <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
-                    <span class="bw-fpw-mobile-filter-button-icon-shell">
-                        <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    </span>
-                </button>
-
-                <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
-                    <div class="bw-fpw-mobile-filter-drawer">
-                        <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
-                            <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
-                            <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
-                                <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
-                            </button>
-                        </div>
-
-                        <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
-                            <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                <div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                                <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                                <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
-                            </div>
-                        </div>
-
-                        <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
-                            <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <div class="bw-fpw-visible-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo ! empty( $settings['show_visible_filters'] ) ? 'false' : 'true'; ?>"></div>
-        <div class="bw-fpw-active-chips bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+        <div class="bw-fpw-active-chips bw-fpw-quick-filters bw-fpw-quick-filters--search-results<?php echo empty( $active_chips ) ? ' is-empty' : ''; ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
+        </div>
     </div>
 
     <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
@@ -304,14 +317,18 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
     $ui_result = $results['ui_result'];
     $requested_result = $results['requested_result'];
     $requested_request = $results['requested_request'];
-    $render_result = bw_fpw_render_product_grid_posts_html( $requested_request, isset( $requested_result['page_post_ids'] ) ? (array) $requested_result['page_post_ids'] : [] );
+    $render_request = $requested_request;
+    $render_request['show_title']       = ! empty( $settings['show_title'] );
+    $render_request['show_description'] = ! empty( $settings['show_description'] );
+    $render_request['show_price']       = ! empty( $settings['show_price'] );
+    $render_result = bw_fpw_render_product_grid_posts_html( $render_request, isset( $requested_result['page_post_ids'] ) ? (array) $requested_result['page_post_ids'] : [] );
     $grid_html = isset( $render_result['html'] ) ? (string) $render_result['html'] : '';
 
     if ( empty( $render_result['rendered_post_ids'] ) && 1 === (int) $requested_request['page'] ) {
         ob_start();
         ?>
         <div class="bw-fpw-empty-state">
-            <p class="bw-fpw-empty-message"><?php echo esc_html( bw_fpw_get_empty_state_message( [], [], $state['query'] ) ); ?></p>
+            <p class="bw-fpw-empty-message"><?php echo esc_html( bw_ss_get_empty_state_message( $state['query'] ) ); ?></p>
             <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                 <?php esc_html_e( 'RESET FILTERS', 'bw-elementor-widgets' ); ?>
             </button>
@@ -407,25 +424,23 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
 
     ob_start();
     ?>
-    <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
-        <div class="bw-search-results-page__header">
-            <div class="bw-search-results-page__chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
-            </div>
-        </div>
+    <div class="bw-search-results-page__grid elementor-widget elementor-widget-bw-product-grid">
+        <div class="elementor-widget-container">
+            <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
+                <?php bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload, $active_chips ); ?>
 
-        <?php bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id, $bootstrap_payload ); ?>
-
-        <div class="bw-product-grid" style="<?php echo esc_attr( $wrapper_style ); ?>" data-disable-hover-on-touch="<?php echo esc_attr( $settings['disable_hover_on_touch'] ? 'yes' : 'no' ); ?>">
-            <div<?php echo $grid_attr_html; ?>>
-                <?php echo $grid_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            </div>
-            <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
-                <div class="bw-fpw-load-indicator" role="status">
-                    <span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
-                    <span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
+                <div class="bw-product-grid" style="<?php echo esc_attr( $wrapper_style ); ?>" data-disable-hover-on-touch="<?php echo esc_attr( $settings['disable_hover_on_touch'] ? 'yes' : 'no' ); ?>">
+                    <div<?php echo $grid_attr_html; ?>>
+                        <?php echo $grid_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    </div>
+                    <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
+                        <div class="bw-fpw-load-indicator" role="status">
+                            <span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
+                            <span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
+                        </div>
+                        <div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
+                    </div>
                 </div>
-                <div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
             </div>
         </div>
     </div>

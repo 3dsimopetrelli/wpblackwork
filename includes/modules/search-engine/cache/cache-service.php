@@ -237,14 +237,17 @@ function bw_fpw_generate_cache_key($params)
     $search_value = $search_enabled
         ? bw_fpw_normalize_search_query(isset($params['search']) ? (string) $params['search'] : '')
         : '';
+    $request_profile = bw_fpw_normalize_request_profile(isset($params['request_profile']) ? $params['request_profile'] : 'full');
 
     $context_slug_for_key = isset($params['context_slug']) ? (string) $params['context_slug'] : '';
 
     $canonical_payload = [
-        'schema' => 'v8',
+        'schema' => 'v10',
         'post_type' => isset($params['post_type']) ? (string) $params['post_type'] : bw_fpw_get_default_post_type(),
         'context_slug' => $context_slug_for_key,
         'cache_gen' => bw_fpw_get_cache_generation($context_slug_for_key),
+        'request_profile' => $request_profile,
+        'include_filter_ui' => bw_fpw_normalize_bool(isset($params['include_filter_ui']) ? $params['include_filter_ui'] : null, false) ? 1 : 0,
         'category' => isset($params['category']) ? (string) $params['category'] : 'all',
         'subcategories' => bw_fpw_normalize_array_for_cache_key(isset($params['subcategories']) ? $params['subcategories'] : []),
         'tags' => bw_fpw_normalize_array_for_cache_key(isset($params['tags']) ? $params['tags'] : []),
@@ -280,6 +283,8 @@ function bw_fpw_build_engine_cache_key($request)
     return bw_fpw_generate_cache_key([
         'post_type' => isset($request['post_type']) ? $request['post_type'] : bw_fpw_get_default_post_type(),
         'context_slug' => isset($request['effective_context_slug']) ? $request['effective_context_slug'] : (isset($request['context_slug']) ? $request['context_slug'] : ''),
+        'request_profile' => isset($request['request_profile']) ? $request['request_profile'] : 'full',
+        'include_filter_ui' => isset($request['include_filter_ui']) ? $request['include_filter_ui'] : false,
         'category' => isset($request['category']) ? $request['category'] : 'all',
         'subcategories' => isset($request['subcategories']) ? $request['subcategories'] : [],
         'tags' => isset($request['tags']) ? $request['tags'] : [],

@@ -215,6 +215,9 @@ function bw_fpw_render_product_grid_posts_html($request, $page_post_ids)
     $page = (int) $request['page'];
     $offset = (int) $request['offset'];
     $image_loading = ($page > 1 || $offset > 0) ? 'lazy' : 'eager';
+    $show_title = !isset($request['show_title']) || !empty($request['show_title']);
+    $show_description = !isset($request['show_description']) || !empty($request['show_description']);
+    $show_price = !isset($request['show_price']) || !empty($request['show_price']);
     $query = new WP_Query([
         'post_type' => $post_type,
         'post_status' => 'publish',
@@ -257,10 +260,10 @@ function bw_fpw_render_product_grid_posts_html($request, $page_post_ids)
                             'show_image' => $request['image_toggle'],
                             'show_hover_image' => $request['image_toggle'] && $request['hover_effect'],
                             'hover_image_source' => 'meta',
-                            'show_title' => true,
-                            'show_description' => true,
+                            'show_title' => $show_title,
+                            'show_description' => $show_description,
                             'description_mode' => 'auto',
-                            'show_price' => true,
+                            'show_price' => $show_price,
                             'show_buttons' => true,
                             'show_add_to_cart' => true,
                             'open_cart_popup' => $request['open_cart_popup'],

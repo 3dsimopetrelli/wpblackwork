@@ -343,14 +343,6 @@ if (!function_exists('bw_header_enqueue_assets')) {
         wp_add_inline_style('bw-header-layout', implode("\n", $css_parts));
 
         wp_enqueue_script(
-            'bw-header-search-script',
-            $base_url . 'js/bw-search.js',
-            ['jquery'],
-            filemtime($base_path . 'js/bw-search.js') ?: '1.0.0',
-            true
-        );
-
-        wp_enqueue_script(
             'bw-header-navshop-script',
             $base_url . 'js/bw-navshop.js',
             ['jquery'],
@@ -369,7 +361,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         wp_enqueue_script(
             'bw-header-init',
             $base_url . 'js/header-init.js',
-            ['jquery', 'bw-header-search-script', 'bw-header-navshop-script', 'bw-header-navigation-script'],
+            ['jquery', 'bw-header-navshop-script', 'bw-header-navigation-script'],
             filemtime($base_path . 'js/header-init.js') ?: '1.0.0',
             true
         );
@@ -380,20 +372,20 @@ if (!function_exists('bw_header_enqueue_assets')) {
         }
 
         wp_localize_script(
-            'bw-header-search-script',
-            'bwSearchAjax',
-            [
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('bw_search_nonce'),
-            ]
-        );
-
-        wp_localize_script(
             'bw-header-init',
             'bwHeaderConfig',
             [
                 'breakpoint' => $breakpoint,
                 'title' => isset($settings['header_title']) ? (string) $settings['header_title'] : 'Blackwork Header',
+                'search' => [
+                    'ajaxUrl' => admin_url('admin-ajax.php'),
+                    'nonce' => wp_create_nonce('bw_search_nonce'),
+                    'messages' => [
+                        'searchError' => __('Search error', 'bw'),
+                        'connectionError' => __('Connection error', 'bw'),
+                        'noResults' => __('No products found', 'bw'),
+                    ],
+                ],
                 'smartScroll' => !empty($settings['features']['smart_scroll']),
                 'heroOverlap' => $hero_overlap_active,
                 'smartHeader' => [

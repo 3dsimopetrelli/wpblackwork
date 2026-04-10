@@ -450,7 +450,12 @@
     // Keys: widgetId + '_subcats' | widgetId + '_tags'
     var filterAnimTimers = {};
     var discoverySearchTimers = {};
+    var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
+    var gridRefreshTimers = {};
+    var VISIBLE_FILTER_ADD_EXIT_MS = 180;
+    var VISIBLE_FILTER_ADD_HOLD_MS = 360;
+    var VISIBLE_FILTER_ADD_FADE_MS = 180;
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
     var CACHE_MAX_ENTRIES = 80;
     var AJAX_CACHE_NAMESPACE = 'bwpg';
@@ -943,6 +948,7 @@
                     orderTriggerStyle: ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon',
                     sortMenuOpen: false,
                     visibleFilterOpenGroup: '',
+                    visibleFilterFeedback: null,
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -1772,10 +1778,6 @@
         return safeCount + (safeCount === 1 ? ' result' : ' results');
     }
 
-    function isDiscoveryResponsiveToolbar() {
-        return (window.innerWidth || $(window).width() || 0) <= 800;
-    }
-
     function renderDiscoveryResultCount(widgetId) {
         var state = filterState[widgetId];
         var resultText = formatResultCount(state && typeof state.resultCount !== 'undefined' ? state.resultCount : 0);
@@ -1942,6 +1944,14 @@
         var groupKey = groupConfig.key;
         var options = state.options[groupKey] || [];
         var selectedIds = getDiscoverySelections(state, groupKey);
+        var activeFeedback = (surfaceKey || 'drawer') === 'visible' && state && state.ui && state.ui.visibleFilterFeedback && state.ui.visibleFilterFeedback.groupKey === groupKey
+            ? state.ui.visibleFilterFeedback
+            : null;
+        var selectedIdsForOrdering = activeFeedback && activeFeedback.phase !== 'done'
+            ? selectedIds.filter(function (value) {
+                return String(value) !== String(activeFeedback.value);
+            })
+            : selectedIds.slice();
         var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
         var visibleOptions = options.filter(function (option) {
             if (!termSearch) {
@@ -1950,7 +1960,39 @@
 
             return normalizeDiscoveryText(option.name).indexOf(termSearch) > -1;
         });
+        var orderedVisibleOptions = visibleOptions.slice();
         var html = '';
+        var renderedIndex = 0;
+        var placeholderInserted = false;
+
+        if ((surfaceKey || 'drawer') === 'visible' && selectedIdsForOrdering.length) {
+            orderedVisibleOptions.sort(function (optionA, optionB) {
+                var optionAValue = getDiscoveryOptionKey(groupKey, optionA);
+                var optionBValue = getDiscoveryOptionKey(groupKey, optionB);
+                var optionASelected = selectedIdsForOrdering.indexOf(optionAValue) > -1 ? 0 : 1;
+                var optionBSelected = selectedIdsForOrdering.indexOf(optionBValue) > -1 ? 0 : 1;
+
+                if (optionASelected !== optionBSelected) {
+                    return optionASelected - optionBSelected;
+                }
+
+                return 0;
+            });
+        }
+
+        function injectFeedbackPlaceholder() {
+            if (!activeFeedback || activeFeedback.phase === 'exiting' || placeholderInserted) {
+                return;
+            }
+
+            if (renderedIndex !== parseInteger(activeFeedback.placeholderIndex, -1)) {
+                return;
+            }
+
+            html += '<div class="bw-fpw-discovery-feedback-slot' + (activeFeedback.phase === 'placeholder-exit' ? ' is-fading' : '') + '">' + escapeHtml(activeFeedback.label || 'Added filter') + '</div>';
+            placeholderInserted = true;
+            renderedIndex += 1;
+        }
 
         html += '<label class="bw-fpw-discovery-group-search">';
         html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
@@ -1958,21 +2000,33 @@
         html += '</label>';
         html += '<div class="bw-fpw-discovery-options">';
 
-        if (visibleOptions.length) {
-            visibleOptions.forEach(function (option) {
+        if (orderedVisibleOptions.length) {
+            orderedVisibleOptions.forEach(function (option) {
                 var optionValue = getDiscoveryOptionKey(groupKey, option);
                 var isSelected = selectedIds.indexOf(optionValue) > -1;
                 var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
+                var isFeedbackOption = !!(activeFeedback && activeFeedback.phase !== 'done' && String(activeFeedback.value) === String(optionValue));
+
+                if (isFeedbackOption) {
+                    injectFeedbackPlaceholder();
+                    return;
+                }
+
+                injectFeedbackPlaceholder();
 
                 html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
                 html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
                 html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
                 html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
                 html += '</button>';
+                renderedIndex += 1;
             });
         } else {
+            injectFeedbackPlaceholder();
             html += '<div class="bw-fpw-discovery-options__empty">No matches found</div>';
         }
+
+        injectFeedbackPlaceholder();
 
         html += '</div>';
 
@@ -2176,6 +2230,7 @@
             state.ui.visibleFilterOpenGroup = '';
         }
 
+        clearDiscoveryVisibleFilterFeedback(widgetId, false);
         renderDiscoveryUi(widgetId);
         filterPosts(widgetId);
     }
@@ -2201,12 +2256,171 @@
         });
     }
 
+    function clearDiscoveryVisibleFilterFeedback(widgetId, shouldRender) {
+        var state = filterState[widgetId];
+
+        if (visibleFilterFeedbackTimers[widgetId]) {
+            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+            delete visibleFilterFeedbackTimers[widgetId];
+        }
+
+        if (!state || !state.ui) {
+            return;
+        }
+
+        state.ui.visibleFilterFeedback = null;
+
+        if (shouldRender) {
+            renderDiscoveryVisibleFilters(widgetId);
+        }
+    }
+
+    function setDiscoveryVisibleFilterFeedback(widgetId, groupKey, optionValue, label) {
+        var state = filterState[widgetId];
+
+        if (!state || !state.ui || !groupKey || !optionValue) {
+            return;
+        }
+
+        if (visibleFilterFeedbackTimers[widgetId]) {
+            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+        }
+
+        state.ui.visibleFilterFeedback = {
+            groupKey: groupKey,
+            value: String(optionValue),
+            label: label || 'Added filter',
+            placeholderIndex: 0,
+            phase: 'exiting'
+        };
+    }
+
+    function captureDiscoveryVisibleFilterPanelState(widgetId) {
+        var state = filterState[widgetId];
+        var groupKey;
+        var $options;
+        var snapshot;
+
+        if (!state || !state.ui || !state.ui.visibleFilterOpenGroup) {
+            return null;
+        }
+
+        groupKey = state.ui.visibleFilterOpenGroup;
+        $options = $('.bw-fpw-visible-filter[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-options').first();
+
+        if (!$options.length) {
+            return null;
+        }
+
+        snapshot = {
+            groupKey: groupKey,
+            scrollTop: $options.scrollTop(),
+            optionPositions: {}
+        };
+
+        $options.find('.bw-fpw-discovery-option').each(function () {
+            var optionValue = $(this).attr('data-filter-value');
+
+            if (!optionValue) {
+                return;
+            }
+
+            snapshot.optionPositions[String(optionValue)] = this.getBoundingClientRect().top;
+        });
+
+        return snapshot;
+    }
+
+    function animateDiscoveryVisibleFilterOptionReorder($options, snapshot) {
+        var animatedNodes = [];
+
+        if (!$options || !$options.length || !snapshot || !snapshot.optionPositions) {
+            return;
+        }
+
+        $options.find('.bw-fpw-discovery-option').each(function () {
+            var optionValue = $(this).attr('data-filter-value');
+            var previousTop;
+            var deltaY;
+
+            if (!optionValue || !snapshot.optionPositions.hasOwnProperty(String(optionValue))) {
+                return;
+            }
+
+            previousTop = snapshot.optionPositions[String(optionValue)];
+            deltaY = previousTop - this.getBoundingClientRect().top;
+
+            if (Math.abs(deltaY) < 1) {
+                return;
+            }
+
+            this.style.transition = 'none';
+            this.style.transform = 'translateY(' + deltaY + 'px)';
+            this.style.opacity = '0.76';
+            this.style.willChange = 'transform';
+            animatedNodes.push(this);
+        });
+
+        if (!animatedNodes.length) {
+            return;
+        }
+
+        $options[0].offsetHeight;
+
+        window.requestAnimationFrame(function () {
+            animatedNodes.forEach(function (node) {
+                var cleanup = function (event) {
+                    if (event && event.propertyName && event.propertyName !== 'transform') {
+                        return;
+                    }
+
+                    node.style.transition = '';
+                    node.style.transform = '';
+                    node.style.opacity = '';
+                    node.style.willChange = '';
+                    node.removeEventListener('transitionend', cleanup);
+                };
+
+                node.addEventListener('transitionend', cleanup);
+                node.style.transition = 'transform 560ms cubic-bezier(0.16, 1, 0.3, 1), opacity 420ms ease';
+                node.style.transform = '';
+                node.style.opacity = '';
+            });
+        });
+    }
+
+    function restoreDiscoveryVisibleFilterPanelState(widgetId, snapshot) {
+        var $options;
+
+        if (!snapshot || !snapshot.groupKey) {
+            return;
+        }
+
+        $options = $('.bw-fpw-visible-filter[data-widget-id="' + widgetId + '"][data-group="' + snapshot.groupKey + '"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-options').first();
+
+        if (!$options.length) {
+            return;
+        }
+
+        $options.scrollTop(snapshot.scrollTop);
+
+        window.requestAnimationFrame(function () {
+            $options.scrollTop(snapshot.scrollTop);
+            animateDiscoveryVisibleFilterOptionReorder($options, snapshot);
+        });
+    }
+
     function renderDiscoveryVisibleFilters(widgetId) {
         var state = filterState[widgetId];
         var $containers = $('.bw-fpw-visible-filters[data-widget-id="' + widgetId + '"]');
+        var panelSnapshot = captureDiscoveryVisibleFilterPanelState(widgetId);
         var html = '';
 
         if (!state || !$containers.length) {
+            return;
+        }
+
+        if (state.ui && state.ui.visibleFilterFeedback && state.ui.visibleFilterFeedback.phase === 'exiting' && $containers.children().length) {
             return;
         }
 
@@ -2269,6 +2483,8 @@
             .html(html)
             .toggleClass('is-hidden', html === '')
             .attr('aria-hidden', html === '' ? 'true' : 'false');
+
+        restoreDiscoveryVisibleFilterPanelState(widgetId, panelSnapshot);
     }
 
     function closeDiscoverySortMenu(widgetId) {
@@ -2648,11 +2864,17 @@
         state.ui.openGroups.technique = false;
         state.ui.sortMenuOpen = false;
         state.ui.visibleFilterOpenGroup = '';
+        state.ui.visibleFilterFeedback = null;
         state.ui.yearDraft = createEmptyYearState();
 
         if (yearInputCommitTimers[widgetId]) {
             clearTimeout(yearInputCommitTimers[widgetId]);
             delete yearInputCommitTimers[widgetId];
+        }
+
+        if (visibleFilterFeedbackTimers[widgetId]) {
+            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+            delete visibleFilterFeedbackTimers[widgetId];
         }
 
         renderDiscoveryUi(widgetId);
@@ -2711,6 +2933,7 @@
             return;
         }
 
+        clearDiscoveryVisibleFilterFeedback(widgetId, false);
         renderDiscoveryUi(widgetId);
         filterPosts(widgetId);
     }
@@ -3034,6 +3257,63 @@
         return $($.parseHTML(trimmedHtml, document, true));
     }
 
+    function clearGridRefreshTransition(widgetId) {
+        if (!widgetId) {
+            return;
+        }
+
+        if (gridRefreshTimers[widgetId]) {
+            clearTimeout(gridRefreshTimers[widgetId]);
+            delete gridRefreshTimers[widgetId];
+        }
+    }
+
+    function beginGridRefreshTransition($grid) {
+        var refreshCycle;
+        var widgetId;
+
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        widgetId = $grid.attr('data-widget-id');
+        refreshCycle = parseInteger($grid.attr('data-bw-refresh-cycle'), 0) + 1;
+        clearGridRefreshTransition(widgetId);
+        $grid.attr('data-bw-refresh-cycle', refreshCycle);
+        $grid.removeClass('bw-fpw-grid--settling').addClass('bw-fpw-grid--refreshing');
+    }
+
+    function finishGridRefreshTransition($grid) {
+        var refreshCycle;
+        var widgetId;
+
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        widgetId = $grid.attr('data-widget-id');
+        refreshCycle = String($grid.attr('data-bw-refresh-cycle') || '');
+        clearGridRefreshTransition(widgetId);
+
+        window.requestAnimationFrame(function () {
+            if (String($grid.attr('data-bw-refresh-cycle') || '') !== refreshCycle) {
+                return;
+            }
+
+            $grid.removeClass('bw-fpw-grid--refreshing').addClass('bw-fpw-grid--settling');
+
+            gridRefreshTimers[widgetId] = setTimeout(function () {
+                if (String($grid.attr('data-bw-refresh-cycle') || '') !== refreshCycle) {
+                    delete gridRefreshTimers[widgetId];
+                    return;
+                }
+
+                $grid.removeClass('bw-fpw-grid--settling');
+                delete gridRefreshTimers[widgetId];
+            }, 460);
+        });
+    }
+
     function getResponseItems($nodes) {
         if (!$nodes || !$nodes.length) {
             return $();
@@ -3104,6 +3384,11 @@
             clearTimeout(loadingIndicatorTimers[widgetId]);
             delete loadingIndicatorTimers[widgetId];
         }
+
+        clearGridRefreshTransition(widgetId);
+        $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
+            .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
+            .removeAttr('data-bw-refresh-cycle');
 
         if (discoverySearchTimers[widgetId]) {
             clearTimeout(discoverySearchTimers[widgetId]);
@@ -3576,6 +3861,7 @@
                 addLoadSpacer(widgetId);
             } else {
                 $filters.addClass('loading');
+                beginGridRefreshTransition($grid);
             }
 
             processFilterResponse(cachedResponse, widgetId, $grid, $wrapper, $filters, {
@@ -3596,6 +3882,7 @@
         } else {
             removeLoadSpacer(widgetId); // clear any spacer left from a previous append
             $filters.addClass('loading');
+            beginGridRefreshTransition($grid);
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
                 nextPage: 0,
@@ -3689,6 +3976,7 @@
 
                 $grid.html('<div class="bw-fpw-placeholder">Error loading posts.</div>');
                 $filters.removeClass('loading');
+                finishGridRefreshTransition($grid);
                 $filters.attr('data-has-posts', '0');
                 $('.bw-fpw-filter-row--subcategories[data-widget-id="' + widgetId + '"], .bw-fpw-filter-row--tags[data-widget-id="' + widgetId + '"]').hide();
             }
@@ -3865,6 +4153,7 @@
 
             finalizeGridUpdate($grid, $responseItems, false, function () {
                 $filters.removeClass('loading');
+                finishGridRefreshTransition($grid);
                 syncInfiniteObserver(widgetId);
             }, 'initial');
 
@@ -3899,6 +4188,7 @@
 
             // Remove loading state
             $filters.removeClass('loading');
+            finishGridRefreshTransition($grid);
             $filters.attr('data-has-posts', '0');
             updateWidgetPagingState(widgetId, {
                 currentPage: 1,
@@ -4133,6 +4423,9 @@
             var widgetId = $button.attr('data-widget-id');
             var groupKey = $button.attr('data-group');
             var rawValue = $button.attr('data-filter-value');
+            var isVisibleSurface = $button.closest('.bw-fpw-visible-filter__panel').length > 0;
+            var wasSelected = $button.hasClass('is-selected');
+            var placeholderIndex = $button.index();
             var selectionValue = isDiscoveryTokenGroup(groupKey)
                 ? normalizeDiscoveryTokenValue(rawValue)
                 : parseInteger(rawValue, 0);
@@ -4142,7 +4435,56 @@
             }
 
             toggleDiscoverySelection(widgetId, groupKey, selectionValue);
-            renderDiscoveryUi(widgetId);
+
+            if (isVisibleSurface && !wasSelected) {
+                setDiscoveryVisibleFilterFeedback(widgetId, groupKey, selectionValue, 'Added filter');
+                if (filterState[widgetId] && filterState[widgetId].ui && filterState[widgetId].ui.visibleFilterFeedback) {
+                    filterState[widgetId].ui.visibleFilterFeedback.placeholderIndex = placeholderIndex;
+                }
+                $button.addClass('is-feedback-exiting');
+
+                if (visibleFilterFeedbackTimers[widgetId]) {
+                    clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+                }
+
+                visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                    var state = filterState[widgetId];
+
+                    if (!state || !state.ui || !state.ui.visibleFilterFeedback || String(state.ui.visibleFilterFeedback.value) !== String(selectionValue) || state.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                        return;
+                    }
+
+                    state.ui.visibleFilterFeedback.phase = 'placeholder';
+                    renderDiscoveryUi(widgetId);
+
+                    visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                        var innerState = filterState[widgetId];
+
+                        if (!innerState || !innerState.ui || !innerState.ui.visibleFilterFeedback || String(innerState.ui.visibleFilterFeedback.value) !== String(selectionValue) || innerState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                            return;
+                        }
+
+                        innerState.ui.visibleFilterFeedback.phase = 'placeholder-exit';
+                        renderDiscoveryVisibleFilters(widgetId);
+
+                        visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                            var finalState = filterState[widgetId];
+
+                            delete visibleFilterFeedbackTimers[widgetId];
+
+                            if (!finalState || !finalState.ui || !finalState.ui.visibleFilterFeedback || String(finalState.ui.visibleFilterFeedback.value) !== String(selectionValue) || finalState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                                return;
+                            }
+
+                            finalState.ui.visibleFilterFeedback = null;
+                            renderDiscoveryUi(widgetId);
+                        }, VISIBLE_FILTER_ADD_FADE_MS);
+                    }, VISIBLE_FILTER_ADD_HOLD_MS);
+                }, VISIBLE_FILTER_ADD_EXIT_MS);
+            } else {
+                clearDiscoveryVisibleFilterFeedback(widgetId, false);
+                renderDiscoveryUi(widgetId);
+            }
             filterPosts(widgetId);
         });
 
@@ -4552,6 +4894,7 @@
                     drawerGroupMarkup: prevState.ui && prevState.ui.drawerGroupMarkup ? $.extend({}, prevState.ui.drawerGroupMarkup) : {},
                     sortConfigCacheKey: prevState.ui && prevState.ui.sortConfigCacheKey ? prevState.ui.sortConfigCacheKey : '',
                     sortConfigCacheValue: prevState.ui && prevState.ui.sortConfigCacheValue ? $.extend({}, prevState.ui.sortConfigCacheValue) : null,
+                    visibleFilterFeedback: prevState.ui && prevState.ui.visibleFilterFeedback ? $.extend({}, prevState.ui.visibleFilterFeedback) : null,
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -4584,6 +4927,14 @@
                 clearTimeout(searchDebounceTimers[widgetId]);
                 delete searchDebounceTimers[widgetId];
             }
+            if (visibleFilterFeedbackTimers[widgetId]) {
+                clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+                delete visibleFilterFeedbackTimers[widgetId];
+            }
+            clearGridRefreshTransition(widgetId);
+            $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
+                .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
+                .removeAttr('data-bw-refresh-cycle');
             $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]').val('');
 
             // Reset all category buttons
@@ -4868,6 +5219,14 @@
                     clearTimeout(searchDebounceTimers[widgetId]);
                     delete searchDebounceTimers[widgetId];
                 }
+                if (visibleFilterFeedbackTimers[widgetId]) {
+                    clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+                    delete visibleFilterFeedbackTimers[widgetId];
+                }
+                clearGridRefreshTransition(widgetId);
+                $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]')
+                    .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
+                    .removeAttr('data-bw-refresh-cycle');
             }
 
             if (!isElementorEditor()) {

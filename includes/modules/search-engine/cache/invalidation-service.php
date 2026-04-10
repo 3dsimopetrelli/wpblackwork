@@ -108,6 +108,46 @@ function bw_fpw_sync_product_filter_meta($post_id)
     unset($sync_in_progress[$post_id]);
 }
 
+function bw_fpw_get_scoped_product_family_slugs_for_invalidation($post_id, $extra_term_ids = [], $extra_tt_ids = [])
+{
+    $post_id = absint($post_id);
+
+    if ($post_id <= 0 || 'product' !== get_post_type($post_id)) {
+        return null;
+    }
+
+    $slugs = [];
+    $current_term_ids = wp_get_post_terms($post_id, 'product_cat', ['fields' => 'ids']);
+
+    if (!is_wp_error($current_term_ids) && is_array($current_term_ids)) {
+        $extra_term_ids = array_merge($extra_term_ids, $current_term_ids);
+    }
+
+    foreach ((array) $extra_term_ids as $term_id) {
+        $slug = bw_fpw_resolve_product_family_slug_from_term_id((int) $term_id, 'product_cat');
+
+        if ('' !== $slug && 'mixed' !== $slug) {
+            $slugs[$slug] = true;
+        }
+    }
+
+    foreach ((array) $extra_tt_ids as $tt_id) {
+        $term = get_term_by('term_taxonomy_id', (int) $tt_id, 'product_cat');
+
+        if (!$term instanceof WP_Term || is_wp_error($term)) {
+            continue;
+        }
+
+        $slug = bw_fpw_resolve_product_family_slug_from_term_id((int) $term->term_id, 'product_cat');
+
+        if ('' !== $slug && 'mixed' !== $slug) {
+            $slugs[$slug] = true;
+        }
+    }
+
+    return !empty($slugs) ? array_values(array_keys($slugs)) : null;
+}
+
 function bw_fpw_clear_grid_transients($post_id)
 {
     if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
@@ -115,17 +155,16 @@ function bw_fpw_clear_grid_transients($post_id)
     }
 
     if ('product' === get_post_type($post_id)) {
-        $family = bw_fpw_resolve_product_family_slug_from_product($post_id);
-        $slugs = ('' !== $family && 'mixed' !== $family) ? [$family] : null;
+        $slugs = bw_fpw_get_scoped_product_family_slugs_for_invalidation($post_id);
         bw_fpw_clear_grid_transient_cache($slugs);
-        bw_fpw_clear_advanced_filter_index_transients($slugs ? $slugs[0] : '');
+        bw_fpw_clear_advanced_filter_index_transients($slugs ?: '');
         bw_fpw_sync_product_filter_meta($post_id);
+        bw_fpw_clear_year_index_transients($slugs ?: '');
     } else {
         bw_fpw_clear_grid_transient_cache();
         bw_fpw_clear_advanced_filter_index_transients();
+        bw_fpw_clear_year_index_transients();
     }
-
-    bw_fpw_clear_year_index_transients();
 }
 
 function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $meta_key, $meta_value = '')
@@ -145,11 +184,10 @@ function bw_fpw_handle_product_filter_meta_change($meta_id_or_ids, $object_id, $
 
     bw_fpw_sync_product_filter_meta($object_id);
 
-    $family = bw_fpw_resolve_product_family_slug_from_product($object_id);
-    $slugs = ('' !== $family && 'mixed' !== $family) ? [$family] : null;
+    $slugs = bw_fpw_get_scoped_product_family_slugs_for_invalidation($object_id);
     bw_fpw_clear_grid_transient_cache($slugs);
-    bw_fpw_clear_year_index_transients();
-    bw_fpw_clear_advanced_filter_index_transients();
+    bw_fpw_clear_year_index_transients($slugs ?: '');
+    bw_fpw_clear_advanced_filter_index_transients($slugs ?: '');
 }
 
 function bw_fpw_handle_product_filter_term_change($object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids)
@@ -160,9 +198,11 @@ function bw_fpw_handle_product_filter_term_change($object_id, $terms, $tt_ids, $
     }
 
     bw_fpw_sync_product_filter_meta($object_id);
-    bw_fpw_clear_grid_transient_cache();
-    bw_fpw_clear_year_index_transients();
-    bw_fpw_clear_advanced_filter_index_transients();
+
+    $slugs = bw_fpw_get_scoped_product_family_slugs_for_invalidation($object_id, (array) $terms, (array) $old_tt_ids);
+    bw_fpw_clear_grid_transient_cache($slugs);
+    bw_fpw_clear_year_index_transients($slugs ?: '');
+    bw_fpw_clear_advanced_filter_index_transients($slugs ?: '');
 }
 
 function bw_fpw_handle_product_filter_status_change($new_status, $old_status, $post)
@@ -172,7 +212,9 @@ function bw_fpw_handle_product_filter_status_change($new_status, $old_status, $p
     }
 
     bw_fpw_sync_product_filter_meta($post->ID);
-    bw_fpw_clear_grid_transient_cache();
-    bw_fpw_clear_year_index_transients();
-    bw_fpw_clear_advanced_filter_index_transients();
+
+    $slugs = bw_fpw_get_scoped_product_family_slugs_for_invalidation($post->ID);
+    bw_fpw_clear_grid_transient_cache($slugs);
+    bw_fpw_clear_year_index_transients($slugs ?: '');
+    bw_fpw_clear_advanced_filter_index_transients($slugs ?: '');
 }

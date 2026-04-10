@@ -8,6 +8,7 @@
 /* ── Main container: strip the theme's .site-main max-width / padding ── */
 .bw-search-results-page .bw-search-results-page__main {
     max-width: none !important;
+    padding-top: 80px !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
     width: 100%;
@@ -20,35 +21,6 @@
     padding: 0;
 }
 
-/* ── Title bar ── */
-.bw-search-results-page .bw-search-results-page__titlebar {
-    padding: 40px 40px 0;
-    box-sizing: border-box;
-}
-
-/* ── Page title: normalise margin; typography comes from theme h1 styles once
-       Elementor kit CSS is loaded (--e-global-typography-* custom properties). ── */
-.bw-search-results-page .bw-search-results-page__title {
-    margin: 0;
-}
-
-/* ── Active chips strip (server-rendered remove-filter links)
-       Navigation links for query/scope/advanced filters.
-       Not targeted by JS (no bw-fpw-active-chips class), so these persist
-       as permanent navigation shortcuts above the product grid toolbar. ── */
-.bw-search-results-page .bw-search-results-page__chips {
-    padding: 12px 40px 0;
-    box-sizing: border-box;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-}
-
-.bw-search-results-page .bw-search-results-page__chips:empty {
-    display: none;
-}
-
 /* ── Bring the product grid wrapper flush so it respects its own
        --bw-fpw-max-width (2000 px default) rather than the theme container. ── */
 .bw-search-results-page .bw-search-results-grid-wrapper {
@@ -59,5 +31,5 @@
 
 /* ── Add top breathing room between title/chips and the grid toolbar ── */
 .bw-search-results-page .bw-product-grid-wrapper {
-    padding-top: 32px;
+    padding-top: 0;
 }

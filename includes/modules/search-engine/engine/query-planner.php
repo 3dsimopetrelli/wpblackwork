@@ -130,7 +130,7 @@ function bw_fpw_build_engine_query_args($request, $sort_config, $is_append)
         'post_type' => $request['post_type'],
         'posts_per_page' => $query_posts_per_page,
         'post_status' => 'publish',
-        'no_found_rows' => $is_append,
+        'no_found_rows' => $is_append && empty($request['include_filter_ui']),
         'ignore_sticky_posts' => true,
     ];
 

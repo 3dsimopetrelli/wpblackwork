@@ -451,6 +451,10 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/search-surface/sea
     require_once plugin_dir_path(__FILE__) . 'includes/modules/search-surface/search-surface-module.php';
 }
 
+if (function_exists('bw_ss_on_plugin_activation')) {
+    register_activation_hook(__FILE__, 'bw_ss_on_plugin_activation');
+}
+
 // Theme Builder Lite module (fonts + footer template runtime)
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php';
