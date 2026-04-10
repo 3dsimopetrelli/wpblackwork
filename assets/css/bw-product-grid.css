@@ -1510,6 +1510,7 @@ body.bw-fpw-drawer-no-scroll {
   width: 100%;
   min-height: 40px;
   padding: 8px 16px 8px 10px;
+  position: relative;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -1519,7 +1520,7 @@ body.bw-fpw-drawer-no-scroll {
   font-weight: 600;
   line-height: 20px;
   transform: none;
-  transition: background-color 160ms ease, opacity 160ms ease;
+  transition: background-color 220ms ease, opacity 220ms ease, transform 220ms ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option:hover,
@@ -1536,6 +1537,63 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-disabled:hover {
   background: transparent;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-feedback-added {
+  z-index: 2;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-feedback-added::after {
+  content: attr(data-feedback-label);
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(134, 239, 84, 0.16);
+  color: #86ef54;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transform: translateY(-50%);
+  opacity: 0;
+  animation: bw-fpw-added-badge 920ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-feedback-added .bw-fpw-discovery-option__count {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-feedback-added .bw-fpw-discovery-option__label {
+  opacity: 0.96;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-feedback-added .bw-fpw-discovery-option__check {
+  transform: scale(1.04);
+  transition: transform 220ms ease;
+}
+
+@keyframes bw-fpw-added-badge {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(4px);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-6px);
+  }
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option__check {

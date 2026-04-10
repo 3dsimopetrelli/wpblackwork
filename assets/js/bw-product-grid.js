@@ -450,6 +450,7 @@
     // Keys: widgetId + '_subcats' | widgetId + '_tags'
     var filterAnimTimers = {};
     var discoverySearchTimers = {};
+    var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
     var CACHE_MAX_ENTRIES = 80;
@@ -943,6 +944,7 @@
                     orderTriggerStyle: ($grid.attr('data-order-trigger-style') || 'icon') === 'dropdown' ? 'dropdown' : 'icon',
                     sortMenuOpen: false,
                     visibleFilterOpenGroup: '',
+                    visibleFilterFeedback: null,
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -1938,6 +1940,9 @@
         var groupKey = groupConfig.key;
         var options = state.options[groupKey] || [];
         var selectedIds = getDiscoverySelections(state, groupKey);
+        var activeFeedback = (surfaceKey || 'drawer') === 'visible' && state && state.ui && state.ui.visibleFilterFeedback && state.ui.visibleFilterFeedback.groupKey === groupKey
+            ? state.ui.visibleFilterFeedback
+            : null;
         var termSearch = normalizeDiscoveryText(state.ui.optionSearches[groupKey]);
         var visibleOptions = options.filter(function (option) {
             if (!termSearch) {
@@ -1975,8 +1980,9 @@
                 var optionValue = getDiscoveryOptionKey(groupKey, option);
                 var isSelected = selectedIds.indexOf(optionValue) > -1;
                 var isDisabled = !isSelected && parseInteger(option.count, 0) <= 0;
+                var isFeedbackAdded = !!(activeFeedback && String(activeFeedback.value) === String(optionValue));
 
-                html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isDisabled ? ' disabled' : '') + '>';
+                html += '<button class="bw-fpw-discovery-option' + (isSelected ? ' is-selected' : '') + (isDisabled ? ' is-disabled' : '') + (isFeedbackAdded ? ' is-feedback-added' : '') + '" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-filter-value="' + escapeHtml(optionValue) + '"' + (isFeedbackAdded ? ' data-feedback-label="' + escapeHtml(activeFeedback.label || 'Added') + '"' : '') + (isDisabled ? ' disabled' : '') + '>';
                 html += '<span class="bw-fpw-discovery-option__check"><span class="bw-fpw-discovery-option__tick"></span></span>';
                 html += '<span class="bw-fpw-discovery-option__label">' + escapeHtml(option.name) + '</span>';
                 html += '<span class="bw-fpw-discovery-option__count">' + escapeHtml(parseInteger(option.count, 0)) + '</span>';
@@ -2188,6 +2194,7 @@
             state.ui.visibleFilterOpenGroup = '';
         }
 
+        clearDiscoveryVisibleFilterFeedback(widgetId, false);
         renderDiscoveryUi(widgetId);
         filterPosts(widgetId);
     }
@@ -2211,6 +2218,52 @@
 
             closeDiscoveryVisibleFilterPanel(widgetId);
         });
+    }
+
+    function clearDiscoveryVisibleFilterFeedback(widgetId, shouldRender) {
+        var state = filterState[widgetId];
+
+        if (visibleFilterFeedbackTimers[widgetId]) {
+            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+            delete visibleFilterFeedbackTimers[widgetId];
+        }
+
+        if (!state || !state.ui) {
+            return;
+        }
+
+        state.ui.visibleFilterFeedback = null;
+
+        if (shouldRender) {
+            renderDiscoveryVisibleFilters(widgetId);
+        }
+    }
+
+    function setDiscoveryVisibleFilterFeedback(widgetId, groupKey, optionValue, label) {
+        var state = filterState[widgetId];
+
+        if (!state || !state.ui || !groupKey || !optionValue) {
+            return;
+        }
+
+        if (visibleFilterFeedbackTimers[widgetId]) {
+            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+        }
+
+        state.ui.visibleFilterFeedback = {
+            groupKey: groupKey,
+            value: String(optionValue),
+            label: label || 'Added'
+        };
+
+        visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+            delete visibleFilterFeedbackTimers[widgetId];
+            if (!filterState[widgetId] || !filterState[widgetId].ui) {
+                return;
+            }
+            filterState[widgetId].ui.visibleFilterFeedback = null;
+            renderDiscoveryVisibleFilters(widgetId);
+        }, 960);
     }
 
     function captureDiscoveryVisibleFilterPanelState(widgetId) {
@@ -2274,7 +2327,7 @@
 
             this.style.transition = 'none';
             this.style.transform = 'translateY(' + deltaY + 'px)';
-            this.style.opacity = '0.82';
+            this.style.opacity = '0.76';
             this.style.willChange = 'transform';
             animatedNodes.push(this);
         });
@@ -2300,7 +2353,7 @@
                 };
 
                 node.addEventListener('transitionend', cleanup);
-                node.style.transition = 'transform 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease';
+                node.style.transition = 'transform 560ms cubic-bezier(0.16, 1, 0.3, 1), opacity 420ms ease';
                 node.style.transform = '';
                 node.style.opacity = '';
             });
@@ -2778,11 +2831,17 @@
         state.ui.openGroups.technique = false;
         state.ui.sortMenuOpen = false;
         state.ui.visibleFilterOpenGroup = '';
+        state.ui.visibleFilterFeedback = null;
         state.ui.yearDraft = createEmptyYearState();
 
         if (yearInputCommitTimers[widgetId]) {
             clearTimeout(yearInputCommitTimers[widgetId]);
             delete yearInputCommitTimers[widgetId];
+        }
+
+        if (visibleFilterFeedbackTimers[widgetId]) {
+            clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+            delete visibleFilterFeedbackTimers[widgetId];
         }
 
         renderDiscoveryUi(widgetId);
@@ -2841,6 +2900,7 @@
             return;
         }
 
+        clearDiscoveryVisibleFilterFeedback(widgetId, false);
         renderDiscoveryUi(widgetId);
         filterPosts(widgetId);
     }
@@ -4263,6 +4323,8 @@
             var widgetId = $button.attr('data-widget-id');
             var groupKey = $button.attr('data-group');
             var rawValue = $button.attr('data-filter-value');
+            var isVisibleSurface = $button.closest('.bw-fpw-visible-filter__panel').length > 0;
+            var wasSelected = $button.hasClass('is-selected');
             var selectionValue = isDiscoveryTokenGroup(groupKey)
                 ? normalizeDiscoveryTokenValue(rawValue)
                 : parseInteger(rawValue, 0);
@@ -4272,6 +4334,13 @@
             }
 
             toggleDiscoverySelection(widgetId, groupKey, selectionValue);
+
+            if (isVisibleSurface && !wasSelected) {
+                setDiscoveryVisibleFilterFeedback(widgetId, groupKey, selectionValue, 'Added');
+            } else {
+                clearDiscoveryVisibleFilterFeedback(widgetId, false);
+            }
+
             renderDiscoveryUi(widgetId);
             filterPosts(widgetId);
         });
@@ -4682,6 +4751,7 @@
                     drawerGroupMarkup: prevState.ui && prevState.ui.drawerGroupMarkup ? $.extend({}, prevState.ui.drawerGroupMarkup) : {},
                     sortConfigCacheKey: prevState.ui && prevState.ui.sortConfigCacheKey ? prevState.ui.sortConfigCacheKey : '',
                     sortConfigCacheValue: prevState.ui && prevState.ui.sortConfigCacheValue ? $.extend({}, prevState.ui.sortConfigCacheValue) : null,
+                    visibleFilterFeedback: prevState.ui && prevState.ui.visibleFilterFeedback ? $.extend({}, prevState.ui.visibleFilterFeedback) : null,
                     optionSearches: {
                         types: '',
                         tags: '',
@@ -4713,6 +4783,10 @@
             if (searchDebounceTimers[widgetId]) {
                 clearTimeout(searchDebounceTimers[widgetId]);
                 delete searchDebounceTimers[widgetId];
+            }
+            if (visibleFilterFeedbackTimers[widgetId]) {
+                clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+                delete visibleFilterFeedbackTimers[widgetId];
             }
             $('.bw-fpw-search-input[data-widget-id="' + widgetId + '"]').val('');
 
@@ -4997,6 +5071,10 @@
                 if (searchDebounceTimers[widgetId]) {
                     clearTimeout(searchDebounceTimers[widgetId]);
                     delete searchDebounceTimers[widgetId];
+                }
+                if (visibleFilterFeedbackTimers[widgetId]) {
+                    clearTimeout(visibleFilterFeedbackTimers[widgetId]);
+                    delete visibleFilterFeedbackTimers[widgetId];
                 }
             }
 
