@@ -19,7 +19,6 @@ if (!function_exists('bw_header_live_search_safe_empty')) {
 
         wp_send_json_success([
             'products' => [],
-            'results' => [],
             'message' => $message,
         ]);
     }
@@ -106,7 +105,6 @@ if (!function_exists('bw_header_live_search_send_throttled_response')) {
     {
         wp_send_json_success([
             'products' => [],
-            'results' => [],
             'message' => '',
             'throttled' => true,
         ]);
@@ -334,7 +332,6 @@ if (!function_exists('bw_header_live_search_products')) {
         $products = bw_header_live_search_build_products_payload($query->posts);
         $response_payload = [
             'products' => $products,
-            'results' => $products,
             'message' => empty($products) ? __('Nessun prodotto trovato', 'bw') : '',
         ];
 

@@ -1772,10 +1772,6 @@
         return safeCount + (safeCount === 1 ? ' result' : ' results');
     }
 
-    function isDiscoveryResponsiveToolbar() {
-        return (window.innerWidth || $(window).width() || 0) <= 800;
-    }
-
     function renderDiscoveryResultCount(widgetId) {
         var state = filterState[widgetId];
         var resultText = formatResultCount(state && typeof state.resultCount !== 'undefined' ? state.resultCount : 0);

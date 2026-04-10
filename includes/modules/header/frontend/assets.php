@@ -377,6 +377,15 @@ if (!function_exists('bw_header_enqueue_assets')) {
             [
                 'breakpoint' => $breakpoint,
                 'title' => isset($settings['header_title']) ? (string) $settings['header_title'] : 'Blackwork Header',
+                'search' => [
+                    'ajaxUrl' => admin_url('admin-ajax.php'),
+                    'nonce' => wp_create_nonce('bw_search_nonce'),
+                    'messages' => [
+                        'searchError' => __('Search error', 'bw'),
+                        'connectionError' => __('Connection error', 'bw'),
+                        'noResults' => __('No products found', 'bw'),
+                    ],
+                ],
                 'smartScroll' => !empty($settings['features']['smart_scroll']),
                 'heroOverlap' => $hero_overlap_active,
                 'smartHeader' => [

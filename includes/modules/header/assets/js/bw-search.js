@@ -24,9 +24,25 @@
             this.ajaxRequest = null;
             this.minSearchLength = 2;
             this.searchDebounceMs = 400;
+            this.searchConfig = this.resolveSearchConfig();
 
             this.moveOverlayToBody();
             this.init();
+        }
+
+        resolveSearchConfig() {
+            const headerSearchConfig = window.bwHeaderConfig && window.bwHeaderConfig.search ? window.bwHeaderConfig.search : {};
+            const legacySearchConfig = typeof bwSearchAjax !== 'undefined' ? bwSearchAjax : {};
+
+            return {
+                ajaxUrl: headerSearchConfig.ajaxUrl || legacySearchConfig.ajaxUrl || '',
+                nonce: headerSearchConfig.nonce || legacySearchConfig.nonce || '',
+                messages: {
+                    searchError: (headerSearchConfig.messages && headerSearchConfig.messages.searchError) || 'Search error',
+                    connectionError: (headerSearchConfig.messages && headerSearchConfig.messages.connectionError) || 'Connection error',
+                    noResults: (headerSearchConfig.messages && headerSearchConfig.messages.noResults) || 'No products found'
+                }
+            };
         }
 
         moveOverlayToBody() {
@@ -144,16 +160,16 @@
         }
 
         performLiveSearch(searchTerm) {
-            if (typeof bwSearchAjax === 'undefined') {
+            if (!this.searchConfig.ajaxUrl || !this.searchConfig.nonce) {
                 return;
             }
 
             this.ajaxRequest = $.ajax({
-                url: bwSearchAjax.ajaxUrl,
+                url: this.searchConfig.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'bw_live_search_products',
-                    nonce: bwSearchAjax.nonce,
+                    nonce: this.searchConfig.nonce,
                     search_term: searchTerm,
                     categories: []
                 },
@@ -161,12 +177,12 @@
                     if (response && response.success && response.data) {
                         this.renderResults(response.data.products || [], response.data.message || '');
                     } else {
-                        this.showMessage('Errore durante la ricerca');
+                        this.showMessage(this.searchConfig.messages.searchError);
                     }
                 },
                 error: (xhr, status) => {
                     if (status !== 'abort') {
-                        this.showMessage('Errore di connessione');
+                        this.showMessage(this.searchConfig.messages.connectionError);
                     }
                 },
                 complete: () => {
@@ -180,7 +196,7 @@
             this.$resultsMessage.hide().text('');
 
             if (!products.length) {
-                this.showMessage(message || 'Nessun prodotto trovato');
+                this.showMessage(message || this.searchConfig.messages.noResults);
                 this.$resultsGrid.empty();
                 this.$resultsContainer.addClass('is-visible');
                 return;
