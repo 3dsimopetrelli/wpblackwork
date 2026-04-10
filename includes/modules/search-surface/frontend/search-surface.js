@@ -88,6 +88,14 @@
             '</div>';
     }
 
+    function syncLayoutMode(surfaceState) {
+        if (!surfaceState || !surfaceState.surface) {
+            return;
+        }
+
+        surfaceState.surface.classList.toggle('is-query-active', !!surfaceState.query);
+    }
+
     function renderSidebar(surfaceState) {
         var groups = getScopeGroups(surfaceState.scope);
         var html = groups.map(function (group, index) {
@@ -162,6 +170,7 @@
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.input.value = '';
+        syncLayoutMode(surfaceState);
         document.body.classList.remove('bw-search-overlay-active');
 
         if (openSurface === surfaceState) {
@@ -185,6 +194,7 @@
 
         surfaceState.mode = 'trending';
         surfaceState.activeGroup = 'trending';
+        syncLayoutMode(surfaceState);
         renderSidebar(surfaceState);
         setContentTitle(surfaceState, strings.trendingTitle || 'Trending');
         renderPreview(surfaceState, strings.previewTitle || 'Preview', strings.previewBody || '');
@@ -242,6 +252,8 @@
             '</a>'
         ];
 
+        surfaceState.mode = 'suggest';
+        syncLayoutMode(surfaceState);
         setContentTitle(surfaceState, strings.suggestionsTitle || 'Suggested products');
         renderPreview(surfaceState, strings.previewTitle || 'Preview', strings.previewBody || '');
 
@@ -287,6 +299,7 @@
 
         surfaceState.mode = 'browse';
         surfaceState.activeGroup = groupKey;
+        syncLayoutMode(surfaceState);
         renderSidebar(surfaceState);
 
         if (!items.length) {
@@ -399,6 +412,7 @@
 
     function handleInput(surfaceState) {
         surfaceState.query = surfaceState.input.value.trim();
+        syncLayoutMode(surfaceState);
 
         window.clearTimeout(surfaceState.debounceTimer);
 

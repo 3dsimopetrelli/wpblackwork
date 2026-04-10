@@ -420,6 +420,14 @@ body.bw-search-overlay-active {
     background: linear-gradient(180deg, rgba(30, 30, 30, 0.38) 0%, rgba(20, 20, 20, 0.24) 100%);
 }
 
+.bw-search-surface.is-query-active .bw-search-surface__body {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.bw-search-surface.is-query-active .bw-search-surface__sidebar {
+    display: none;
+}
+
 .bw-search-surface__sidebar,
 .bw-search-surface__main,
 .bw-search-surface__preview {
