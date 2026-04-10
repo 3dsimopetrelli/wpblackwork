@@ -947,7 +947,7 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-option.is-selected {
-  background: rgba(134, 239, 84, 0.16);
+  background: rgba(255, 255, 255, 0.1);
   color: #fafafa;
 }
 
@@ -958,7 +958,7 @@ body.bw-fpw-drawer-no-scroll {
   width: 20px;
   height: 20px;
   margin-left: 8px;
-  color: #86ef54;
+  color: #fafafa;
   opacity: 0;
   transform: scale(0.92);
   transition: opacity 0.22s ease, transform 0.22s ease;
