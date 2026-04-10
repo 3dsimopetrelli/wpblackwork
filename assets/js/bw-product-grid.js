@@ -2274,6 +2274,7 @@
 
             this.style.transition = 'none';
             this.style.transform = 'translateY(' + deltaY + 'px)';
+            this.style.opacity = '0.82';
             this.style.willChange = 'transform';
             animatedNodes.push(this);
         });
@@ -2293,13 +2294,15 @@
 
                     node.style.transition = '';
                     node.style.transform = '';
+                    node.style.opacity = '';
                     node.style.willChange = '';
                     node.removeEventListener('transitionend', cleanup);
                 };
 
                 node.addEventListener('transitionend', cleanup);
-                node.style.transition = 'transform 260ms cubic-bezier(0.22, 1, 0.36, 1)';
+                node.style.transition = 'transform 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease';
                 node.style.transform = '';
+                node.style.opacity = '';
             });
         });
     }
