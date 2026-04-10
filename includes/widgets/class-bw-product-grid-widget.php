@@ -856,7 +856,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
     private function render_wrapper_start( $settings, $show_filters = true ) {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
-        $responsive_breakpoint = 900;
+        $responsive_breakpoint = 1130;
         $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
         $drawer_side            = $this->get_responsive_filter_drawer_side( $settings );
 
