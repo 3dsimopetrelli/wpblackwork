@@ -890,21 +890,26 @@ body.bw-fpw-drawer-no-scroll {
   top: calc(100% + 10px);
   right: 0;
   z-index: 90;
-  min-width: 270px;
-  max-width: min(320px, calc(100vw - 40px));
-  padding: 8px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(16, 16, 16, 0.88);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.26);
+  min-width: 280px;
+  max-width: min(520px, calc(100vw - 40px));
+  padding: 10px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 0;
+  background: rgba(23, 23, 23, 0.85);
+  color: #fafafa;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
   opacity: 0;
   visibility: hidden;
   transform: translateY(8px) scale(0.98);
   transform-origin: top right;
   pointer-events: none;
-  transition: opacity 0.16s ease, transform 0.2s ease, visibility 0.2s ease;
+  transition: opacity 0.22s ease, transform 0.28s ease, visibility 0.28s ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort.is-open .bw-fpw-sort-menu {
@@ -920,29 +925,30 @@ body.bw-fpw-drawer-no-scroll {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px 8px 10px;
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.82);
+  color: #fafafa;
   text-align: left;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 20px;
   cursor: pointer;
-  transition: background-color 0.16s ease, color 0.16s ease;
+  transition: background-color 220ms ease, color 220ms ease, opacity 220ms ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-option:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-option:focus-visible {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fafafa;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-option.is-selected {
-  background: rgba(128, 253, 3, 0.14);
-  color: #ffffff;
+  background: rgba(134, 239, 84, 0.16);
+  color: #fafafa;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-option__check {
@@ -951,10 +957,11 @@ body.bw-fpw-drawer-no-scroll {
   justify-content: center;
   width: 20px;
   height: 20px;
-  color: #80fd03;
+  margin-left: 8px;
+  color: #86ef54;
   opacity: 0;
   transform: scale(0.92);
-  transition: opacity 0.16s ease, transform 0.16s ease;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-option.is-selected .bw-fpw-sort-option__check {
