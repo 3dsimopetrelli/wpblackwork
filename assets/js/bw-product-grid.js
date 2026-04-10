@@ -452,6 +452,7 @@
     var discoverySearchTimers = {};
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
+    var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 110;
     var gridRefreshTimers = {};
     var VISIBLE_FILTER_ADD_EXIT_MS = 180;
     var VISIBLE_FILTER_ADD_HOLD_MS = 360;
@@ -4441,46 +4442,56 @@
                 if (filterState[widgetId] && filterState[widgetId].ui && filterState[widgetId].ui.visibleFilterFeedback) {
                     filterState[widgetId].ui.visibleFilterFeedback.placeholderIndex = placeholderIndex;
                 }
-                $button.addClass('is-feedback-exiting');
+                $button.addClass('is-selected');
 
                 if (visibleFilterFeedbackTimers[widgetId]) {
                     clearTimeout(visibleFilterFeedbackTimers[widgetId]);
                 }
 
                 visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
-                    var state = filterState[widgetId];
+                    var pendingState = filterState[widgetId];
 
-                    if (!state || !state.ui || !state.ui.visibleFilterFeedback || String(state.ui.visibleFilterFeedback.value) !== String(selectionValue) || state.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                    if (!pendingState || !pendingState.ui || !pendingState.ui.visibleFilterFeedback || String(pendingState.ui.visibleFilterFeedback.value) !== String(selectionValue) || pendingState.ui.visibleFilterFeedback.groupKey !== groupKey) {
                         return;
                     }
 
-                    state.ui.visibleFilterFeedback.phase = 'placeholder';
-                    renderDiscoveryUi(widgetId);
+                    $button.addClass('is-feedback-exiting');
 
                     visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
-                        var innerState = filterState[widgetId];
+                        var state = filterState[widgetId];
 
-                        if (!innerState || !innerState.ui || !innerState.ui.visibleFilterFeedback || String(innerState.ui.visibleFilterFeedback.value) !== String(selectionValue) || innerState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                        if (!state || !state.ui || !state.ui.visibleFilterFeedback || String(state.ui.visibleFilterFeedback.value) !== String(selectionValue) || state.ui.visibleFilterFeedback.groupKey !== groupKey) {
                             return;
                         }
 
-                        innerState.ui.visibleFilterFeedback.phase = 'placeholder-exit';
-                        renderDiscoveryVisibleFilters(widgetId);
+                        state.ui.visibleFilterFeedback.phase = 'placeholder';
+                        renderDiscoveryUi(widgetId);
 
                         visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
-                            var finalState = filterState[widgetId];
+                            var innerState = filterState[widgetId];
 
-                            delete visibleFilterFeedbackTimers[widgetId];
-
-                            if (!finalState || !finalState.ui || !finalState.ui.visibleFilterFeedback || String(finalState.ui.visibleFilterFeedback.value) !== String(selectionValue) || finalState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                            if (!innerState || !innerState.ui || !innerState.ui.visibleFilterFeedback || String(innerState.ui.visibleFilterFeedback.value) !== String(selectionValue) || innerState.ui.visibleFilterFeedback.groupKey !== groupKey) {
                                 return;
                             }
 
-                            finalState.ui.visibleFilterFeedback = null;
-                            renderDiscoveryUi(widgetId);
-                        }, VISIBLE_FILTER_ADD_FADE_MS);
-                    }, VISIBLE_FILTER_ADD_HOLD_MS);
-                }, VISIBLE_FILTER_ADD_EXIT_MS);
+                            innerState.ui.visibleFilterFeedback.phase = 'placeholder-exit';
+                            renderDiscoveryVisibleFilters(widgetId);
+
+                            visibleFilterFeedbackTimers[widgetId] = setTimeout(function () {
+                                var finalState = filterState[widgetId];
+
+                                delete visibleFilterFeedbackTimers[widgetId];
+
+                                if (!finalState || !finalState.ui || !finalState.ui.visibleFilterFeedback || String(finalState.ui.visibleFilterFeedback.value) !== String(selectionValue) || finalState.ui.visibleFilterFeedback.groupKey !== groupKey) {
+                                    return;
+                                }
+
+                                finalState.ui.visibleFilterFeedback = null;
+                                renderDiscoveryUi(widgetId);
+                            }, VISIBLE_FILTER_ADD_FADE_MS);
+                        }, VISIBLE_FILTER_ADD_HOLD_MS);
+                    }, VISIBLE_FILTER_ADD_EXIT_MS);
+                }, VISIBLE_FILTER_ADD_SELECTION_BEAT_MS);
             } else {
                 clearDiscoveryVisibleFilterFeedback(widgetId, false);
                 renderDiscoveryUi(widgetId);
