@@ -455,7 +455,7 @@
     var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 110;
     var gridRefreshTimers = {};
     var VISIBLE_FILTER_ADD_EXIT_MS = 180;
-    var VISIBLE_FILTER_ADD_HOLD_MS = 360;
+    var VISIBLE_FILTER_ADD_HOLD_MS = 560;
     var VISIBLE_FILTER_ADD_FADE_MS = 180;
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
     var CACHE_MAX_ENTRIES = 80;
