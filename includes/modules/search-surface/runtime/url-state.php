@@ -348,13 +348,27 @@ function bw_ss_get_current_query_args() {
     return $query_args;
 }
 
+function bw_ss_normalize_int_array_from_url( $raw_value, $max = 50 ) {
+    $raw   = is_array( $raw_value ) ? $raw_value : [];
+    $clean = [];
+
+    foreach ( $raw as $v ) {
+        $id = absint( $v );
+        if ( $id > 0 ) {
+            $clean[] = $id;
+        }
+    }
+
+    return array_values( array_unique( array_slice( $clean, 0, $max ) ) );
+}
+
 function bw_ss_build_search_results_state_from_url() {
-    $query_args = bw_ss_get_current_query_args();
-    $scope      = bw_ss_normalize_scope_param( isset( $query_args['scope'] ) ? $query_args['scope'] : '' );
-    $search     = function_exists( 'bw_fpw_normalize_search_query' )
+    $query_args    = bw_ss_get_current_query_args();
+    $scope         = bw_ss_normalize_scope_param( isset( $query_args['scope'] ) ? $query_args['scope'] : '' );
+    $search        = function_exists( 'bw_fpw_normalize_search_query' )
         ? bw_fpw_normalize_search_query( isset( $query_args['q'] ) ? $query_args['q'] : '' )
         : sanitize_text_field( (string) ( $query_args['q'] ?? '' ) );
-    $page       = function_exists( 'bw_fpw_normalize_positive_int' )
+    $page          = function_exists( 'bw_fpw_normalize_positive_int' )
         ? bw_fpw_normalize_positive_int( isset( $query_args['page'] ) ? $query_args['page'] : 1, 1, 1, 1000 )
         : max( 1, absint( $query_args['page'] ?? 1 ) );
     $default_category = bw_ss_get_scope_default_category( $scope );
@@ -372,6 +386,7 @@ function bw_ss_build_search_results_state_from_url() {
     $source           = bw_ss_resolve_advanced_filter_tokens_from_query( 'source', $query_args['source'] ?? [], $scope );
     $technique        = bw_ss_resolve_advanced_filter_tokens_from_query( 'technique', $query_args['technique'] ?? [], $scope );
     $category         = $category_term instanceof WP_Term ? (int) $category_term->term_id : $default_category;
+    $subcategories    = bw_ss_normalize_int_array_from_url( $query_args['subcategories'] ?? [] );
 
     return [
         'query'         => $search,
@@ -380,6 +395,7 @@ function bw_ss_build_search_results_state_from_url() {
         'context_slug'  => bw_ss_get_scope_context_slug( $scope ),
         'page'          => $page,
         'category'      => $category,
+        'subcategories' => $subcategories,
         'category_term' => $category_term instanceof WP_Term ? $category_term : null,
         'tags'          => isset( $tags_data['ids'] ) ? (array) $tags_data['ids'] : [],
         'tag_terms'     => isset( $tags_data['terms'] ) ? (array) $tags_data['terms'] : [],
