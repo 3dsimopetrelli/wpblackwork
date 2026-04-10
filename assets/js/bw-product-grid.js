@@ -452,11 +452,11 @@
     var discoverySearchTimers = {};
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
-    var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 110;
+    var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 135;
     var gridRefreshTimers = {};
-    var VISIBLE_FILTER_ADD_EXIT_MS = 180;
-    var VISIBLE_FILTER_ADD_HOLD_MS = 560;
-    var VISIBLE_FILTER_ADD_FADE_MS = 180;
+    var VISIBLE_FILTER_ADD_EXIT_MS = 210;
+    var VISIBLE_FILTER_ADD_HOLD_MS = 620;
+    var VISIBLE_FILTER_ADD_FADE_MS = 220;
     var CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
     var CACHE_MAX_ENTRIES = 80;
     var AJAX_CACHE_NAMESPACE = 'bwpg';
@@ -2357,8 +2357,8 @@
 
             this.style.transition = 'none';
             this.style.transform = 'translateY(' + deltaY + 'px)';
-            this.style.opacity = '0.76';
-            this.style.willChange = 'transform';
+            this.style.opacity = '0.84';
+            this.style.willChange = 'transform, opacity';
             animatedNodes.push(this);
         });
 
@@ -2383,7 +2383,7 @@
                 };
 
                 node.addEventListener('transitionend', cleanup);
-                node.style.transition = 'transform 560ms cubic-bezier(0.16, 1, 0.3, 1), opacity 420ms ease';
+                node.style.transition = 'transform 620ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms cubic-bezier(0.22, 1, 0.36, 1)';
                 node.style.transform = '';
                 node.style.opacity = '';
             });
