@@ -1433,7 +1433,7 @@ body.bw-fpw-drawer-no-scroll {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 8px;
+  padding: 10px;
   scrollbar-gutter: stable;
   gap: 4px;
 }
@@ -1460,8 +1460,8 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-group-search__icon {
   left: 12px;
   top: 50%;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   border-width: 2px;
   color: #fafafa;
   transform: translateY(-50%);
@@ -1506,7 +1506,7 @@ body.bw-fpw-drawer-no-scroll {
   gap: 8px;
   width: 100%;
   min-height: 40px;
-  padding: 8px;
+  padding: 8px 16px 8px 10px;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -1538,7 +1538,8 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option__check {
   width: 16px;
   height: 16px;
-  margin-top: 2px;
+  margin-top: 0;
+  align-self: center;
   border: 0;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.2);
