@@ -105,6 +105,8 @@ function bw_ss_build_headless_product_grid_request( $state, $settings, $page = n
             'post_type'       => $settings['post_type'],
             'context_slug'    => $state['context_slug'],
             'category'        => $state['category'],
+            'subcategories'   => isset( $state['subcategories'] ) ? (array) $state['subcategories'] : [],
+            'tags'            => isset( $state['tags'] ) ? (array) $state['tags'] : [],
             'search_enabled'  => 'yes',
             'search'          => $state['query'],
             'author'          => $advanced_author,
@@ -164,8 +166,8 @@ function bw_ss_build_headless_discovery_bootstrap_payload( $state, $settings, $u
         'selected'             => [
             'category'      => $state['category'],
             'search'        => $state['query'],
-            'subcategories' => [],
-            'tags'          => [],
+            'subcategories' => isset( $state['subcategories'] ) ? array_values( array_filter( array_map( 'absint', (array) $state['subcategories'] ) ) ) : [],
+            'tags'          => isset( $state['tags'] ) ? array_values( array_filter( array_map( 'absint', (array) $state['tags'] ) ) ) : [],
             'year'          => [ 'from' => null, 'to' => null ],
             'advanced'      => [
                 'artist'    => [],
@@ -407,7 +409,7 @@ function bw_ss_render_headless_product_grid( $args = [] ) {
     ?>
     <div class="bw-product-grid-wrapper bw-fpw-layout-top bw-search-results-grid-wrapper" data-filter-breakpoint="<?php echo esc_attr( $settings['responsive_filter_breakpoint'] ); ?>" data-responsive-filter-mode="<?php echo esc_attr( $settings['responsive_filter_mode'] ? 'yes' : 'no' ); ?>" data-drawer-side="<?php echo esc_attr( $settings['drawer_side'] ); ?>">
         <div class="bw-search-results-page__header">
-            <div class="bw-search-results-page__chips bw-fpw-active-chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+            <div class="bw-search-results-page__chips" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                 <?php bw_ss_render_initial_active_chips_markup( $active_chips ); ?>
             </div>
         </div>

@@ -32,10 +32,21 @@
     margin: 0;
 }
 
-/* ── Active chips strip (server-rendered remove-filter links) ── */
-.bw-search-results-page .bw-fpw-active-chips {
+/* ── Active chips strip (server-rendered remove-filter links)
+       Navigation links for query/scope/advanced filters.
+       Not targeted by JS (no bw-fpw-active-chips class), so these persist
+       as permanent navigation shortcuts above the product grid toolbar. ── */
+.bw-search-results-page .bw-search-results-page__chips {
     padding: 12px 40px 0;
     box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.bw-search-results-page .bw-search-results-page__chips:empty {
+    display: none;
 }
 
 /* ── Bring the product grid wrapper flush so it respects its own

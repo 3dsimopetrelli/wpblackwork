@@ -104,22 +104,38 @@ function bw_ss_get_current_query_args() {
     return $query_args;
 }
 
+function bw_ss_normalize_int_array_from_url( $raw_value, $max = 50 ) {
+    $raw   = is_array( $raw_value ) ? $raw_value : [];
+    $clean = [];
+
+    foreach ( $raw as $v ) {
+        $id = absint( $v );
+        if ( $id > 0 ) {
+            $clean[] = $id;
+        }
+    }
+
+    return array_values( array_unique( array_slice( $clean, 0, $max ) ) );
+}
+
 function bw_ss_build_search_results_state_from_url() {
-    $query_args = bw_ss_get_current_query_args();
-    $scope      = bw_ss_normalize_scope_param( isset( $query_args['scope'] ) ? $query_args['scope'] : '' );
-    $search     = function_exists( 'bw_fpw_normalize_search_query' )
+    $query_args    = bw_ss_get_current_query_args();
+    $scope         = bw_ss_normalize_scope_param( isset( $query_args['scope'] ) ? $query_args['scope'] : '' );
+    $search        = function_exists( 'bw_fpw_normalize_search_query' )
         ? bw_fpw_normalize_search_query( isset( $query_args['q'] ) ? $query_args['q'] : '' )
         : sanitize_text_field( (string) ( $query_args['q'] ?? '' ) );
-    $page       = function_exists( 'bw_fpw_normalize_positive_int' )
+    $page          = function_exists( 'bw_fpw_normalize_positive_int' )
         ? bw_fpw_normalize_positive_int( isset( $query_args['page'] ) ? $query_args['page'] : 1, 1, 1, 1000 )
         : max( 1, absint( $query_args['page'] ?? 1 ) );
-    $author     = function_exists( 'bw_fpw_extract_filter_tokens_from_value' )
+    $author        = function_exists( 'bw_fpw_extract_filter_tokens_from_value' )
         ? bw_fpw_extract_filter_tokens_from_value( $query_args['author'] ?? [] )
         : [];
-    $source     = function_exists( 'bw_fpw_extract_filter_tokens_from_value' )
+    $source        = function_exists( 'bw_fpw_extract_filter_tokens_from_value' )
         ? bw_fpw_extract_filter_tokens_from_value( $query_args['source'] ?? [] )
         : [];
-    $category   = bw_ss_get_scope_default_category( $scope );
+    $category      = bw_ss_get_scope_default_category( $scope );
+    $subcategories = bw_ss_normalize_int_array_from_url( $query_args['subcategories'] ?? [] );
+    $tags          = bw_ss_normalize_int_array_from_url( $query_args['tags'] ?? [] );
 
     return [
         'query'         => $search,
@@ -128,6 +144,8 @@ function bw_ss_build_search_results_state_from_url() {
         'context_slug'  => bw_ss_get_scope_context_slug( $scope ),
         'page'          => $page,
         'category'      => $category,
+        'subcategories' => $subcategories,
+        'tags'          => $tags,
         'advanced'      => [
             'author' => $author,
             'source' => $source,
