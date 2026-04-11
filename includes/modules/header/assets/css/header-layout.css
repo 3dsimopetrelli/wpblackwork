@@ -250,7 +250,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 .bw-custom-header .bw-navshop__item,
 .bw-custom-header .bw-navigation__link,
 .bw-custom-header .bw-search-button__label {
-    font-size: 24px;
+    font-size: 20px;
     line-height: 1;
 }
 
