@@ -104,6 +104,14 @@ function bw_fpw_build_tax_query($post_type, $category = 'all', $subcategories = 
                 'terms' => [absint($category)],
             ];
         }
+    } elseif (!empty($subcategories)) {
+        // category = 'all' with explicit subcategory IDs: filter directly by those term IDs.
+        // Used by the search surface when ?category=<slug> maps to a subcategory selection.
+        $tax_query[] = [
+            'taxonomy' => $taxonomy,
+            'field' => 'term_id',
+            'terms' => $subcategories,
+        ];
     }
 
     if (!empty($tags)) {
