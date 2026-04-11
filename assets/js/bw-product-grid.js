@@ -1337,7 +1337,7 @@
 
         width = window.innerWidth || $(window).width();
 
-        return width < breakpoint;
+        return width <= breakpoint;
     }
 
     function updateDesktopFilterIconVisibility(widgetId, state) {
@@ -4829,7 +4829,7 @@
             var width = window.innerWidth || $(window).width();
             var widgetId = $wrapper.find('.bw-fpw-grid').first().attr('data-widget-id');
 
-            if (responsiveDrawerMode || width < breakpoint) {
+            if (responsiveDrawerMode || width <= breakpoint) {
                 $wrapper.addClass('bw-fpw-mobile-filters-enabled');
 
                 if (responsiveDrawerMode && widgetId) {

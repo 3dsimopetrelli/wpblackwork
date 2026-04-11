@@ -141,18 +141,61 @@ body.bw-search-overlay-active {
     min-width: 140px;
 }
 
+.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results {
+    display: none;
+}
+
+.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results .bw-fpw-mobile-filter-trigger {
+    width: 58px;
+    max-width: 58px;
+    min-width: 58px;
+    min-height: 58px;
+    padding: 3px;
+    justify-content: center;
+    gap: 0;
+    border: 2px solid #111111;
+    border-radius: 999px;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+}
+
+.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results .bw-fpw-mobile-filter-trigger:hover,
+.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results .bw-fpw-mobile-filter-trigger:focus {
+    width: 58px;
+    max-width: 58px;
+    padding: 3px;
+    justify-content: center;
+    gap: 0;
+}
+
+.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results .bw-fpw-mobile-filter-button-label {
+    max-width: 0;
+    min-width: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results .bw-fpw-mobile-filter-button-icon-shell {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    margin-left: 0;
+}
+
 .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-quick-filters--search-results {
     margin-top: 0;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1130px) {
     .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar--search-results {
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr);
         grid-template-areas:
-            "summary controls"
-            "visible visible"
-            "quick quick";
-        column-gap: 12px;
+            "controls"
+            "summary"
+            "quick";
+        column-gap: 0;
         row-gap: 12px;
     }
 
@@ -166,9 +209,31 @@ body.bw-search-overlay-active {
     }
 
     .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls--search-results {
-        justify-self: end;
-        width: auto;
-        padding-left: 12px;
+        justify-content: flex-start;
+        justify-self: stretch;
+        width: 100%;
+        padding-left: 0;
+    }
+
+    .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls--search-results::before {
+        display: none;
+    }
+
+    .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filters--search-results {
+        display: none !important;
+    }
+
+    .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results {
+        display: flex;
+        order: 1;
+        flex: 0 0 auto;
+        justify-content: flex-start;
+    }
+
+    .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown,
+    .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--icon {
+        order: 2;
+        margin-left: auto;
     }
 }
 
