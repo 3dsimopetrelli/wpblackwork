@@ -257,7 +257,7 @@ function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id,
     $sort_chevron_html     = '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
     $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
     ?>
-    <div class="bw-fpw-discovery-toolbar bw-fpw-discovery-toolbar--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+    <div class="bw-fpw-discovery-toolbar bw-fpw-discovery-toolbar--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-ui-ready="false" style="opacity:0; visibility:hidden; transform:translateY(10px); pointer-events:none;">
         <div class="bw-fpw-visible-filters bw-fpw-visible-filters--search-results" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo ! empty( $settings['show_visible_filters'] ) ? 'false' : 'true'; ?>"></div>
 
         <div class="bw-fpw-discovery-toolbar__summary bw-fpw-discovery-toolbar__summary--search-results">

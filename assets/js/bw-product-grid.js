@@ -4142,6 +4142,36 @@
         return $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').closest('.bw-product-grid-wrapper');
     }
 
+    function revealDiscoveryToolbar(widgetId) {
+        var $wrapper = getProductGridWrapper(widgetId);
+        var $toolbar;
+
+        if (!$wrapper.length) {
+            return;
+        }
+
+        $toolbar = $wrapper.find('.bw-fpw-discovery-toolbar[data-ui-ready="false"]').first();
+
+        if (!$toolbar.length || $toolbar.data('bwUiRevealQueued')) {
+            return;
+        }
+
+        $toolbar.data('bwUiRevealQueued', true);
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+                $toolbar.attr('data-ui-ready', 'true');
+                $toolbar.css({
+                    opacity: '',
+                    visibility: '',
+                    transform: '',
+                    pointerEvents: ''
+                });
+                $toolbar.removeData('bwUiRevealQueued');
+            });
+        });
+    }
+
     function getDetachedDrawerHost(widgetId) {
         return $('.bw-fpw-drawer-host[data-widget-id="' + widgetId + '"]');
     }
@@ -5002,6 +5032,7 @@
             });
             initGrid($grid, function () {
                 runInitialReveal($grid);
+                revealDiscoveryToolbar(widgetId);
                 syncInfiniteObserver(widgetId);
             });
         });

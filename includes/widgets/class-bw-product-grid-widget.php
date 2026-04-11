@@ -1145,7 +1145,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'advanced'   => is_array( $advanced_filter_ui ) ? $advanced_filter_ui : [],
         ];
         ?>
-        <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+        <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-ui-ready="false" style="opacity:0; visibility:hidden; transform:translateY(10px); pointer-events:none;">
             <div class="bw-fpw-discovery-toolbar__summary">
                 <div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                     <span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
