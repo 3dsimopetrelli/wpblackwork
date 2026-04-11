@@ -385,8 +385,19 @@ function bw_ss_build_search_results_state_from_url() {
     $publisher        = bw_ss_resolve_advanced_filter_tokens_from_query( 'publisher', $query_args['publisher'] ?? [], $scope );
     $source           = bw_ss_resolve_advanced_filter_tokens_from_query( 'source', $query_args['source'] ?? [], $scope );
     $technique        = bw_ss_resolve_advanced_filter_tokens_from_query( 'technique', $query_args['technique'] ?? [], $scope );
-    $category         = $category_term instanceof WP_Term ? (int) $category_term->term_id : $default_category;
-    $subcategories    = bw_ss_normalize_int_array_from_url( $query_args['subcategories'] ?? [] );
+
+    // When ?category=<slug> is in the URL keep the scope default as the parent so the
+    // Categories dropdown loads sibling categories rather than children of the clicked term.
+    // The resolved term is treated as a selected subcategory so the JS filter button lights
+    // up and the engine (via the new 'all'+subcategories branch) filters results correctly.
+    $url_subcategory_ids = bw_ss_normalize_int_array_from_url( $query_args['subcategories'] ?? [] );
+    if ( $category_term instanceof WP_Term ) {
+        $category      = $default_category;
+        $subcategories = array_values( array_unique( array_merge( [ (int) $category_term->term_id ], $url_subcategory_ids ) ) );
+    } else {
+        $category      = $default_category;
+        $subcategories = $url_subcategory_ids;
+    }
 
     return [
         'query'         => $search,

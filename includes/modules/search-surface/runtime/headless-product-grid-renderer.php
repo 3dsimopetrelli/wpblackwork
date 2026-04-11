@@ -34,6 +34,10 @@ function bw_ss_state_has_active_filters( $state ) {
         return true;
     }
 
+    if ( ! empty( $state['subcategories'] ) ) {
+        return true;
+    }
+
     if ( ! empty( $state['tags'] ) ) {
         return true;
     }
