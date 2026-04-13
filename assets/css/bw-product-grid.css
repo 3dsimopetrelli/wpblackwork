@@ -1641,7 +1641,7 @@ body.bw-fpw-drawer-no-scroll {
   gap: 12px;
   width: 100%;
   min-height: 44px;
-  padding: 14px 16px;
+  padding: 0.5rem 16px;
   border: none;
   background: transparent;
   color: inherit;
