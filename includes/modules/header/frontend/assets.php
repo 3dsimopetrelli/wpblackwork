@@ -164,7 +164,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $menu_blur_padding_right = isset($smart_header['menu_blur_padding_right']) ? max(0, min(200, absint($smart_header['menu_blur_padding_right']))) : 10;
         $menu_blur_padding_bottom = isset($smart_header['menu_blur_padding_bottom']) ? max(0, min(200, absint($smart_header['menu_blur_padding_bottom']))) : 5;
         $menu_blur_padding_left = isset($smart_header['menu_blur_padding_left']) ? max(0, min(200, absint($smart_header['menu_blur_padding_left']))) : 10;
-        $mobile_right_icons_gap = isset($mobile_layout['right_icons_gap']) ? max(0, min(200, (float) $mobile_layout['right_icons_gap'])) : 16;
+        $mobile_right_icons_gap = isset($mobile_layout['right_icons_gap']) ? max(0, min(200, (float) $mobile_layout['right_icons_gap'])) : 15;
         $mobile_cart_badge_offset_x = isset($mobile_layout['cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_x'])) : 0;
         $mobile_cart_badge_offset_y = isset($mobile_layout['cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_y'])) : 0;
         $mobile_cart_badge_size = isset($mobile_layout['cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['cart_badge_size'])) : 1.2;
@@ -178,12 +178,14 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $mobile_inner_padding_left = isset($mobile_inner_padding['left']) ? max(0, min(200, (float) $mobile_inner_padding['left'])) : 18;
 
         $mobile_default_box = ['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0];
+        $mobile_cart_default_padding = ['top' => 0, 'right' => 25, 'bottom' => 0, 'left' => 0];
+        $mobile_cart_default_margin = ['top' => -5, 'right' => 0, 'bottom' => 0, 'left' => 0];
         $mobile_hamburger_padding = isset($mobile_layout['hamburger_padding']) && is_array($mobile_layout['hamburger_padding']) ? $mobile_layout['hamburger_padding'] : $mobile_default_box;
         $mobile_hamburger_margin = isset($mobile_layout['hamburger_margin']) && is_array($mobile_layout['hamburger_margin']) ? $mobile_layout['hamburger_margin'] : $mobile_default_box;
         $mobile_search_padding = isset($mobile_layout['search_padding']) && is_array($mobile_layout['search_padding']) ? $mobile_layout['search_padding'] : $mobile_default_box;
         $mobile_search_margin = isset($mobile_layout['search_margin']) && is_array($mobile_layout['search_margin']) ? $mobile_layout['search_margin'] : $mobile_default_box;
-        $mobile_cart_padding = isset($mobile_layout['cart_padding']) && is_array($mobile_layout['cart_padding']) ? $mobile_layout['cart_padding'] : $mobile_default_box;
-        $mobile_cart_margin = isset($mobile_layout['cart_margin']) && is_array($mobile_layout['cart_margin']) ? $mobile_layout['cart_margin'] : $mobile_default_box;
+        $mobile_cart_padding = isset($mobile_layout['cart_padding']) && is_array($mobile_layout['cart_padding']) ? $mobile_layout['cart_padding'] : $mobile_cart_default_padding;
+        $mobile_cart_margin = isset($mobile_layout['cart_margin']) && is_array($mobile_layout['cart_margin']) ? $mobile_layout['cart_margin'] : $mobile_cart_default_margin;
 
         $mobile_hamburger_padding_top = isset($mobile_hamburger_padding['top']) ? max(0, min(200, (float) $mobile_hamburger_padding['top'])) : 0;
         $mobile_hamburger_padding_right = isset($mobile_hamburger_padding['right']) ? max(0, min(200, (float) $mobile_hamburger_padding['right'])) : 0;
@@ -272,7 +274,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}";
-        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{top:50% !important;right:-10px !important;transform: translate({$mobile_cart_badge_offset_x}px, calc(-50% + {$mobile_cart_badge_offset_y}px)) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}";
         $css_parts[] = "}";
 
