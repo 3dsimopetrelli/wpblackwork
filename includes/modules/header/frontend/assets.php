@@ -272,7 +272,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}";
-        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;min-width: {$mobile_cart_badge_size}em !important;height: {$mobile_cart_badge_size}em !important;line-height: {$mobile_cart_badge_size}em !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width: {$mobile_cart_badge_size}em !important;height: {$mobile_cart_badge_size}em !important;padding:0 0.2em !important;line-height:1 !important;font-weight:400 !important;font-variant-numeric: tabular-nums !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}";
         $css_parts[] = "}";
 
@@ -281,7 +281,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__desktop{display:flex;}";
         $css_parts[] = ".bw-custom-header__mobile{display:none;}";
         $css_parts[] = ".bw-custom-header .bw-navigation__toggle,.bw-custom-header .bw-navigation__mobile-overlay{display:none !important;}";
-        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;min-width: {$desktop_cart_badge_size}em !important;height: {$desktop_cart_badge_size}em !important;line-height: {$desktop_cart_badge_size}em !important;}";
+        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width: {$desktop_cart_badge_size}em !important;height: {$desktop_cart_badge_size}em !important;padding:0 0.2em !important;line-height:1 !important;font-weight:400 !important;font-variant-numeric: tabular-nums !important;}";
         $css_parts[] = "}";
 
         // — Background color —

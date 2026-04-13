@@ -65,6 +65,9 @@
     position: absolute;
     top: -0.2em;
     right: -0.85em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-width: 1.2em;
     height: 1.2em;
     padding: 0 0.2em;
@@ -72,8 +75,9 @@
     background: #000000;
     color: #ffffff;
     font-size: 0.58em;
-    font-weight: 700;
-    line-height: 1.2em;
+    font-weight: 400;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
     text-align: center;
     box-sizing: border-box;
     pointer-events: none;

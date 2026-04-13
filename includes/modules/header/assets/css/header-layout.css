@@ -340,13 +340,19 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 
     .bw-custom-header .bw-navshop__cart-count {
         font-size: 11px;
+        font-weight: 400;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-variant-numeric: tabular-nums;
     }
 
     .bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count {
         transform: translate(-15px, 0px) !important;
         min-width: 1.2em !important;
         height: 1.2em !important;
-        line-height: 1.2em !important;
+        line-height: 1 !important;
     }
 
     .bw-custom-header__mobile-right {
