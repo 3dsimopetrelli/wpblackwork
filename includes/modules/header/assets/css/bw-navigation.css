@@ -211,14 +211,8 @@
 
 .bw-navigation__mobile-popup-surface,
 .bw-navigation__account-dropdown-surface {
-    background: rgba(16, 16, 16, 0.62) !important;
-    background-color: rgba(16, 16, 16, 0.62) !important;
     background-image: none !important;
     border: none;
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(28px) saturate(1.15) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(1.15) !important;
     color: #FAFAFA;
     overflow: hidden;
 }
@@ -276,7 +270,7 @@
 }
 
 .bw-navigation__account-dropdown-content {
-    padding: 25px 10px 25px;
+    padding: 0;
 }
 
 .bw-navigation__mobile-content {
@@ -287,13 +281,9 @@
     flex: 1;
     min-height: 0;
     overflow: visible;
-    padding: 10px 10px 11px;
+    padding: 12px 12px 13px;
     background: transparent !important;
-    gap: 9px;
-}
-
-.bw-navigation__account-dropdown .bw-navigation__mobile-content {
-    padding: 25px 10px 25px;
+    gap: 11px;
 }
 
 .bw-navigation__mobile-popup-surface .bw-navigation__mobile-content,
@@ -301,14 +291,45 @@
     min-height: 0;
 }
 
+.bw-navigation__mobile-popup-surface {
+    background: rgba(18, 18, 18, 0.68) !important;
+    background-color: rgba(18, 18, 18, 0.68) !important;
+    border-radius: 18px;
+    box-shadow: 0 30px 60px -16px rgba(0, 0, 0, 0.44);
+    backdrop-filter: blur(32px) saturate(1.14) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(1.14) !important;
+}
+
+.bw-navigation__account-dropdown-surface {
+    background: rgba(18, 18, 18, 0.54) !important;
+    background-color: rgba(18, 18, 18, 0.54) !important;
+    border-radius: 18px;
+    box-shadow: 0 18px 34px -14px rgba(0, 0, 0, 0.26);
+    backdrop-filter: blur(24px) saturate(1.08) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.08) !important;
+}
+
+.bw-navigation__account-dropdown-surface .bw-navigation__mobile-content {
+    padding: 16px 10px 16px;
+    gap: 8px;
+}
+
+.bw-navigation__account-dropdown-surface .bw-navigation__profile-card {
+    padding: 10px;
+}
+
+.bw-navigation__account-dropdown-surface .bw-navigation__profile-actions {
+    margin-top: 6px;
+}
+
 .bw-navigation__mobile-section {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .bw-navigation__mobile-section--navigation {
-    gap: 0;
+    gap: 4px;
 }
 
 .bw-navigation__mobile-section--profile {
@@ -316,15 +337,15 @@
 }
 
 .bw-navigation__mobile-section--auth {
-    padding-top: 0;
-    margin-top: 2px;
+    padding-top: 2px;
+    margin-top: 4px;
 }
 
 .bw-navigation__profile-card {
     display: flex;
-    gap: 10px;
+    gap: 11px;
     align-items: flex-start;
-    padding: 10px;
+    padding: 11px;
     border-radius: 16px;
     background:
         radial-gradient(circle at top left, rgba(128, 253, 3, 0.05), transparent 34%),
@@ -378,11 +399,11 @@
 
 .bw-navigation__profile-actions {
     display: flex;
-    gap: 8px;
+    gap: 9px;
     align-items: stretch;
     width: 100%;
     min-width: 0;
-    margin-top: 8px;
+    margin-top: 9px;
 }
 
 .bw-navigation__profile-account-cta,
@@ -451,7 +472,7 @@
     display: flex;
     box-sizing: border-box;
     min-height: 0;
-    padding: 16px 21px;
+    padding: 18px 22px;
     align-self: center;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -725,7 +746,7 @@
 @media (max-width: 640px) {
     .bw-navigation__mobile-panel {
         width: min(var(--bw-navigation-popup-width, 290px), calc(100vw - 24px));
-        border-radius: 16px;
+        border-radius: 18px;
     }
 
     .bw-navigation__mobile-overlay {
@@ -733,7 +754,7 @@
     }
 
     .bw-navigation__mobile-content {
-        padding: 10px 10px 11px;
+        padding: 12px 12px 13px;
     }
 
     .bw-navigation__mobile .bw-navigation__link {
@@ -747,12 +768,12 @@
     }
 
     .bw-navigation__profile-card {
-        padding: 10px;
+        padding: 11px;
         border-radius: 16px;
     }
 
     .bw-navigation__profile-actions {
-        gap: 7px;
+        gap: 8px;
     }
 
     .bw-navigation__profile-actions .bw-navigation__profile-logout-cta,
