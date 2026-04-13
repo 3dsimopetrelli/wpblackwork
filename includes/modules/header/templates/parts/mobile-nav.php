@@ -64,7 +64,7 @@ $profile_title = $is_logged_in ? $user_display_name : __('Login or Join', 'bw');
 $profile_subtitle = $is_logged_in
     ? ($user_email !== '' ? $user_email : __('Member profile', 'bw'))
     : __('Access your account', 'bw');
-$profile_cta_label = $is_logged_in ? __('My Account', 'bw') : __('Login or Join', 'bw');
+$profile_cta_label = $is_logged_in ? __('Account', 'bw') : __('Login or Join', 'bw');
 $logout_url = $is_logged_in ? wp_logout_url(add_query_arg('logged_out', '1', $account_url)) : '';
 $avatar_html = $is_logged_in ? get_avatar($current_user->ID, 96, '', $user_display_name, ['class' => 'bw-navigation__profile-avatar-image']) : '';
 ?>
@@ -85,7 +85,6 @@ $avatar_html = $is_logged_in ? get_avatar($current_user->ID, 96, '', $user_displ
             </section>
 
             <?php include BW_MEW_PATH . 'includes/modules/header/templates/parts/mobile-nav-profile.php'; ?>
-            <?php include BW_MEW_PATH . 'includes/modules/header/templates/parts/mobile-nav-auth.php'; ?>
         </div>
 
         <?php include BW_MEW_PATH . 'includes/modules/header/templates/parts/mobile-nav-footer.php'; ?>
