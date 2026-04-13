@@ -181,13 +181,13 @@
     justify-content: flex-start;
     align-items: flex-start;
     padding: clamp(10px, 1.6vw, 16px);
-    background: rgba(0, 0, 0, 0.12);
-    backdrop-filter: blur(10px) saturate(1.4);
-    -webkit-backdrop-filter: blur(10px) saturate(1.4);
+    background: rgba(0, 0, 0, 0.08);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.24s ease, visibility 0s linear 0.24s;
+    transition: opacity 0.18s ease, visibility 0s linear 0.18s;
     will-change: opacity;
 }
 
@@ -201,19 +201,19 @@
     position: fixed;
     top: var(--bw-navigation-popup-top, 72px);
     left: var(--bw-navigation-popup-left, 12px);
-    width: min(var(--bw-navigation-popup-width, 420px), calc(100vw - 24px));
+    width: min(var(--bw-navigation-popup-width, 340px), calc(100vw - 24px));
     max-height: min(var(--bw-navigation-popup-max-height, calc(100vh - 24px)), calc(100vh - 24px));
     box-sizing: border-box;
-    background: rgba(10, 10, 10, 0.84);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 28px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(24px) saturate(1.35);
-    -webkit-backdrop-filter: blur(24px) saturate(1.35);
+    background: rgba(17, 17, 17, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 24px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.03);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(8px);
     transform-origin: var(--bw-navigation-popup-transform-origin, top left);
-    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.18s ease, transform 0.18s ease;
     will-change: opacity, transform;
     display: flex;
     flex-direction: column;
@@ -222,18 +222,7 @@
 
 .bw-navigation__mobile-overlay.is-open .bw-navigation__mobile-panel {
     opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-.bw-navigation__mobile-header {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 14px 14px 0;
-    background: transparent !important;
-    border-bottom: none;
+    transform: translateY(0);
 }
 
 .bw-navigation__mobile-content {
@@ -246,9 +235,9 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding: 10px 14px 14px;
+    padding: 14px;
     background: transparent !important;
-    gap: 16px;
+    gap: 14px;
 }
 
 .bw-navigation__mobile-section {
@@ -262,11 +251,11 @@
 }
 
 .bw-navigation__mobile-section--profile {
-    padding-top: 4px;
+    padding-top: 0;
 }
 
 .bw-navigation__mobile-section--auth {
-    padding-top: 8px;
+    padding-top: 6px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -348,21 +337,21 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: fit-content;
+    width: 100%;
     max-width: 100%;
-    min-height: 38px;
-    padding: 0 14px;
+    min-height: 40px;
+    padding: 0 16px;
     border-radius: 999px;
     background: #80fd03;
     color: #000000 !important;
     text-decoration: none;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1;
     font-weight: 700;
     letter-spacing: -0.01em;
     white-space: nowrap;
-    box-shadow: inset 0 0 0 1px #080808, 0 10px 24px rgba(0, 0, 0, 0.22);
-    transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+    box-shadow: inset 0 0 0 1px #080808, 0 8px 18px rgba(0, 0, 0, 0.18);
+    transition: opacity 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
 }
 
 .bw-navigation__mobile-cta:hover,
@@ -390,7 +379,7 @@
     padding: 0 18px;
     box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 18px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.03);
     color: #fafafa !important;
     text-decoration: none;
@@ -425,47 +414,11 @@
     flex: 0 0 auto;
 }
 
-.bw-navigation__close {
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    background: rgba(255, 255, 255, 0.04) !important;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.82);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border-radius: 999px;
-    transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-    box-shadow: none !important;
-    outline: none !important;
-    line-height: 1;
-}
-
-.bw-navigation__close:hover {
-    opacity: 1;
-    transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.08) !important;
-}
-
-.bw-navigation__close:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 4px;
-}
-
-.bw-navigation__close-icon {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
 .bw-navigation__mobile-panel .bw-navigation__link,
-.bw-navigation__mobile-panel .bw-navigation__close {
+.bw-navigation__mobile-panel .bw-navigation__mobile-cta,
+.bw-navigation__mobile-panel .bw-navigation__profile-cta,
+.bw-navigation__mobile-panel .bw-navigation__mobile-auth-link,
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer-link {
     color: #ffffff !important;
 }
 
@@ -656,30 +609,26 @@ body.bw-navigation-mobile-open {
 
 @media (max-width: 640px) {
     .bw-navigation__mobile-panel {
-        width: min(var(--bw-navigation-popup-width, 420px), calc(100vw - 16px));
-        border-radius: 24px;
+        width: min(var(--bw-navigation-popup-width, 340px), calc(100vw - 16px));
+        border-radius: 22px;
     }
 
     .bw-navigation__mobile-overlay {
         padding: 8px;
     }
 
-    .bw-navigation__mobile-header {
-        padding: 12px 12px 0;
-    }
-
     .bw-navigation__mobile-content {
-        padding: 8px 12px 12px;
+        padding: 12px;
     }
 
     .bw-navigation__mobile .bw-navigation__link {
-        min-height: 52px;
+        min-height: 50px;
         padding: 0 16px;
-        border-radius: 16px;
+        border-radius: 15px;
     }
 
     .bw-navigation__mobile-section--profile {
-        padding-top: 2px;
+        padding-top: 0;
     }
 
     .bw-navigation__profile-card {

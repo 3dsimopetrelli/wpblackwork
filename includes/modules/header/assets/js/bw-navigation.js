@@ -6,7 +6,6 @@
         this.toggle = root.querySelector('.bw-navigation__toggle');
         this.overlay = root.querySelector('.bw-navigation__mobile-overlay');
         this.panel = root.querySelector('.bw-navigation__mobile-panel');
-        this.close = root.querySelector('.bw-navigation__close');
         this.mobileLinks = root.querySelectorAll('.bw-navigation__mobile .bw-navigation__link, .bw-navigation__mobile-cta, .bw-navigation__profile-cta, .bw-navigation__mobile-auth-link, .bw-navigation__mobile-footer-link');
         this.breakpoint = (window.bwHeaderConfig && window.bwHeaderConfig.breakpoint) ? parseInt(window.bwHeaderConfig.breakpoint, 10) : 1024;
         this.lastActiveElement = null;
@@ -14,13 +13,12 @@
         this.handleDocumentKeydown = this.handleDocumentKeydown.bind(this);
         this.handleOverlayClick = this.handleOverlayClick.bind(this);
         this.handleToggleClick = this.handleToggleClick.bind(this);
-        this.handleCloseClick = this.handleCloseClick.bind(this);
         this.handleLinkClick = this.handleLinkClick.bind(this);
         this.handleWindowResize = this.handleWindowResize.bind(this);
     }
 
     BWNavigation.prototype.init = function () {
-        if (!this.toggle || !this.overlay || !this.close) {
+        if (!this.toggle || !this.overlay || !this.panel) {
             return;
         }
 
@@ -31,7 +29,6 @@
         }
 
         this.toggle.addEventListener('click', this.handleToggleClick);
-        this.close.addEventListener('click', this.handleCloseClick);
         this.overlay.addEventListener('click', this.handleOverlayClick);
         document.addEventListener('keydown', this.handleDocumentKeydown);
         window.addEventListener('resize', this.handleWindowResize);
@@ -61,10 +58,19 @@
         var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
         var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
         var margin = viewportWidth <= 640 ? 8 : 12;
-        var width = Math.min(420, Math.max(260, viewportWidth - (margin * 2)));
-        var left = Math.round(rect.left);
-        var top = Math.round(rect.bottom + 12);
-        var maxHeight = Math.max(220, viewportHeight - top - margin);
+        var gap = viewportWidth <= 640 ? 8 : 10;
+        var width = Math.min(340, Math.max(280, viewportWidth - (margin * 2)));
+        var estimatedHeight = Math.min(560, Math.max(260, this.panel.scrollHeight || 0));
+        var top = Math.round(rect.bottom + gap);
+        var left = Math.round(rect.left - 6);
+        var maxHeight = Math.max(220, viewportHeight - (margin * 2));
+        var panelHeight = Math.min(estimatedHeight, maxHeight);
+        var belowSpace = viewportHeight - rect.bottom - gap - margin;
+        var aboveSpace = rect.top - gap - margin;
+
+        if (belowSpace < panelHeight && aboveSpace > belowSpace) {
+            top = Math.max(margin, Math.round(rect.top - panelHeight - gap));
+        }
 
         if (left + width > viewportWidth - margin) {
             left = viewportWidth - margin - width;
@@ -78,10 +84,14 @@
             top = margin;
         }
 
+        if (top + panelHeight > viewportHeight - margin) {
+            panelHeight = Math.max(220, viewportHeight - top - margin);
+        }
+
         this.panel.style.setProperty('--bw-navigation-popup-left', left + 'px');
         this.panel.style.setProperty('--bw-navigation-popup-top', top + 'px');
         this.panel.style.setProperty('--bw-navigation-popup-width', width + 'px');
-        this.panel.style.setProperty('--bw-navigation-popup-max-height', maxHeight + 'px');
+        this.panel.style.setProperty('--bw-navigation-popup-max-height', panelHeight + 'px');
         this.panel.style.setProperty('--bw-navigation-popup-transform-origin', left <= viewportWidth / 2 ? 'top left' : 'top right');
     };
 
@@ -96,8 +106,8 @@
         var focusables = this.getFocusableElements();
         if (focusables.length > 0) {
             focusables[0].focus();
-        } else if (this.close && typeof this.close.focus === 'function') {
-            this.close.focus();
+        } else if (this.toggle && typeof this.toggle.focus === 'function') {
+            this.toggle.focus();
         }
     };
 
@@ -125,11 +135,6 @@
         this.open();
     };
 
-    BWNavigation.prototype.handleCloseClick = function (event) {
-        event.preventDefault();
-        this.closeMenu();
-    };
-
     BWNavigation.prototype.handleOverlayClick = function (event) {
         if (event.target === this.overlay) {
             this.closeMenu();
@@ -153,8 +158,8 @@
         var focusables = this.getFocusableElements();
         if (!focusables.length) {
             event.preventDefault();
-            if (this.close && typeof this.close.focus === 'function') {
-                this.close.focus();
+            if (this.toggle && typeof this.toggle.focus === 'function') {
+                this.toggle.focus();
             }
             return;
         }

@@ -77,12 +77,6 @@ $avatar_html = $is_logged_in ? get_avatar($current_user->ID, 96, '', $user_displ
         tabindex="-1"
         data-bw-navigation-panel
     >
-        <div class="bw-navigation__mobile-header">
-            <button class="bw-navigation__close" type="button" aria-label="<?php esc_attr_e('Close menu', 'bw'); ?>">
-                <span class="bw-navigation__close-icon" aria-hidden="true"></span>
-            </button>
-        </div>
-
         <div class="bw-navigation__mobile-content">
             <section class="bw-navigation__mobile-section bw-navigation__mobile-section--navigation" aria-label="<?php esc_attr_e('Mobile navigation', 'bw'); ?>">
                 <nav class="bw-navigation__mobile" aria-label="<?php esc_attr_e('Mobile navigation', 'bw'); ?>">
