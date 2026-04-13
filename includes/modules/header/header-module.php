@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 require_once __DIR__ . '/admin/settings-schema.php';
 require_once __DIR__ . '/admin/header-admin.php';
 
+require_once __DIR__ . '/helpers/account.php';
 require_once __DIR__ . '/helpers/menu.php';
 require_once __DIR__ . '/helpers/svg.php';
 

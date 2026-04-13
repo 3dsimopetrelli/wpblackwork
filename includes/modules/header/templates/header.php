@@ -46,7 +46,7 @@ if (!defined('ABSPATH')) {
                 <?php if (!empty($feature_navshop)) : ?>
                     <div class="bw-custom-header__desktop-right bw-header-navshop">
                         <div class="bw-navshop bw-navshop--hide-account-mobile">
-                            <a href="<?php echo esc_url($account_link); ?>" class="bw-navshop__item bw-navshop__account"><?php echo esc_html($account_label); ?></a>
+                            <?php include BW_MEW_PATH . 'includes/modules/header/templates/parts/account-dropdown.php'; ?>
                             <a href="<?php echo esc_url($cart_link); ?>" class="bw-navshop__item bw-navshop__cart" aria-label="<?php echo esc_attr($cart_label); ?>" data-use-popup="yes">
                                 <span class="bw-navshop__cart-label"><?php echo esc_html($cart_label); ?></span>
                                 <span class="bw-navshop__cart-icon" aria-hidden="true"><?php echo $cart_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>

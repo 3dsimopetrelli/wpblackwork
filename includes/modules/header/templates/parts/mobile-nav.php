@@ -33,44 +33,10 @@ if (empty($cookie_policy_url)) {
         }
     }
 }
-
-$account_url = function_exists('wc_get_page_permalink')
-    ? wc_get_page_permalink('myaccount')
-    : home_url('/my-account/');
-
-if (empty($account_url)) {
-    $account_url = home_url('/my-account/');
-}
-
-$current_user = is_user_logged_in() ? wp_get_current_user() : null;
-$is_logged_in = $current_user instanceof WP_User && $current_user->exists();
-$user_display_name = '';
-$user_email = '';
-
-if ($is_logged_in) {
-    $user_display_name = trim((string) $current_user->display_name);
-    $user_email = sanitize_email((string) $current_user->user_email);
-
-    if ($user_display_name === '' && $user_email !== '') {
-        $user_display_name = $user_email;
-    }
-
-    if ($user_display_name === '') {
-        $user_display_name = __('My account', 'bw');
-    }
-}
-
-$profile_title = $is_logged_in ? $user_display_name : __('Login or Join', 'bw');
-$profile_subtitle = $is_logged_in
-    ? ($user_email !== '' ? $user_email : __('Member profile', 'bw'))
-    : __('Access your account', 'bw');
-$profile_cta_label = $is_logged_in ? __('Account', 'bw') : __('Login or Join', 'bw');
-$logout_url = $is_logged_in ? wp_logout_url(add_query_arg('logged_out', '1', $account_url)) : '';
-$avatar_html = $is_logged_in ? get_avatar($current_user->ID, 96, '', $user_display_name, ['class' => 'bw-navigation__profile-avatar-image']) : '';
 ?>
 <div class="bw-navigation__mobile-overlay" aria-hidden="true">
     <div
-        class="bw-navigation__mobile-panel"
+        class="bw-navigation__mobile-panel bw-navigation__popup-panel"
         role="dialog"
         aria-modal="true"
         aria-label="<?php esc_attr_e('Mobile menu', 'bw'); ?>"

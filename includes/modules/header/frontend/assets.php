@@ -351,9 +351,17 @@ if (!function_exists('bw_header_enqueue_assets')) {
         );
 
         wp_enqueue_script(
+            'bw-header-account-dropdown-script',
+            $base_url . 'js/bw-account-dropdown.js',
+            [],
+            filemtime($base_path . 'js/bw-account-dropdown.js') ?: '1.0.0',
+            true
+        );
+
+        wp_enqueue_script(
             'bw-header-init',
             $base_url . 'js/header-init.js',
-            ['jquery', 'bw-header-navshop-script', 'bw-header-navigation-script'],
+            ['jquery', 'bw-header-navshop-script', 'bw-header-navigation-script', 'bw-header-account-dropdown-script'],
             filemtime($base_path . 'js/header-init.js') ?: '1.0.0',
             true
         );
