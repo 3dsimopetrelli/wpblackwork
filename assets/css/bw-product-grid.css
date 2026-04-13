@@ -1563,6 +1563,9 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option__tick {
   width: 8px;
   height: 5px;
+  border-left: 1.75px solid transparent;
+  border-bottom: 1.75px solid transparent;
+  transform: rotate(-45deg) translateY(-1px);
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-selected .bw-fpw-discovery-option__tick {
@@ -1847,6 +1850,9 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option__tick {
   width: 8px;
   height: 5px;
+  border-left: 1.75px solid transparent;
+  border-bottom: 1.75px solid transparent;
+  transform: rotate(-45deg) translateY(-1px);
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option.is-selected .bw-fpw-discovery-option__check {
