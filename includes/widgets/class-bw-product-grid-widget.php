@@ -442,28 +442,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
             ],
         ] );
 
-        $this->add_control( 'responsive_filter_drawer_side', [
-            'label'       => __( 'Drawer Opening', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT,
-            'options'     => [
-                'left'  => __( 'Left', 'bw-elementor-widgets' ),
-                'right' => __( 'Right', 'bw-elementor-widgets' ),
-            ],
-            'default'     => 'left',
-            'condition'   => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-            ],
-            'description' => __( 'Choose which side the responsive filter drawer opens from.', 'bw-elementor-widgets' ),
-        ] );
-
         $this->register_filter_controls_categories_section();
-    }
-
-    private function get_responsive_filter_drawer_side( $settings ) {
-        $side = isset( $settings['responsive_filter_drawer_side'] ) ? sanitize_key( $settings['responsive_filter_drawer_side'] ) : 'left';
-
-        return in_array( $side, [ 'left', 'right' ], true ) ? $side : 'left';
     }
 
     private function get_runtime_sort_trigger_style( $settings ) {
@@ -858,9 +837,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
         $responsive_breakpoint = 1130;
         $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
-        $drawer_side            = $this->get_responsive_filter_drawer_side( $settings );
 
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '" data-drawer-side="' . esc_attr( $drawer_side ) . '">';
+        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '">';
     }
 
     private function render_wrapper_end( $settings ) {
@@ -1221,14 +1199,56 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
                         <div class="bw-fpw-mobile-filter-drawer">
                             <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
-                                <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
-                                <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
-                                    <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
-                                </button>
+                                <div class="bw-fpw-mobile-filter-sheet-handle" aria-hidden="true">
+                                    <span class="bw-fpw-mobile-filter-sheet-handle-bar"></span>
+                                </div>
                             </div>
 
                             <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
                                 <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                    <div class="bw-fpw-mobile-filter-sheet-top" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                        <div class="bw-fpw-active-chips bw-fpw-active-chips--sheet" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+                                        <?php if ( $show_order_by ) : ?>
+                                            <div class="bw-fpw-sort bw-fpw-sort--drawer-control" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                                <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--icon bw-fpw-sort-trigger--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
+                                                    <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
+                                                        <?php echo $sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                                    </span>
+                                                </button>
+
+                                                <div class="bw-fpw-sort-menu" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="menu" aria-hidden="true">
+                                                    <button class="bw-fpw-sort-option is-selected" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="default" role="menuitemradio" aria-checked="true">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Default order', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="recent" role="menuitemradio" aria-checked="false">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Recently added', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="oldest" role="menuitemradio" aria-checked="false">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Oldest added', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="title_asc" role="menuitemradio" aria-checked="false">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Alphabetical A to Z', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="title_desc" role="menuitemradio" aria-checked="false">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Alphabetical Z to A', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="year_asc" role="menuitemradio" aria-checked="false">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Year, oldest first', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="year_desc" role="menuitemradio" aria-checked="false">
+                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Year, newest first', 'bw-elementor-widgets' ); ?></span>
+                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                     <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                 </div>
