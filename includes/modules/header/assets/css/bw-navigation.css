@@ -375,6 +375,11 @@
     transform: translateY(-1px);
 }
 
+.bw-navigation__mobile-guest-cta {
+    width: 100%;
+    max-width: none;
+}
+
 .bw-navigation__mobile-auth-link {
     display: inline-flex;
     align-items: center;
