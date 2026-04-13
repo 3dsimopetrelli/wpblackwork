@@ -436,16 +436,17 @@
 }
 
 .bw-navigation__mobile-guest-cta {
-    width: 100%;
-    max-width: none;
+    width: min(170px, 100%);
+    max-width: 170px;
     color: #000000 !important;
     display: flex;
     box-sizing: border-box;
-    min-height: 34px;
-    padding-left: 18px;
-    padding-right: 18px;
+    min-height: 0;
+    padding: 30px 45px;
+    align-self: center;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 13px;
 }
 
 .bw-navigation__mobile-auth-link {
