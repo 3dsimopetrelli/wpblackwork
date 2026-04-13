@@ -14,6 +14,7 @@
         this.handleOverlayClick = this.handleOverlayClick.bind(this);
         this.handleToggleClick = this.handleToggleClick.bind(this);
         this.handleLinkClick = this.handleLinkClick.bind(this);
+        this.handleDocumentFocusIn = this.handleDocumentFocusIn.bind(this);
         this.handleWindowResize = this.handleWindowResize.bind(this);
         this.handleWindowScroll = this.handleWindowScroll.bind(this);
         this.handleTouchStart = this.handleTouchStart.bind(this);
@@ -35,6 +36,7 @@
         this.toggle.addEventListener('click', this.handleToggleClick);
         this.overlay.addEventListener('click', this.handleOverlayClick);
         document.addEventListener('keydown', this.handleDocumentKeydown);
+        document.addEventListener('focusin', this.handleDocumentFocusIn);
         window.addEventListener('resize', this.handleWindowResize);
         window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
         window.addEventListener('touchstart', this.handleTouchStart, { passive: true });
@@ -113,8 +115,8 @@
         var focusables = this.getFocusableElements();
         if (focusables.length > 0) {
             focusables[0].focus();
-        } else if (this.toggle && typeof this.toggle.focus === 'function') {
-            this.toggle.focus();
+        } else if (this.panel && typeof this.panel.focus === 'function') {
+            this.panel.focus();
         }
     };
 
@@ -164,8 +166,8 @@
         var focusables = this.getFocusableElements();
         if (!focusables.length) {
             event.preventDefault();
-            if (this.toggle && typeof this.toggle.focus === 'function') {
-                this.toggle.focus();
+            if (this.panel && typeof this.panel.focus === 'function') {
+                this.panel.focus();
             }
             return;
         }
@@ -183,6 +185,32 @@
         if (!event.shiftKey && activeElement === lastFocusable) {
             event.preventDefault();
             firstFocusable.focus();
+        }
+    };
+
+    BWNavigation.prototype.handleDocumentFocusIn = function (event) {
+        if (!this.overlay.classList.contains('is-open')) {
+            return;
+        }
+
+        var target = event.target;
+        if (!target) {
+            return;
+        }
+
+        if (this.panel && this.panel.contains(target)) {
+            return;
+        }
+
+        if (this.toggle && this.toggle.contains(target)) {
+            return;
+        }
+
+        var focusables = this.getFocusableElements();
+        if (focusables.length > 0) {
+            focusables[0].focus();
+        } else if (this.panel && typeof this.panel.focus === 'function') {
+            this.panel.focus();
         }
     };
 

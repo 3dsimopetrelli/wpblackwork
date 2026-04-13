@@ -29,7 +29,7 @@ if ( function_exists( 'bw_ss_render_search_surface_template' ) ) {
             <?php endif; ?>
 
             <form class="bw-search-overlay__form" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
-                <div class="bw-search-overlay__input-wrapper">
+                <div class="bw-search-overlay__input-wrapper" data-placeholder="<?php echo esc_attr($placeholder); ?>">
                     <input
                         type="search"
                         name="s"

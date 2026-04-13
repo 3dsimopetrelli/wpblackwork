@@ -32,9 +32,9 @@ $footer_menu_html = function_exists('bw_header_render_footer_menu')
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
-            <button class="bw-navigation__mobile-footer-social" type="button" aria-label="<?php esc_attr_e('Instagram', 'bw'); ?>">
+            <span class="bw-navigation__mobile-footer-social" aria-hidden="true">
                 <span class="bw-navigation__mobile-footer-social-icon" aria-hidden="true"></span>
-            </button>
+            </span>
         </div>
     </div>
 </section>

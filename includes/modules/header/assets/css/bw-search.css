@@ -180,6 +180,12 @@
     outline: none;
 }
 
+.bw-search-overlay__close:focus-visible {
+    outline: 2px solid rgba(128, 253, 3, 0.95) !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 3px rgba(8, 8, 8, 0.32) !important;
+}
+
 .bw-search-overlay__close svg {
     display: none;
 }
@@ -248,7 +254,7 @@ body.elementor-page .bw-search-overlay .bw-search-overlay__title {
 }
 
 .bw-search-overlay__input-wrapper::after {
-    content: "Search Blackwork...";
+    content: attr(data-placeholder);
     position: absolute;
     left: 38px;
     top: 50%;
@@ -432,17 +438,6 @@ body.bw-search-overlay-active {
 .bw-category-filter:focus {
     outline: 2px solid rgba(128, 253, 3, 0.5);
     outline-offset: 2px;
-}
-
-/* Placeholder fade-out animation - controlled by JavaScript */
-.bw-search-overlay__input::placeholder {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
-/* Class added by JS when user starts typing */
-.bw-search-overlay__input.has-content::placeholder {
-    opacity: 0;
 }
 
 /* Ensure caret is always visible */
