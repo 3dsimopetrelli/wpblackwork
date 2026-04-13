@@ -199,6 +199,18 @@
 
 .bw-navigation__popup-panel {
     box-sizing: border-box;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    will-change: opacity, transform;
+    visibility: hidden;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.bw-navigation__mobile-popup-surface,
+.bw-navigation__account-dropdown-surface {
     background: rgba(16, 16, 16, 0.62) !important;
     background-color: rgba(16, 16, 16, 0.62) !important;
     background-image: none !important;
@@ -208,11 +220,6 @@
     backdrop-filter: blur(28px) saturate(1.15) !important;
     -webkit-backdrop-filter: blur(28px) saturate(1.15) !important;
     color: #FAFAFA;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    will-change: opacity, transform;
-    visibility: hidden;
     overflow: hidden;
 }
 
@@ -224,14 +231,13 @@
     width: min(var(--bw-navigation-popup-width, 290px), calc(100vw - 24px));
     max-height: min(var(--bw-navigation-popup-max-height, 80vh), 720px);
     transform-origin: var(--bw-navigation-popup-transform-origin, top left);
-    display: flex;
-    flex-direction: column;
 }
 
 .bw-navigation__mobile-overlay.is-open .bw-navigation__mobile-panel {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
+    pointer-events: auto;
 }
 
 .bw-navigation__account-dropdown {
@@ -259,9 +265,6 @@
     min-width: 295px;
     max-height: none;
     z-index: 99999;
-    display: flex;
-    flex-direction: column;
-    pointer-events: none;
     transform-origin: top right;
 }
 
@@ -291,6 +294,11 @@
 
 .bw-navigation__account-dropdown .bw-navigation__mobile-content {
     padding: 25px 10px 25px;
+}
+
+.bw-navigation__mobile-popup-surface .bw-navigation__mobile-content,
+.bw-navigation__account-dropdown-surface .bw-navigation__mobile-content {
+    min-height: 0;
 }
 
 .bw-navigation__mobile-section {
