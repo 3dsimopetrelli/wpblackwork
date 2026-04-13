@@ -255,7 +255,8 @@
     top: calc(100% + 12px);
     right: 0;
     left: auto;
-    width: min(248px, calc(100vw - 24px));
+    width: min(348px, calc(100vw - 24px));
+    min-width: 295px;
     max-height: none;
     z-index: 99999;
     display: flex;
