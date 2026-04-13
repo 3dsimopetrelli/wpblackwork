@@ -8,7 +8,7 @@ if (empty($is_logged_in) || empty($logout_url)) {
 }
 ?>
 <section class="bw-navigation__mobile-section bw-navigation__mobile-section--auth" aria-label="<?php esc_attr_e('Account actions', 'bw'); ?>">
-    <a class="bw-navigation__mobile-auth-link" href="<?php echo esc_url($logout_url); ?>">
+    <a class="bw-navigation__mobile-auth-link bw-navigation__link" href="<?php echo esc_url($logout_url); ?>">
         <span class="bw-navigation__mobile-auth-link-label"><?php esc_html_e('Logout', 'bw'); ?></span>
         <span class="bw-navigation__mobile-auth-link-icon" aria-hidden="true"></span>
     </a>
