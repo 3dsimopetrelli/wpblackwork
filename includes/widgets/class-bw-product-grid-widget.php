@@ -1206,49 +1206,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
                             <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
                                 <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <div class="bw-fpw-mobile-filter-sheet-top" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                        <div class="bw-fpw-active-chips bw-fpw-active-chips--sheet" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                                        <?php if ( $show_order_by ) : ?>
-                                            <div class="bw-fpw-sort bw-fpw-sort--drawer-control" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                                <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--icon bw-fpw-sort-trigger--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
-                                                    <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
-                                                        <?php echo $sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                                    </span>
-                                                </button>
-
-                                                <div class="bw-fpw-sort-menu" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="menu" aria-hidden="true">
-                                                    <button class="bw-fpw-sort-option is-selected" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="default" role="menuitemradio" aria-checked="true">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Default order', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="recent" role="menuitemradio" aria-checked="false">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Recently added', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="oldest" role="menuitemradio" aria-checked="false">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Oldest added', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="title_asc" role="menuitemradio" aria-checked="false">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Alphabetical A to Z', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="title_desc" role="menuitemradio" aria-checked="false">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Alphabetical Z to A', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="year_asc" role="menuitemradio" aria-checked="false">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Year, oldest first', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                    <button class="bw-fpw-sort-option" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="year_desc" role="menuitemradio" aria-checked="false">
-                                                        <span class="bw-fpw-sort-option__label"><?php esc_html_e( 'Year, newest first', 'bw-elementor-widgets' ); ?></span>
-                                                        <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
                                     <div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                     <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                 </div>
