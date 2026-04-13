@@ -19,7 +19,7 @@ $breakpoint = function_exists('bw_header_get_mobile_breakpoint') ? bw_header_get
         <?php echo esc_html($account_label); ?>
     </a>
     <div
-        class="bw-navigation__popup-panel bw-navigation__account-dropdown-panel bw-navigation__account-dropdown-surface"
+        class="bw-navigation__popup-panel bw-navigation__account-dropdown-panel bw-navigation__account-dropdown-surface bw-surface-glass"
         id="<?php echo esc_attr($popup_id); ?>"
         role="dialog"
         aria-modal="false"

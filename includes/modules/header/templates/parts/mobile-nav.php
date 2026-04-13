@@ -36,7 +36,7 @@ if (empty($cookie_policy_url)) {
 ?>
 <div class="bw-navigation__mobile-overlay" aria-hidden="true">
     <div
-        class="bw-navigation__mobile-panel bw-navigation__popup-panel bw-navigation__mobile-popup-surface"
+        class="bw-navigation__mobile-panel bw-navigation__popup-panel bw-navigation__mobile-popup-surface bw-surface-glass"
         role="dialog"
         aria-modal="true"
         aria-label="<?php esc_attr_e('Mobile menu', 'bw'); ?>"

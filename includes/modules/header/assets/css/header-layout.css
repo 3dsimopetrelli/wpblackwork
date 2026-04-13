@@ -6,6 +6,19 @@
     border-bottom: none;
 }
 
+:root {
+    --bw-surface-glass-bg: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%), linear-gradient(180deg, rgba(24, 24, 24, 0.88) 0%, rgba(11, 11, 11, 0.92) 100%);
+    --bw-surface-glass-blur: blur(24px);
+    --bw-surface-glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bw-surface-glass {
+    background: var(--bw-surface-glass-bg);
+    backdrop-filter: var(--bw-surface-glass-blur);
+    -webkit-backdrop-filter: var(--bw-surface-glass-blur);
+    border: var(--bw-surface-glass-border);
+}
+
 /*
  * ALWAYS-FIXED HEADER
  * When JS is active (bw-has-sticky-header on body), the header is ALWAYS

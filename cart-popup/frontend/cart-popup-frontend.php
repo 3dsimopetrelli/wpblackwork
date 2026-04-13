@@ -303,7 +303,7 @@ function bw_cart_popup_render_panel()
     ?>
     <!-- BW Cart Pop-Up -->
     <div id="bw-cart-popup-overlay" class="bw-cart-popup-overlay"></div>
-    <div id="bw-cart-popup-panel" class="bw-cart-popup-panel">
+    <div id="bw-cart-popup-panel" class="bw-cart-popup-panel bw-surface-glass">
         <!-- Loading State -->
         <div class="bw-cart-popup-loading" style="display: none;">
             <div class="bw-cart-spinner"></div>
