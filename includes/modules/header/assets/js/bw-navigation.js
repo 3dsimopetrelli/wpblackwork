@@ -65,12 +65,12 @@
         var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
         var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
         var margin = viewportWidth <= 640 ? 8 : 12;
-        var gap = viewportWidth <= 640 ? 28 : 30;
-        var width = Math.min(340, Math.max(280, viewportWidth - (margin * 2)));
+        var gap = viewportWidth <= 640 ? 18 : 20;
+        var width = Math.min(290, Math.max(260, viewportWidth - (margin * 2)));
         var estimatedHeight = Math.min(560, Math.max(260, this.panel.scrollHeight || 0));
         var top = Math.round(rect.bottom + gap);
         var left = Math.round(rect.left - 6);
-        var maxHeight = Math.max(220, viewportHeight - (margin * 2));
+        var maxHeight = Math.min(Math.round(viewportHeight * 0.8), 720);
         var panelHeight = Math.min(estimatedHeight, maxHeight);
         var belowSpace = viewportHeight - rect.bottom - gap - margin;
         var aboveSpace = rect.top - gap - margin;
