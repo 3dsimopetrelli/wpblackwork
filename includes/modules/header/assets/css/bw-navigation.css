@@ -197,6 +197,7 @@
     pointer-events: auto;
 }
 
+.bw-navigation__mobile-overlay.is-open .bw-navigation__mobile-panel,
 .bw-navigation__mobile-panel {
     position: fixed;
     top: var(--bw-navigation-popup-top, 72px);
@@ -204,7 +205,9 @@
     width: min(var(--bw-navigation-popup-width, 290px), calc(100vw - 24px));
     max-height: min(var(--bw-navigation-popup-max-height, 80vh), 720px);
     box-sizing: border-box;
+    background: rgba(23, 23, 23, 0.85) !important;
     background-color: rgba(23, 23, 23, 0.85) !important;
+    background-image: none !important;
     border: none;
     border-radius: 16px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
