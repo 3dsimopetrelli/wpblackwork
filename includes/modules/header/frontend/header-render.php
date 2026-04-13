@@ -122,6 +122,14 @@ if (!function_exists('bw_header_render_frontend')) {
             $desktop_menu_html = bw_header_render_menu($desktop_menu_id, 'bw-navigation__list bw-navigation__list--desktop');
             $mobile_menu_html = bw_header_render_menu($mobile_menu_id, 'bw-navigation__list bw-navigation__list--mobile');
 
+            $mobile_menu_location_html = function_exists('bw_header_render_menu_location')
+                ? bw_header_render_menu_location('bw_mobile_menu', 'bw-navigation__list bw-navigation__list--mobile')
+                : '';
+
+            if ($mobile_menu_location_html !== '') {
+                $mobile_menu_html = $mobile_menu_location_html;
+            }
+
             if ($desktop_menu_html === '') {
                 $feature_navigation = false;
             } elseif ($mobile_menu_html === '') {

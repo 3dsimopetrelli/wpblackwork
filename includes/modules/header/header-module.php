@@ -18,6 +18,7 @@ if (!function_exists('bw_header_register_nav_menus')) {
     function bw_header_register_nav_menus()
     {
         register_nav_menus([
+            'bw_mobile_menu' => __('Mobile Menu', 'bw'),
             'bw_mobile_footer_menu' => __('Footer Menu', 'bw'),
         ]);
     }
