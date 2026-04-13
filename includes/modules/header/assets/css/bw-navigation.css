@@ -144,6 +144,7 @@
     -webkit-appearance: none;
     appearance: none;
     cursor: pointer;
+    touch-action: manipulation;
     transition: color 0.25s ease;
 }
 
@@ -177,31 +178,21 @@
     position: fixed;
     inset: 0;
     z-index: 99999;
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding: clamp(12px, 1.6vw, 16px);
-    background: rgba(0, 0, 0, 0.06);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    opacity: 0;
-    visibility: hidden;
+    background: transparent;
     pointer-events: none;
-    transition: opacity 0.18s ease, visibility 0s linear 0.18s;
-    will-change: opacity;
+    visibility: hidden;
 }
 
 .bw-navigation__mobile-overlay.is-open {
-    opacity: 1;
-    visibility: visible;
     pointer-events: auto;
+    visibility: visible;
 }
 
 .bw-navigation__popup-panel {
     box-sizing: border-box;
     opacity: 0;
     transform: translateY(8px);
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition: opacity 0.08s ease, transform 0.08s ease;
     will-change: opacity, transform;
     visibility: hidden;
     pointer-events: none;
@@ -209,7 +200,6 @@
     flex-direction: column;
 }
 
-.bw-navigation__mobile-overlay.is-open .bw-navigation__mobile-panel,
 .bw-navigation__mobile-panel {
     position: fixed;
     top: var(--bw-navigation-popup-top, 72px);
@@ -217,9 +207,10 @@
     width: min(var(--bw-navigation-popup-width, 290px), calc(100vw - 24px));
     max-height: min(var(--bw-navigation-popup-max-height, 80vh), 720px);
     transform-origin: var(--bw-navigation-popup-transform-origin, top left);
+    z-index: 100000;
 }
 
-.bw-navigation__mobile-overlay.is-open .bw-navigation__mobile-panel {
+.bw-navigation__mobile-panel.is-open {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
@@ -243,9 +234,9 @@
 }
 
 .bw-navigation__account-dropdown-panel {
-    position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
+    position: fixed;
+    top: var(--bw-account-dropdown-top, 72px);
+    right: var(--bw-account-dropdown-right, 12px);
     left: auto;
     width: min(348px, calc(100vw - 24px));
     min-width: 295px;
@@ -254,7 +245,7 @@
     transform-origin: top right;
 }
 
-.bw-navigation__account-dropdown.is-open .bw-navigation__account-dropdown-panel {
+.bw-navigation__account-dropdown-panel.is-open {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
@@ -700,9 +691,9 @@
     display: inline-flex;
 }
 
-.bw-navigation__mobile-overlay .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link,
-.bw-navigation__mobile-overlay .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:link,
-.bw-navigation__mobile-overlay .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:visited {
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link,
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:link,
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:visited {
     color: #9b9d9d !important;
     text-decoration: none;
     font-size: 12px;
@@ -711,9 +702,9 @@
     transition: color 0.15s ease, opacity 0.15s ease;
 }
 
-.bw-navigation__mobile-overlay .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:hover,
-.bw-navigation__mobile-overlay .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:focus-visible,
-.bw-navigation__mobile-overlay .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:active {
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:hover,
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:focus-visible,
+.bw-navigation__mobile-panel .bw-navigation__mobile-footer .bw-navigation__mobile-footer-link:active {
     color: #fafafa !important;
 }
 
@@ -748,10 +739,6 @@
     .bw-navigation__mobile-panel {
         width: min(var(--bw-navigation-popup-width, 290px), calc(100vw - 24px));
         border-radius: 18px;
-    }
-
-    .bw-navigation__mobile-overlay {
-        padding: 12px;
     }
 
     .bw-navigation__mobile-content {

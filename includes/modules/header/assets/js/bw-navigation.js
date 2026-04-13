@@ -27,10 +27,14 @@
             return;
         }
 
-        // Move overlay to <body> so fixed positioning is viewport-based,
-        // not constrained by transformed header ancestors.
+        // Move overlay and panel to <body> as siblings. Fixed positioning is
+        // then viewport-based, and the panel's backdrop-filter samples real
+        // page content instead of being trapped in the overlay's compositor layer.
         if (this.overlay.parentNode !== document.body) {
             document.body.appendChild(this.overlay);
+        }
+        if (this.panel && this.panel.parentNode !== document.body) {
+            document.body.appendChild(this.panel);
         }
 
         this.toggle.addEventListener('click', this.handleToggleClick);
@@ -129,6 +133,9 @@
         this.overlay.classList.add('is-open');
         this.overlay.setAttribute('aria-hidden', 'false');
         this.toggle.setAttribute('aria-expanded', 'true');
+        if (this.panel) {
+            this.panel.classList.add('is-open');
+        }
 
         var focusables = this.getFocusableElements();
         if (focusables.length > 0) {
@@ -142,6 +149,9 @@
         this.overlay.classList.remove('is-open');
         this.overlay.setAttribute('aria-hidden', 'true');
         this.toggle.setAttribute('aria-expanded', 'false');
+        if (this.panel) {
+            this.panel.classList.remove('is-open');
+        }
 
         if (this.lastActiveElement && typeof this.lastActiveElement.focus === 'function') {
             this.lastActiveElement.focus();
