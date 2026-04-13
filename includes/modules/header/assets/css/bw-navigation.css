@@ -516,7 +516,7 @@ body.bw-navigation-mobile-open {
     overflow: hidden;
 }
 
-@media (max-width: 769px) {
+@media (max-width: 1024px) {
     .bw-navigation__mobile-panel {
         width: 100%;
         max-width: calc(100vw - (clamp(5px, 1.4vw, 10px) * 2));

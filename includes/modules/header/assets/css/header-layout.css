@@ -351,9 +351,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
             transform: translateX(0);
         }
     }
-}
 
-@media (max-width: 767px) {
     .bw-custom-header__inner {
         padding: 14px 18px;
     }
