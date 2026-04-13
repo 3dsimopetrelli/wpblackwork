@@ -295,6 +295,14 @@
     overflow: hidden;
 }
 
+.bw-navigation__mobile-popup-surface.bw-surface-glass,
+.bw-navigation__account-dropdown-surface.bw-surface-glass {
+    background: var(--bw-surface-glass-bg) !important;
+    backdrop-filter: var(--bw-surface-glass-blur) !important;
+    -webkit-backdrop-filter: var(--bw-surface-glass-blur) !important;
+    border: var(--bw-surface-glass-border) !important;
+}
+
 .bw-navigation__account-dropdown-surface .bw-navigation__mobile-content {
     padding: 16px 10px 16px;
     gap: 8px;
