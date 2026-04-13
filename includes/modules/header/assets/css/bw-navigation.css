@@ -204,12 +204,13 @@
     width: min(var(--bw-navigation-popup-width, 290px), calc(100vw - 24px));
     max-height: min(var(--bw-navigation-popup-max-height, 80vh), 720px);
     box-sizing: border-box;
-    background: rgba(23, 23, 23, 0.85) !important;
+    background-color: rgba(23, 23, 23, 0.85) !important;
     border: none;
     border-radius: 16px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(20px);
+    color: #FAFAFA;
     opacity: 0;
     transform: translateY(8px);
     transform-origin: var(--bw-navigation-popup-transform-origin, top left);
