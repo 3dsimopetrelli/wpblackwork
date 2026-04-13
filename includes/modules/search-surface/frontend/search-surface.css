@@ -16,7 +16,7 @@ body.bw-search-overlay-active {
     --bw-search-surface-card-border: rgba(255, 255, 255, 0.06);
     --bw-search-surface-chip-active: rgba(255, 255, 255, 0.1);
     --bw-search-surface-chip-active-text: #ffffff;
-    font-family: "Inter", sans-serif;
+    font-family: var(--e-global-typography-text-font-family, inherit);
 }
 
 .bw-search-surface button,
@@ -926,7 +926,7 @@ body.bw-search-overlay-active {
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     box-shadow: none !important;
     border-image: none !important;
-    font-family: "Inter", sans-serif !important;
+    font-family: var(--e-global-typography-text-font-family, inherit) !important;
     text-decoration: none !important;
 }
 

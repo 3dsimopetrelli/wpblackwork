@@ -272,7 +272,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}";
-        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width: {$mobile_cart_badge_size}em !important;height: {$mobile_cart_badge_size}em !important;padding:0 0.2em !important;line-height:1 !important;font-weight:400 !important;font-variant-numeric: tabular-nums !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{transform: translate({$mobile_cart_badge_offset_x}px, {$mobile_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}";
         $css_parts[] = "}";
 
@@ -281,7 +281,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__desktop{display:flex;}";
         $css_parts[] = ".bw-custom-header__mobile{display:none;}";
         $css_parts[] = ".bw-custom-header .bw-navigation__toggle,.bw-custom-header .bw-navigation__mobile-overlay{display:none !important;}";
-        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width: {$desktop_cart_badge_size}em !important;height: {$desktop_cart_badge_size}em !important;padding:0 0.2em !important;line-height:1 !important;font-weight:400 !important;font-variant-numeric: tabular-nums !important;}";
+        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
         $css_parts[] = "}";
 
         // — Background color —
@@ -302,12 +302,15 @@ if (!function_exists('bw_header_enqueue_assets')) {
         if ($panel_blur_enabled) {
             $blur_tint = bw_header_hex_to_rgba($menu_blur_tint_color, $menu_blur_tint_opacity);
             $blur_scrolled_tint = bw_header_hex_to_rgba($menu_blur_scrolled_tint_color, $menu_blur_scrolled_tint_opacity);
-            $mobile_blur_v = max(2, min(15, intval($menu_blur_padding_top)));
-            $mobile_blur_h = max(2, min(10, intval(round($menu_blur_padding_right * 0.5))));
+            $mobile_blur_padding_top = 10;
+            $mobile_blur_padding_right = 10;
+            $mobile_blur_padding_bottom = 10;
+            $mobile_blur_padding_left = 20;
+            $mobile_blur_radius = 50;
             $css_parts[] = ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}";
             $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
             // Mobile panel blur (compact padding to avoid double-spacing with __inner)
-            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_v}px {$mobile_blur_h}px !important;border-radius: {$menu_blur_radius}px !important;}";
+            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_padding_top}px {$mobile_blur_padding_right}px {$mobile_blur_padding_bottom}px {$mobile_blur_padding_left}px !important;border-radius: {$mobile_blur_radius}px !important;}";
             $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
         } else {
             $css_parts[] = ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";
