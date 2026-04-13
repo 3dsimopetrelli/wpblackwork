@@ -379,13 +379,6 @@
     font-weight: 500;
 }
 
-.bw-navigation__mobile-divider {
-    width: 100%;
-    height: 1px;
-    background-color: rgba(255, 255, 255, 0.08);
-    margin: 28px 0 18px;
-}
-
 .bw-navigation__mobile .bw-navigation__link {
     display: inline-flex;
     align-items: center;

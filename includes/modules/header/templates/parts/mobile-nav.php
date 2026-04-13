@@ -60,9 +60,9 @@ if (empty($terms_policy_url)) {
                         </a>
                     <?php endif; ?>
                 </div>
-                <button class="bw-navigation__mobile-footer-social" type="button" aria-label="<?php esc_attr_e('Instagram', 'bw'); ?>">
-                    <span class="bw-navigation__mobile-footer-social-icon" aria-hidden="true"></span>
-                </button>
+                <span class="bw-navigation__mobile-footer-social" aria-hidden="true">
+                    <span class="bw-navigation__mobile-footer-social-icon"></span>
+                </span>
             </div>
         </div>
     </div>
