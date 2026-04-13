@@ -101,6 +101,10 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     align-self: center;
 }
 
+.bw-custom-header__desktop-right .bw-header-navshop .bw-navshop {
+    gap: 20px;
+}
+
 .bw-custom-header__desktop-logo {
     display: inline-flex;
     align-items: center;
