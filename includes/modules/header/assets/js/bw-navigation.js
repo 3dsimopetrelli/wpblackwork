@@ -47,6 +47,24 @@
         }, this);
     };
 
+    BWNavigation.prototype.destroy = function () {
+        document.removeEventListener('keydown', this.handleDocumentKeydown);
+        document.removeEventListener('focusin', this.handleDocumentFocusIn);
+        window.removeEventListener('resize', this.handleWindowResize);
+        window.removeEventListener('scroll', this.handleWindowScroll);
+        window.removeEventListener('touchstart', this.handleTouchStart);
+        window.removeEventListener('touchmove', this.handleTouchMove);
+        if (this.toggle) {
+            this.toggle.removeEventListener('click', this.handleToggleClick);
+        }
+        if (this.overlay) {
+            this.overlay.removeEventListener('click', this.handleOverlayClick);
+        }
+        this.mobileLinks.forEach(function (link) {
+            link.removeEventListener('click', this.handleLinkClick);
+        }, this);
+    };
+
     BWNavigation.prototype.getFocusableElements = function () {
         if (!this.panel) {
             return [];

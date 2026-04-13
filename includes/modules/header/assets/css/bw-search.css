@@ -324,25 +324,6 @@ body .bw-search-overlay__input[type="search"] {
     box-shadow: none !important;
 }
 
-/* Reset any external padding that might be inherited from theme or plugins */
-/* High specificity selectors to ensure we override reset.css, WooCommerce, and theme styles */
-/* Padding is now controlled exclusively via widget "Input Field Padding" setting */
-.bw-search-overlay__input,
-.bw-search-overlay__input[type="search"],
-input.bw-search-overlay__input,
-input.bw-search-overlay__input[type="search"],
-.woocommerce .bw-search-overlay__input,
-.woocommerce .bw-search-overlay__input[type="search"],
-.woocommerce-page .bw-search-overlay__input,
-.woocommerce-page .bw-search-overlay__input[type="search"],
-body .bw-search-overlay__input,
-body .bw-search-overlay__input[type="search"],
-body input.bw-search-overlay__input,
-body input.bw-search-overlay__input[type="search"] {
-    /* Empty block with high specificity to prevent external styles */
-    /* Widget settings use !important to ensure they always take precedence */
-}
-
 /* Hint Text */
 .bw-search-overlay__hint {
     font-size: 14px;
@@ -353,7 +334,7 @@ body input.bw-search-overlay__input[type="search"] {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .bw-search-overlay__close {
         top: 16px;
         right: 14px;
@@ -446,7 +427,7 @@ body.bw-search-overlay-active {
 }
 
 /* Responsive for filters */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .bw-search-overlay__filters {
         margin-top: 20px;
         gap: 6px;
@@ -628,16 +609,8 @@ body.bw-search-overlay-active {
     }
 }
 
-/* Responsive - Tablet (3 colonne) */
+/* Responsive - Mobile */
 @media (max-width: 1024px) {
-    .bw-search-results__grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
-}
-
-/* Responsive - Mobile (2 colonne) */
-@media (max-width: 768px) {
     .bw-search-results {
         margin-top: 18px;
     }

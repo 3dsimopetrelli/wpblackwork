@@ -290,13 +290,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     color: currentColor;
 }
 
-.bw-custom-header .bw-navigation__toggle,
-.bw-custom-header .bw-navigation__close {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
 .bw-custom-header .bw-search-button {
     text-decoration: none;
     color: #000000;
@@ -406,9 +399,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
             transition: transform 0.25s ease;
         }
     }
-}
 
-@media (max-width: 768px) {
     .bw-custom-header__inner {
         padding: 14px 18px;
     }
