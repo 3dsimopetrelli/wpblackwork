@@ -4,7 +4,19 @@
     width: 100%;
     background: #efefef;
     border-bottom: none;
-    will-change: transform;
+}
+
+:root {
+    --bw-surface-glass-bg: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%), linear-gradient(180deg, rgba(24, 24, 24, 0.88) 0%, rgba(11, 11, 11, 0.92) 100%);
+    --bw-surface-glass-blur: blur(24px);
+    --bw-surface-glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bw-surface-glass {
+    background: var(--bw-surface-glass-bg);
+    backdrop-filter: var(--bw-surface-glass-blur);
+    -webkit-backdrop-filter: var(--bw-surface-glass-blur);
+    border: var(--bw-surface-glass-border);
 }
 
 /*
@@ -38,6 +50,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 .bw-custom-header.bw-header-hidden,
 .bw-custom-header.bw-header-visible {
     transition: transform 0.3s ease-in-out;
+    will-change: transform;
 }
 
 /* Hidden State: Slide Up */
@@ -99,6 +112,14 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     display: inline-flex;
     align-items: center;
     align-self: center;
+}
+
+.bw-custom-header__desktop-right .bw-navshop__account-dropdown {
+    margin-right: 20px;
+}
+
+.bw-custom-header__desktop-right .bw-header-navshop .bw-navshop {
+    gap: 20px;
 }
 
 .bw-custom-header__desktop-logo {
@@ -185,8 +206,8 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px) !important;
     background-color: rgba(255, 255, 255, 0.00) !important;
-    padding: 9px 10px;
-    border-radius: 8px;
+    padding: 10px 10px 10px 20px;
+    border-radius: 50px;
     isolation: isolate;
     transition: background-color 0.4s ease;
 }
@@ -250,7 +271,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 .bw-custom-header .bw-navshop__item,
 .bw-custom-header .bw-navigation__link,
 .bw-custom-header .bw-search-button__label {
-    font-size: 24px;
+    font-size: 20px;
     line-height: 1;
 }
 
@@ -275,7 +296,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 }
 
 .bw-custom-header .bw-search-button__label {
-    padding: 10px 24px;
+    padding: 6px 8px;
     color: #000000 !important;
 }
 
@@ -323,32 +344,59 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         padding: 0 !important;
     }
 
+    .bw-custom-header .bw-navigation__toggle-icon,
+    .bw-custom-header .bw-search-button__icon,
+    .bw-custom-header .bw-navshop__cart-icon {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .bw-custom-header .bw-navigation__toggle-icon svg,
+    .bw-custom-header .bw-navigation__toggle-icon-image,
+    .bw-custom-header .bw-search-button__icon svg,
+    .bw-custom-header .bw-search-button__icon-image,
+    .bw-custom-header .bw-navshop__cart-icon svg,
+    .bw-custom-header .bw-navshop__cart-icon-image {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
     .bw-custom-header .bw-navshop__cart-icon {
         margin-top: 3px;
     }
 
     .bw-custom-header .bw-navshop__cart-count {
         font-size: 11px;
+        font-weight: 400;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-variant-numeric: tabular-nums;
     }
 
     .bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count {
         transform: translate(-15px, 0px) !important;
         min-width: 1.2em !important;
         height: 1.2em !important;
-        line-height: 1.2em !important;
-    }
-
-    .bw-custom-header__mobile-right {
-        transition: transform 0.25s ease;
+        line-height: 1 !important;
     }
 
     @supports selector(:has(*)) {
         .bw-custom-header__mobile-right {
             transform: translateX(20px);
+            transition: transform 0.25s ease;
         }
 
         .bw-custom-header__mobile-right:has(.bw-navshop__cart-count:not(.is-empty)) {
             transform: translateX(0);
+        }
+    }
+
+    @supports not selector(:has(*)) {
+        .bw-custom-header__mobile-right {
+            transform: translateX(0);
+            transition: transform 0.25s ease;
         }
     }
 

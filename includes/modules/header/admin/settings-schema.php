@@ -32,57 +32,7 @@ if (!function_exists('bw_header_default_settings')) {
             'breakpoints' => [
                 'mobile' => 1024,
             ],
-            'mobile_layout' => [
-                'right_icons_gap' => 16,
-                'cart_badge_offset_x' => 0,
-                'cart_badge_offset_y' => 0,
-                'cart_badge_size' => 1.2,
-                'desktop_cart_badge_offset_x' => 0,
-                'desktop_cart_badge_offset_y' => 0,
-                'desktop_cart_badge_size' => 1.2,
-                'inner_padding' => [
-                    'top' => 14,
-                    'right' => 18,
-                    'bottom' => 14,
-                    'left' => 18,
-                ],
-                'hamburger_padding' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                ],
-                'hamburger_margin' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                ],
-                'search_padding' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                ],
-                'search_margin' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                ],
-                'cart_padding' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                ],
-                'cart_margin' => [
-                    'top' => 0,
-                    'right' => 0,
-                    'bottom' => 0,
-                    'left' => 0,
-                ],
-            ],
+            'mobile_layout' => [],
             'icons' => [
                 'mobile_hamburger_attachment_id' => 0,
                 'mobile_cart_attachment_id' => 0,
@@ -354,37 +304,8 @@ if (!function_exists('bw_header_sanitize_settings')) {
         $breakpoints = isset($input['breakpoints']) && is_array($input['breakpoints']) ? $input['breakpoints'] : [];
         $out['breakpoints']['mobile'] = isset($breakpoints['mobile']) ? max(320, min(1920, absint($breakpoints['mobile']))) : $defaults['breakpoints']['mobile'];
 
-        $mobile_layout = isset($input['mobile_layout']) && is_array($input['mobile_layout']) ? $input['mobile_layout'] : [];
-        $out['mobile_layout']['right_icons_gap'] = isset($mobile_layout['right_icons_gap']) ? max(0, min(200, (float) $mobile_layout['right_icons_gap'])) : $defaults['mobile_layout']['right_icons_gap'];
-        $out['mobile_layout']['cart_badge_offset_x'] = isset($mobile_layout['cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_x'])) : $defaults['mobile_layout']['cart_badge_offset_x'];
-        $out['mobile_layout']['cart_badge_offset_y'] = isset($mobile_layout['cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['cart_badge_offset_y'])) : $defaults['mobile_layout']['cart_badge_offset_y'];
-        $out['mobile_layout']['cart_badge_size'] = isset($mobile_layout['cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['cart_badge_size'])) : $defaults['mobile_layout']['cart_badge_size'];
-        $out['mobile_layout']['desktop_cart_badge_offset_x'] = isset($mobile_layout['desktop_cart_badge_offset_x']) ? max(-100, min(100, (float) $mobile_layout['desktop_cart_badge_offset_x'])) : $defaults['mobile_layout']['desktop_cart_badge_offset_x'];
-        $out['mobile_layout']['desktop_cart_badge_offset_y'] = isset($mobile_layout['desktop_cart_badge_offset_y']) ? max(-100, min(100, (float) $mobile_layout['desktop_cart_badge_offset_y'])) : $defaults['mobile_layout']['desktop_cart_badge_offset_y'];
-        $out['mobile_layout']['desktop_cart_badge_size'] = isset($mobile_layout['desktop_cart_badge_size']) ? max(0.6, min(3, (float) $mobile_layout['desktop_cart_badge_size'])) : $defaults['mobile_layout']['desktop_cart_badge_size'];
-        $mobile_inner_padding = isset($mobile_layout['inner_padding']) && is_array($mobile_layout['inner_padding']) ? $mobile_layout['inner_padding'] : [];
-        $out['mobile_layout']['inner_padding']['top'] = isset($mobile_inner_padding['top']) ? max(0, min(200, (float) $mobile_inner_padding['top'])) : $defaults['mobile_layout']['inner_padding']['top'];
-        $out['mobile_layout']['inner_padding']['right'] = isset($mobile_inner_padding['right']) ? max(0, min(200, (float) $mobile_inner_padding['right'])) : $defaults['mobile_layout']['inner_padding']['right'];
-        $out['mobile_layout']['inner_padding']['bottom'] = isset($mobile_inner_padding['bottom']) ? max(0, min(200, (float) $mobile_inner_padding['bottom'])) : $defaults['mobile_layout']['inner_padding']['bottom'];
-        $out['mobile_layout']['inner_padding']['left'] = isset($mobile_inner_padding['left']) ? max(0, min(200, (float) $mobile_inner_padding['left'])) : $defaults['mobile_layout']['inner_padding']['left'];
-        $mobile_box_fields = [
-            'hamburger_padding',
-            'hamburger_margin',
-            'search_padding',
-            'search_margin',
-            'cart_padding',
-            'cart_margin',
-        ];
-        foreach ($mobile_box_fields as $field) {
-            $box = isset($mobile_layout[$field]) && is_array($mobile_layout[$field]) ? $mobile_layout[$field] : [];
-            $is_margin = strpos($field, 'margin') !== false;
-            $min = $is_margin ? -200 : 0;
-            $max = 200;
-            $out['mobile_layout'][$field]['top'] = isset($box['top']) ? max($min, min($max, (float) $box['top'])) : $defaults['mobile_layout'][$field]['top'];
-            $out['mobile_layout'][$field]['right'] = isset($box['right']) ? max($min, min($max, (float) $box['right'])) : $defaults['mobile_layout'][$field]['right'];
-            $out['mobile_layout'][$field]['bottom'] = isset($box['bottom']) ? max($min, min($max, (float) $box['bottom'])) : $defaults['mobile_layout'][$field]['bottom'];
-            $out['mobile_layout'][$field]['left'] = isset($box['left']) ? max($min, min($max, (float) $box['left'])) : $defaults['mobile_layout'][$field]['left'];
-        }
+        // Mobile icon positioning controls were removed from dashboard; keep runtime values fixed in frontend CSS generation.
+        $out['mobile_layout'] = [];
 
         $icons = isset($input['icons']) && is_array($input['icons']) ? $input['icons'] : [];
         $out['icons']['mobile_hamburger_attachment_id'] = isset($icons['mobile_hamburger_attachment_id']) ? absint($icons['mobile_hamburger_attachment_id']) : 0;

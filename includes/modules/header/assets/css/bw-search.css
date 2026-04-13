@@ -12,16 +12,16 @@
     --bw-search-button-border-color-hover: var(--bw-search-button-border-color);
     --bw-search-button-border-width: 1px;
     --bw-search-button-border-radius: 999px;
-    --bw-search-button-padding-top: 12px;
-    --bw-search-button-padding-right: 26px;
-    --bw-search-button-padding-bottom: 12px;
-    --bw-search-button-padding-left: 26px;
+    --bw-search-button-padding-top: 10px;
+    --bw-search-button-padding-right: 24px;
+    --bw-search-button-padding-bottom: 10px;
+    --bw-search-button-padding-left: 24px;
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #080808;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
@@ -181,8 +181,9 @@
 }
 
 .bw-search-overlay__close:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.5);
-    outline-offset: 4px;
+    outline: 2px solid rgba(128, 253, 3, 0.95) !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 3px rgba(8, 8, 8, 0.32) !important;
 }
 
 .bw-search-overlay__close svg {

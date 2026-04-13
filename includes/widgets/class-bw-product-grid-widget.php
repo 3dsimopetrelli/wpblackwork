@@ -856,7 +856,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
 
     private function render_wrapper_start( $settings, $show_filters = true ) {
         $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
-        $responsive_breakpoint = 900;
+        $responsive_breakpoint = 1130;
         $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
         $drawer_side            = $this->get_responsive_filter_drawer_side( $settings );
 
@@ -1113,7 +1113,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
         $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
         $global_search_label  = $this->get_discovery_search_label( $settings );
-        $reset_filters_label  = __( 'Reset filters', 'bw-elementor-widgets' );
         $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
         $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
         $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
@@ -1146,11 +1145,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'advanced'   => is_array( $advanced_filter_ui ) ? $advanced_filter_ui : [],
         ];
         ?>
-        <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+        <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-ui-ready="false" style="opacity:0; visibility:hidden; transform:translateY(10px); pointer-events:none;">
             <div class="bw-fpw-discovery-toolbar__summary">
                 <div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                     <span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
-                    <button class="bw-fpw-discovery-reset" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
                 </div>
             </div>
 
@@ -1233,7 +1231,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
                                 <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                                     <div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
                                     <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                                    <button class="bw-fpw-discovery-reset bw-fpw-discovery-reset--drawer" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo esc_html( $reset_filters_label ); ?></button>
                                 </div>
                             </div>
 
@@ -1636,9 +1633,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
                 <?php else : ?>
                     <div class="bw-fpw-empty-state">
                         <p class="bw-fpw-empty-message"><?php esc_html_e( 'There is nothing in this archive yet.', 'bw-elementor-widgets' ); ?></p>
-                        <button class="elementor-button bw-fpw-reset-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <?php esc_html_e( 'RESET FILTERS', 'bw-elementor-widgets' ); ?>
-                        </button>
                     </div>
                 <?php endif; ?>
             </div>

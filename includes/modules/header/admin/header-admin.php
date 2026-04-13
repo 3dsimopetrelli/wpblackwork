@@ -289,124 +289,16 @@ if (!function_exists('bw_header_render_admin_page')) {
 
                 <div class="bw-admin-card">
                     <h2 class="bw-admin-card-title"><?php esc_html_e('Responsive', 'bw'); ?></h2>
-                    <p class="bw-admin-card-helper"><?php esc_html_e('Tune mobile icon assets, spacing, and badge offsets.', 'bw'); ?></p>
+                    <p class="bw-admin-card-helper"><?php esc_html_e('Configure mobile icon assets.', 'bw'); ?></p>
                     <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                         <tbody>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_hamburger_attachment_id]', $settings['icons']['mobile_hamburger_attachment_id'], __('Mobile Hamburger SVG', 'bw'), BW_HEADER_OPTION_KEY . '[icons][mobile_hamburger_svg_code]', isset($settings['icons']['mobile_hamburger_svg_code']) ? $settings['icons']['mobile_hamburger_svg_code'] : ''); ?>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_search_attachment_id]', $settings['icons']['mobile_search_attachment_id'], __('Mobile Search SVG', 'bw'), BW_HEADER_OPTION_KEY . '[icons][mobile_search_svg_code]', isset($settings['icons']['mobile_search_svg_code']) ? $settings['icons']['mobile_search_svg_code'] : ''); ?>
                     <?php bw_header_render_media_field(BW_HEADER_OPTION_KEY . '[icons][mobile_cart_attachment_id]', $settings['icons']['mobile_cart_attachment_id'], __('Mobile Cart SVG', 'bw'), BW_HEADER_OPTION_KEY . '[icons][mobile_cart_svg_code]', isset($settings['icons']['mobile_cart_svg_code']) ? $settings['icons']['mobile_cart_svg_code'] : ''); ?>
                     <tr>
-                        <th scope="row"><label for="bw-header-mobile-right-icons-gap"><?php esc_html_e('Mobile Right Icons Gap (px)', 'bw'); ?></label></th>
+                        <th scope="row"><?php esc_html_e('Mobile Layout Controls', 'bw'); ?></th>
                         <td>
-                            <input id="bw-header-mobile-right-icons-gap" type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][right_icons_gap]" value="<?php echo esc_attr((float) $settings['mobile_layout']['right_icons_gap']); ?>" />
-                            <p class="description"><?php esc_html_e('Distance between Search and Cart icons in mobile right area.', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Header Inner Padding (Top Right Bottom Left) (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][inner_padding][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['inner_padding']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][inner_padding][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['inner_padding']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][inner_padding][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['inner_padding']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][inner_padding][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['inner_padding']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                            <p class="description"><?php esc_html_e('Padding only for responsive/mobile header area.', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Hamburger Padding (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_padding][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_padding']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_padding][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_padding']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_padding][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_padding']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_padding][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_padding']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Hamburger Margin (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_margin][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_margin']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_margin][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_margin']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_margin][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_margin']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][hamburger_margin][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['hamburger_margin']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Search Padding (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_padding][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_padding']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_padding][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_padding']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_padding][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_padding']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_padding][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_padding']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Search Margin (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_margin][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_margin']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_margin][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_margin']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_margin][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_margin']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][search_margin][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['search_margin']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Cart Padding (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_padding][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_padding']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_padding][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_padding']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_padding][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_padding']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="0" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_padding][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_padding']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Mobile Cart Margin (px)', 'bw'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_margin][top]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_margin']['top']); ?>" placeholder="Top" style="width:90px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_margin][right]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_margin']['right']); ?>" placeholder="Right" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_margin][bottom]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_margin']['bottom']); ?>" placeholder="Bottom" style="width:90px;margin-left:8px;" />
-                            <input type="number" step="0.1" min="-200" max="200" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_margin][left]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_margin']['left']); ?>" placeholder="Left" style="width:90px;margin-left:8px;" />
-                            <p class="description"><?php esc_html_e('Use these controls to fine-tune mobile icon position and spacing.', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="bw-header-mobile-cart-badge-offset-x"><?php esc_html_e('Mobile Cart Badge Offset X (px)', 'bw'); ?></label></th>
-                        <td>
-                            <input id="bw-header-mobile-cart-badge-offset-x" type="number" step="0.1" min="-100" max="100" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_badge_offset_x]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_badge_offset_x']); ?>" />
-                            <p class="description"><?php esc_html_e('Horizontal move of badge relative to cart icon (positive = right).', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="bw-header-mobile-cart-badge-offset-y"><?php esc_html_e('Mobile Cart Badge Offset Y (px)', 'bw'); ?></label></th>
-                        <td>
-                            <input id="bw-header-mobile-cart-badge-offset-y" type="number" step="0.1" min="-100" max="100" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_badge_offset_y]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_badge_offset_y']); ?>" />
-                            <p class="description"><?php esc_html_e('Vertical move of badge relative to cart icon (positive = down).', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="bw-header-mobile-cart-badge-size"><?php esc_html_e('Mobile Cart Badge Size (em)', 'bw'); ?></label></th>
-                        <td>
-                            <input id="bw-header-mobile-cart-badge-size" type="number" step="0.05" min="0.6" max="3" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][cart_badge_size]" value="<?php echo esc_attr((float) $settings['mobile_layout']['cart_badge_size']); ?>" />
-                            <p class="description"><?php esc_html_e('Controls badge width/height/line-height scale.', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="bw-header-desktop-cart-badge-offset-x"><?php esc_html_e('Desktop Cart Badge Offset X (px)', 'bw'); ?></label></th>
-                        <td>
-                            <input id="bw-header-desktop-cart-badge-offset-x" type="number" step="0.1" min="-100" max="100" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][desktop_cart_badge_offset_x]" value="<?php echo esc_attr((float) $settings['mobile_layout']['desktop_cart_badge_offset_x']); ?>" />
-                            <p class="description"><?php esc_html_e('Horizontal move of desktop badge relative to Cart label (positive = right).', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="bw-header-desktop-cart-badge-offset-y"><?php esc_html_e('Desktop Cart Badge Offset Y (px)', 'bw'); ?></label></th>
-                        <td>
-                            <input id="bw-header-desktop-cart-badge-offset-y" type="number" step="0.1" min="-100" max="100" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][desktop_cart_badge_offset_y]" value="<?php echo esc_attr((float) $settings['mobile_layout']['desktop_cart_badge_offset_y']); ?>" />
-                            <p class="description"><?php esc_html_e('Vertical move of desktop badge relative to Cart label (positive = down).', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="bw-header-desktop-cart-badge-size"><?php esc_html_e('Desktop Cart Badge Size (em)', 'bw'); ?></label></th>
-                        <td>
-                            <input id="bw-header-desktop-cart-badge-size" type="number" step="0.05" min="0.6" max="3" name="<?php echo esc_attr(BW_HEADER_OPTION_KEY); ?>[mobile_layout][desktop_cart_badge_size]" value="<?php echo esc_attr((float) $settings['mobile_layout']['desktop_cart_badge_size']); ?>" />
-                            <p class="description"><?php esc_html_e('Controls desktop badge width/height/line-height scale.', 'bw'); ?></p>
+                            <p class="description"><?php esc_html_e('Mobile spacing and badge position are now fixed in code to keep the header layout consistent.', 'bw'); ?></p>
                         </td>
                     </tr>
                         </tbody>
