@@ -255,7 +255,7 @@
     top: calc(100% + 12px);
     right: 0;
     left: auto;
-    width: min(348px, calc(100vw - 24px));
+    width: min(248px, calc(100vw - 24px));
     max-height: none;
     z-index: 99999;
     display: flex;
@@ -272,7 +272,7 @@
 }
 
 .bw-navigation__account-dropdown-content {
-    padding: 10px 10px 11px;
+    padding: 25px 10px 25px;
 }
 
 .bw-navigation__mobile-content {
@@ -289,7 +289,7 @@
 }
 
 .bw-navigation__account-dropdown .bw-navigation__mobile-content {
-    padding: 10px 10px 11px;
+    padding: 25px 10px 25px;
 }
 
 .bw-navigation__mobile-section {
@@ -442,7 +442,7 @@
     display: flex;
     box-sizing: border-box;
     min-height: 0;
-    padding: 30px 45px;
+    padding: 16px 21px;
     align-self: center;
     overflow: hidden;
     text-overflow: ellipsis;
