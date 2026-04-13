@@ -917,6 +917,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $initial_category = 'all' !== $default_category ? $default_category : 'all';
         $tags = $show_tags ? $this->get_related_tags( $post_type, $initial_category, [] ) : [];
         $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, $initial_category ) : [];
+        $mobile_panel_intro = __( 'Refine the collection with categories, subcategories and tags, then tap Show results.', 'bw-elementor-widgets' );
 
         $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
         $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
@@ -929,78 +930,88 @@ class BW_Product_Grid_Widget extends Widget_Base {
         <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
             <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
                 <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+                <span class="bw-fpw-mobile-filter-button-count" data-mobile-filter-count aria-hidden="true"></span>
                 <span class="bw-fpw-mobile-filter-button-icon-shell">
                     <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 </span>
             </button>
 
             <div class="bw-fpw-mobile-filter-panel" aria-hidden="true">
-                <div class="bw-fpw-mobile-filter-panel__header">
-                    <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $mobile_panel_title ); ?></span>
-                    <button class="bw-fpw-mobile-filter-close" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">&times;</button>
-                </div>
-
-                <div class="bw-fpw-mobile-filter-panel__body">
-                    <?php if ( $show_search ) : ?>
-                        <div class="bw-fpw-mobile-search-row">
-                            <input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
+                <div class="bw-fpw-mobile-filter-drawer bw-fpw-mobile-filter-drawer--legacy">
+                    <div class="bw-fpw-mobile-filter-panel__header">
+                        <div class="bw-fpw-mobile-filter-panel__heading">
+                            <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $mobile_panel_title ); ?></span>
+                            <span class="bw-fpw-mobile-filter-panel__summary" data-mobile-filter-summary></span>
                         </div>
-                    <?php endif; ?>
-                    <?php if ( $show_categories ) : ?>
-                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
-                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $categories_title ); ?></span>
-                                <span class="bw-fpw-mobile-dropdown-icon"></span>
-                            </button>
-                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
-                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
+                        <button class="bw-fpw-mobile-filter-close" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">&times;</button>
+                    </div>
+
+                    <div class="bw-fpw-mobile-filter-panel__body">
+                        <p class="bw-fpw-mobile-filter-panel__intro"><?php echo esc_html( $mobile_panel_intro ); ?></p>
+                        <?php if ( $show_search ) : ?>
+                            <div class="bw-fpw-mobile-search-row">
+                                <input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
+                            </div>
+                        <?php endif; ?>
+                        <?php if ( $show_categories ) : ?>
+                            <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                <button class="bw-fpw-mobile-dropdown-toggle" type="button">
+                                    <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $categories_title ); ?></span>
+                                    <span class="bw-fpw-mobile-dropdown-icon"></span>
+                                </button>
+                                <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
+                                    <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                        <?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <?php if ( $show_subcategories ) : ?>
-                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
-                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $subcategories_title ); ?></span>
-                                <span class="bw-fpw-mobile-dropdown-icon"></span>
-                            </button>
-                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
-                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php foreach ( $initial_subcategories as $subcategory ) : ?>
-                                        <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
-                                        </button>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ( $show_tags ) : ?>
-                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
-                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
-                                <span class="bw-fpw-mobile-dropdown-icon"></span>
-                            </button>
-                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
-                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php if ( ! empty( $tags ) ) : ?>
-                                        <?php foreach ( $tags as $tag ) : ?>
-                                            <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-                                                <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+                        <?php if ( $show_subcategories ) : ?>
+                            <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                <button class="bw-fpw-mobile-dropdown-toggle" type="button">
+                                    <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $subcategories_title ); ?></span>
+                                    <span class="bw-fpw-mobile-dropdown-icon"></span>
+                                </button>
+                                <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
+                                    <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                        <?php foreach ( $initial_subcategories as $subcategory ) : ?>
+                                            <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
+                                                <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
                                             </button>
                                         <?php endforeach; ?>
-                                    <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                        <?php endif; ?>
 
-                <div class="bw-fpw-mobile-filter-panel__footer">
-                    <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+                        <?php if ( $show_tags ) : ?>
+                            <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                <button class="bw-fpw-mobile-dropdown-toggle" type="button">
+                                    <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
+                                    <span class="bw-fpw-mobile-dropdown-icon"></span>
+                                </button>
+                                <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
+                                    <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+                                        <?php if ( ! empty( $tags ) ) : ?>
+                                            <?php foreach ( $tags as $tag ) : ?>
+                                                <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+                                                    <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+                                                </button>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="bw-fpw-mobile-filter-panel__footer">
+                        <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button">
+                            <span class="bw-fpw-mobile-apply__label"><?php echo esc_html( $mobile_show_results ); ?></span>
+                            <span class="bw-fpw-mobile-filter-button-count" data-mobile-filter-count aria-hidden="true"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1213,6 +1224,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                 <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
                     <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
                         <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+                        <span class="bw-fpw-mobile-filter-button-count" data-mobile-filter-count aria-hidden="true"></span>
                         <span class="bw-fpw-mobile-filter-button-icon-shell">
                             <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         </span>
@@ -1221,7 +1233,10 @@ class BW_Product_Grid_Widget extends Widget_Base {
                     <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
                         <div class="bw-fpw-mobile-filter-drawer">
                             <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
-                                <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
+                                <div class="bw-fpw-mobile-filter-panel__heading">
+                                    <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
+                                    <span class="bw-fpw-mobile-filter-panel__summary" data-mobile-filter-summary></span>
+                                </div>
                                 <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
                                     <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
                                 </button>

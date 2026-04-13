@@ -2621,6 +2621,8 @@
             renderDiscoveryActiveChips(widgetId);
             renderDiscoveryDrawerGroups(widgetId);
         });
+
+        syncMobileFilterMeta(widgetId);
     }
 
     function getWidgetSearchBindingNamespace(widgetId) {
@@ -2661,6 +2663,7 @@
             normalizedSearch = $.trim(state.search);
 
             renderDiscoverySearch(widgetId);
+            syncMobileFilterMeta(widgetId);
 
             if (discoverySearchTimers[widgetId]) {
                 clearTimeout(discoverySearchTimers[widgetId]);
@@ -2686,6 +2689,7 @@
 
             val = $.trim($(this).val());
             filterState[widgetId].search = val;
+            syncMobileFilterMeta(widgetId);
 
             if (val.length === 1) {
                 if (searchDebounceTimers[widgetId]) {
@@ -4138,6 +4142,62 @@
         return $wrapper.attr('data-responsive-filter-mode') === 'yes';
     }
 
+    function getMobileFilterActiveCount(widgetId) {
+        var state = filterState[widgetId];
+        var count = 0;
+
+        if (!state) {
+            return 0;
+        }
+
+        if (state.category && state.category !== 'all') {
+            count += 1;
+        }
+
+        count += Array.isArray(state.subcategories) ? state.subcategories.length : 0;
+        count += Array.isArray(state.tags) ? state.tags.length : 0;
+
+        getDiscoveryTokenGroupKeys().forEach(function (groupKey) {
+            count += getDiscoverySelections(state, groupKey).length;
+        });
+
+        if (hasActiveYearFilter(state)) {
+            count += 1;
+        }
+
+        if ($.trim(state.search || '') !== '') {
+            count += 1;
+        }
+
+        return count;
+    }
+
+    function syncMobileFilterMeta(widgetId) {
+        var state = filterState[widgetId];
+        var count = getMobileFilterActiveCount(widgetId);
+        var hasCount = count > 0;
+        var countLabel = hasCount ? String(count) : '';
+        var summaryLabel = hasCount
+            ? count + (count === 1 ? ' active filter' : ' active filters')
+            : 'No active filters yet';
+        var ariaLabel = hasCount ? 'Open filters. ' + summaryLabel : 'Open filters';
+        var $mobileFilter = $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"]');
+
+        if (!$mobileFilter.length) {
+            return;
+        }
+
+        $mobileFilter.toggleClass('has-active-filters', hasCount);
+        $mobileFilter.find('.bw-fpw-mobile-filter-button-count').text(countLabel);
+        $mobileFilter.find('.bw-fpw-mobile-filter-panel__summary').text(summaryLabel);
+        $mobileFilter.find('.bw-fpw-mobile-filter-trigger').attr('aria-label', ariaLabel);
+        $mobileFilter.find('.bw-fpw-mobile-apply').attr('aria-label', hasCount ? 'Show results with ' + summaryLabel : 'Show results');
+
+        if (state && state.ui && state.ui.searchEnabled === false) {
+            $mobileFilter.find('.bw-fpw-mobile-filter-panel__summary').text(hasCount ? summaryLabel : 'No active filters yet');
+        }
+    }
+
     function getProductGridWrapper(widgetId) {
         return $('.bw-fpw-grid[data-widget-id="' + widgetId + '"]').closest('.bw-product-grid-wrapper');
     }
@@ -4488,6 +4548,7 @@
             filterState[widgetId].category = categoryId;
             filterState[widgetId].subcategories = [];
             filterState[widgetId].tags = [];
+            syncMobileFilterMeta(widgetId);
 
             // Reset tag visual state
             $filters.find('.bw-fpw-tag-button').removeClass('active');
@@ -4544,6 +4605,7 @@
             } else {
                 subcats.push(subcatId);
             }
+            syncMobileFilterMeta(widgetId);
 
             // Reset tag state — previously selected tags may not exist under the new subcategory
             filterState[widgetId].tags = [];
@@ -4588,6 +4650,7 @@
             } else {
                 tags.push(tagId);
             }
+            syncMobileFilterMeta(widgetId);
 
             // Filter posts only if NOT in mobile mode
             // In mobile mode, wait for "Show Results" button click
@@ -4830,6 +4893,8 @@
                 lockDrawerBodyScroll();
                 ensureDiscoveryDrawerBodyListener(widgetId);
                 syncDiscoveryDrawerStickyState(widgetId);
+            } else {
+                openDefaultLegacyMobileGroup(widgetId);
             }
         }
     }
@@ -4848,6 +4913,28 @@
                 syncDiscoveryDrawerStickyState(widgetId);
                 unlockDrawerBodyScrollIfSafe();
             }
+        }
+    }
+
+    function openDefaultLegacyMobileGroup(widgetId) {
+        var $panel;
+        var $group;
+
+        if (!widgetId || isResponsiveFilterDrawerMode(widgetId)) {
+            return;
+        }
+
+        $panel = getMobileFilterPanel(widgetId);
+
+        if (!$panel.length) {
+            return;
+        }
+
+        $group = $panel.find('.bw-fpw-mobile-filter-group').first();
+
+        if ($group.length && !$group.hasClass('is-open')) {
+            $group.addClass('is-open');
+            $group.find('.bw-fpw-mobile-dropdown-panel').attr('aria-hidden', 'false');
         }
     }
 
@@ -4877,6 +4964,10 @@
                 }
 
                 unlockDrawerBodyScrollIfSafe();
+            }
+
+            if (widgetId) {
+                syncMobileFilterMeta(widgetId);
             }
         });
     }
@@ -5019,6 +5110,8 @@
                     .removeClass('bw-fpw-grid--refreshing bw-fpw-grid--settling')
                     .removeAttr('data-bw-refresh-cycle');
             }
+
+            syncMobileFilterMeta(widgetId);
 
             if (!isElementorEditor()) {
                 var $initialItems = $grid.children('.bw-fpw-item');
