@@ -1618,9 +1618,7 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group {
-  border-radius: 20px;
   border: none;
-  background: rgba(255, 255, 255, 0.03);
   color: #f7f6f2;
   overflow: hidden;
   box-shadow: none;
