@@ -15,6 +15,10 @@
         this.handleToggleClick = this.handleToggleClick.bind(this);
         this.handleLinkClick = this.handleLinkClick.bind(this);
         this.handleWindowResize = this.handleWindowResize.bind(this);
+        this.handleWindowScroll = this.handleWindowScroll.bind(this);
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchMove = this.handleTouchMove.bind(this);
+        this.scrollYOnOpen = 0;
     }
 
     BWNavigation.prototype.init = function () {
@@ -32,6 +36,9 @@
         this.overlay.addEventListener('click', this.handleOverlayClick);
         document.addEventListener('keydown', this.handleDocumentKeydown);
         window.addEventListener('resize', this.handleWindowResize);
+        window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
+        window.addEventListener('touchstart', this.handleTouchStart, { passive: true });
+        window.addEventListener('touchmove', this.handleTouchMove, { passive: true });
 
         this.mobileLinks.forEach(function (link) {
             link.addEventListener('click', this.handleLinkClick);
@@ -97,11 +104,11 @@
 
     BWNavigation.prototype.open = function () {
         this.lastActiveElement = document.activeElement;
+        this.scrollYOnOpen = window.pageYOffset || document.documentElement.scrollTop || 0;
         this.positionPanel();
         this.overlay.classList.add('is-open');
         this.overlay.setAttribute('aria-hidden', 'false');
         this.toggle.setAttribute('aria-expanded', 'true');
-        document.body.classList.add('bw-navigation-mobile-open');
 
         var focusables = this.getFocusableElements();
         if (focusables.length > 0) {
@@ -115,7 +122,6 @@
         this.overlay.classList.remove('is-open');
         this.overlay.setAttribute('aria-hidden', 'true');
         this.toggle.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('bw-navigation-mobile-open');
 
         if (this.lastActiveElement && typeof this.lastActiveElement.focus === 'function') {
             this.lastActiveElement.focus();
@@ -195,6 +201,33 @@
         }
 
         this.positionPanel();
+    };
+
+    BWNavigation.prototype.handleWindowScroll = function () {
+        if (!this.overlay.classList.contains('is-open')) {
+            return;
+        }
+
+        var currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        if (currentScrollY !== this.scrollYOnOpen) {
+            this.closeMenu();
+        }
+    };
+
+    BWNavigation.prototype.handleTouchStart = function () {
+        if (!this.overlay.classList.contains('is-open')) {
+            return;
+        }
+
+        this.scrollYOnOpen = window.pageYOffset || document.documentElement.scrollTop || 0;
+    };
+
+    BWNavigation.prototype.handleTouchMove = function () {
+        if (!this.overlay.classList.contains('is-open')) {
+            return;
+        }
+
+        this.closeMenu();
     };
 
     function initAll() {

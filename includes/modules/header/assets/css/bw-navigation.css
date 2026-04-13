@@ -367,6 +367,13 @@
 .bw-navigation__mobile-guest-cta {
     width: 100%;
     max-width: none;
+    color: #000000 !important;
+    display: flex;
+    box-sizing: border-box;
+    padding-left: 12px;
+    padding-right: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .bw-navigation__mobile-auth-link {
@@ -601,10 +608,6 @@
 .bw-navigation__mobile-content::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
-}
-
-body.bw-navigation-mobile-open {
-    overflow: hidden;
 }
 
 @media (max-width: 640px) {
