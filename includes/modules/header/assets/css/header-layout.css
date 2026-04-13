@@ -282,7 +282,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 }
 
 .bw-custom-header .bw-search-button__label {
-    padding: 10px 24px;
+    padding: 6px 8px;
     color: #000000 !important;
 }
 
