@@ -1015,17 +1015,6 @@
     opacity: 0.75;
 }
 
-.bw-promo-remove-link {
-    color: var(--bw-cart-text) !important;
-    text-decoration: underline;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-}
-
-.bw-promo-remove-link:hover {
-    opacity: 0.75;
-}
-
 .bw-cart-popup-promo-box {
     margin-bottom: 10px;
 }

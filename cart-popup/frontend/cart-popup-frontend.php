@@ -366,9 +366,6 @@ function bw_cart_popup_render_panel()
             <div class="bw-cart-popup-promo">
                 <p class="bw-cart-popup-promo-trigger">
                     Have a promo code? <a href="#" class="bw-promo-link">Click here.</a>
-                    <span class="bw-promo-remove-wrapper" style="display: none;">
-                        <a href="#" class="bw-promo-remove-link">Remove coupon</a>
-                    </span>
                 </p>
                 <div class="bw-cart-popup-promo-box" style="display: none;">
                     <div class="bw-promo-input-wrapper">

@@ -22,8 +22,6 @@
         $promoBox: null,
         $promoTrigger: null,
         $promoMessage: null,
-        $promoRemoveWrapper: null,
-        $promoRemoveLink: null,
         $closeBtn: null,
         $continueBtn: null,
         $cartBadge: null,
@@ -61,8 +59,6 @@
             this.$promoBox = $('.bw-cart-popup-promo-box');
             this.$promoTrigger = $('.bw-promo-link');
             this.$promoMessage = $('.bw-promo-message');
-            this.$promoRemoveWrapper = $('.bw-promo-remove-wrapper');
-            this.$promoRemoveLink = $('.bw-promo-remove-link');
             this.$closeBtn = $('.bw-cart-popup-close');
             this.$continueBtn = $('.bw-cart-popup-continue');
             this.$cartBadge = $('.bw-cart-badge');
@@ -187,12 +183,6 @@
             });
             $(document).on('blur focus', '.bw-promo-input', function () {
                 self.syncPromoFloatingLabel($(this));
-            });
-
-            // Rimuovi coupon (Legacy link)
-            this.$promoRemoveLink.on('click', function (e) {
-                e.preventDefault();
-                self.removeCoupon();
             });
 
             // Rimuovi coupon (Nuovo pulsante dinamico per riga)
@@ -922,11 +912,6 @@
             // Coupons Data (now array of objects {code, amount})
             const coupons = Array.isArray(data.coupons) ? data.coupons : [];
 
-            // Hide generic remove link in promo section
-            if (this.$promoRemoveWrapper) {
-                this.$promoRemoveWrapper.hide();
-            }
-
             if (coupons.length > 0) {
                 $discountContainer.show();
                 $discountContainer.css({
@@ -968,7 +953,7 @@
             $('.bw-cart-popup-total .value').html(data.total).attr('data-total', data.total_raw);
             this.updateCheckoutCta(data.total);
 
-            // Mantieni appliedCoupons sincronizzato per il pulsante legacy "Remove coupon"
+            // Mantieni appliedCoupons sincronizzato per eventuali remove actions.
             if (Array.isArray(data.applied_coupons)) {
                 this.appliedCoupons = data.applied_coupons;
             }
@@ -1033,18 +1018,10 @@
         },
 
         /**
-         * Aggiorna il display del coupon (mostra/nascondi link "Remove coupon")
+         * Mantieni sincronizzato l'elenco coupon applicati.
          */
         updateCouponDisplay: function (appliedCoupons) {
             this.appliedCoupons = appliedCoupons || [];
-
-            if (this.appliedCoupons.length > 0) {
-                // Se ci sono coupon applicati, mostra il link "Remove coupon"
-                this.$promoRemoveWrapper.fadeIn(200);
-            } else {
-                // Se non ci sono coupon applicati, nascondi il link "Remove coupon"
-                this.$promoRemoveWrapper.fadeOut(200);
-            }
         },
 
         /**
