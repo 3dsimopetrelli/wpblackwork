@@ -295,7 +295,7 @@
    exactly the panel's own bounding box, not the whole page. */
 .bw-navigation__mobile-popup-surface.bw-surface-glass,
 .bw-navigation__account-dropdown-surface.bw-surface-glass {
-    background: rgba(15, 15, 15, 0.78) !important;
+    background: #171717d9 !important;
     backdrop-filter: blur(20px) saturate(1.4) !important;
     -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
     border: var(--bw-surface-glass-border) !important;
