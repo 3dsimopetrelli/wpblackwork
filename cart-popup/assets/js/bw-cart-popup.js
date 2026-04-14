@@ -937,7 +937,7 @@
                             </span>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${safeCode}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">[Remove]</a>
+                            <a href="#" class="bw-remove-coupon-btn-dynamic" data-code="${safeCode}" style="font-size:11px; color:#999; text-decoration:none; text-transform:uppercase;">Remove</a>
                             <span class="value" style="color:#000; font-weight:bold; display:block;">${amount}</span>
                         </div>
                      </div>`;
