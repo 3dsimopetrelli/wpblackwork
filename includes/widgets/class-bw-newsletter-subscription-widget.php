@@ -591,24 +591,24 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $widget_settings = is_array( $widget_settings ) ? $widget_settings : [];
         $raw_widget_settings = is_array( $raw_widget_settings ) ? $raw_widget_settings : [];
 
+        if ( 'section' === $style_variant ) {
+            if ( array_key_exists( 'section_show_name_field', $widget_settings ) ) {
+                return $this->is_widget_switch_enabled( $widget_settings['section_show_name_field'] );
+            }
+
+            if ( array_key_exists( 'section_show_name_field', $raw_widget_settings ) ) {
+                return $this->is_widget_switch_enabled( $raw_widget_settings['section_show_name_field'] );
+            }
+
+            return false;
+        }
+
         if ( array_key_exists( 'show_name_field', $widget_settings ) ) {
             return $this->is_widget_switch_enabled( $widget_settings['show_name_field'] );
         }
 
-        if ( array_key_exists( 'section_show_name_field', $widget_settings ) ) {
-            return $this->is_widget_switch_enabled( $widget_settings['section_show_name_field'] );
-        }
-
         if ( array_key_exists( 'show_name_field', $raw_widget_settings ) ) {
             return $this->is_widget_switch_enabled( $raw_widget_settings['show_name_field'] );
-        }
-
-        if ( array_key_exists( 'section_show_name_field', $raw_widget_settings ) ) {
-            return $this->is_widget_switch_enabled( $raw_widget_settings['section_show_name_field'] );
-        }
-
-        if ( 'section' === $style_variant ) {
-            return false;
         }
 
         return false;
