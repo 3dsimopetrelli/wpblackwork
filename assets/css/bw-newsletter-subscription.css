@@ -771,5 +771,12 @@ input.bw-newsletter-subscription-input:focus {
         border-radius: 50px !important;
         padding: 0 !important;
     }
+
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 50px !important;
+    }
 }
 }
