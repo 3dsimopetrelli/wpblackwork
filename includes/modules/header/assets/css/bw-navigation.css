@@ -264,7 +264,7 @@
     flex: 1;
     min-height: 0;
     overflow: visible;
-    padding: 12px 12px 13px;
+    padding: 12px 12px 33px;
     background: transparent !important;
     gap: 11px;
 }
@@ -644,7 +644,7 @@
     position: relative;
     z-index: 1;
     flex: 0 0 auto;
-    padding: 25px 14px 14px;
+    padding: 5px 14px 14px;
     background: transparent !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
