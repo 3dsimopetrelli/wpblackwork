@@ -122,13 +122,13 @@
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-label {
-    left: 16px !important;
+    display: none !important;
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
     height: 100% !important;
     min-height: 42px !important;
-    padding: 0 15px !important;
+    padding: 0 18px !important;
     border: none !important;
     border-radius: 0 !important;
     background: transparent !important;
@@ -685,6 +685,7 @@ input.bw-newsletter-subscription-input:focus {
 
     .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
         min-height: 40px !important;
+        padding: 0 16px !important;
         border: 1px solid #d1d5db !important;
         border-radius: 12px !important;
         background: var(--bw-ns-label-bg) !important;
