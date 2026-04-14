@@ -2094,7 +2094,7 @@ body.bw-fpw-drawer-no-scroll {
   padding: 12px 18px !important;
   border-radius: 999px !important;
   border: 0 !important;
-  background: #86ef54 !important;
+  background: rgba(128, 253, 3, 0.75) !important;
   color: #000000 !important;
   font-size: 15px !important;
   font-weight: 600 !important;
@@ -2410,7 +2410,7 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-apply--drawer:hover {
   opacity: 1;
-  background: #86ef54 !important;
+  background: rgba(128, 253, 3, 0.75) !important;
   transform: translateY(-1px);
 }
 
