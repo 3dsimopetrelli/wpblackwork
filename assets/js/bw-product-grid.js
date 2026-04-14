@@ -452,6 +452,7 @@
     var discoverySearchTimers = {};
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
+    var mobilePanelDragState = null;
     var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 135;
     var gridRefreshTimers = {};
     var VISIBLE_FILTER_ADD_EXIT_MS = 210;
@@ -2549,36 +2550,6 @@
         return $panel[0].querySelector('.bw-fpw-mobile-filter-panel__body--drawer');
     }
 
-    function syncDiscoveryDrawerStickyState(widgetId) {
-        var body = getDiscoveryDrawerBody(widgetId);
-        var chips;
-
-        if (!body) {
-            return;
-        }
-
-        chips = body.querySelector('.bw-fpw-active-chips--drawer[data-widget-id="' + widgetId + '"]');
-
-        if (!chips) {
-            return;
-        }
-
-        chips.classList.toggle('is-stuck', body.scrollTop > 2);
-    }
-
-    function ensureDiscoveryDrawerBodyListener(widgetId) {
-        var body = getDiscoveryDrawerBody(widgetId);
-
-        if (!body || body.getAttribute('data-sticky-chip-listener-bound') === 'yes') {
-            return;
-        }
-
-        body.addEventListener('scroll', function () {
-            syncDiscoveryDrawerStickyState(widgetId);
-        }, { passive: true });
-        body.setAttribute('data-sticky-chip-listener-bound', 'yes');
-    }
-
     function preserveDiscoveryDrawerScrollPosition(widgetId, renderCallback) {
         var body = getDiscoveryDrawerBody(widgetId);
         var previousScrollTop;
@@ -2595,7 +2566,6 @@
 
         window.requestAnimationFrame(function () {
             body.scrollTop = previousScrollTop;
-            syncDiscoveryDrawerStickyState(widgetId);
         });
     }
 
@@ -2605,8 +2575,6 @@
         if (!isDiscoveryDrawerMode(widgetId)) {
             return;
         }
-
-        ensureDiscoveryDrawerBodyListener(widgetId);
 
         preserveDiscoveryDrawerScrollPosition(widgetId, function () {
             if (isDiscoverySortEnabled(widgetId, state)) {
@@ -4186,6 +4154,120 @@
         return $('.bw-fpw-mobile-filter[data-widget-id="' + widgetId + '"] .bw-fpw-mobile-filter-panel').first();
     }
 
+    function getMobileFilterDrawer(widgetId) {
+        return getMobileFilterPanel(widgetId).find('.bw-fpw-mobile-filter-drawer').first();
+    }
+
+    function resetMobilePanelDrag(widgetId) {
+        var activeState = mobilePanelDragState;
+        var targetWidgetId = widgetId ? String(widgetId) : '';
+
+        if (activeState && (!targetWidgetId || activeState.widgetId === targetWidgetId)) {
+            if (activeState.$drawer && activeState.$drawer.length) {
+                activeState.$drawer.removeClass('is-dragging').css('transform', '');
+            }
+
+            mobilePanelDragState = null;
+        }
+
+        if (!targetWidgetId) {
+            return;
+        }
+
+        getMobileFilterDrawer(targetWidgetId).removeClass('is-dragging').css('transform', '');
+    }
+
+    function startMobilePanelDrag(widgetId, pointerEvent) {
+        var $panel;
+        var $drawer;
+
+        if (!widgetId || !isResponsiveFilterDrawerMode(widgetId)) {
+            return;
+        }
+
+        if (pointerEvent && typeof pointerEvent.button === 'number' && pointerEvent.button !== 0) {
+            return;
+        }
+
+        $panel = getMobileFilterPanel(widgetId);
+        $drawer = getMobileFilterDrawer(widgetId);
+
+        if (!$panel.length || !$drawer.length || $panel.attr('aria-hidden') === 'true') {
+            return;
+        }
+
+        resetMobilePanelDrag(widgetId);
+
+        mobilePanelDragState = {
+            widgetId: String(widgetId),
+            pointerId: pointerEvent && typeof pointerEvent.pointerId === 'number' ? pointerEvent.pointerId : null,
+            startY: pointerEvent ? pointerEvent.clientY : 0,
+            currentDelta: 0,
+            $drawer: $drawer
+        };
+
+        $drawer.addClass('is-dragging').css('transform', 'translateY(0px)');
+    }
+
+    function updateMobilePanelDrag(pointerEvent) {
+        var state = mobilePanelDragState;
+        var delta;
+
+        if (!state || !state.$drawer || !state.$drawer.length) {
+            return;
+        }
+
+        if (state.pointerId !== null && pointerEvent && typeof pointerEvent.pointerId === 'number' && pointerEvent.pointerId !== state.pointerId) {
+            return;
+        }
+
+        delta = Math.max(0, (pointerEvent ? pointerEvent.clientY : 0) - state.startY);
+        state.currentDelta = delta;
+        state.$drawer.css('transform', 'translateY(' + delta + 'px)');
+
+        if (delta > 0 && pointerEvent && pointerEvent.cancelable) {
+            pointerEvent.preventDefault();
+        }
+    }
+
+    function finishMobilePanelDrag(pointerEvent) {
+        var state = mobilePanelDragState;
+        var finalDelta;
+        var widgetId;
+
+        if (!state) {
+            return;
+        }
+
+        if (state.pointerId !== null && pointerEvent && typeof pointerEvent.pointerId === 'number' && pointerEvent.pointerId !== state.pointerId) {
+            return;
+        }
+
+        finalDelta = state.currentDelta || 0;
+        widgetId = state.widgetId;
+        mobilePanelDragState = null;
+
+        if (!state.$drawer || !state.$drawer.length) {
+            return;
+        }
+
+        state.$drawer.removeClass('is-dragging');
+
+        if (finalDelta >= 72) {
+            state.$drawer.css('transform', '');
+            closeMobilePanel(widgetId);
+            return;
+        }
+
+        state.$drawer.css('transform', 'translateY(0px)');
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+                state.$drawer.css('transform', '');
+            });
+        });
+    }
+
     function ensureDetachedDiscoveryDrawer(widgetId) {
         var $wrapper;
         var $panel;
@@ -4211,7 +4293,6 @@
         }
 
         $host.attr('data-responsive-filter-mode', 'yes');
-        $host.attr('data-drawer-side', $wrapper.attr('data-drawer-side') || 'left');
         $host.toggleClass('bw-fpw-mobile-panel-open', $wrapper.hasClass('bw-fpw-mobile-panel-open'));
 
         if ($panel.parent()[0] !== $host[0]) {
@@ -4628,6 +4709,25 @@
             closeMobilePanel(widgetId);
         });
 
+        $(document).on('pointerdown', '.bw-fpw-mobile-filter-sheet-handle', function (e) {
+            var pointerEvent = e.originalEvent || e;
+            var widgetId = $(this).closest('.bw-fpw-mobile-filter-panel').attr('data-widget-id');
+
+            if (!widgetId) {
+                return;
+            }
+
+            startMobilePanelDrag(widgetId, pointerEvent);
+        });
+
+        $(document).on('pointermove', function (e) {
+            updateMobilePanelDrag(e.originalEvent || e);
+        });
+
+        $(document).on('pointerup pointercancel', function (e) {
+            finishMobilePanelDrag(e.originalEvent || e);
+        });
+
         $(document).on('click', '.bw-fpw-mobile-dropdown-toggle', function () {
             var $group = $(this).closest('.bw-fpw-mobile-filter-group');
             var $panel = $group.find('.bw-fpw-mobile-dropdown-panel');
@@ -4822,14 +4922,13 @@
         $panel = getMobileFilterPanel(widgetId);
 
         if ($panel.length) {
+            resetMobilePanelDrag(widgetId);
             $wrapper.addClass('bw-fpw-mobile-panel-open');
             $host.addClass('bw-fpw-mobile-panel-open');
             $panel.attr('aria-hidden', 'false');
 
             if (isResponsiveFilterDrawerMode(widgetId)) {
                 lockDrawerBodyScroll();
-                ensureDiscoveryDrawerBodyListener(widgetId);
-                syncDiscoveryDrawerStickyState(widgetId);
             }
         }
     }
@@ -4840,12 +4939,12 @@
         var $host = getDetachedDrawerHost(widgetId);
 
         if ($panel.length) {
+            resetMobilePanelDrag(widgetId);
             $wrapper.removeClass('bw-fpw-mobile-panel-open');
             $host.removeClass('bw-fpw-mobile-panel-open');
             $panel.attr('aria-hidden', 'true');
 
             if (isResponsiveFilterDrawerMode(widgetId)) {
-                syncDiscoveryDrawerStickyState(widgetId);
                 unlockDrawerBodyScrollIfSafe();
             }
         }

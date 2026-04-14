@@ -264,9 +264,9 @@
     flex: 1;
     min-height: 0;
     overflow: visible;
-    padding: 14px 14px 15px;
+    padding: 12px 12px 13px;
     background: transparent !important;
-    gap: 10px;
+    gap: 11px;
 }
 
 .bw-navigation__mobile-popup-surface .bw-navigation__mobile-content,
@@ -325,8 +325,7 @@
 }
 
 .bw-navigation__mobile-section--profile {
-    padding-top: 4px;
-    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    padding-top: 0;
 }
 
 .bw-navigation__mobile-section--auth {
@@ -433,16 +432,16 @@
     min-width: 0;
     align-self: stretch;
     box-sizing: border-box;
-    min-height: 48px;
-    padding: 0 22px;
+    min-height: 34px;
+    padding: 0 18px;
     border-radius: 999px;
     background: #80fd03;
     color: #000000 !important;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     box-shadow: inset 0 0 0 1px #080808, 0 8px 18px rgba(0, 0, 0, 0.18);
     transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
@@ -459,17 +458,16 @@
 }
 
 .bw-navigation__mobile-guest-cta {
-    width: min(170px, 100%);
-    max-width: 170px;
+    width: min(242px, 100%);
     color: #000000 !important;
     display: flex;
     box-sizing: border-box;
     min-height: 0;
-    padding: 18px 22px;
+    padding: 10px 32px;
     align-self: center;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .bw-navigation__mobile-auth-link {
@@ -478,7 +476,7 @@
     justify-content: flex-start;
     width: 100%;
     max-width: 100%;
-    min-height: 44px;
+    min-height: 34px;
     padding: 0 18px;
     box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.10);
@@ -486,7 +484,7 @@
     background: rgba(255, 255, 255, 0.10);
     color: #fafafa !important;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1;
     letter-spacing: -0.01em;
     font-weight: 600;
@@ -556,7 +554,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
+    gap: 0;
 }
 
 .bw-navigation__mobile .menu-item {
@@ -596,14 +594,14 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    min-height: 48px;
-    padding: 0 14px;
+    min-height: 40px;
+    padding: 0 11px;
     border: 1px solid transparent;
-    border-radius: 13px;
+    border-radius: 12px;
     background: transparent;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.2;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     font-weight: 600;
     color: #fafafa !important;
     text-wrap: balance;
@@ -622,7 +620,7 @@
 .bw-navigation__mobile .current-menu-item > .bw-navigation__link,
 .bw-navigation__mobile .current-menu-parent > .bw-navigation__link,
 .bw-navigation__mobile .current-menu-ancestor > .bw-navigation__link {
-    background: rgba(255, 255, 255, 0.08);
+    background: transparent;
     border-color: transparent;
     box-shadow: none;
 }
@@ -646,15 +644,9 @@
     position: relative;
     z-index: 1;
     flex: 0 0 auto;
-    padding: 14px 14px 14px;
+    padding: 5px 14px 14px;
     background: transparent !important;
-}
-
-.bw-navigation__mobile-footer-divider {
-    width: 100%;
-    height: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin: 0 0 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .bw-navigation__mobile-footer-row {
@@ -698,8 +690,8 @@
     color: #9b9d9d !important;
     text-decoration: none;
     font-size: 12px;
-    line-height: 1.2;
-    font-weight: 500;
+    line-height: 18px;
+    font-weight: 400;
     transition: color 0.15s ease, opacity 0.15s ease;
 }
 
@@ -743,18 +735,17 @@
     }
 
     .bw-navigation__mobile-content {
-        padding: 13px 13px 14px;
+        padding: 12px 12px 13px;
     }
 
     .bw-navigation__mobile .bw-navigation__link {
-        min-height: 46px;
-        padding: 0 13px;
-        border-radius: 13px;
-        font-size: 17px;
+        min-height: 44px;
+        padding: 0 12px;
+        border-radius: 15px;
     }
 
     .bw-navigation__mobile-section--profile {
-        padding-top: 4px;
+        padding-top: 0;
     }
 
     .bw-navigation__profile-card {
@@ -784,10 +775,5 @@
 
     .bw-navigation__mobile-footer {
         padding: 14px 14px 14px;
-    }
-
-    .bw-navigation__mobile-footer-divider {
-        width: calc(100% + 28px);
-        margin: 0 -14px 10px;
     }
 }
