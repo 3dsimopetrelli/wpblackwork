@@ -361,9 +361,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.04);
-    backdrop-filter: var(--bw-screen-backdrop-filter);
-    -webkit-backdrop-filter: var(--bw-screen-backdrop-filter);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.35s ease, visibility 0.35s ease;
