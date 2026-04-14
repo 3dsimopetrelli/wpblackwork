@@ -644,7 +644,7 @@
     position: relative;
     z-index: 1;
     flex: 0 0 auto;
-    padding: 5px 14px 14px;
+    padding: 15px 14px 14px;
     background: transparent !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
