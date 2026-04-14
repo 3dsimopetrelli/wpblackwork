@@ -324,12 +324,27 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
 
     .bw-custom-header .bw-search-button {
         display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        min-width: auto !important;
-        min-height: auto !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+    }
+
+    .bw-custom-header .bw-navigation__toggle {
+        min-width: 30px !important;
+        min-height: 30px !important;
+    }
+
+    .bw-custom-header .bw-navshop__item {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
     }
 
     .bw-custom-header__mobile-right .bw-header-search .bw-search-button {
