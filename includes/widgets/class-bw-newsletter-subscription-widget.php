@@ -198,7 +198,19 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription-shell' => '--bw-ns-widget-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription-widget' => '--bw-ns-widget-color: {{VALUE}}; --bw-ns-section-title-color: {{VALUE}}; --bw-ns-section-subtitle-color: {{VALUE}}; --bw-ns-section-privacy-color: {{VALUE}}; --bw-ns-section-message-color: {{VALUE}}; --bw-ns-section-preview-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'widget_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em', 'rem', 'vw', 'vh' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-newsletter-subscription-widget' => '--bw-ns-widget-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );

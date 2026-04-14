@@ -20,6 +20,7 @@
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    border-radius: var(--bw-ns-widget-radius, 0) !important;
     color: inherit !important;
 }
 
@@ -28,6 +29,8 @@
     --bw-ns-section-title-color: #f7f7f2;
     --bw-ns-section-subtitle-color: rgba(247, 247, 242, 0.86);
     --bw-ns-section-privacy-color: rgba(247, 247, 242, 0.84);
+    --bw-ns-section-message-color: rgba(247, 247, 242, 0.88);
+    --bw-ns-section-preview-color: rgba(247, 247, 242, 0.8);
     --bw-ns-overlay-color: rgba(8, 8, 8, 0.82);
     --bw-ns-glow-color: rgba(128, 253, 3, 0.16);
     --bw-ns-overlay-opacity: 1;
@@ -38,7 +41,7 @@
     justify-content: center !important;
     min-height: var(--bw-ns-section-height, 72vh) !important;
     padding: clamp(32px, 4vw, 56px) !important;
-    border-radius: 24px !important;
+    border-radius: var(--bw-ns-widget-radius, 24px) !important;
     background: var(--bw-ns-section-bg, #050505) !important;
     isolation: isolate !important;
 }
@@ -141,7 +144,7 @@
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-title,
 .bw-newsletter-subscription-section-title {
     margin: 0 !important;
-    color: var(--bw-ns-section-title-color, #f7f7f2) !important;
+    color: var(--bw-ns-section-title-color, var(--bw-ns-widget-color, #f7f7f2)) !important;
     font-size: clamp(36px, 4.5vw, 64px) !important;
     font-weight: 500 !important;
     font-style: normal !important;
@@ -154,7 +157,7 @@
 .bw-newsletter-subscription-section-subtitle {
     max-width: 620px !important;
     margin: 0 !important;
-    color: var(--bw-ns-section-subtitle-color, rgba(247, 247, 242, 0.86)) !important;
+    color: var(--bw-ns-section-subtitle-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.86))) !important;
     font-size: 19px !important;
     font-weight: 400 !important;
     font-style: normal !important;
@@ -324,7 +327,7 @@ input.bw-newsletter-subscription-input:focus {
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent {
     justify-content: center !important;
-    color: var(--bw-ns-section-privacy-color, rgba(247, 247, 242, 0.84)) !important;
+    color: var(--bw-ns-section-privacy-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.84))) !important;
     font-size: 13px !important;
 }
 
@@ -380,7 +383,7 @@ input.bw-newsletter-subscription-input:focus {
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent__text {
-    color: var(--bw-ns-section-privacy-color, rgba(247, 247, 242, 0.84));
+    color: var(--bw-ns-section-privacy-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.84)));
 }
 
 .bw-newsletter-subscription-consent__label {
@@ -396,7 +399,7 @@ input.bw-newsletter-subscription-input:focus {
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent__link {
-    color: var(--bw-ns-section-privacy-color, #f7f7f2);
+    color: var(--bw-ns-section-privacy-color, var(--bw-ns-widget-color, #f7f7f2));
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button,
@@ -526,7 +529,7 @@ input.bw-newsletter-subscription-input:focus {
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-message {
     text-align: center;
-    color: rgba(247, 247, 242, 0.88);
+    color: var(--bw-ns-section-message-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.88)));
 }
 
 .bw-newsletter-subscription-message.is-success {
@@ -572,14 +575,14 @@ input.bw-newsletter-subscription-input:focus {
     z-index: 1 !important;
     background: rgba(255, 255, 255, 0.04) !important;
     border-color: rgba(247, 247, 242, 0.2) !important;
-    color: rgba(247, 247, 242, 0.8);
+    color: var(--bw-ns-section-preview-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.8)));
 }
 
 @media (max-width: 767px) {
     .bw-newsletter-subscription-widget--section {
         min-height: auto !important;
         padding: 28px 18px !important;
-        border-radius: 20px !important;
+        border-radius: var(--bw-ns-widget-radius, 20px) !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-art,
