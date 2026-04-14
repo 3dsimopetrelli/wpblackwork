@@ -696,8 +696,8 @@
     color: #9b9d9d !important;
     text-decoration: none;
     font-size: 12px;
-    line-height: 1.2;
-    font-weight: 500;
+    line-height: 18px;
+    font-weight: 400;
     transition: color 0.15s ease, opacity 0.15s ease;
 }
 
