@@ -264,7 +264,11 @@
     flex: 1;
     min-height: 0;
     overflow: visible;
+<<<<<<< HEAD
     padding: 12px 12px 20px;
+=======
+    padding: 12px 12px 33px;
+>>>>>>> 6456f42d4f99fd11aa37ac1acb6181edc40a8778
     background: transparent !important;
     gap: 11px;
 }
