@@ -339,7 +339,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         min-height: 30px !important;
     }
 
-    .bw-custom-header .bw-navshop__item {
+    .bw-custom-header .bw-navshop__cart {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
