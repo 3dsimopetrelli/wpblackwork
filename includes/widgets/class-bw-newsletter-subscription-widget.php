@@ -284,6 +284,36 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'footer_title_color',
+            [
+                'label'     => __( 'Title Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(111, 111, 111, 0.11)',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-footer-title-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'style_variant' => 'footer',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'footer_subtitle_color',
+            [
+                'label'     => __( 'Description Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => '#080808',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-footer-subtitle-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'style_variant' => 'footer',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         $this->start_controls_section(
