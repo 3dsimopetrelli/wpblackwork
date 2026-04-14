@@ -1189,7 +1189,7 @@
 }
 
 .bw-cart-popup-discount .value {
-    color: var(--bw-cart-accent) !important;
+    color: var(--bw-cart-text) !important;
     margin-left: auto;
     order: 3;
 }
