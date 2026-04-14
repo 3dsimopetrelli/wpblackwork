@@ -324,6 +324,7 @@ input.bw-newsletter-subscription-input {
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-input::placeholder,
 .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder {
     opacity: 0 !important;
     color: transparent !important;
@@ -758,7 +759,17 @@ input.bw-newsletter-subscription-input:focus {
         justify-content: flex-start !important;
     }
 
-    .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-message {
-        text-align: left !important;
+.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-message {
+    text-align: left !important;
+}
+
+@media (max-width: 750px) {
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-inline {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
     }
+}
 }
