@@ -67,6 +67,47 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'button_inside_email_field',
+            [
+                'label'        => __( 'Button inside email field', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'condition'    => [
+                    'style_variant' => 'footer',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'privacy_custom_text_enabled',
+            [
+                'label'        => __( 'Custom privacy text', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => '',
+            ]
+        );
+
+        $this->add_control(
+            'privacy_custom_text',
+            [
+                'label'       => __( 'Privacy Text', 'bw' ),
+                'type'        => Controls_Manager::TEXTAREA,
+                'rows'        => 4,
+                'default'     => '',
+                'description' => __( 'HTML allowed. Used only when Custom privacy text is enabled.', 'bw' ),
+                'condition'   => [
+                    'privacy_custom_text_enabled' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'section_title',
             [
                 'label'     => __( 'Title', 'bw' ),
@@ -384,6 +425,12 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         }
 
         $show_name_field = $this->resolve_show_name_field_visibility( $widget_settings, $raw_widget_settings, $style_variant );
+        $button_inside_email_field = 'footer' === $style_variant && $this->is_widget_switch_enabled( $widget_settings['button_inside_email_field'] ?? '' );
+        $privacy_custom_text_enabled = $this->is_widget_switch_enabled( $widget_settings['privacy_custom_text_enabled'] ?? '' );
+        $privacy_custom_text = '';
+        if ( $privacy_custom_text_enabled && ! empty( $widget_settings['privacy_custom_text'] ) ) {
+            $privacy_custom_text = trim( (string) $widget_settings['privacy_custom_text'] );
+        }
         $name_label   = ! empty( $settings['name_label'] ) ? $settings['name_label'] : __( 'Name', 'bw' );
         $email_label  = ! empty( $settings['email_label'] ) ? $settings['email_label'] : __( 'Email address', 'bw' );
         $consent_text = ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' );
@@ -444,6 +491,9 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             'bw-newsletter-subscription-widget',
             'bw-newsletter-subscription-widget--' . $style_variant,
         ];
+        if ( $button_inside_email_field ) {
+            $widget_classes[] = 'bw-newsletter-subscription-widget--button-inline';
+        }
 
         $widget_style = '';
         if ( 'section' === $style_variant ) {
@@ -487,7 +537,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 <?php endif; ?>
 
                 <form
-                    class="bw-newsletter-subscription-form"
+                    class="<?php echo esc_attr( 'bw-newsletter-subscription-form' . ( $button_inside_email_field ? ' is-button-inline' : '' ) ); ?>"
                     method="post"
                     novalidate
                     data-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_mail_marketing_subscription_submit' ) ); ?>"
@@ -527,7 +577,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ( 'section' === $style_variant ) : ?>
+                    <?php if ( 'section' === $style_variant || $button_inside_email_field ) : ?>
                         <div class="bw-newsletter-subscription-inline">
                             <div class="bw-newsletter-subscription-field bw-newsletter-subscription-field--email">
                                 <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
@@ -580,28 +630,34 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                             aria-invalid="false"
                             <?php echo $consent_required ? 'required' : ''; ?>
                         />
-                        <span class="bw-newsletter-subscription-consent__text">
-                            <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
-                                <?php echo esc_html( $consent_text ); ?>
-                            </label>
-                            <?php
-                            $privacy_link_label = ! empty( $settings['privacy_link_label'] )
-                                ? $settings['privacy_link_label']
-                                : __( 'Privacy Policy', 'bw' );
-                            ?>
-                            <?php if ( ! empty( $privacy_url ) ) : ?>
-                                <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
-                                    <?php echo esc_html( $privacy_link_label ); ?>
-                                </a>
-                            <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
-                                <span class="bw-newsletter-subscription-consent__link">
-                                    <?php echo esc_html( $privacy_link_label ); ?>
-                                </span>
-                            <?php endif; ?>
-                        </span>
+                        <?php if ( '' !== $privacy_custom_text ) : ?>
+                            <span class="bw-newsletter-subscription-consent__text bw-newsletter-subscription-consent__text--custom">
+                                <?php echo wp_kses_post( $privacy_custom_text ); ?>
+                            </span>
+                        <?php else : ?>
+                            <span class="bw-newsletter-subscription-consent__text">
+                                <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
+                                    <?php echo esc_html( $consent_text ); ?>
+                                </label>
+                                <?php
+                                $privacy_link_label = ! empty( $settings['privacy_link_label'] )
+                                    ? $settings['privacy_link_label']
+                                    : __( 'Privacy Policy', 'bw' );
+                                ?>
+                                <?php if ( ! empty( $privacy_url ) ) : ?>
+                                    <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                        <?php echo esc_html( $privacy_link_label ); ?>
+                                    </a>
+                                <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
+                                    <span class="bw-newsletter-subscription-consent__link">
+                                        <?php echo esc_html( $privacy_link_label ); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
 
-                    <?php if ( 'footer' === $style_variant ) : ?>
+                    <?php if ( 'footer' === $style_variant && ! $button_inside_email_field ) : ?>
                         <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
                             <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
                         </button>
