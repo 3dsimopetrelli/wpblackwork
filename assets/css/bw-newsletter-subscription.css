@@ -108,10 +108,11 @@
     display: flex !important;
     align-items: stretch !important;
     gap: 0 !important;
+    padding-top: 12px !important;
     width: 100% !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     border: 1px solid #d1d5db !important;
-    border-radius: 14px !important;
+    border-radius: 50px !important;
     background: var(--bw-ns-label-bg) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
@@ -119,6 +120,8 @@
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email {
     flex: 1 1 70% !important;
     min-width: 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-label {
@@ -126,7 +129,7 @@
     top: 0 !important;
     left: 16px !important;
     transform: translateY(-50%) !important;
-    z-index: 4 !important;
+    z-index: 5 !important;
     padding: 0 6px !important;
     background: var(--bw-ns-label-bg) !important;
     color: #374151 !important;
@@ -151,6 +154,7 @@
     align-self: stretch !important;
     position: static !important;
     transform: none !important;
+    z-index: 1 !important;
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button__label {
@@ -681,7 +685,8 @@ input.bw-newsletter-subscription-input:focus {
     .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-inline {
         flex-direction: column !important;
         gap: 12px !important;
-        border-radius: 12px !important;
+        padding-top: 10px !important;
+        border-radius: 50px !important;
         overflow: visible !important;
         box-shadow: none !important;
     }
