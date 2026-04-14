@@ -8,8 +8,19 @@
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget,
 .bw-newsletter-subscription-widget {
     --bw-ns-label-bg: #ffffff;
+    color: var(--bw-ns-widget-color, #181a20);
     width: 100% !important;
     max-width: 100% !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-shell,
+.bw-newsletter-subscription-shell {
+    position: relative !important;
+    z-index: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    color: inherit !important;
 }
 
 .bw-newsletter-subscription-widget--section {
@@ -172,7 +183,7 @@
     padding: 0 6px !important;
     background: var(--bw-ns-label-bg) !important;
     border-radius: 10px !important;
-    color: #6b7280 !important;
+    color: inherit !important;
     font-size: 13px !important;
     font-weight: 400 !important;
     line-height: 1.2 !important;
@@ -305,7 +316,7 @@ input.bw-newsletter-subscription-input:focus {
     gap: 10px !important;
     width: auto !important;
     margin: 0 !important;
-    color: #181a20 !important;
+    color: inherit !important;
     font-size: 12px !important;
     line-height: 1.25 !important;
     cursor: default !important;
@@ -365,6 +376,7 @@ input.bw-newsletter-subscription-input:focus {
     align-items: center !important;
     flex-wrap: wrap !important;
     gap: 6px;
+    color: inherit;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent__text {
@@ -373,10 +385,11 @@ input.bw-newsletter-subscription-input:focus {
 
 .bw-newsletter-subscription-consent__label {
     cursor: pointer;
+    color: inherit;
 }
 
 .bw-newsletter-subscription-consent__link {
-    color: #181a20;
+    color: inherit;
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor: pointer;
@@ -506,7 +519,7 @@ input.bw-newsletter-subscription-input:focus {
 .bw-newsletter-subscription-message {
     min-height: 24px !important;
     margin: 0;
-    color: #181a20;
+    color: inherit;
     font-size: 13px;
     line-height: 1.4;
 }
@@ -538,7 +551,7 @@ input.bw-newsletter-subscription-input:focus {
 
 .bw-newsletter-subscription-noscript {
     margin: 0;
-    color: #8a1f1f;
+    color: inherit;
     font-size: 12px;
     line-height: 1.4;
 }

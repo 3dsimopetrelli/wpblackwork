@@ -173,6 +173,39 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $this->end_controls_section();
 
         $this->start_controls_section(
+            'section_style_widget',
+            [
+                'label' => __( 'Widget', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_responsive_control(
+            'widget_padding',
+            [
+                'label'      => __( 'Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em', 'rem', 'vw', 'vh' ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-newsletter-subscription-shell' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'widget_text_color',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .bw-newsletter-subscription-shell' => '--bw-ns-widget-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
             'section_style_section',
             [
                 'label'     => __( 'Style Section', 'bw' ),
@@ -426,64 +459,87 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 style="<?php echo esc_attr( $widget_style ); ?>"
             <?php endif; ?>
         >
-            <?php if ( empty( $settings['enabled'] ) && $is_editor ) : ?>
-                <div class="bw-newsletter-subscription-preview-notice">
-                    <?php esc_html_e( 'This widget is currently disabled in Mail Marketing > Subscription, but it remains visible here for layout preview.', 'bw' ); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ( 'section' === $style_variant && '' !== $section_background_image ) : ?>
-                <div class="bw-newsletter-subscription-section-art" aria-hidden="true" style="<?php echo esc_attr( $art_style ); ?>"></div>
-            <?php endif; ?>
-
-            <?php if ( 'section' === $style_variant ) : ?>
-                <div class="bw-newsletter-subscription-section-overlay" aria-hidden="true"></div>
-            <?php endif; ?>
-
-            <form
-                class="bw-newsletter-subscription-form"
-                method="post"
-                novalidate
-                data-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_mail_marketing_subscription_submit' ) ); ?>"
-                data-consent-required="<?php echo $consent_required ? '1' : '0'; ?>"
-            >
-                <noscript>
-                    <p class="bw-newsletter-subscription-noscript">
-                        <?php esc_html_e( 'JavaScript is required to submit this form.', 'bw' ); ?>
-                    </p>
-                </noscript>
-
-                <?php if ( 'section' === $style_variant && ( '' !== trim( wp_strip_all_tags( $section_title ) ) || '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) ) : ?>
-                    <div class="bw-newsletter-subscription-section-copy">
-                        <?php if ( '' !== trim( wp_strip_all_tags( $section_title ) ) ) : ?>
-                            <h2 class="bw-newsletter-subscription-section-title"><?php echo wp_kses_post( $section_title ); ?></h2>
-                        <?php endif; ?>
-
-                        <?php if ( '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) : ?>
-                            <div class="bw-newsletter-subscription-section-subtitle"><?php echo wpautop( wp_kses_post( $section_subtitle ) ); ?></div>
-                        <?php endif; ?>
+            <div class="bw-newsletter-subscription-shell">
+                <?php if ( empty( $settings['enabled'] ) && $is_editor ) : ?>
+                    <div class="bw-newsletter-subscription-preview-notice">
+                        <?php esc_html_e( 'This widget is currently disabled in Mail Marketing > Subscription, but it remains visible here for layout preview.', 'bw' ); ?>
                     </div>
                 <?php endif; ?>
 
-                <?php if ( $show_name_field ) : ?>
-                    <div class="bw-newsletter-subscription-field">
-                        <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
-                            <?php echo esc_html( $name_label ); ?>
-                        </label>
-                        <input
-                            id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
-                            class="bw-newsletter-subscription-input"
-                            type="text"
-                            name="name"
-                            autocomplete="name"
-                            placeholder="<?php echo esc_attr( $name_label ); ?>"
-                        />
-                    </div>
+                <?php if ( 'section' === $style_variant && '' !== $section_background_image ) : ?>
+                    <div class="bw-newsletter-subscription-section-art" aria-hidden="true" style="<?php echo esc_attr( $art_style ); ?>"></div>
                 <?php endif; ?>
 
                 <?php if ( 'section' === $style_variant ) : ?>
-                    <div class="bw-newsletter-subscription-inline">
-                        <div class="bw-newsletter-subscription-field bw-newsletter-subscription-field--email">
+                    <div class="bw-newsletter-subscription-section-overlay" aria-hidden="true"></div>
+                <?php endif; ?>
+
+                <form
+                    class="bw-newsletter-subscription-form"
+                    method="post"
+                    novalidate
+                    data-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_mail_marketing_subscription_submit' ) ); ?>"
+                    data-consent-required="<?php echo $consent_required ? '1' : '0'; ?>"
+                >
+                    <noscript>
+                        <p class="bw-newsletter-subscription-noscript">
+                            <?php esc_html_e( 'JavaScript is required to submit this form.', 'bw' ); ?>
+                        </p>
+                    </noscript>
+
+                    <?php if ( 'section' === $style_variant && ( '' !== trim( wp_strip_all_tags( $section_title ) ) || '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) ) : ?>
+                        <div class="bw-newsletter-subscription-section-copy">
+                            <?php if ( '' !== trim( wp_strip_all_tags( $section_title ) ) ) : ?>
+                                <h2 class="bw-newsletter-subscription-section-title"><?php echo wp_kses_post( $section_title ); ?></h2>
+                            <?php endif; ?>
+
+                            <?php if ( '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) : ?>
+                                <div class="bw-newsletter-subscription-section-subtitle"><?php echo wpautop( wp_kses_post( $section_subtitle ) ); ?></div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ( $show_name_field ) : ?>
+                        <div class="bw-newsletter-subscription-field">
+                            <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
+                                <?php echo esc_html( $name_label ); ?>
+                            </label>
+                            <input
+                                id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
+                                class="bw-newsletter-subscription-input"
+                                type="text"
+                                name="name"
+                                autocomplete="name"
+                                placeholder="<?php echo esc_attr( $name_label ); ?>"
+                            />
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ( 'section' === $style_variant ) : ?>
+                        <div class="bw-newsletter-subscription-inline">
+                            <div class="bw-newsletter-subscription-field bw-newsletter-subscription-field--email">
+                                <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
+                                    <?php echo esc_html( $email_label ); ?>
+                                </label>
+                                <input
+                                    id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
+                                    class="bw-newsletter-subscription-input"
+                                    type="email"
+                                    name="email"
+                                    autocomplete="email"
+                                    placeholder="<?php echo esc_attr( $email_label ); ?>"
+                                    aria-describedby="<?php echo esc_attr( $message_id ); ?>"
+                                    aria-invalid="false"
+                                    required
+                                />
+                            </div>
+
+                            <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
+                                <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
+                            </button>
+                        </div>
+                    <?php else : ?>
+                        <div class="bw-newsletter-subscription-field">
                             <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
                                 <?php echo esc_html( $email_label ); ?>
                             </label>
@@ -499,76 +555,55 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                 required
                             />
                         </div>
+                    <?php endif; ?>
 
+                    <div class="bw-newsletter-subscription-consent">
+                        <input
+                            id="<?php echo esc_attr( $consent_id ); ?>"
+                            class="bw-newsletter-subscription-consent__checkbox"
+                            type="checkbox"
+                            name="privacy"
+                            value="1"
+                            aria-describedby="<?php echo esc_attr( $message_id ); ?>"
+                            aria-invalid="false"
+                            <?php echo $consent_required ? 'required' : ''; ?>
+                        />
+                        <span class="bw-newsletter-subscription-consent__text">
+                            <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
+                                <?php echo esc_html( $consent_text ); ?>
+                            </label>
+                            <?php
+                            $privacy_link_label = ! empty( $settings['privacy_link_label'] )
+                                ? $settings['privacy_link_label']
+                                : __( 'Privacy Policy', 'bw' );
+                            ?>
+                            <?php if ( ! empty( $privacy_url ) ) : ?>
+                                <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                    <?php echo esc_html( $privacy_link_label ); ?>
+                                </a>
+                            <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
+                                <span class="bw-newsletter-subscription-consent__link">
+                                    <?php echo esc_html( $privacy_link_label ); ?>
+                                </span>
+                            <?php endif; ?>
+                        </span>
+                    </div>
+
+                    <?php if ( 'footer' === $style_variant ) : ?>
                         <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
                             <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
                         </button>
-                    </div>
-                <?php else : ?>
-                    <div class="bw-newsletter-subscription-field">
-                        <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
-                            <?php echo esc_html( $email_label ); ?>
-                        </label>
-                        <input
-                            id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
-                            class="bw-newsletter-subscription-input"
-                            type="email"
-                            name="email"
-                            autocomplete="email"
-                            placeholder="<?php echo esc_attr( $email_label ); ?>"
-                            aria-describedby="<?php echo esc_attr( $message_id ); ?>"
-                            aria-invalid="false"
-                            required
-                        />
-                    </div>
-                <?php endif; ?>
+                    <?php endif; ?>
 
-                <div class="bw-newsletter-subscription-consent">
-                    <input
-                        id="<?php echo esc_attr( $consent_id ); ?>"
-                        class="bw-newsletter-subscription-consent__checkbox"
-                        type="checkbox"
-                        name="privacy"
-                        value="1"
-                        aria-describedby="<?php echo esc_attr( $message_id ); ?>"
-                        aria-invalid="false"
-                        <?php echo $consent_required ? 'required' : ''; ?>
-                    />
-                    <span class="bw-newsletter-subscription-consent__text">
-                        <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
-                            <?php echo esc_html( $consent_text ); ?>
-                        </label>
-                        <?php
-                        $privacy_link_label = ! empty( $settings['privacy_link_label'] )
-                            ? $settings['privacy_link_label']
-                            : __( 'Privacy Policy', 'bw' );
-                        ?>
-                        <?php if ( ! empty( $privacy_url ) ) : ?>
-                            <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
-                                <?php echo esc_html( $privacy_link_label ); ?>
-                            </a>
-                        <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
-                            <span class="bw-newsletter-subscription-consent__link">
-                                <?php echo esc_html( $privacy_link_label ); ?>
-                            </span>
-                        <?php endif; ?>
-                    </span>
-                </div>
-
-                <?php if ( 'footer' === $style_variant ) : ?>
-                    <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
-                        <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
-                    </button>
-                <?php endif; ?>
-
-                <div
-                    id="<?php echo esc_attr( $message_id ); ?>"
-                    class="bw-newsletter-subscription-message"
-                    aria-live="polite"
-                    aria-atomic="true"
-                    role="status"
-                ></div>
-            </form>
+                    <div
+                        id="<?php echo esc_attr( $message_id ); ?>"
+                        class="bw-newsletter-subscription-message"
+                        aria-live="polite"
+                        aria-atomic="true"
+                        role="status"
+                    ></div>
+                </form>
+            </div>
         </div>
         <?php
     }
