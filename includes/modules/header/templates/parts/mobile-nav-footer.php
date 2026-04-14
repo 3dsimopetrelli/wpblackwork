@@ -9,7 +9,6 @@ $footer_menu_html = function_exists('bw_header_render_footer_menu')
 ?>
 <section class="bw-navigation__mobile-section bw-navigation__mobile-section--footer" aria-label="<?php esc_attr_e('Legal and social', 'bw'); ?>">
     <div class="bw-navigation__mobile-footer">
-        <div class="bw-navigation__mobile-footer-divider" aria-hidden="true"></div>
         <div class="bw-navigation__mobile-footer-row">
             <div class="bw-navigation__mobile-footer-links">
                 <?php if (!empty($footer_menu_html)) : ?>
