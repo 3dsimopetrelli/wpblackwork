@@ -532,7 +532,6 @@ body.bw-fpw-drawer-no-scroll {
   row-gap: 16px;
   margin: 0 0 24px 0;
   transition: opacity 0.34s ease, transform 0.44s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.34s ease;
-  will-change: opacity, transform;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar[data-ui-ready="false"] {
