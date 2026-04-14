@@ -298,7 +298,7 @@
     background: #171717d9 !important;
     backdrop-filter: blur(20px) saturate(1.4) !important;
     -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
-    border: var(--bw-surface-glass-border) !important;
+    border: none !important;
 }
 
 .bw-navigation__account-dropdown-surface .bw-navigation__mobile-content {
@@ -620,7 +620,7 @@
 
 .bw-navigation__mobile .current-menu-item > .bw-navigation__link {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.18);
+    border-color: transparent;
     box-shadow: none;
 }
 
