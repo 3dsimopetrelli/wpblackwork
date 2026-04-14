@@ -1699,7 +1699,7 @@ body.bw-fpw-drawer-no-scroll {
   display: flex;
   align-items: center;
   min-height: 44px;
-  margin: 0 2px 6px 2px;
+  margin: 8px 2px 6px 2px;
   padding: 0 10px 0 36px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
