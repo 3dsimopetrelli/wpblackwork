@@ -178,7 +178,9 @@
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(12px) saturate(1.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
     pointer-events: none;
     visibility: hidden;
 }
@@ -290,14 +292,21 @@
     overflow: hidden;
 }
 
-.bw-navigation__mobile-popup-surface.bw-surface-glass,
+/* Mobile nav panel: overlay provides the blur (cart popup pattern),
+   panel uses a plain dark background so the blurred page shows through. */
+.bw-navigation__mobile-popup-surface.bw-surface-glass {
+    background: rgba(15, 15, 15, 0.84) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: var(--bw-surface-glass-border) !important;
+}
+
+/* Account dropdown has no full-screen overlay, so the panel
+   provides its own blur directly. */
 .bw-navigation__account-dropdown-surface.bw-surface-glass {
-    background:
-        radial-gradient(circle at top left, rgba(255, 255, 255, 0.10), transparent 32%),
-        radial-gradient(circle at bottom right, rgba(128, 253, 3, 0.04), transparent 46%),
-        linear-gradient(180deg, rgba(30, 30, 30, 0.84) 0%, rgba(10, 10, 10, 0.94) 100%) !important;
-    backdrop-filter: var(--bw-surface-glass-blur) !important;
-    -webkit-backdrop-filter: var(--bw-surface-glass-blur) !important;
+    background: rgba(15, 15, 15, 0.78) !important;
+    backdrop-filter: blur(20px) saturate(1.4) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
     border: var(--bw-surface-glass-border) !important;
 }
 
