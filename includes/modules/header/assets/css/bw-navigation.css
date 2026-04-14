@@ -713,20 +713,32 @@
     border-radius: 0;
     background: transparent !important;
     box-shadow: none !important;
-    color: #9f9d9d;
+    color: #9b9d9d !important;
     flex: 0 0 auto;
     cursor: pointer;
     text-decoration: none;
+    transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.bw-navigation__mobile-footer-social:hover,
+.bw-navigation__mobile-footer-social:focus-visible,
+.bw-navigation__mobile-footer-social:active {
+    color: #fafafa !important;
 }
 
 .bw-navigation__mobile-footer-social-icon {
     display: inline-block;
     width: 16px;
     height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FAFAFA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='2.5' width='19' height='19' rx='5' ry='5'/%3E%3Cpath d='M16.5 11.37a4.5 4.5 0 1 1-8.87 1.33 4.5 4.5 0 0 1 8.87-1.33z'/%3E%3Cline x1='17.5' y1='6.5' x2='17.51' y2='6.5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='2.5' width='19' height='19' rx='5' ry='5'/%3E%3Cpath d='M16.5 11.37a4.5 4.5 0 1 1-8.87 1.33 4.5 4.5 0 0 1 8.87-1.33z'/%3E%3Cline x1='17.5' y1='6.5' x2='17.51' y2='6.5'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='2.5' width='19' height='19' rx='5' ry='5'/%3E%3Cpath d='M16.5 11.37a4.5 4.5 0 1 1-8.87 1.33 4.5 4.5 0 0 1 8.87-1.33z'/%3E%3Cline x1='17.5' y1='6.5' x2='17.51' y2='6.5'/%3E%3C/svg%3E");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
 }
 
 @media (max-width: 640px) {
