@@ -108,6 +108,34 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'footer_title',
+            [
+                'label'     => __( 'Title', 'bw' ),
+                'type'      => Controls_Manager::TEXTAREA,
+                'rows'      => 2,
+                'default'   => __( 'PRIVATE ACCESS TO NEW RELEASES', 'bw' ),
+                'description' => __( 'HTML allowed. Used when Style Footer is selected.', 'bw' ),
+                'condition' => [
+                    'style_variant' => 'footer',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'footer_subtitle',
+            [
+                'label'     => __( 'Subtitle', 'bw' ),
+                'type'      => Controls_Manager::TEXTAREA,
+                'rows'      => 3,
+                'default'   => __( 'Early access to rare books, prints, and curated selections. No noise. Only what matters.', 'bw' ),
+                'description' => __( 'HTML allowed. Used when Style Footer is selected.', 'bw' ),
+                'condition' => [
+                    'style_variant' => 'footer',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'section_title',
             [
                 'label'     => __( 'Title', 'bw' ),
@@ -456,6 +484,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $message_id = $widget_id . '-message';
         $consent_id = $widget_id . '-privacy';
         $button_text = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'Subscribe', 'bw' );
+        $footer_title = isset( $widget_settings['footer_title'] ) ? wp_kses_post( $widget_settings['footer_title'] ) : __( 'PRIVATE ACCESS TO NEW RELEASES', 'bw' );
+        $footer_subtitle = isset( $widget_settings['footer_subtitle'] ) ? wp_kses_post( $widget_settings['footer_subtitle'] ) : __( 'Early access to rare books, prints, and curated selections. No noise. Only what matters.', 'bw' );
         $section_title = isset( $widget_settings['section_title'] ) ? wp_kses_post( $widget_settings['section_title'] ) : __( 'Step Inside the Archive', 'bw' );
         $section_subtitle = isset( $widget_settings['section_subtitle'] ) ? wp_kses_post( $widget_settings['section_subtitle'] ) : __( 'Get free sample files, early access to new collections, and rare finds from our archive.', 'bw' );
         $section_background_color = '#050505';
@@ -534,6 +564,18 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 
                 <?php if ( 'section' === $style_variant ) : ?>
                     <div class="bw-newsletter-subscription-section-overlay" aria-hidden="true"></div>
+                <?php endif; ?>
+
+                <?php if ( 'footer' === $style_variant && ( '' !== trim( wp_strip_all_tags( $footer_title ) ) || '' !== trim( wp_strip_all_tags( $footer_subtitle ) ) ) ) : ?>
+                    <div class="bw-newsletter-subscription-footer-copy">
+                        <?php if ( '' !== trim( wp_strip_all_tags( $footer_title ) ) ) : ?>
+                            <h3 class="bw-newsletter-subscription-footer-title"><?php echo wp_kses_post( $footer_title ); ?></h3>
+                        <?php endif; ?>
+
+                        <?php if ( '' !== trim( wp_strip_all_tags( $footer_subtitle ) ) ) : ?>
+                            <div class="bw-newsletter-subscription-footer-subtitle"><?php echo wpautop( wp_kses_post( $footer_subtitle ) ); ?></div>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
 
                 <form

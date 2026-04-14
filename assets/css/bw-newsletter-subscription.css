@@ -125,16 +125,7 @@
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-label {
-    display: inline-block !important;
-    top: 0 !important;
-    left: 16px !important;
-    transform: translateY(-50%) !important;
     z-index: 5 !important;
-    padding: 0 6px !important;
-    background: var(--bw-ns-label-bg) !important;
-    color: #374151 !important;
-    font-size: 10px !important;
-    font-weight: 500 !important;
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
@@ -142,7 +133,7 @@
     min-height: 42px !important;
     padding: 0 18px !important;
     border: none !important;
-    border-radius: 0 !important;
+    border-radius: 50px !important;
     background: transparent !important;
     box-shadow: none !important;
 }
@@ -164,11 +155,45 @@
     min-height: 42px !important;
     padding: 0 16px !important;
     border: none !important;
-    border-radius: 0 !important;
+    border-radius: 50px !important;
     background-color: #80fd03 !important;
     color: #080808 !important;
     font-size: 16px !important;
     font-weight: 400 !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-copy,
+.bw-newsletter-subscription-footer-copy {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 0 18px !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-title,
+.bw-newsletter-subscription-footer-title {
+    margin: 0 !important;
+    color: rgba(111, 111, 111, 0.11) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
+    line-height: 12px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-subtitle,
+.bw-newsletter-subscription-footer-subtitle {
+    color: #080808 !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    line-height: 24px !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-subtitle p,
+.bw-newsletter-subscription-footer-subtitle p {
+    margin: 0 !important;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-form {
@@ -711,7 +736,7 @@ input.bw-newsletter-subscription-input:focus {
 
     .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button__label {
         min-height: 40px !important;
-        border-radius: 12px !important;
+        border-radius: 50px !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input,
