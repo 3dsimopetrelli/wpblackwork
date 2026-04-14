@@ -591,19 +591,59 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $widget_settings = is_array( $widget_settings ) ? $widget_settings : [];
         $raw_widget_settings = is_array( $raw_widget_settings ) ? $raw_widget_settings : [];
 
+        if ( array_key_exists( 'show_name_field', $widget_settings ) ) {
+            return $this->is_widget_switch_enabled( $widget_settings['show_name_field'] );
+        }
+
+        if ( array_key_exists( 'section_show_name_field', $widget_settings ) ) {
+            return $this->is_widget_switch_enabled( $widget_settings['section_show_name_field'] );
+        }
+
         if ( array_key_exists( 'show_name_field', $raw_widget_settings ) ) {
-            return isset( $widget_settings['show_name_field'] ) && 'yes' === $widget_settings['show_name_field'];
+            return $this->is_widget_switch_enabled( $raw_widget_settings['show_name_field'] );
         }
 
         if ( array_key_exists( 'section_show_name_field', $raw_widget_settings ) ) {
-            return isset( $widget_settings['section_show_name_field'] ) && 'yes' === $widget_settings['section_show_name_field'];
+            return $this->is_widget_switch_enabled( $raw_widget_settings['section_show_name_field'] );
         }
 
         if ( 'section' === $style_variant ) {
             return false;
         }
 
-        return true;
+        return false;
+    }
+
+    /**
+     * Normalize Elementor switcher values to a boolean state.
+     *
+     * Elementor commonly stores enabled switchers as `yes`, but older saved
+     * widgets or editor states can surface equivalent truthy values.
+     *
+     * @param mixed $value Switcher value.
+     *
+     * @return bool
+     */
+    private function is_widget_switch_enabled( $value ) {
+        if ( true === $value ) {
+            return true;
+        }
+
+        if ( false === $value || null === $value ) {
+            return false;
+        }
+
+        if ( is_int( $value ) || is_float( $value ) ) {
+            return 0 !== (int) $value;
+        }
+
+        if ( ! is_string( $value ) ) {
+            return false;
+        }
+
+        $value = strtolower( trim( $value ) );
+
+        return in_array( $value, [ 'yes', '1', 'true', 'on' ], true );
     }
 
     /**
