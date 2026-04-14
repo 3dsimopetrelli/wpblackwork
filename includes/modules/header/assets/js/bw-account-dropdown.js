@@ -7,7 +7,6 @@
         this.panel = root.querySelector('[data-bw-account-dropdown-panel]');
         this.breakpoint = parseInt(root.getAttribute('data-bw-account-dropdown-breakpoint'), 10)
             || ((window.bwHeaderConfig && window.bwHeaderConfig.breakpoint) ? parseInt(window.bwHeaderConfig.breakpoint, 10) : 1024);
-        this.isDesktop = window.innerWidth > this.breakpoint;
         this._closeTimeout = null;
 
         this.handlePointerEnter = this.handlePointerEnter.bind(this);
@@ -22,6 +21,10 @@
         this.handleWindowResize = this.handleWindowResize.bind(this);
     }
 
+    BWAccountDropdown.prototype.isDesktop = function () {
+        return window.innerWidth > this.breakpoint;
+    };
+
     BWAccountDropdown.prototype.init = function () {
         if (!this.root || !this.trigger || !this.panel) {
             return;
@@ -31,10 +34,6 @@
         // instead of being trapped inside the header's compositor layer.
         if (this.panel.parentNode !== document.body) {
             document.body.appendChild(this.panel);
-        }
-
-        if (!this.isDesktop) {
-            return;
         }
 
         this.root.addEventListener('pointerenter', this.handlePointerEnter);
@@ -70,7 +69,8 @@
     };
 
     BWAccountDropdown.prototype.open = function () {
-        if (!this.isDesktop) {
+        // Check live — never rely on a cached isDesktop flag that can get stuck.
+        if (!this.isDesktop()) {
             return;
         }
 
@@ -107,7 +107,7 @@
         // Delay close so the pointer has time to reach the panel before it disappears.
         this._closeTimeout = setTimeout(function () {
             self.close();
-        }, 120);
+        }, 150);
     };
 
     BWAccountDropdown.prototype.handlePanelPointerEnter = function () {
@@ -127,7 +127,7 @@
     };
 
     BWAccountDropdown.prototype.handleTriggerClick = function (event) {
-        if (!this.isDesktop) {
+        if (!this.isDesktop()) {
             return;
         }
 
@@ -162,13 +162,15 @@
     };
 
     BWAccountDropdown.prototype.handleWindowResize = function () {
-        var nowDesktop = window.innerWidth > this.breakpoint;
-        if (!nowDesktop) {
+        if (!this.panel.classList.contains('is-open')) {
+            return;
+        }
+
+        if (!this.isDesktop()) {
             this.close();
-        } else if (this.panel.classList.contains('is-open')) {
+        } else {
             this.positionPanel();
         }
-        this.isDesktop = nowDesktop;
     };
 
     function initAll() {
