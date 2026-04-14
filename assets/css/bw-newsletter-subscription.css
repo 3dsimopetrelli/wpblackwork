@@ -765,10 +765,10 @@ input.bw-newsletter-subscription-input:focus {
 
 @media (max-width: 750px) {
     .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-inline {
-        border: none !important;
+        border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
-        border-radius: 0 !important;
+        border-radius: 50px !important;
         padding: 0 !important;
     }
 }
