@@ -37,6 +37,7 @@
             document.body.appendChild(this.panel);
         }
 
+        this.toggle.addEventListener('touchstart', this.handleToggleTouchStart, { passive: true });
         this.toggle.addEventListener('click', this.handleToggleClick);
         this.overlay.addEventListener('click', this.handleOverlayClick);
         document.addEventListener('keydown', this.handleDocumentKeydown);
@@ -129,7 +130,10 @@
     BWNavigation.prototype.open = function () {
         this.lastActiveElement = document.activeElement;
         this.scrollYOnOpen = window.pageYOffset || document.documentElement.scrollTop || 0;
-        this.positionPanel();
+        if (!this._prepositioned) {
+            this.positionPanel();
+        }
+        this._prepositioned = false;
         this.overlay.classList.add('is-open');
         this.overlay.setAttribute('aria-hidden', 'false');
         this.toggle.setAttribute('aria-expanded', 'true');
@@ -157,6 +161,14 @@
             this.lastActiveElement.focus();
         } else if (this.toggle && typeof this.toggle.focus === 'function') {
             this.toggle.focus();
+        }
+    };
+
+    BWNavigation.prototype.handleToggleTouchStart = function () {
+        // Pre-position the panel on first touch so open() fires with no reflow delay.
+        if (!this.overlay.classList.contains('is-open')) {
+            this._prepositioned = true;
+            this.positionPanel();
         }
     };
 
