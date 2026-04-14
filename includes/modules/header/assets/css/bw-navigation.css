@@ -264,11 +264,7 @@
     flex: 1;
     min-height: 0;
     overflow: visible;
-<<<<<<< HEAD
-    padding: 12px 12px 20px;
-=======
-    padding: 12px 12px 33px;
->>>>>>> 6456f42d4f99fd11aa37ac1acb6181edc40a8778
+    padding: 12px 12px 13px;
     background: transparent !important;
     gap: 11px;
 }
@@ -779,6 +775,6 @@
     }
 
     .bw-navigation__mobile-footer {
-        padding: 15px 14px 14px;
+        padding: 14px 14px 14px;
     }
 }
