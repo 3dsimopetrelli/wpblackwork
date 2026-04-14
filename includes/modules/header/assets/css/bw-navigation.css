@@ -715,7 +715,8 @@
     box-shadow: none !important;
     color: #9f9d9d;
     flex: 0 0 auto;
-    cursor: default;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .bw-navigation__mobile-footer-social-icon {

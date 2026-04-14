@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 $footer_menu_html = function_exists('bw_header_render_footer_menu')
     ? bw_header_render_footer_menu('bw_mobile_footer_menu', 'bw-navigation__mobile-footer-menu')
     : '';
+$instagram_url = 'https://www.instagram.com/blackwork.pro';
 ?>
 <section class="bw-navigation__mobile-section bw-navigation__mobile-section--footer" aria-label="<?php esc_attr_e('Legal and social', 'bw'); ?>">
     <div class="bw-navigation__mobile-footer">
@@ -31,9 +32,15 @@ $footer_menu_html = function_exists('bw_header_render_footer_menu')
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
-            <span class="bw-navigation__mobile-footer-social" aria-hidden="true">
+            <a
+                class="bw-navigation__mobile-footer-social"
+                href="<?php echo esc_url($instagram_url); ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="<?php esc_attr_e('Instagram', 'bw'); ?>"
+            >
                 <span class="bw-navigation__mobile-footer-social-icon" aria-hidden="true"></span>
-            </span>
+            </a>
         </div>
     </div>
 </section>
