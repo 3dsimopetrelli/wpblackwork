@@ -21,6 +21,7 @@
     max-width: 100% !important;
     box-sizing: border-box !important;
     border-radius: var(--bw-ns-widget-radius, 0) !important;
+    background-color: var(--bw-ns-widget-bg, transparent) !important;
     color: inherit !important;
 }
 
