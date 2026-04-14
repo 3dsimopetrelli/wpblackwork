@@ -124,10 +124,6 @@
     z-index: 2 !important;
 }
 
-.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-label {
-    z-index: 5 !important;
-}
-
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
     height: 100% !important;
     min-height: 42px !important;
@@ -270,35 +266,7 @@
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-label,
 .bw-newsletter-subscription-label {
-    position: absolute !important;
-    top: 50% !important;
-    left: 16px !important;
-    z-index: 3 !important;
-    display: inline-block !important;
-    margin: 0 !important;
-    padding: 0 6px !important;
-    background: var(--bw-ns-label-bg) !important;
-    border-radius: 10px !important;
-    color: inherit !important;
-    font-size: 13px !important;
-    font-weight: 400 !important;
-    line-height: 1.2 !important;
-    transform: translateY(-50%) !important;
-    pointer-events: none !important;
-    white-space: nowrap !important;
-    transition: all 0.2s ease !important;
-}
-
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-label {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
+    display: none !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input,
@@ -345,15 +313,20 @@ input.bw-newsletter-subscription-input {
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input::placeholder,
 .bw-newsletter-subscription-input::placeholder {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    color: transparent !important;
+    opacity: 0.82 !important;
+    color: rgba(55, 65, 81, 0.72) !important;
+    transition: opacity 0.18s ease, color 0.18s ease !important;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input::placeholder {
-    opacity: 1 !important;
-    visibility: visible !important;
+    opacity: 0.82 !important;
     color: rgba(247, 247, 242, 0.66) !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder,
+.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder {
+    opacity: 0 !important;
+    color: transparent !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input:focus,
@@ -365,11 +338,8 @@ input.bw-newsletter-subscription-input:focus {
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Floating label animation: move label up on focus or input fill.
-   :focus-within works on all modern browsers (IE edge case only).
-   :has(:not(:placeholder-shown)) is a modern enhancement for when user types
-   (provides visual feedback even if field loses focus). Fallback to :focus-within
-   works on Safari < 15.4 and all other browsers without :has() support. */
+/* Placeholder fade on focus or input fill.
+   The JS helper toggles .is-filled so the placeholder can transition out cleanly. */
 
 /* Section variant: highlight input focus with branded color */
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input:focus,
@@ -378,23 +348,6 @@ input.bw-newsletter-subscription-input:focus {
     border: 2px solid #80fd03 !important;
     box-shadow: 0 0 0 4px rgba(128, 253, 3, 0.12) !important;
 }
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-label,
-.bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
-.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-label {
-    top: 0 !important;
-    transform: translateY(-50%) !important;
-    background: var(--bw-ns-label-bg) !important;
-    font-size: 10px !important;
-    color: #374151 !important;
-    font-weight: 500 !important;
-}
-
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-label {
-    transform: none !important;
-}
-
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-inline,
 .bw-newsletter-subscription-inline {
     position: relative !important;

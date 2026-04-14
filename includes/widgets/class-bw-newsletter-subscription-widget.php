@@ -645,6 +645,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                 name="name"
                                 autocomplete="name"
                                 placeholder="<?php echo esc_attr( $name_label ); ?>"
+                                aria-label="<?php echo esc_attr( $name_label ); ?>"
                             />
                         </div>
                     <?php endif; ?>
@@ -662,6 +663,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                     name="email"
                                     autocomplete="email"
                                     placeholder="<?php echo esc_attr( $email_label ); ?>"
+                                    aria-label="<?php echo esc_attr( $email_label ); ?>"
                                     aria-describedby="<?php echo esc_attr( $message_id ); ?>"
                                     aria-invalid="false"
                                     required
@@ -684,6 +686,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                 name="email"
                                 autocomplete="email"
                                 placeholder="<?php echo esc_attr( $email_label ); ?>"
+                                aria-label="<?php echo esc_attr( $email_label ); ?>"
                                 aria-describedby="<?php echo esc_attr( $message_id ); ?>"
                                 aria-invalid="false"
                                 required
