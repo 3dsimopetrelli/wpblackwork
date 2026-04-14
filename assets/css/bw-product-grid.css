@@ -9,7 +9,7 @@
 
 .bw-product-grid-wrapper {
   position: relative;
-  --bw-fpw-panel-glass-bg: var(--bw-surface-glass-bg, radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%), linear-gradient(180deg, rgba(24, 24, 24, 0.88) 0%, rgba(11, 11, 11, 0.92) 100%));
+  --bw-fpw-panel-glass-bg: var(--bw-surface-glass-bg, #171717d9);
   --bw-fpw-panel-glass-blur: var(--bw-surface-glass-blur, blur(24px));
   --bw-fpw-panel-glass-border: var(--bw-surface-glass-border, 1px solid rgba(255, 255, 255, 0.1));
   --bw-fpw-panel-glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
@@ -380,6 +380,7 @@
   height: 70vh;
   max-height: 70vh;
   background: var(--bw-fpw-panel-glass-bg);
+  background-color: var(--bw-fpw-panel-glass-bg);
   backdrop-filter: var(--bw-fpw-panel-glass-blur);
   -webkit-backdrop-filter: var(--bw-fpw-panel-glass-blur);
   color: var(--bw-cart-text, #ffffff);
@@ -876,6 +877,7 @@ body.bw-fpw-drawer-no-scroll {
   border-radius: 16px;
   border: var(--bw-fpw-panel-glass-border);
   background: var(--bw-fpw-panel-glass-bg);
+  background-color: var(--bw-fpw-panel-glass-bg);
   color: #fafafa;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -1341,6 +1343,7 @@ body.bw-fpw-drawer-no-scroll {
   border-radius: 16px;
   border: var(--bw-fpw-panel-glass-border);
   background: var(--bw-fpw-panel-glass-bg);
+  background-color: var(--bw-fpw-panel-glass-bg);
   color: #fafafa;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -1359,6 +1362,7 @@ body.bw-fpw-drawer-no-scroll {
   flex-direction: column;
   gap: 0;
   padding: 0;
+  background-color: var(--bw-fpw-panel-glass-bg);
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter[data-group="years"] .bw-fpw-visible-filter__panel-inner {
