@@ -458,17 +458,16 @@
 }
 
 .bw-navigation__mobile-guest-cta {
-    width: min(170px, 100%);
-    max-width: 170px;
+    width: min(242px, 100%);
     color: #000000 !important;
     display: flex;
     box-sizing: border-box;
     min-height: 0;
-    padding: 18px 22px;
+    padding: 10px 32px;
     align-self: center;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .bw-navigation__mobile-auth-link {
