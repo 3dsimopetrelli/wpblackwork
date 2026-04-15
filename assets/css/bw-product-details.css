@@ -85,11 +85,10 @@
     font-weight: 600;
 }
 
-.bw-biblio-value {
-    text-align: right;
-}
-
-.bw-biblio-value--compatibility {
+.bw-biblio-widget .bw-biblio-row > .bw-biblio-value,
+.bw-biblio-widget .bw-biblio-table--compatibility .bw-biblio-value--compatibility,
+.bw-biblio-widget .bw-biblio-row--assets .bw-biblio-value--assets-list {
+    width: 100%;
     text-align: right;
 }
 
@@ -110,7 +109,6 @@
 
 .bw-biblio-value--assets-list {
     line-height: 1.5;
-    text-align: left;
     white-space: pre-wrap;
 }
 
