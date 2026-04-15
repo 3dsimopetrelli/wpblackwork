@@ -298,9 +298,9 @@ if (!function_exists('bw_header_enqueue_assets')) {
             $mobile_blur_radius = 50;
             $css_parts[] = ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}";
             $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
-            // Mobile panel blur (compact padding to avoid double-spacing with __inner)
-            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_padding_top}px {$mobile_blur_padding_right}px {$mobile_blur_padding_bottom}px {$mobile_blur_padding_left}px !important;border-radius: {$mobile_blur_radius}px !important;}";
-            $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
+            // Mobile panel: always use the scrolled tint so the pill is visible
+            // even at the very top of the page (no scroll required).
+            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_scrolled_tint} !important;padding: {$mobile_blur_padding_top}px {$mobile_blur_padding_right}px {$mobile_blur_padding_bottom}px {$mobile_blur_padding_left}px !important;border-radius: {$mobile_blur_radius}px !important;}";
         } else {
             $css_parts[] = ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";
             $css_parts[] = ".bw-custom-header__mobile-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";
