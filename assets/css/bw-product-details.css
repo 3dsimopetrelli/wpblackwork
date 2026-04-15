@@ -90,8 +90,7 @@
     font-weight: 600;
 }
 
-.bw-biblio-table--product-details .bw-biblio-row > .bw-biblio-value,
-.bw-biblio-table--product-details .bw-biblio-row--assets .bw-biblio-value--assets-list {
+.bw-biblio-table--product-details .bw-biblio-row > .bw-biblio-value {
     width: 100%;
     text-align: right;
 }
@@ -125,7 +124,8 @@
 .bw-biblio-table--product-details .bw-biblio-value.bw-biblio-value--assets-list {
     line-height: 1.5;
     white-space: pre-wrap;
-    text-align: right;
+    text-align: right !important;
+    justify-self: end;
 }
 
 /* ========================================
@@ -175,6 +175,11 @@
     .bw-biblio-table--product-details .bw-biblio-value,
     .bw-biblio-table--product-details .bw-biblio-value--assets-list {
         text-align: right;
+    }
+
+    .bw-biblio-table--product-details .bw-biblio-value--assets-list {
+        text-align: right !important;
+        justify-self: end;
     }
 
     .bw-biblio-table--compatibility .bw-biblio-value--compatibility {
