@@ -236,13 +236,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 32px;
+    padding: 10px 18px;
     background: #80FD03;
     color: #000000;
     border: 1px solid #000000;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 400;
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
@@ -270,9 +270,10 @@
     height: calc(1rem + 28px);
 }
 
-.bw-slide-showcase-arrow span {
-    font-size: 1.5em;
-    line-height: 1;
+.bw-slide-showcase-arrow svg {
+    width: 24px;
+    height: 24px;
+    display: block;
 }
 
 .bw-slide-showcase-arrow:hover,
@@ -361,8 +362,9 @@
     }
 
     .bw-slide-showcase-view-btn {
-        font-size: 0.95rem;
-        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 400;
+        padding: 10px 18px;
     }
 
     .bw-slide-showcase-arrow {
