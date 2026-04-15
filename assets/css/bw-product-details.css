@@ -86,11 +86,11 @@
 }
 
 .bw-biblio-value {
-    text-align: left;
+    text-align: right;
 }
 
 .bw-biblio-value--compatibility {
-    text-align: left;
+    text-align: right;
 }
 
 /* ========================================
@@ -121,17 +121,17 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 
 .bw-biblio-pill {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    border: 1px solid #000;
+    padding: 3px 6px;
+    border: 0.8px solid #000;
     border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 400;
     text-transform: uppercase;
     line-height: 1.2;
 }
