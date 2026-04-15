@@ -515,19 +515,8 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
         $showcase_description = trim( (string) $get_meta( '_bw_showcase_description' ) );
         $meta_assets_count = $get_meta( '_bw_assets_count' );
-        if ( '' === $meta_assets_count ) {
-            $meta_assets_count = $get_meta( '_product_assets_count' );
-        }
-
-        $meta_size_mb = $get_meta( '_bw_file_size' );
-        if ( '' === $meta_size_mb ) {
-            $meta_size_mb = $get_meta( '_product_size_mb' );
-        }
-
-        $meta_formats = $get_meta( '_bw_formats' );
-        if ( '' === $meta_formats ) {
-            $meta_formats = $get_meta( '_product_formats' );
-        }
+        $meta_size_mb      = $get_meta( '_bw_file_size' );
+        $meta_formats      = $get_meta( '_bw_formats' );
 
         $meta_product_type_raw = $get_meta( '_bw_product_type' );
         $product_type_value    = sanitize_key( $meta_product_type_raw );
@@ -539,9 +528,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $meta_button_link = $get_meta( '_product_button_link' );
 
         $meta_color_value = $get_meta( '_bw_texts_color' );
-        if ( '' === $meta_color_value ) {
-            $meta_color_value = $get_meta( '_product_color' );
-        }
         $meta_color = sanitize_hex_color( $meta_color_value );
         if ( empty( $meta_color ) ) {
             $meta_color = '#ffffff';
