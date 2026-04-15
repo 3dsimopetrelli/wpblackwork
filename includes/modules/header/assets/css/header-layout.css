@@ -400,23 +400,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         line-height: 1 !important;
     }
 
-    @supports selector(:has(*)) {
-        .bw-custom-header__mobile-right {
-            transform: translateX(20px);
-            transition: transform 0.25s ease;
-        }
-
-        .bw-custom-header__mobile-right:has(.bw-navshop__cart-count:not(.is-empty)) {
-            transform: translateX(0);
-        }
-    }
-
-    @supports not selector(:has(*)) {
-        .bw-custom-header__mobile-right {
-            transform: translateX(0);
-            transition: transform 0.25s ease;
-        }
-    }
 
     .bw-custom-header__inner {
         padding: 14px 18px;
