@@ -165,7 +165,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $menu_blur_padding_left = isset($smart_header['menu_blur_padding_left']) ? max(0, min(200, absint($smart_header['menu_blur_padding_left']))) : 10;
         // Responsive icon spacing and cart badge positioning are intentionally fixed in code.
         $mobile_right_icons_gap = 15;
-        $mobile_cart_badge_offset_x = 0;
+        $mobile_cart_badge_offset_x = -9;
         $mobile_cart_badge_offset_y = 0;
         $desktop_cart_badge_offset_x = 0;
         $desktop_cart_badge_offset_y = 0;
@@ -261,8 +261,8 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__mobile-left .bw-navigation__toggle{padding: {$mobile_hamburger_padding_top}px {$mobile_hamburger_padding_right}px {$mobile_hamburger_padding_bottom}px {$mobile_hamburger_padding_left}px !important;margin: {$mobile_hamburger_margin_top}px {$mobile_hamburger_margin_right}px {$mobile_hamburger_margin_bottom}px {$mobile_hamburger_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-search .bw-search-button{padding: {$mobile_search_padding_top}px {$mobile_search_padding_right}px {$mobile_search_padding_bottom}px {$mobile_search_padding_left}px !important;margin: 4px {$mobile_search_margin_right}px {$mobile_search_margin_bottom}px {$mobile_search_margin_left}px !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart{padding: {$mobile_cart_padding_top}px {$mobile_cart_padding_right}px {$mobile_cart_padding_bottom}px {$mobile_cart_padding_left}px !important;margin: {$mobile_cart_margin_top}px {$mobile_cart_margin_right}px {$mobile_cart_margin_bottom}px {$mobile_cart_margin_left}px !important;}";
-        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count{top:26% !important;right:17px !important;transform: translate({$mobile_cart_badge_offset_x}px, calc(-50% + {$mobile_cart_badge_offset_y}px)) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
-        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart:has(.bw-navshop__cart-count.is-empty){margin-right: 8px !important;}";
+        $css_parts[] = ".bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count:not(.is-empty){top:26% !important;right:17px !important;transform: translate({$mobile_cart_badge_offset_x}px, calc(-50% + {$mobile_cart_badge_offset_y}px)) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
+        // (badge is position:absolute — no flow-space compensation needed)
         $css_parts[] = "}";
 
         // — Desktop breakpoint rules —
@@ -270,7 +270,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header__desktop{display:flex;}";
         $css_parts[] = ".bw-custom-header__mobile{display:none;}";
         $css_parts[] = ".bw-custom-header .bw-navigation__toggle,.bw-custom-header .bw-navigation__mobile-overlay{display:none !important;}";
-        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count{transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
+        $css_parts[] = ".bw-custom-header__desktop-right .bw-navshop__cart-count:not(.is-empty){transform: translate({$desktop_cart_badge_offset_x}px, {$desktop_cart_badge_offset_y}px) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:14px !important;height:14px !important;padding:0 3px !important;line-height:1 !important;font-size:8px !important;font-weight:400 !important;font-family:inherit !important;font-variant-numeric:tabular-nums !important;}";
         $css_parts[] = "}";
 
         // — Background color —
@@ -298,9 +298,9 @@ if (!function_exists('bw_header_enqueue_assets')) {
             $mobile_blur_radius = 50;
             $css_parts[] = ".bw-custom-header__desktop-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$menu_blur_padding_top}px {$menu_blur_padding_right}px {$menu_blur_padding_bottom}px {$menu_blur_padding_left}px !important;border-radius: {$menu_blur_radius}px !important;}";
             $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__desktop-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
-            // Mobile panel blur (compact padding to avoid double-spacing with __inner)
-            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_tint} !important;padding: {$mobile_blur_padding_top}px {$mobile_blur_padding_right}px {$mobile_blur_padding_bottom}px {$mobile_blur_padding_left}px !important;border-radius: {$mobile_blur_radius}px !important;}";
-            $css_parts[] = ".bw-custom-header.bw-header-scrolled .bw-custom-header__mobile-panel.is-blur-enabled{background-color:{$blur_scrolled_tint} !important;}";
+            // Mobile panel: always use the scrolled tint so the pill is visible
+            // even at the very top of the page (no scroll required).
+            $css_parts[] = ".bw-custom-header__mobile-panel.is-blur-enabled{-webkit-backdrop-filter: blur({$menu_blur_amount}px);backdrop-filter: blur({$menu_blur_amount}px) !important;background-color:{$blur_scrolled_tint} !important;padding: {$mobile_blur_padding_top}px {$mobile_blur_padding_right}px {$mobile_blur_padding_bottom}px {$mobile_blur_padding_left}px !important;border-radius: {$mobile_blur_radius}px !important;}";
         } else {
             $css_parts[] = ".bw-custom-header__desktop-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";
             $css_parts[] = ".bw-custom-header__mobile-panel{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:transparent !important;padding:0 !important;margin:0 !important;border-radius:0 !important;}";

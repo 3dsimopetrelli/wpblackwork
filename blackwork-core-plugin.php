@@ -415,6 +415,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/class-bw-redirects.php')) 
     require_once plugin_dir_path(__FILE__) . 'includes/class-bw-redirects.php';
 }
 
+// Duplicate page — adds a "Duplicate" row action to Pages and Posts
+if (is_admin() && file_exists(plugin_dir_path(__FILE__) . 'includes/class-bw-duplicate-page.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/class-bw-duplicate-page.php';
+}
+
 
 // Includi il modulo BW Coming Soon
 if (file_exists(plugin_dir_path(__FILE__) . 'BW_coming_soon/bw-coming-soon.php')) {

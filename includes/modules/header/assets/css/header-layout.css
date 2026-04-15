@@ -337,6 +337,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     .bw-custom-header .bw-navigation__toggle {
         min-width: 30px !important;
         min-height: 30px !important;
+        transform: translateX(-10px);
     }
 
     .bw-custom-header .bw-navshop__cart {
@@ -345,11 +346,13 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         justify-content: center !important;
         min-width: 30px !important;
         min-height: 30px !important;
+        transform: translateX(21px);
     }
 
     .bw-custom-header__mobile-right .bw-header-search .bw-search-button {
         padding: 0 !important;
         margin: 4px 0 0 0 !important;
+        transform: translateX(30px);
     }
 
     .bw-custom-header .bw-search-button__icon {
@@ -397,23 +400,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         line-height: 1 !important;
     }
 
-    @supports selector(:has(*)) {
-        .bw-custom-header__mobile-right {
-            transform: translateX(20px);
-            transition: transform 0.25s ease;
-        }
-
-        .bw-custom-header__mobile-right:has(.bw-navshop__cart-count:not(.is-empty)) {
-            transform: translateX(0);
-        }
-    }
-
-    @supports not selector(:has(*)) {
-        .bw-custom-header__mobile-right {
-            transform: translateX(0);
-            transition: transform 0.25s ease;
-        }
-    }
 
     .bw-custom-header__inner {
         padding: 14px 18px;
@@ -422,6 +408,11 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     .bw-custom-header__mobile-right {
         gap: 14px;
     }
+}
+
+/* Hide the cart badge when the cart is empty (applies to both desktop and mobile). */
+.bw-custom-header .bw-navshop__cart-count.is-empty {
+    display: none !important;
 }
 
 /* =============================================================
