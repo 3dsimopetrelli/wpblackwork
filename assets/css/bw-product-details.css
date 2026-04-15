@@ -54,9 +54,8 @@
     border-bottom: 1px solid #000;
 }
 
-.bw-biblio-table--compatibility .bw-biblio-row--compatibility {
-    grid-template-columns: 1fr;
-    gap: 0;
+.bw-biblio-table--product-details {
+    width: 100%;
 }
 
 .bw-biblio-table--compatibility {
@@ -67,6 +66,8 @@
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility {
+    grid-template-columns: 1fr;
+    gap: 0;
     min-height: auto;
     padding: 12px 0;
     width: 100%;
@@ -89,11 +90,19 @@
     font-weight: 600;
 }
 
-.bw-biblio-widget .bw-biblio-row > .bw-biblio-value,
-.bw-biblio-widget .bw-biblio-table--compatibility .bw-biblio-value--compatibility,
-.bw-biblio-widget .bw-biblio-row--assets .bw-biblio-value--assets-list {
+.bw-biblio-table--product-details .bw-biblio-row > .bw-biblio-value,
+.bw-biblio-table--product-details .bw-biblio-row--assets .bw-biblio-value--assets-list {
+    width: 100%;
+    text-align: right;
+}
+
+.bw-biblio-table--compatibility .bw-biblio-value--compatibility {
     width: 100%;
     text-align: left;
+}
+
+.bw-biblio-table--product-details .bw-biblio-pills {
+    justify-content: flex-end;
 }
 
 /* ========================================
@@ -113,7 +122,7 @@
     text-align: left;
 }
 
-.bw-biblio-widget .bw-biblio-value.bw-biblio-value--assets-list {
+.bw-biblio-table--product-details .bw-biblio-value.bw-biblio-value--assets-list {
     line-height: 1.5;
     white-space: pre-wrap;
     text-align: right;
@@ -163,13 +172,17 @@
         gap: 4px;
     }
 
-    .bw-biblio-value,
-    .bw-biblio-value--assets-list {
+    .bw-biblio-table--product-details .bw-biblio-value,
+    .bw-biblio-table--product-details .bw-biblio-value--assets-list {
+        text-align: right;
+    }
+
+    .bw-biblio-table--compatibility .bw-biblio-value--compatibility {
         text-align: left;
     }
 
-    .bw-biblio-pills {
-        justify-content: flex-start;
+    .bw-biblio-table--product-details .bw-biblio-pills {
+        justify-content: flex-end;
     }
 
     .bw-biblio-table--compatibility {

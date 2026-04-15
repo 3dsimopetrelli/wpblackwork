@@ -504,7 +504,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				echo '<div class="bw-biblio-section-subtitle">' . esc_html( $section['subtitle'] ) . '</div>';
 			}
 
-			echo '<div class="bw-biblio-table">';
+			echo '<div class="bw-biblio-table bw-biblio-table--product-details">';
 
 			if ( 'digital' === $section['id'] ) {
 				$total_assets_row = $this->pull_row_by_meta( $rows, '_digital_total_assets' );
