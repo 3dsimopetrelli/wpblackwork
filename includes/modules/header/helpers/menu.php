@@ -15,8 +15,28 @@ if (!function_exists('bw_header_fix_home_current_class')) {
         if (is_front_page()) {
             return $classes;
         }
-        // Strip current-* classes from any item pointing to the front page URL.
-        if (isset($item->url) && rtrim($item->url, '/') === rtrim(home_url('/'), '/')) {
+
+        $is_home_item = false;
+
+        // Match by URL — normalise protocol so http/https differences are ignored.
+        if (isset($item->url) && $item->url !== '') {
+            $strip_proto = function ($url) {
+                return strtolower(preg_replace('#^https?://#', '//', rtrim($url, '/')));
+            };
+            if ($strip_proto($item->url) === $strip_proto(home_url('/'))) {
+                $is_home_item = true;
+            }
+        }
+
+        // Also match when the item is a page type linked to the static front page.
+        if (!$is_home_item) {
+            $front_page_id = (int) get_option('page_on_front');
+            if ($front_page_id > 0 && isset($item->object_id) && (int) $item->object_id === $front_page_id) {
+                $is_home_item = true;
+            }
+        }
+
+        if ($is_home_item) {
             $classes = array_diff($classes, [
                 'current-menu-item',
                 'current-menu-parent',
@@ -26,6 +46,7 @@ if (!function_exists('bw_header_fix_home_current_class')) {
                 'current_page_ancestor',
             ]);
         }
+
         return array_values($classes);
     }
 }
@@ -52,7 +73,6 @@ if (!function_exists('bw_header_render_menu')) {
         }
 
         add_filter('nav_menu_link_attributes', 'bw_header_filter_nav_link_class', 10, 1);
-        add_filter('nav_menu_css_class', 'bw_header_fix_home_current_class', 10, 4);
         $html = wp_nav_menu([
             'menu' => $menu_id,
             'menu_class' => $menu_class,
@@ -61,7 +81,6 @@ if (!function_exists('bw_header_render_menu')) {
             'echo' => false,
             'depth' => 2,
         ]);
-        remove_filter('nav_menu_css_class', 'bw_header_fix_home_current_class', 10);
         remove_filter('nav_menu_link_attributes', 'bw_header_filter_nav_link_class', 10);
 
         return is_string($html) ? $html : '';
@@ -77,7 +96,6 @@ if (!function_exists('bw_header_render_menu_location')) {
         }
 
         add_filter('nav_menu_link_attributes', 'bw_header_filter_nav_link_class', 10, 1);
-        add_filter('nav_menu_css_class', 'bw_header_fix_home_current_class', 10, 4);
         $html = wp_nav_menu([
             'theme_location' => $theme_location,
             'menu_class' => $menu_class,
@@ -86,7 +104,6 @@ if (!function_exists('bw_header_render_menu_location')) {
             'echo' => false,
             'depth' => 2,
         ]);
-        remove_filter('nav_menu_css_class', 'bw_header_fix_home_current_class', 10);
         remove_filter('nav_menu_link_attributes', 'bw_header_filter_nav_link_class', 10);
 
         return is_string($html) ? $html : '';
