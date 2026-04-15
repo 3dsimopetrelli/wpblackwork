@@ -87,7 +87,6 @@ function bw_mew_initialize_woocommerce_overrides()
     add_filter('body_class', 'bw_mew_add_section_heading_body_classes');
     add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_cart_assets', 20);
-    add_action('wp_enqueue_scripts', 'bw_mew_inject_paypal_sepa_product_sdk_patch', 99);
     add_action('template_redirect', 'bw_mew_prepare_cart_layout', 9);
     add_filter('woocommerce_payment_gateways', 'bw_mew_add_google_pay_gateway');
 }
@@ -1720,102 +1719,6 @@ function bw_mew_hide_paypal_advanced_card_processing($available_gateways)
     }
 
     return $available_gateways;
-}
-
-/**
- * Add SEPA to the PayPal smart-button SDK config on single product pages.
- *
- * The PayPal Payments plugin stores the runtime payload in the
- * `PayPalCommerceGateway` localized object and uses its `url` payload to load
- * the SDK. Patching that object is the cleanest point we found because it
- * stays in the WooCommerce integration layer and targets the exact config
- * consumed by the smart-button runtime.
- *
- * @return void
- */
-function bw_mew_inject_paypal_sepa_product_sdk_patch()
-{
-    if (is_admin() || !function_exists('is_product') || !is_product()) {
-        return;
-    }
-
-    if (!wp_script_is('ppcp-smart-button-js', 'registered') && !wp_script_is('ppcp-smart-button-js', 'enqueued')) {
-        return;
-    }
-
-    $inline_js = <<<'JS'
-(function () {
-    var gateway = window.PayPalCommerceGateway;
-    var urlValue = gateway && (gateway.url || (gateway.button && gateway.button.url));
-    var urlParams = gateway && gateway.url_params;
-
-    if (!urlValue && !urlParams) {
-        return;
-    }
-
-    try {
-        var disabled = [];
-
-        if (urlParams && typeof urlParams === 'object' && urlParams['disable-funding']) {
-            disabled = String(urlParams['disable-funding'])
-                .split(',')
-                .map(function (item) {
-                    return item.trim();
-                })
-                .filter(Boolean);
-        } else if (urlValue) {
-            disabled = (new URL(urlValue, window.location.origin).searchParams.get('disable-funding') || '')
-                .split(',')
-                .map(function (item) {
-                    return item.trim();
-                })
-                .filter(Boolean);
-        }
-
-        if (gateway && Array.isArray(gateway.funding_sources_without_redirect)) {
-            if (gateway.funding_sources_without_redirect.indexOf('sepa') === -1) {
-                gateway.funding_sources_without_redirect.push('sepa');
-            }
-        }
-
-        if (disabled.indexOf('sepa') === -1) {
-            disabled.push('sepa');
-        }
-
-        if (urlParams && typeof urlParams === 'object') {
-            urlParams['disable-funding'] = disabled.join(',');
-        }
-
-        if (!urlValue) {
-            return;
-        }
-
-        var url = new URL(urlValue, window.location.origin);
-        disabled = (url.searchParams.get('disable-funding') || '')
-            .split(',')
-            .map(function (item) {
-                return item.trim();
-            })
-            .filter(Boolean);
-
-        if (disabled.indexOf('sepa') === -1) {
-            disabled.push('sepa');
-        }
-
-        url.searchParams.set('disable-funding', disabled.join(','));
-        gateway.url = url.toString();
-        if (gateway.button && gateway.button.url) {
-            gateway.button.url = url.toString();
-        }
-    } catch (error) {
-        if (window.console && typeof window.console.warn === 'function') {
-            window.console.warn('BW: unable to patch PayPal SEPA funding source.', error);
-        }
-    }
-})();
-JS;
-
-    wp_add_inline_script('ppcp-smart-button-js', $inline_js, 'before');
 }
 
 /**
