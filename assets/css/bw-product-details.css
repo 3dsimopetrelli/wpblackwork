@@ -89,7 +89,7 @@
 .bw-biblio-widget .bw-biblio-table--compatibility .bw-biblio-value--compatibility,
 .bw-biblio-widget .bw-biblio-row--assets .bw-biblio-value--assets-list {
     width: 100%;
-    text-align: left;
+    text-align: right;
 }
 
 /* ========================================
@@ -112,6 +112,7 @@
 .bw-biblio-widget .bw-biblio-value.bw-biblio-value--assets-list {
     line-height: 1.5;
     white-space: pre-wrap;
+    text-align: right;
 }
 
 /* ========================================
@@ -160,11 +161,11 @@
 
     .bw-biblio-value,
     .bw-biblio-value--assets-list {
-        text-align: left;
+        text-align: right;
     }
 
     .bw-biblio-pills {
-        justify-content: flex-start;
+        justify-content: flex-end;
     }
 
     .bw-biblio-table--compatibility {
