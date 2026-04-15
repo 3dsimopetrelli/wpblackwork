@@ -221,7 +221,7 @@
 .bw-slide-showcase-cta {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     margin-left: auto;
 }
 
@@ -266,8 +266,8 @@
     flex-shrink: 0;
     text-decoration: none;
     transition: background 0.3s ease, filter 0.3s ease;
-    width: calc(1rem + 28px);
-    height: calc(1rem + 28px);
+    width: calc(1rem + 22px);
+    height: calc(1rem + 22px);
 }
 
 .bw-slide-showcase-arrow svg {
@@ -357,7 +357,7 @@
     }
 
     .bw-slide-showcase-cta {
-        gap: 10px;
+        gap: 6px;
         margin-left: 0;
     }
 
@@ -368,7 +368,7 @@
     }
 
     .bw-slide-showcase-arrow {
-        width: calc(1rem + 24px);
-        height: calc(1rem + 24px);
+        width: calc(1rem + 22px);
+        height: calc(1rem + 22px);
     }
 }
