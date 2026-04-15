@@ -346,7 +346,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         justify-content: center !important;
         min-width: 30px !important;
         min-height: 30px !important;
-        transform: translateX(10px);
+        transform: translateX(8px);
     }
 
     .bw-custom-header__mobile-right .bw-header-search .bw-search-button {

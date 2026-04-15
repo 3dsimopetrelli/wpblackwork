@@ -165,7 +165,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $menu_blur_padding_left = isset($smart_header['menu_blur_padding_left']) ? max(0, min(200, absint($smart_header['menu_blur_padding_left']))) : 10;
         // Responsive icon spacing and cart badge positioning are intentionally fixed in code.
         $mobile_right_icons_gap = 15;
-        $mobile_cart_badge_offset_x = -5;
+        $mobile_cart_badge_offset_x = -7;
         $mobile_cart_badge_offset_y = 0;
         $desktop_cart_badge_offset_x = 0;
         $desktop_cart_badge_offset_y = 0;
