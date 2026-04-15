@@ -844,7 +844,8 @@
 }
 
 /* Floating cart trigger */
-.bw-cart-floating-trigger {
+body .bw-cart-floating-trigger,
+body.elementor-kit-7 .bw-cart-floating-trigger {
     position: fixed;
     right: 24px;
     bottom: 24px;
@@ -867,8 +868,10 @@
     transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.bw-cart-floating-trigger:hover,
-.bw-cart-floating-trigger:focus-visible {
+body .bw-cart-floating-trigger:hover,
+body .bw-cart-floating-trigger:focus-visible,
+body.elementor-kit-7 .bw-cart-floating-trigger:hover,
+body.elementor-kit-7 .bw-cart-floating-trigger:focus-visible {
     transform: translateY(-2px);
     box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
     background: #f8f8f8 !important;
@@ -876,30 +879,36 @@
     border-color: rgba(17, 17, 17, 0.18) !important;
 }
 
-.bw-cart-floating-trigger.hidden {
+body .bw-cart-floating-trigger.hidden,
+body.elementor-kit-7 .bw-cart-floating-trigger.hidden {
     display: none;
 }
 
-.bw-cart-floating-trigger.is-visible {
+body .bw-cart-floating-trigger.is-visible,
+body.elementor-kit-7 .bw-cart-floating-trigger.is-visible {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
 }
 
-.bw-cart-floating-trigger svg {
+body .bw-cart-floating-trigger svg,
+body.elementor-kit-7 .bw-cart-floating-trigger svg {
     width: 22px;
     height: 22px;
     color: currentColor;
 }
 
-.bw-cart-floating-trigger svg,
-.bw-cart-floating-trigger svg * {
+body .bw-cart-floating-trigger svg,
+body .bw-cart-floating-trigger svg *,
+body.elementor-kit-7 .bw-cart-floating-trigger svg,
+body.elementor-kit-7 .bw-cart-floating-trigger svg * {
     fill: currentColor;
     stroke: currentColor;
 }
 
-.bw-cart-floating-badge {
+body .bw-cart-floating-badge,
+body.elementor-kit-7 .bw-cart-floating-badge {
     position: absolute;
     top: -6px;
     right: -6px;
