@@ -851,10 +851,10 @@
     width: 52px;
     height: 52px;
     border-radius: 14px;
-    background: var(--bw-cart-surface);
-    color: var(--bw-cart-text);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--bw-cart-border);
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(17, 17, 17, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -870,10 +870,10 @@
 .bw-cart-floating-trigger:hover,
 .bw-cart-floating-trigger:focus-visible {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-    background: var(--bw-cart-accent) !important;
-    color: #000000 !important;
-    border-color: var(--bw-cart-accent) !important;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+    background: #f8f8f8 !important;
+    color: #111111 !important;
+    border-color: rgba(17, 17, 17, 0.18) !important;
 }
 
 .bw-cart-floating-trigger.hidden {
