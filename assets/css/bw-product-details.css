@@ -66,16 +66,16 @@
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility {
-    min-height: 100%;
-    padding: 18px 0;
+    min-height: auto;
+    padding: 12px 0;
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(odd) {
-    padding-right: 12px;
+    padding-right: 0;
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(even) {
-    padding-left: 12px;
+    padding-left: 0;
 }
 
 /* ========================================
@@ -160,7 +160,7 @@
 
     .bw-biblio-value,
     .bw-biblio-value--assets-list {
-        text-align: right;
+        text-align: left;
     }
 
     .bw-biblio-pills {
