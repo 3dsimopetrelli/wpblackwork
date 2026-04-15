@@ -337,7 +337,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     .bw-custom-header .bw-navigation__toggle {
         min-width: 30px !important;
         min-height: 30px !important;
-        transform: translateX(-15px);
+        transform: translateX(-12px);
     }
 
     .bw-custom-header .bw-navshop__cart {
