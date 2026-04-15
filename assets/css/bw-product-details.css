@@ -98,7 +98,7 @@
 .bw-biblio-row--assets {
     gap: 12px;
     grid-template-columns: 1fr 3fr;
-    min-height: 100px;
+    min-height: 130px;
     align-items: flex-start;
 }
 
