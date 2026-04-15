@@ -1726,10 +1726,10 @@ function bw_mew_hide_paypal_advanced_card_processing($available_gateways)
  * Add SEPA to the PayPal smart-button SDK config on single product pages.
  *
  * The PayPal Payments plugin stores the runtime payload in the
- * `PayPalCommerceGateway` localized object and uses `button.url` to load the
- * SDK. Patching that object is the cleanest point we found because it stays in
- * the WooCommerce integration layer and targets the exact config consumed by
- * the smart-button runtime.
+ * `PayPalCommerceGateway` localized object and uses its `url` payload to load
+ * the SDK. Patching that object is the cleanest point we found because it
+ * stays in the WooCommerce integration layer and targets the exact config
+ * consumed by the smart-button runtime.
  *
  * @return void
  */
@@ -1746,12 +1746,14 @@ function bw_mew_inject_paypal_sepa_product_sdk_patch()
     $inline_js = <<<'JS'
 (function () {
     var gateway = window.PayPalCommerceGateway;
-    if (!gateway || !gateway.button || !gateway.button.url) {
+    var urlValue = gateway && (gateway.url || (gateway.button && gateway.button.url));
+
+    if (!urlValue) {
         return;
     }
 
     try {
-        var url = new URL(gateway.button.url, window.location.origin);
+        var url = new URL(urlValue, window.location.origin);
         var disabled = (url.searchParams.get('disable-funding') || '')
             .split(',')
             .map(function (item) {
@@ -1764,7 +1766,10 @@ function bw_mew_inject_paypal_sepa_product_sdk_patch()
         }
 
         url.searchParams.set('disable-funding', disabled.join(','));
-        gateway.button.url = url.toString();
+        gateway.url = url.toString();
+        if (gateway.button && gateway.button.url) {
+            gateway.button.url = url.toString();
+        }
     } catch (error) {
         if (window.console && typeof window.console.warn === 'function') {
             window.console.warn('BW: unable to patch PayPal SEPA funding source.', error);
