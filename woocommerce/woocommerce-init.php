@@ -1747,14 +1747,51 @@ function bw_mew_inject_paypal_sepa_product_sdk_patch()
 (function () {
     var gateway = window.PayPalCommerceGateway;
     var urlValue = gateway && (gateway.url || (gateway.button && gateway.button.url));
+    var urlParams = gateway && gateway.url_params;
 
-    if (!urlValue) {
+    if (!urlValue && !urlParams) {
         return;
     }
 
     try {
+        var disabled = [];
+
+        if (urlParams && typeof urlParams === 'object' && urlParams['disable-funding']) {
+            disabled = String(urlParams['disable-funding'])
+                .split(',')
+                .map(function (item) {
+                    return item.trim();
+                })
+                .filter(Boolean);
+        } else if (urlValue) {
+            disabled = (new URL(urlValue, window.location.origin).searchParams.get('disable-funding') || '')
+                .split(',')
+                .map(function (item) {
+                    return item.trim();
+                })
+                .filter(Boolean);
+        }
+
+        if (gateway && Array.isArray(gateway.funding_sources_without_redirect)) {
+            if (gateway.funding_sources_without_redirect.indexOf('sepa') === -1) {
+                gateway.funding_sources_without_redirect.push('sepa');
+            }
+        }
+
+        if (disabled.indexOf('sepa') === -1) {
+            disabled.push('sepa');
+        }
+
+        if (urlParams && typeof urlParams === 'object') {
+            urlParams['disable-funding'] = disabled.join(',');
+        }
+
+        if (!urlValue) {
+            return;
+        }
+
         var url = new URL(urlValue, window.location.origin);
-        var disabled = (url.searchParams.get('disable-funding') || '')
+        disabled = (url.searchParams.get('disable-funding') || '')
             .split(',')
             .map(function (item) {
                 return item.trim();
