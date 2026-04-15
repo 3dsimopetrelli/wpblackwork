@@ -624,6 +624,14 @@
     box-shadow: none;
 }
 
+/* Safety net: never highlight the Home item when we are not on the front page.
+   WordPress body gets class "home" only on the actual front page. */
+body:not(.home) .bw-navigation__mobile .menu-item-home.current-menu-item > .bw-navigation__link {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
 .bw-navigation__mobile .current-menu-parent > .bw-navigation__link,
 .bw-navigation__mobile .current-menu-ancestor > .bw-navigation__link {
     background: transparent;
