@@ -81,6 +81,7 @@ function bw_mew_initialize_woocommerce_overrides()
     add_action('wp_ajax_nopriv_bw_remove_coupon', 'bw_mew_ajax_remove_coupon');
     add_filter('the_title', 'bw_mew_filter_account_page_title', 10, 2);
     add_filter('woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing');
+    add_filter('script_loader_tag', 'bw_mew_disable_paypal_sepa_on_single_product', 20, 3);
     add_filter('wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_elements_styling', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance');
@@ -1719,6 +1720,59 @@ function bw_mew_hide_paypal_advanced_card_processing($available_gateways)
     }
 
     return $available_gateways;
+}
+
+/**
+ * Disable the SEPA funding source on the PayPal JS SDK when rendering the
+ * official product-page PayPal button.
+ *
+ * This keeps the funding policy in the WooCommerce integration layer instead
+ * of the widget layer, while still scoping the change to product pages only.
+ *
+ * @param string $tag    Script tag HTML.
+ * @param string $handle Script handle.
+ * @param string $src    Script source URL.
+ *
+ * @return string
+ */
+function bw_mew_disable_paypal_sepa_on_single_product($tag, $handle, $src)
+{
+    if (is_admin() || !function_exists('is_product') || !is_product()) {
+        return $tag;
+    }
+
+    if (false === strpos((string) $src, 'paypal.com/sdk/js')) {
+        return $tag;
+    }
+
+    $parsed = wp_parse_url((string) $src);
+    if (!is_array($parsed) || empty($parsed['host'])) {
+        return $tag;
+    }
+
+    $host = strtolower((string) $parsed['host']);
+    if (false === strpos($host, 'paypal.com')) {
+        return $tag;
+    }
+
+    $query = [];
+    if (!empty($parsed['query'])) {
+        wp_parse_str((string) $parsed['query'], $query);
+    }
+
+    $existing_disable_funding = [];
+    if (!empty($query['disable-funding'])) {
+        $existing_disable_funding = array_filter(array_map('trim', explode(',', (string) $query['disable-funding'])));
+    }
+
+    if (!in_array('sepa', $existing_disable_funding, true)) {
+        $existing_disable_funding[] = 'sepa';
+    }
+
+    $query['disable-funding'] = implode(',', array_values(array_unique($existing_disable_funding)));
+    $new_src = add_query_arg($query, isset($parsed['scheme']) && isset($parsed['host']) ? $parsed['scheme'] . '://' . $parsed['host'] . (isset($parsed['path']) ? $parsed['path'] : '') : $src);
+
+    return str_replace($src, $new_src, $tag);
 }
 
 /**
