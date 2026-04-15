@@ -563,19 +563,12 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
 
         $assets_display = '';
         if ( '' !== $meta_assets_count ) {
-            $assets_number = absint( $meta_assets_count );
-            if ( $assets_number > 0 ) {
-                $assets_label   = _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' );
-                $assets_display = sprintf( '%d %s', $assets_number, $assets_label );
-            }
+            $assets_display = trim( wp_strip_all_tags( $meta_assets_count ) );
         }
 
         $size_display = '';
         if ( '' !== $meta_size_mb ) {
             $size_display = trim( wp_strip_all_tags( $meta_size_mb ) );
-            if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
-                $size_display .= 'MB';
-            }
         }
 
         $format_badges = [];

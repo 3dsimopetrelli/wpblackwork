@@ -1170,21 +1170,14 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             $formats      = $get_meta( '_bw_formats' );
 
             if ( '' !== $assets_count ) {
-                $assets_number = absint( $assets_count );
-                if ( $assets_number > 0 ) {
-                    $labels[] = sprintf(
-                        '%d %s',
-                        $assets_number,
-                        _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' )
-                    );
+                $assets_display = trim( wp_strip_all_tags( $assets_count ) );
+                if ( '' !== $assets_display ) {
+                    $labels[] = $assets_display;
                 }
             }
 
             if ( '' !== $file_size ) {
                 $size_display = trim( wp_strip_all_tags( $file_size ) );
-                if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
-                    $size_display .= 'MB';
-                }
                 if ( '' !== $size_display ) {
                     $labels[] = $size_display;
                 }
