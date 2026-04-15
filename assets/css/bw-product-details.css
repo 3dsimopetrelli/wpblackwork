@@ -98,18 +98,18 @@
 .bw-biblio-row--assets {
     gap: 12px;
     grid-template-columns: 1fr 3fr;
-    min-height: 150px;
+    min-height: 100px;
     align-items: flex-start;
 }
 
-.bw-biblio-label--assets {
+.bw-biblio-widget .bw-biblio-label.bw-biblio-label--assets {
     font-size: inherit;
-    font-weight: 400;
+    font-weight: 400 !important;
     line-height: 1.2;
     text-align: left;
 }
 
-.bw-biblio-value--assets-list {
+.bw-biblio-widget .bw-biblio-value.bw-biblio-value--assets-list {
     line-height: 1.5;
     white-space: pre-wrap;
 }
