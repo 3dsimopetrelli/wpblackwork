@@ -393,6 +393,10 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         font-variant-numeric: tabular-nums;
     }
 
+    .bw-custom-header .bw-navshop__cart-count.is-empty {
+        display: none !important;
+    }
+
     .bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count {
         transform: translate(-15px, 0px) !important;
         min-width: 1.2em !important;
