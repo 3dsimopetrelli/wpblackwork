@@ -838,6 +838,17 @@
 
             // Mostra stato vuoto
             this.$emptyState.fadeIn(300);
+
+            // Auto-close the panel after 1 second when the cart is empty
+            if (this.isOpen) {
+                var self = this;
+                clearTimeout(this._emptyAutoCloseTimer);
+                this._emptyAutoCloseTimer = setTimeout(function () {
+                    if (self.isOpen && (!self.cartItems || !self.cartItems.length)) {
+                        self.closePanel();
+                    }
+                }, 1000);
+            }
         },
 
         /**
