@@ -514,8 +514,8 @@
     flex: 0 0 auto;
     appearance: none;
     -webkit-appearance: none;
-    background: rgba(255, 255, 255, 0.04);
-    border: 0;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 0 !important;
     border-radius: 999px;
     cursor: pointer;
     padding: 0;
@@ -525,8 +525,8 @@
     align-items: center;
     justify-content: center;
     transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-    box-shadow: none;
-    outline: none;
+    box-shadow: none !important;
+    outline: none !important;
     color: rgba(255, 255, 255, 0.82);
     opacity: 1;
 }
@@ -534,7 +534,7 @@
 .bw-cart-popup-close:hover {
     opacity: 1;
     transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 
