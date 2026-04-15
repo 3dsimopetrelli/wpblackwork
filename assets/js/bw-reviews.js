@@ -714,9 +714,17 @@
 
             this.$root.on('click' + this.namespace, SELECTORS.writeButton, (event) => {
                 event.preventDefault();
-                if (!this.config.canWriteReview || !this.modalController) {
+                const modalController = window.BWReviews && typeof window.BWReviews.ensureModalController === 'function'
+                    ? window.BWReviews.ensureModalController()
+                    : this.modalController;
+
+                if (!this.config.canWriteReview || !modalController) {
                     return;
                 }
+
+                this.modalController = modalController;
+                window.BWReviews.closeAllSortMenus();
+                window.BWReviews.closeAllBreakdowns();
 
                 if (this.state.ownedReviewId && this.config.canEditOwnReview) {
                     this.openEditModal(this.state.ownedReviewId, $(event.currentTarget));
@@ -1140,9 +1148,15 @@
         }
 
         openEditModal(reviewId, $trigger) {
-            if (!reviewId || !this.config.canEditOwnReview) {
+            const modalController = window.BWReviews && typeof window.BWReviews.ensureModalController === 'function'
+                ? window.BWReviews.ensureModalController()
+                : this.modalController;
+
+            if (!reviewId || !this.config.canEditOwnReview || !modalController) {
                 return;
             }
+
+            this.modalController = modalController;
 
             $trigger = $trigger && $trigger.jquery ? $trigger : $();
 
@@ -1265,6 +1279,15 @@
     BWReviews.modalController = BWReviews.modalController instanceof ModalController ? BWReviews.modalController : new ModalController();
     BWReviews.globalEventsBound = !!BWReviews.globalEventsBound;
     BWReviews.confirmationHandled = !!BWReviews.confirmationHandled;
+
+    BWReviews.ensureModalController = function () {
+        // The review modal is a shared singleton, so refresh the controller if a partial reload left it stale.
+        if (!this.modalController || !this.modalController.isAvailable()) {
+            this.modalController = new ModalController();
+        }
+
+        return this.modalController && this.modalController.isAvailable() ? this.modalController : null;
+    };
 
     BWReviews.closeAllSortMenus = function (exceptInstanceId) {
         this.registry.forEach((controller, instanceId) => {
@@ -1393,7 +1416,9 @@
             window.history.replaceState({}, document.title, nextUrl);
         }
 
-        if (!stringKey || !firstWidget || !this.modalController || !this.modalController.isAvailable()) {
+        const modalController = this.ensureModalController();
+
+        if (!stringKey || !firstWidget || !modalController) {
             this.confirmationHandled = true;
             return;
         }
@@ -1406,7 +1431,7 @@
 
         firstWidget.scrollIntoView();
         window.setTimeout(() => {
-            this.modalController.openConfirmation(firstWidget, message);
+            modalController.openConfirmation(firstWidget, message);
         }, 180);
 
         this.confirmationHandled = true;
@@ -1415,9 +1440,7 @@
     BWReviews.boot = function (scope) {
         const $scope = scope && scope.jquery ? scope : $(scope || document);
 
-        if (!this.modalController || !this.modalController.isAvailable()) {
-            this.modalController = new ModalController();
-        }
+        this.ensureModalController();
 
         this.bindGlobalEvents();
 
