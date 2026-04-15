@@ -124,8 +124,8 @@
 .bw-biblio-table--product-details .bw-biblio-value.bw-biblio-value--assets-list {
     line-height: 1.5;
     white-space: pre-wrap;
-    text-align: right !important;
-    justify-self: end;
+    text-align: left !important;
+    justify-self: start;
 }
 
 /* ========================================
@@ -178,8 +178,8 @@
     }
 
     .bw-biblio-table--product-details .bw-biblio-value--assets-list {
-        text-align: right !important;
-        justify-self: end;
+        text-align: left !important;
+        justify-self: start;
     }
 
     .bw-biblio-table--compatibility .bw-biblio-value--compatibility {
