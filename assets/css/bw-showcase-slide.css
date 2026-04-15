@@ -177,7 +177,7 @@
 .bw-showcase-slide-cta {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     margin-left: auto;
     flex-shrink: 0;
 }
@@ -191,8 +191,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     border-radius: 999px;
     background: #80fd03;
     border: 1px solid #000000;
@@ -203,8 +203,8 @@
 
 .bw-showcase-slide-arrow svg {
     display: block;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     transform: translateX(1px);
 }
 
@@ -484,8 +484,8 @@
     }
 
     .bw-showcase-slide-arrow {
-        width: 40px;
-        height: 40px;
+        width: 35px;
+        height: 35px;
     }
 
     .bw-showcase-slide-arrow span {
