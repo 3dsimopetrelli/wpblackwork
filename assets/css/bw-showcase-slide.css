@@ -173,6 +173,11 @@
     letter-spacing: 0.02em;
 }
 
+.bw-showcase-slide-badge--slide-based {
+    border: 0;
+    font-weight: 500;
+}
+
 .bw-showcase-slide-cta {
     display: inline-flex;
     align-items: center;

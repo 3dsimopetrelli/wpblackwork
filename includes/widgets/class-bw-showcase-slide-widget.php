@@ -1067,8 +1067,14 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                             <?php endif; ?>
                         <?php elseif ( ! empty( $slide['labels'] ) ) : ?>
                             <div class="bw-showcase-slide-labels">
-                                <?php foreach ( $slide['labels'] as $label ) : ?>
-                                    <span class="bw-showcase-slide-badge"><?php echo esc_html( $label ); ?></span>
+                                <?php foreach ( $slide['labels'] as $index => $label ) : ?>
+                                    <?php
+                                    $badge_classes = [ 'bw-showcase-slide-badge' ];
+                                    if ( $index < 2 ) {
+                                        $badge_classes[] = 'bw-showcase-slide-badge--slide-based';
+                                    }
+                                    ?>
+                                    <span class="<?php echo esc_attr( implode( ' ', $badge_classes ) ); ?>"><?php echo esc_html( $label ); ?></span>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
