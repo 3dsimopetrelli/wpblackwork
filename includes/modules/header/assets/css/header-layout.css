@@ -352,6 +352,7 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
     .bw-custom-header__mobile-right .bw-header-search .bw-search-button {
         padding: 0 !important;
         margin: 4px 0 0 0 !important;
+        transform: translateX(10px);
     }
 
     .bw-custom-header .bw-search-button__icon {
