@@ -81,13 +81,13 @@ function bw_mew_initialize_woocommerce_overrides()
     add_action('wp_ajax_nopriv_bw_remove_coupon', 'bw_mew_ajax_remove_coupon');
     add_filter('the_title', 'bw_mew_filter_account_page_title', 10, 2);
     add_filter('woocommerce_available_payment_gateways', 'bw_mew_hide_paypal_advanced_card_processing');
-    add_filter('script_loader_tag', 'bw_mew_disable_paypal_sepa_on_single_product', 20, 3);
     add_filter('wc_stripe_elements_options', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_elements_styling', 'bw_mew_customize_stripe_elements_style');
     add_filter('wc_stripe_upe_params', 'bw_mew_customize_stripe_upe_appearance');
     add_filter('body_class', 'bw_mew_add_section_heading_body_classes');
     add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_address_section_heading', 5);
     add_action('wp_enqueue_scripts', 'bw_mew_enqueue_cart_assets', 20);
+    add_action('wp_enqueue_scripts', 'bw_mew_inject_paypal_sepa_product_sdk_patch', 99);
     add_action('template_redirect', 'bw_mew_prepare_cart_layout', 9);
     add_filter('woocommerce_payment_gateways', 'bw_mew_add_google_pay_gateway');
 }
@@ -1723,56 +1723,57 @@ function bw_mew_hide_paypal_advanced_card_processing($available_gateways)
 }
 
 /**
- * Disable the SEPA funding source on the PayPal JS SDK when rendering the
- * official product-page PayPal button.
+ * Add SEPA to the PayPal smart-button SDK config on single product pages.
  *
- * This keeps the funding policy in the WooCommerce integration layer instead
- * of the widget layer, while still scoping the change to product pages only.
+ * The PayPal Payments plugin stores the runtime payload in the
+ * `PayPalCommerceGateway` localized object and uses `button.url` to load the
+ * SDK. Patching that object is the cleanest point we found because it stays in
+ * the WooCommerce integration layer and targets the exact config consumed by
+ * the smart-button runtime.
  *
- * @param string $tag    Script tag HTML.
- * @param string $handle Script handle.
- * @param string $src    Script source URL.
- *
- * @return string
+ * @return void
  */
-function bw_mew_disable_paypal_sepa_on_single_product($tag, $handle, $src)
+function bw_mew_inject_paypal_sepa_product_sdk_patch()
 {
     if (is_admin() || !function_exists('is_product') || !is_product()) {
-        return $tag;
+        return;
     }
 
-    if (false === strpos((string) $src, 'paypal.com/sdk/js')) {
-        return $tag;
+    if (!wp_script_is('ppcp-smart-button-js', 'registered') && !wp_script_is('ppcp-smart-button-js', 'enqueued')) {
+        return;
     }
 
-    $parsed = wp_parse_url((string) $src);
-    if (!is_array($parsed) || empty($parsed['host'])) {
-        return $tag;
+    $inline_js = <<<'JS'
+(function () {
+    var gateway = window.PayPalCommerceGateway;
+    if (!gateway || !gateway.button || !gateway.button.url) {
+        return;
     }
 
-    $host = strtolower((string) $parsed['host']);
-    if (false === strpos($host, 'paypal.com')) {
-        return $tag;
+    try {
+        var url = new URL(gateway.button.url, window.location.origin);
+        var disabled = (url.searchParams.get('disable-funding') || '')
+            .split(',')
+            .map(function (item) {
+                return item.trim();
+            })
+            .filter(Boolean);
+
+        if (disabled.indexOf('sepa') === -1) {
+            disabled.push('sepa');
+        }
+
+        url.searchParams.set('disable-funding', disabled.join(','));
+        gateway.button.url = url.toString();
+    } catch (error) {
+        if (window.console && typeof window.console.warn === 'function') {
+            window.console.warn('BW: unable to patch PayPal SEPA funding source.', error);
+        }
     }
+})();
+JS;
 
-    $query = [];
-    if (!empty($parsed['query'])) {
-        wp_parse_str((string) $parsed['query'], $query);
-    }
-
-    $existing_disable_funding = [];
-    if (!empty($query['disable-funding'])) {
-        $existing_disable_funding = array_filter(array_map('trim', explode(',', (string) $query['disable-funding'])));
-    }
-
-    if (!in_array('sepa', $existing_disable_funding, true)) {
-        $existing_disable_funding[] = 'sepa';
-    }
-
-    $query['disable-funding'] = implode(',', array_values(array_unique($existing_disable_funding)));
-    $new_src = add_query_arg($query, isset($parsed['scheme']) && isset($parsed['host']) ? $parsed['scheme'] . '://' . $parsed['host'] . (isset($parsed['path']) ? $parsed['path'] : '') : $src);
-
-    return str_replace($src, $new_src, $tag);
+    wp_add_inline_script('ppcp-smart-button-js', $inline_js, 'before');
 }
 
 /**

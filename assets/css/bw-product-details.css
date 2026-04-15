@@ -86,7 +86,7 @@
 }
 
 .bw-biblio-value {
-    text-align: right;
+    text-align: left;
 }
 
 .bw-biblio-value--compatibility {
@@ -121,7 +121,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .bw-biblio-pill {
