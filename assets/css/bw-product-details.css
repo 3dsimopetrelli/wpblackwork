@@ -101,8 +101,8 @@
 }
 
 .bw-biblio-label--assets {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: inherit;
+    font-weight: 600;
     line-height: 1.2;
     text-align: left;
 }
@@ -158,7 +158,7 @@
 
     .bw-biblio-value,
     .bw-biblio-value--assets-list {
-        text-align: left;
+        text-align: right;
     }
 
     .bw-biblio-pills {
