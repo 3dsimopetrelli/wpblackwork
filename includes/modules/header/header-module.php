@@ -25,3 +25,7 @@ if (!function_exists('bw_header_register_nav_menus')) {
     }
 }
 add_action('after_setup_theme', 'bw_header_register_nav_menus');
+
+// Register the home-item current-class fix globally so it applies to every
+// wp_nav_menu() call regardless of which render helper is used.
+add_filter('nav_menu_css_class', 'bw_header_fix_home_current_class', 10, 4);
