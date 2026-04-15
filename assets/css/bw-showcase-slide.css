@@ -218,8 +218,8 @@
     background: #80fd03;
     border: 1px solid #000000;
     color: #000000;
-    font-size: 20px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 400;
     line-height: 1;
     white-space: nowrap;
     transition: transform 0.28s ease, filter 0.28s ease, background 0.28s ease;
@@ -480,6 +480,7 @@
         min-height: 0;
         padding: 10px;
         font-size: 16px;
+        font-weight: 400;
     }
 
     .bw-showcase-slide-arrow {
