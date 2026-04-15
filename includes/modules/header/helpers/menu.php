@@ -12,17 +12,14 @@ if (!defined('ABSPATH')) {
 if (!function_exists('bw_header_fix_home_current_class')) {
     function bw_header_fix_home_current_class($classes, $item, $args, $depth)
     {
-        if (is_front_page()) {
-            return $classes;
-        }
+        $strip_proto = function ($url) {
+            return strtolower(preg_replace('#^https?://#', '//', rtrim($url, '/')));
+        };
 
         $is_home_item = false;
 
         // Match by URL — normalise protocol so http/https differences are ignored.
         if (isset($item->url) && $item->url !== '') {
-            $strip_proto = function ($url) {
-                return strtolower(preg_replace('#^https?://#', '//', rtrim($url, '/')));
-            };
             if ($strip_proto($item->url) === $strip_proto(home_url('/'))) {
                 $is_home_item = true;
             }
@@ -36,16 +33,32 @@ if (!function_exists('bw_header_fix_home_current_class')) {
             }
         }
 
-        if ($is_home_item) {
-            $classes = array_diff($classes, [
-                'current-menu-item',
-                'current-menu-parent',
-                'current-menu-ancestor',
-                'current_page_item',
-                'current_page_parent',
-                'current_page_ancestor',
-            ]);
+        if (!$is_home_item) {
+            return $classes;
         }
+
+        // This IS the home menu item. Confirm whether we are really on the front
+        // page using direct query checks instead of is_front_page(), which
+        // WooCommerce can corrupt on product/archive pages causing Home to stay
+        // highlighted when it should not.
+        $front_page_id = (int) get_option('page_on_front');
+        $actually_on_front = ($front_page_id > 0)
+            ? is_page($front_page_id)      // Static front page
+            : (is_home() && !is_paged()); // Blog as front page
+
+        if ($actually_on_front) {
+            return $classes;
+        }
+
+        // Not on the front page — strip all current-* classes from the Home item.
+        $classes = array_diff($classes, [
+            'current-menu-item',
+            'current-menu-parent',
+            'current-menu-ancestor',
+            'current_page_item',
+            'current_page_parent',
+            'current_page_ancestor',
+        ]);
 
         return array_values($classes);
     }
