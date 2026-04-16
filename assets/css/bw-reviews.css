@@ -917,7 +917,7 @@
     justify-content: center !important;
     width: 56px !important;
     height: 56px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 0 !important;
     border-radius: 999px !important;
     background: rgba(255, 255, 255, 0.04) !important;
     color: transparent !important;
@@ -940,7 +940,6 @@
 .bw-reviews-modal__close:hover,
 .bw-reviews-modal__close:focus-visible {
     background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -1517,18 +1516,13 @@ body.bw-reviews-modal-open {
     }
 
     .bw-reviews-modal__inner {
-<<<<<<< HEAD
         gap: 18px !important;
         min-height: 100dvh !important;
         padding: calc(68px + env(safe-area-inset-top, 0px)) 16px calc(22px + env(safe-area-inset-bottom, 0px)) !important;
-=======
-        gap: 20px !important;
-        padding: 72px 18px 0 !important;
     }
 
     .bw-reviews-modal__steps {
         min-height: 0 !important;
->>>>>>> 5533c89427a00222ba45a2f03c540e36955deffd
     }
 
     .bw-reviews-modal__close {
@@ -1609,21 +1603,35 @@ body.bw-reviews-modal-open {
         bottom: 0 !important;
         z-index: 1 !important;
         grid-template-columns: 1fr !important;
-<<<<<<< HEAD
         gap: 14px !important;
-        padding-top: 2px !important;
-=======
-        gap: 16px !important;
-        background: var(--bw-reviews-modal-bg) !important;
-        padding-top: 12px !important;
-        padding-bottom: max(22px, env(safe-area-inset-bottom)) !important;
->>>>>>> 5533c89427a00222ba45a2f03c540e36955deffd
+        margin: 0 -16px calc(-22px - env(safe-area-inset-bottom, 0px)) !important;
+        padding: 14px 16px calc(22px + env(safe-area-inset-bottom, 0px)) !important;
+        background: rgba(24, 24, 27, 0.96) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 0 !important;
     }
 
     .bw-reviews-modal__back,
     .bw-reviews-modal__actions,
     .bw-reviews-modal__button {
         width: 100% !important;
+    }
+
+    .bw-reviews-modal__back {
+        justify-content: center !important;
+        min-height: 56px !important;
+        padding: 0 18px !important;
+        border-radius: 999px !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: var(--bw-reviews-modal-text) !important;
+        font-size: 16px !important;
+    }
+
+    .bw-reviews-modal__back:hover,
+    .bw-reviews-modal__back:focus-visible {
+        background: rgba(255, 255, 255, 0.12) !important;
+        color: var(--bw-reviews-modal-text) !important;
+        transform: none !important;
     }
 
     .bw-reviews-modal__actions {
