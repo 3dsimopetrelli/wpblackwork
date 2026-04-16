@@ -1602,7 +1602,11 @@ body.bw-reviews-modal-open {
         position: sticky !important;
         bottom: 0 !important;
         z-index: 1 !important;
-        grid-template-columns: 1fr !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        grid-template-areas:
+            "progress progress"
+            "back actions" !important;
+        align-items: center !important;
         gap: 14px !important;
         margin: 0 -16px calc(-22px - env(safe-area-inset-bottom, 0px)) !important;
         padding: 14px 16px calc(22px + env(safe-area-inset-bottom, 0px)) !important;
@@ -1618,6 +1622,7 @@ body.bw-reviews-modal-open {
     }
 
     .bw-reviews-modal__back {
+        grid-area: back !important;
         justify-content: center !important;
         min-height: 56px !important;
         padding: 0 18px !important;
@@ -1635,6 +1640,7 @@ body.bw-reviews-modal-open {
     }
 
     .bw-reviews-modal__actions {
+        grid-area: actions !important;
         display: grid !important;
         width: 100% !important;
     }
@@ -1647,9 +1653,9 @@ body.bw-reviews-modal-open {
     }
 
     .bw-reviews-modal__progress-bars {
+        grid-area: progress !important;
         width: 100% !important;
         gap: 8px !important;
-        order: 2 !important;
     }
 
     .bw-reviews-modal__progress-bars span {
@@ -1658,7 +1664,4 @@ body.bw-reviews-modal-open {
         min-width: 0 !important;
     }
 
-    .bw-reviews-modal__actions {
-        order: 3 !important;
-    }
 }
