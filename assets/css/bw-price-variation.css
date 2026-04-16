@@ -314,6 +314,7 @@
 	.bw-price-variation__variation-button {
 		font-size: 14px;
 		padding: 10px 20px;
+		min-width: 120px;
 	}
 
 	.bw-price-variation__license-box p {
@@ -347,6 +348,7 @@
 	.bw-price-variation__variation-button {
 		font-size: 13px;
 		padding: 8px 16px;
+		min-width: 120px;
 	}
 
 	.bw-price-variation__license-box {
