@@ -501,20 +501,25 @@
 
 .elementor-widget-bw-reviews .bw-reviews-grid,
 .bw-reviews-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 22px !important;
-    align-items: start !important;
+    columns: 2 !important;
+    column-gap: 22px !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-card,
 .bw-reviews-card {
     display: grid !important;
     gap: 14px !important;
+    break-inside: avoid !important;
     min-height: 0 !important;
     padding: 20px !important;
+    margin-bottom: 22px !important;
     border-radius: 8px !important;
     background: var(--bw-reviews-surface) !important;
+}
+
+.elementor-widget-bw-reviews .bw-reviews-card:last-child,
+.bw-reviews-card:last-child {
+    margin-bottom: 0 !important;
 }
 
 .elementor-widget-bw-reviews .bw-reviews-card.is-reveal-pending,
@@ -1387,11 +1392,6 @@ body.bw-reviews-modal-open {
         justify-content: space-between !important;
     }
 
-    .elementor-widget-bw-reviews .bw-reviews-grid,
-    .bw-reviews-grid {
-        grid-template-columns: 1fr 1fr !important;
-    }
-
     .bw-reviews-modal__dialog {
         padding: 24px !important;
     }
@@ -1483,14 +1483,15 @@ body.bw-reviews-modal-open {
 
     .elementor-widget-bw-reviews .bw-reviews-grid,
     .bw-reviews-grid {
-        grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        columns: 1 !important;
+        column-gap: 0 !important;
     }
 
     .elementor-widget-bw-reviews .bw-reviews-card,
     .bw-reviews-card {
         min-height: 0 !important;
         padding: 22px !important;
+        margin-bottom: 16px !important;
     }
 
     .elementor-widget-bw-reviews .bw-reviews-card__header,
