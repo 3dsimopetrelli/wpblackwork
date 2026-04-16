@@ -111,7 +111,41 @@
 
     class ModalController {
         constructor() {
+            this.$root = $();
+            this.$dialog = $();
+            this.$title = $();
+            this.$subtitle = $();
+            this.$progress = $();
+            this.$progressBars = $();
+            this.$message = $();
+            this.$back = $();
+            this.$next = $();
+            this.$submit = $();
+            this.$finish = $();
+            this.$steps = $();
+            this.$doneTitle = $();
+            this.$doneMessage = $();
+            this.$guestIdentity = $();
+            this.$userIdentity = $();
+            this.$userName = $();
+            this.$userEmail = $();
+            this.currentWidget = null;
+            this.closeTimer = null;
+            this.state = this.getDefaultState();
+            this.bound = false;
+            this.initFromDom();
+        }
+
+        initFromDom() {
+            if (this.$root.length) {
+                return true;
+            }
+
             this.$root = $(SELECTORS.modal).first();
+            if (!this.$root.length) {
+                return false;
+            }
+
             this.$dialog = this.$root.find(SELECTORS.modalDialog);
             this.$title = this.$root.find(SELECTORS.modalTitle);
             this.$subtitle = this.$root.find(SELECTORS.modalSubtitle);
@@ -129,15 +163,9 @@
             this.$userIdentity = this.$root.find(SELECTORS.modalUserIdentity);
             this.$userName = this.$root.find(SELECTORS.modalUserName);
             this.$userEmail = this.$root.find(SELECTORS.modalUserEmail);
-            this.currentWidget = null;
-            this.closeTimer = null;
-            this.state = this.getDefaultState();
-            this.bound = false;
-
-            if (this.$root.length) {
-                $('body').append(this.$root);
-                this.bind();
-            }
+            $('body').append(this.$root);
+            this.bind();
+            return true;
         }
 
         getDefaultState() {
@@ -159,7 +187,10 @@
         }
 
         isAvailable() {
-            return this.$root.length > 0;
+            if (this.$root.length > 0) {
+                return true;
+            }
+            return this.initFromDom();
         }
 
         isOpen() {
