@@ -330,8 +330,10 @@
 
     .bw-slide-showcase-content {
         top: var(--bw-static-showcase-content-top, 30px);
-        left: var(--bw-static-showcase-content-left, 20px);
-        right: var(--bw-static-showcase-content-right, 20px);
+        left: 0;
+        right: 0;
+        padding-left: var(--bw-static-showcase-content-left, 20px);
+        padding-right: var(--bw-static-showcase-content-right, 20px);
         max-width: none;
     }
 
@@ -344,9 +346,11 @@
     }
 
     .bw-slide-showcase-bottom-section {
-        left: var(--bw-static-showcase-content-left, 20px);
-        right: var(--bw-static-showcase-content-right, 20px);
+        left: 0;
+        right: 0;
         bottom: var(--bw-static-showcase-content-bottom, 20px);
+        padding-left: var(--bw-static-showcase-content-left, 20px);
+        padding-right: var(--bw-static-showcase-content-right, 20px);
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;

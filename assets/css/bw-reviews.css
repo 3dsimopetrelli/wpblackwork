@@ -1642,10 +1642,13 @@ body.bw-reviews-modal-open {
     .bw-reviews-modal__actions {
         grid-area: actions !important;
         display: grid !important;
+        grid-template-columns: 1fr !important;
         width: 100% !important;
     }
 
     .bw-reviews-modal__button {
+        width: 100% !important;
+        justify-self: stretch !important;
         min-width: 0 !important;
         min-height: 56px !important;
         padding: 0 18px !important;
