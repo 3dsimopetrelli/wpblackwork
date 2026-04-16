@@ -332,9 +332,11 @@
         top: var(--bw-static-showcase-content-top, 30px);
         left: 0;
         right: 0;
+        width: 100%;
         padding-left: var(--bw-static-showcase-content-left, 20px);
         padding-right: var(--bw-static-showcase-content-right, 20px);
         max-width: none;
+        box-sizing: border-box;
     }
 
     .bw-slide-showcase-content .bw-title {
@@ -349,11 +351,13 @@
         left: 0;
         right: 0;
         bottom: var(--bw-static-showcase-content-bottom, 20px);
+        width: 100%;
         padding-left: var(--bw-static-showcase-content-left, 20px);
         padding-right: var(--bw-static-showcase-content-right, 20px);
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
+        box-sizing: border-box;
     }
 
     .bw-slide-showcase-info {
