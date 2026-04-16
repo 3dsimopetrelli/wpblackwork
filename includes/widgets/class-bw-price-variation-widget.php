@@ -81,12 +81,11 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		$this->add_control(
 			'product_id',
 			[
-				'label'       => __( 'Product', 'bw' ),
-				'type'        => Controls_Manager::SELECT2,
+				'label'       => __( 'Product ID', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
 				'default'     => '',
-				'options'     => class_exists( 'BW_Widget_Helper' ) ? BW_Widget_Helper::get_product_options( 200 ) : [],
-				'placeholder' => __( 'Use current product', 'bw' ),
-				'description' => __( 'Choose a product to preview in the editor. Leave empty to use the current single product.', 'bw' ),
+				'placeholder' => __( 'Leave empty to use current product', 'bw' ),
+				'description' => __( 'Enter a product ID. Leave empty to automatically use the current product on single product pages.', 'bw' ),
 				'label_block' => true,
 			]
 		);
