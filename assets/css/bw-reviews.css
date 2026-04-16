@@ -863,12 +863,12 @@
     position: relative !important;
     width: min(100%, 1040px) !important;
     max-height: calc(100vh - 64px) !important;
-    overflow: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
     border-radius: 28px !important;
     background: var(--bw-reviews-modal-bg) !important;
     border: 1px solid var(--bw-reviews-modal-border) !important;
     box-shadow: var(--bw-reviews-modal-shadow) !important;
-    overflow: hidden !important;
 }
 
 .bw-reviews-modal__dialog-scroll::before {
@@ -1516,9 +1516,18 @@ body.bw-reviews-modal-open {
     }
 
     .bw-reviews-modal__inner {
+<<<<<<< HEAD
         gap: 18px !important;
         min-height: 100dvh !important;
         padding: calc(68px + env(safe-area-inset-top, 0px)) 16px calc(22px + env(safe-area-inset-bottom, 0px)) !important;
+=======
+        gap: 20px !important;
+        padding: 72px 18px 0 !important;
+    }
+
+    .bw-reviews-modal__steps {
+        min-height: 0 !important;
+>>>>>>> 5533c89427a00222ba45a2f03c540e36955deffd
     }
 
     .bw-reviews-modal__close {
@@ -1595,9 +1604,19 @@ body.bw-reviews-modal-open {
     }
 
     .bw-reviews-modal__footer {
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 1 !important;
         grid-template-columns: 1fr !important;
+<<<<<<< HEAD
         gap: 14px !important;
         padding-top: 2px !important;
+=======
+        gap: 16px !important;
+        background: var(--bw-reviews-modal-bg) !important;
+        padding-top: 12px !important;
+        padding-bottom: max(22px, env(safe-area-inset-bottom)) !important;
+>>>>>>> 5533c89427a00222ba45a2f03c540e36955deffd
     }
 
     .bw-reviews-modal__back,
