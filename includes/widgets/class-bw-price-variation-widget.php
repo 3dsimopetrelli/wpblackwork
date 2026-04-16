@@ -1165,6 +1165,9 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         ? $settings['add_to_cart_button_text']
                         : __( 'Add to Cart', 'bw' );
                 $show_more_payment_options = isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'];
+                $show_paypal_button = $show_more_payment_options
+                        && ( $settings['show_paypal_button'] ?? '' ) === 'yes'
+                        && $this->should_render_paypal_product_button();
 
                 $add_to_cart_url = add_query_arg(
                         [
@@ -1235,6 +1238,15 @@ class BW_Price_Variation_Widget extends Widget_Base {
                                                 <?php echo esc_html( $button_text ); ?>
                                         </a>
                                 </div>
+
+                                <?php if ( $show_paypal_button ) : ?>
+                                        <div class="bw-price-variation__paypal-button-wrapper">
+                                                <div class="ppc-button-wrapper">
+                                                        <div id="ppc-button-ppcp-gateway"></div>
+                                                        <?php do_action( 'woocommerce_paypal_payments_single_product_button_render' ); ?>
+                                                </div>
+                                        </div>
+                                <?php endif; ?>
 
                                 <?php if ( $show_more_payment_options ) : ?>
                                         <div class="bw-price-variation__payment-options-wrapper">
