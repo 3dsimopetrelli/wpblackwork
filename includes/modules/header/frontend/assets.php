@@ -254,7 +254,7 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $css_parts[] = ".bw-custom-header .bw-navshop--hide-account-mobile .bw-navshop__account{display:none;}";
         $css_parts[] = ".bw-custom-header .bw-navshop__cart-label{display:none;}";
         $css_parts[] = ".bw-custom-header .bw-navshop__cart-icon{display:inline-flex;}";
-        $css_parts[] = ".bw-custom-header .bw-search-button{display:inline-flex !important;background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important;min-width:auto !important;min-height:auto !important;}";
+        $css_parts[] = ".bw-custom-header .bw-search-button{display:inline-flex !important;background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important;}";
         $css_parts[] = ".bw-custom-header .bw-search-button__label{display:none;}";
         $css_parts[] = ".bw-custom-header .bw-search-button__icon{display:inline-flex;background:transparent !important;border:none !important;border-radius:0 !important;padding:0 !important;}";
         $css_parts[] = ".bw-custom-header__mobile-right{gap: {$mobile_right_icons_gap}px !important;}";
