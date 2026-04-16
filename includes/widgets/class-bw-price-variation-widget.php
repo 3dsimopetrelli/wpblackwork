@@ -1210,58 +1210,72 @@ class BW_Price_Variation_Widget extends Widget_Base {
                         data-product-url="<?php echo esc_url( $product_url ); ?>"
                         data-checkout-url="<?php echo esc_url( wc_get_checkout_url() ); ?>"
                 >
-                        <div class="bw-price-variation__price-wrapper">
-                                <span
-                                        class="bw-price-variation__price"
-                                        data-default-price="<?php echo esc_attr( $default_price_value ); ?>"
-                                        data-default-price-html="<?php echo esc_attr( $default_price_html_raw ); ?>"
-                                >
+                        <form
+                                class="cart bw-price-variation__cart-form"
+                                method="post"
+                                action="<?php echo esc_url( $product_url ); ?>"
+                                data-product_id="<?php echo esc_attr( $product_id ); ?>"
+                        >
+                                <span class="bw-price-variation__paypal-price-mirror" aria-hidden="true">
                                         <?php echo $default_price_html_raw; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </span>
-                        </div>
+                                <input type="hidden" name="add-to-cart" value="<?php echo esc_attr( $product_id ); ?>" />
+                                <input type="hidden" name="product_id" value="<?php echo esc_attr( $product_id ); ?>" />
+                                <input type="hidden" name="quantity" value="1" />
 
-                        <?php if ( '' !== $reviews_summary_html ) : ?>
-                                <?php echo $reviews_summary_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                        <?php endif; ?>
-
-                        <?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
-                                <div class="bw-add-to-cart-wrapper">
-                                        <a
-                                                href="<?php echo esc_url( $add_to_cart_url ); ?>"
-                                                data-quantity="1"
-                                                data-product_id="<?php echo esc_attr( $product_id ); ?>"
-                                                data-product_sku="<?php echo esc_attr( $product_sku ); ?>"
-                                                rel="nofollow"
-                                                class="<?php echo esc_attr( implode( ' ', array_filter( $classes ) ) ); ?>"
-                                                <?php echo $is_disabled ? 'aria-disabled="true"' : ''; ?>
+                                <div class="bw-price-variation__price-wrapper">
+                                        <span
+                                                class="bw-price-variation__price"
+                                                data-default-price="<?php echo esc_attr( $default_price_value ); ?>"
+                                                data-default-price-html="<?php echo esc_attr( $default_price_html_raw ); ?>"
                                         >
-                                                <?php echo esc_html( $button_text ); ?>
-                                        </a>
+                                                <?php echo $default_price_html_raw; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                        </span>
                                 </div>
 
-                                <?php if ( $show_paypal_button ) : ?>
-                                        <div class="bw-price-variation__paypal-button-wrapper">
-                                                <div class="ppc-button-wrapper">
-                                                        <div id="ppc-button-ppcp-gateway"></div>
-                                                        <?php do_action( 'woocommerce_paypal_payments_single_product_button_render' ); ?>
-                                                </div>
-                                        </div>
+                                <?php if ( '' !== $reviews_summary_html ) : ?>
+                                        <?php echo $reviews_summary_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 <?php endif; ?>
 
-                                <?php if ( $show_more_payment_options ) : ?>
-                                        <div class="bw-price-variation__payment-options-wrapper">
+                                <?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
+                                        <div class="bw-add-to-cart-wrapper">
                                                 <a
-                                                        class="<?php echo esc_attr( 'bw-price-variation__payment-options' . ( $is_disabled ? ' is-disabled' : '' ) ); ?>"
-                                                        href="<?php echo esc_url( $checkout_url ); ?>"
-                                                        data-product_id="<?php echo esc_attr( $product_id ); ?>"
+                                                        href="<?php echo esc_url( $add_to_cart_url ); ?>"
                                                         data-quantity="1"
+                                                        data-product_id="<?php echo esc_attr( $product_id ); ?>"
+                                                        data-product_sku="<?php echo esc_attr( $product_sku ); ?>"
+                                                        rel="nofollow"
+                                                        class="<?php echo esc_attr( implode( ' ', array_filter( $classes ) ) ); ?>"
                                                         <?php echo $is_disabled ? 'aria-disabled="true"' : ''; ?>
                                                 >
-                                                        <?php esc_html_e( 'More payment options', 'bw' ); ?>
+                                                        <?php echo esc_html( $button_text ); ?>
                                                 </a>
                                         </div>
+
+                                        <?php if ( $show_paypal_button ) : ?>
+                                                <div class="bw-price-variation__paypal-button-wrapper">
+                                                        <div class="ppc-button-wrapper">
+                                                                <div id="ppc-button-ppcp-gateway"></div>
+                                                                <?php do_action( 'woocommerce_paypal_payments_single_product_button_render' ); ?>
+                                                        </div>
+                                                </div>
+                                        <?php endif; ?>
+
+                                        <?php if ( $show_more_payment_options ) : ?>
+                                                <div class="bw-price-variation__payment-options-wrapper">
+                                                        <a
+                                                                class="<?php echo esc_attr( 'bw-price-variation__payment-options' . ( $is_disabled ? ' is-disabled' : '' ) ); ?>"
+                                                                href="<?php echo esc_url( $checkout_url ); ?>"
+                                                                data-product_id="<?php echo esc_attr( $product_id ); ?>"
+                                                                data-quantity="1"
+                                                                <?php echo $is_disabled ? 'aria-disabled="true"' : ''; ?>
+                                                        >
+                                                                <?php esc_html_e( 'More payment options', 'bw' ); ?>
+                                                        </a>
+                                                </div>
+                                        <?php endif; ?>
                                 <?php endif; ?>
-                        <?php endif; ?>
+                        </form>
                 </div>
                 <?php
 
