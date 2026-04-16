@@ -81,11 +81,12 @@ class BW_Price_Variation_Widget extends Widget_Base {
 		$this->add_control(
 			'product_id',
 			[
-				'label'       => __( 'Product ID', 'bw' ),
-				'type'        => Controls_Manager::TEXT,
+				'label'       => __( 'Product', 'bw' ),
+				'type'        => Controls_Manager::SELECT2,
 				'default'     => '',
-				'placeholder' => __( 'Leave empty to use current product', 'bw' ),
-				'description' => __( 'Enter the ID of a variable product. Leave empty to automatically use the current product (only works on single product pages).', 'bw' ),
+				'options'     => class_exists( 'BW_Widget_Helper' ) ? BW_Widget_Helper::get_product_options( 200 ) : [],
+				'placeholder' => __( 'Use current product', 'bw' ),
+				'description' => __( 'Choose a product to preview in the editor. Leave empty to use the current single product.', 'bw' ),
 				'label_block' => true,
 			]
 		);
@@ -1145,6 +1146,117 @@ class BW_Price_Variation_Widget extends Widget_Base {
                 ];
         }
 
+        private function render_simple_product_markup( $product, $settings, $reviews_summary_html ) {
+                $product_id = $product->get_id();
+                $product_url = $product->get_permalink();
+                $price_html = $product->get_price_html();
+
+                if ( '' === trim( (string) $price_html ) ) {
+                        $price_html = wc_price( wc_get_price_to_display( $product ) );
+                }
+
+                $default_price          = $product->get_price();
+                $default_price_value    = '' !== $default_price && null !== $default_price
+                        ? $default_price
+                        : wc_get_price_to_display( $product );
+                $default_price_html_raw = wp_kses_post( $price_html );
+                $product_sku            = $product->get_sku();
+                $is_disabled            = ! $product->is_purchasable() || ! $product->is_in_stock();
+                $button_text            = isset( $settings['add_to_cart_button_text'] ) && '' !== trim( $settings['add_to_cart_button_text'] )
+                        ? $settings['add_to_cart_button_text']
+                        : __( 'Add to Cart', 'bw' );
+                $show_more_payment_options = isset( $settings['show_more_payment_options'] ) && 'yes' === $settings['show_more_payment_options'];
+
+                $add_to_cart_url = add_query_arg(
+                        [
+                                'add-to-cart' => $product_id,
+                                'product_id'   => $product_id,
+                                'quantity'     => 1,
+                        ],
+                        $product_url
+                );
+
+                $checkout_url = add_query_arg(
+                        [
+                                'add-to-cart' => $product_id,
+                                'product_id'   => $product_id,
+                                'quantity'     => 1,
+                        ],
+                        wc_get_checkout_url()
+                );
+
+                $classes = [
+                        'bw-add-to-cart-button',
+                        'elementor-button',
+                        'elementor-button-link',
+                        'elementor-size-md',
+                        'single_add_to_cart_button',
+                        'button',
+                        'alt',
+                ];
+
+                if ( $is_disabled ) {
+                        $classes[] = 'disabled';
+                }
+
+                ob_start();
+                ?>
+                <div
+                        class="bw-price-variation"
+                        data-product-id="<?php echo esc_attr( $product_id ); ?>"
+                        data-product-type="simple"
+                        data-product-url="<?php echo esc_url( $product_url ); ?>"
+                        data-checkout-url="<?php echo esc_url( wc_get_checkout_url() ); ?>"
+                >
+                        <div class="bw-price-variation__price-wrapper">
+                                <span
+                                        class="bw-price-variation__price"
+                                        data-default-price="<?php echo esc_attr( $default_price_value ); ?>"
+                                        data-default-price-html="<?php echo esc_attr( $default_price_html_raw ); ?>"
+                                >
+                                        <?php echo $default_price_html_raw; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                </span>
+                        </div>
+
+                        <?php if ( '' !== $reviews_summary_html ) : ?>
+                                <?php echo $reviews_summary_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        <?php endif; ?>
+
+                        <?php if ( isset( $settings['show_add_to_cart'] ) && 'yes' === $settings['show_add_to_cart'] ) : ?>
+                                <div class="bw-add-to-cart-wrapper">
+                                        <a
+                                                href="<?php echo esc_url( $add_to_cart_url ); ?>"
+                                                data-quantity="1"
+                                                data-product_id="<?php echo esc_attr( $product_id ); ?>"
+                                                data-product_sku="<?php echo esc_attr( $product_sku ); ?>"
+                                                rel="nofollow"
+                                                class="<?php echo esc_attr( implode( ' ', array_filter( $classes ) ) ); ?>"
+                                                <?php echo $is_disabled ? 'aria-disabled="true"' : ''; ?>
+                                        >
+                                                <?php echo esc_html( $button_text ); ?>
+                                        </a>
+                                </div>
+
+                                <?php if ( $show_more_payment_options ) : ?>
+                                        <div class="bw-price-variation__payment-options-wrapper">
+                                                <a
+                                                        class="<?php echo esc_attr( 'bw-price-variation__payment-options' . ( $is_disabled ? ' is-disabled' : '' ) ); ?>"
+                                                        href="<?php echo esc_url( $checkout_url ); ?>"
+                                                        data-product_id="<?php echo esc_attr( $product_id ); ?>"
+                                                        data-quantity="1"
+                                                        <?php echo $is_disabled ? 'aria-disabled="true"' : ''; ?>
+                                                >
+                                                        <?php esc_html_e( 'More payment options', 'bw' ); ?>
+                                                </a>
+                                        </div>
+                                <?php endif; ?>
+                        <?php endif; ?>
+                </div>
+                <?php
+
+                return (string) ob_get_clean();
+        }
+
         private function get_variations_data( $available_variations ) {
                 $variations_data = [];
 
@@ -1271,9 +1383,21 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                         return;
                 }
 
+                $reviews_summary = ( isset( $settings['show_product_reviews_summary'] ) && 'yes' === $settings['show_product_reviews_summary'] )
+                        ? $this->get_product_reviews_summary( $product->get_id() )
+                        : null;
+                $reviews_summary_html   = $reviews_summary
+                        ? $this->render_product_reviews_summary( $reviews_summary, isset( $settings['show_product_reviews_count'] ) && 'yes' === $settings['show_product_reviews_count'] )
+                        : '';
+
+                if ( $product->is_type( 'simple' ) ) {
+                        echo $this->render_simple_product_markup( $product, $settings, $reviews_summary_html ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        return;
+                }
+
                 if ( ! $product->is_type( 'variable' ) ) {
                         if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-                                $this->render_editor_notice( esc_html__( 'BW Price Variation: This widget only works with Variable products. Current product type: ', 'bw' ) . esc_html( $product->get_type() ) );
+                                $this->render_editor_notice( esc_html__( 'BW Price Variation: This widget supports Simple and Variable products only. Current product type: ', 'bw' ) . esc_html( $product->get_type() ) );
                         }
                         return;
                 }
@@ -1309,16 +1433,11 @@ $license_html  = function_exists( 'bw_get_variation_license_table_html' ) ? bw_g
                 $default_price          = $default_variation['price'];
                 $default_price_html     = $default_variation['price_html'];
                 $default_price_html_raw = wp_kses_post( $default_price_html );
-                $reviews_summary        = ( isset( $settings['show_product_reviews_summary'] ) && 'yes' === $settings['show_product_reviews_summary'] )
-                        ? $this->get_product_reviews_summary( $product->get_id() )
-                        : null;
-                $reviews_summary_html   = $reviews_summary
-                        ? $this->render_product_reviews_summary( $reviews_summary, isset( $settings['show_product_reviews_count'] ) && 'yes' === $settings['show_product_reviews_count'] )
-                        : '';
                 ?>
                 <div
                         class="bw-price-variation"
                         data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
+                        data-product-type="variable"
                         data-variations="<?php echo esc_attr( wp_json_encode( $variations_data ) ); ?>"
                         data-default-variation-id="<?php echo esc_attr( $default_variation_id ); ?>"
                         data-product-url="<?php echo esc_url( $product->get_permalink() ); ?>"

@@ -153,8 +153,8 @@
          * @param {number} productId
          * @param {Object} variation
          */
-        function updateAddToCartButton($button, productId, variation) {
-                if (!$button.length || !variation) {
+        function updateAddToCartButton($button, productId, selection, productMode) {
+                if (!$button.length) {
                         return;
                 }
 
@@ -163,35 +163,52 @@
                         $button.data('originalHref', baseHref);
                 }
 
-                $button.attr({
+                const isVariationSelection = productMode === 'variable' && selection && selection.id;
+                const buttonAttrs = {
                         'data-product_id': productId,
-                        'data-variation_id': variation.id,
-                        'data-variation': JSON.stringify(variation.attributes || {}),
-                        'data-product_sku': variation.sku || '',
-                        'data-variation-price': variation.price || '',
-                        'data-variation-price-html': variation.price_html || '',
-                        'data-selected-variation-id': variation.id,
-                });
+                        'data-product-type': productMode || 'simple'
+                };
+
+                if (isVariationSelection) {
+                        buttonAttrs['data-variation_id'] = selection.id;
+                        buttonAttrs['data-variation'] = JSON.stringify(selection.attributes || {});
+                        buttonAttrs['data-product_sku'] = selection.sku || '';
+                        buttonAttrs['data-variation-price'] = selection.price || '';
+                        buttonAttrs['data-variation-price-html'] = selection.price_html || '';
+                        buttonAttrs['data-selected-variation-id'] = selection.id;
+                } else {
+                        buttonAttrs['data-product_sku'] = selection && selection.sku ? selection.sku : '';
+                }
+
+                $button.attr(buttonAttrs);
+
+                if (!isVariationSelection) {
+                        $button.removeAttr('data-variation_id data-variation data-selected-variation-id data-variation-price data-variation-price-html');
+                }
 
                 // Handle stock status - disable button if out of stock
-                if (variation.is_in_stock === false) {
+                if (selection && selection.is_in_stock === false) {
                         $button.addClass('disabled').attr('aria-disabled', 'true');
                 } else {
                         $button.removeClass('disabled').attr('aria-disabled', 'false');
                 }
 
-                // Build the proper URL with variation parameters
+                // Build the proper URL with variation parameters when needed.
                 if (baseHref) {
                         // Parse the base URL to extract the product permalink
                         const url = new URL(baseHref, window.location.origin);
 
                         // Clear old params and set new ones
                         url.searchParams.set('add-to-cart', productId);
-                        url.searchParams.set('variation_id', variation.id);
+                        url.searchParams.set('product_id', productId);
                         url.searchParams.set('quantity', 1);
 
-                        if (variation.attributes && typeof variation.attributes === 'object') {
-                                Object.entries(variation.attributes).forEach(function(entry) {
+                        if (isVariationSelection) {
+                                url.searchParams.set('variation_id', selection.id);
+                        }
+
+                        if (isVariationSelection && selection.attributes && typeof selection.attributes === 'object') {
+                                Object.entries(selection.attributes).forEach(function(entry) {
                                         const key = entry[0];
                                         const value = entry[1];
                                         if (value !== undefined && value !== null) {
@@ -211,19 +228,24 @@
          * @param {Object} variation
          * @param {string} checkoutUrl
          */
-        function updatePaymentOptionsLink($link, productId, variation, checkoutUrl) {
-                if (!$link.length || !variation || !checkoutUrl) {
+        function updatePaymentOptionsLink($link, productId, selection, checkoutUrl, productMode) {
+                if (!$link.length || !checkoutUrl) {
                         return;
                 }
 
                 const url = new URL(checkoutUrl, window.location.origin);
 
                 url.searchParams.set('add-to-cart', productId);
-                url.searchParams.set('variation_id', variation.id);
+                url.searchParams.set('product_id', productId);
                 url.searchParams.set('quantity', 1);
 
-                if (variation.attributes && typeof variation.attributes === 'object') {
-                        Object.entries(variation.attributes).forEach(function(entry) {
+                const isVariationSelection = productMode === 'variable' && selection && selection.id;
+                if (isVariationSelection) {
+                        url.searchParams.set('variation_id', selection.id);
+                }
+
+                if (isVariationSelection && selection.attributes && typeof selection.attributes === 'object') {
+                        Object.entries(selection.attributes).forEach(function(entry) {
                                 const key = entry[0];
                                 const value = entry[1];
                                 if (value !== undefined && value !== null) {
@@ -235,11 +257,17 @@
                 $link.attr({
                         href: url.toString(),
                         'data-product_id': productId,
-                        'data-variation_id': variation.id,
-                        'data-selected-variation-id': variation.id
+                        'data-product-type': productMode || 'simple'
                 });
 
-                if (variation.is_in_stock === false) {
+                if (isVariationSelection) {
+                        $link.attr('data-variation_id', selection.id);
+                        $link.attr('data-selected-variation-id', selection.id);
+                } else {
+                        $link.removeAttr('data-variation_id data-selected-variation-id');
+                }
+
+                if (selection && selection.is_in_stock === false) {
                         $link.addClass('is-disabled').attr('aria-disabled', 'true');
                 } else {
                         $link.removeClass('is-disabled').attr('aria-disabled', 'false');
@@ -436,29 +464,30 @@
          * @param {number} productId
          * @param {Object} variation
          */
-        function handleAddToCart($button, productId, variation, productUrl) {
-                if (!$button.length || !productId || !variation || !variation.id) {
-                        console.error('BW Price Variation: Missing required data', {button: $button.length, productId, variation});
+        function handleAddToCart($button, productId, selection, productUrl) {
+                if (!$button.length || !productId) {
+                        console.error('BW Price Variation: Missing required data', {button: $button.length, productId, selection});
                         return;
                 }
 
                 const quantity = parseInt($button.attr('data-quantity') || $button.data('quantity') || 1, 10) || 1;
+                const isVariationSelection = selection && selection.id;
 
                 // Build the payload in the format WooCommerce expects
                 const payload = {
                         'add-to-cart': productId,
                         product_id: productId,
-                        variation_id: variation.id,
                         quantity: quantity
                 };
 
                 // Add variation attributes to the payload with proper keys
-                if (variation.attributes && typeof variation.attributes === 'object') {
+                if (isVariationSelection) {
+                        payload.variation_id = selection.id;
                         // Flatten attributes directly into payload and also pass variation array
                         payload.variation = {};
 
-                        Object.keys(variation.attributes).forEach(function(key) {
-                                const value = variation.attributes[key];
+                        Object.keys(selection.attributes || {}).forEach(function(key) {
+                                const value = selection.attributes[key];
                                 payload[key] = value;
                                 payload.variation[key] = value;
                         });
@@ -577,7 +606,7 @@
                         .always(function() {
                                 $button.removeClass('loading');
 
-                                if (!variation || variation.is_in_stock !== false) {
+                                if (!selection || selection.is_in_stock !== false) {
                                         $button.removeClass('disabled');
                                         $button.attr('aria-disabled', 'false').removeAttr('disabled');
                                 }
@@ -638,13 +667,18 @@
 
                 $widget.data('bwPvInit', true);
 
-                const variations = parseVariations($widget.data('variations'));
-                if (!variations.length) {
+                const productType = (($widget.data('product-type') || '').toString()).toLowerCase();
+                const hasVariationData = !!$widget.data('variations');
+                const isVariableMode = productType === 'variable' || (!productType && hasVariationData);
+                const isSimpleMode = productType === 'simple' || (!productType && !hasVariationData);
+                const variations = isVariableMode ? parseVariations($widget.data('variations')) : [];
+
+                if (isVariableMode && !variations.length) {
                         console.warn('BW Price Variation: No variations found');
                         return;
                 }
 
-                const variationMap = buildVariationMap(variations);
+                const variationMap = isVariableMode ? buildVariationMap(variations) : {};
                 const productId = $widget.data('product-id');
                 const $priceDisplay = $widget.find('.bw-price-variation__price');
                 const $licenseBox = $widget.find('.bw-price-variation__license-box');
@@ -653,63 +687,81 @@
                 const $paymentOptionsLink = $widget.find('.bw-price-variation__payment-options');
                 const $payPalCartForm = $widget.find('.bw-price-variation__cart-form').first();
                 const checkoutUrl = $widget.data('checkout-url');
+                const productUrl = $widget.data('product-url');
 
-                let activeVariation = resolveDefaultVariation($widget, variations, variationMap);
+                let activeSelection = null;
+                if (isVariableMode) {
+                        activeSelection = resolveDefaultVariation($widget, variations, variationMap);
+                } else if (isSimpleMode) {
+                        activeSelection = {
+                                id: null,
+                                sku: $addToCartButton.attr('data-product_sku') || '',
+                                price: $priceDisplay.data('default-price'),
+                                price_html: $priceDisplay.data('default-price-html') || '',
+                                attributes: {},
+                                is_in_stock: !$addToCartButton.hasClass('disabled'),
+                        };
+                }
 
                 // No-op until the floating button is created below.
                 // Will be replaced with the real sync function after floating ATC init.
                 var syncFloatingAtc = function() {};
 
-                if (activeVariation) {
-                        updateActiveButton($buttons, activeVariation.id);
-                        updatePrice($priceDisplay, activeVariation);
-                        updateLicenseBox($licenseBox, activeVariation);
-                        updateAddToCartButton($addToCartButton, productId, activeVariation);
-                        updatePaymentOptionsLink($paymentOptionsLink, productId, activeVariation, checkoutUrl);
-                        prioritizePayPalCartForm($payPalCartForm);
-                        syncPayPalCartForm($payPalCartForm, productId, activeVariation);
+                if (activeSelection) {
+                        updatePrice($priceDisplay, activeSelection);
+                        updateAddToCartButton($addToCartButton, productId, activeSelection, isVariableMode ? 'variable' : 'simple');
+                        updatePaymentOptionsLink($paymentOptionsLink, productId, activeSelection, checkoutUrl, isVariableMode ? 'variable' : 'simple');
+
+                        if (isVariableMode && activeSelection.id) {
+                                updateActiveButton($buttons, activeSelection.id);
+                                updateLicenseBox($licenseBox, activeSelection);
+                                prioritizePayPalCartForm($payPalCartForm);
+                                syncPayPalCartForm($payPalCartForm, productId, activeSelection);
+                        }
                 }
 
-                $buttons.on('click', function(e) {
-                        e.preventDefault();
+                if (isVariableMode) {
+                        $buttons.on('click', function(e) {
+                                e.preventDefault();
 
-                        // Block clicks on out-of-stock variations
-                        if ($(this).hasClass('out-of-stock')) {
-                                return false;
-                        }
+                                // Block clicks on out-of-stock variations
+                                if ($(this).hasClass('out-of-stock')) {
+                                        return false;
+                                }
 
-                        const buttonVariationId = $(this).data('variation-id');
-                        const selectedVariation = variationMap[buttonVariationId] || null;
+                                const buttonVariationId = $(this).data('variation-id');
+                                const selectedVariation = variationMap[buttonVariationId] || null;
 
-                        if (!selectedVariation || !selectedVariation.id) {
-                                console.error('BW Price Variation: No variation data found for button');
-                                return;
-                        }
+                                if (!selectedVariation || !selectedVariation.id) {
+                                        console.error('BW Price Variation: No variation data found for button');
+                                        return;
+                                }
 
-                        // Check if variation is in stock
-                        if (selectedVariation.is_in_stock === false) {
-                                return false;
-                        }
+                                // Check if variation is in stock
+                                if (selectedVariation.is_in_stock === false) {
+                                        return false;
+                                }
 
-                        activeVariation = selectedVariation;
+                                activeSelection = selectedVariation;
 
-                        updateActiveButton($buttons, selectedVariation.id);
-                        updatePrice($priceDisplay, selectedVariation);
-                        updateLicenseBox($licenseBox, selectedVariation);
-                        updateAddToCartButton($addToCartButton, productId, selectedVariation);
-                        updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl);
-                        prioritizePayPalCartForm($payPalCartForm);
-                        syncPayPalCartForm($payPalCartForm, productId, selectedVariation);
-                        syncFloatingAtc();
+                                updateActiveButton($buttons, selectedVariation.id);
+                                updatePrice($priceDisplay, selectedVariation);
+                                updateLicenseBox($licenseBox, selectedVariation);
+                                updateAddToCartButton($addToCartButton, productId, selectedVariation, 'variable');
+                                updatePaymentOptionsLink($paymentOptionsLink, productId, selectedVariation, checkoutUrl, 'variable');
+                                prioritizePayPalCartForm($payPalCartForm);
+                                syncPayPalCartForm($payPalCartForm, productId, selectedVariation);
+                                syncFloatingAtc();
 
-                        $widget.trigger('bw_price_variation_changed', {
-                                variationId: selectedVariation.id,
-                                price: selectedVariation.price,
-                                priceHtml: selectedVariation.price_html,
-                                sku: selectedVariation.sku,
-                                attributes: selectedVariation.attributes,
+                                $widget.trigger('bw_price_variation_changed', {
+                                        variationId: selectedVariation.id,
+                                        price: selectedVariation.price,
+                                        priceHtml: selectedVariation.price_html,
+                                        sku: selectedVariation.sku,
+                                        attributes: selectedVariation.attributes,
+                                });
                         });
-                });
+                }
 
                 // Use direct event listener with capture phase to intercept before other handlers
                 if ($addToCartButton.length) {
@@ -726,18 +778,18 @@
                                 e.stopImmediatePropagation();
 
                                 const $btn = $(this);
-                                const variationForAdd = activeVariation;
+                                const selectionForAdd = activeSelection;
                                 const proceedAdd = function() {
-                                        handleAddToCart($btn, productId, variationForAdd, $widget.data('product-url'));
+                                        handleAddToCart($btn, productId, selectionForAdd, productUrl);
                                 };
 
-                                if (variationForAdd && window.BW_CartPopup) {
+                                if (isVariableMode && selectionForAdd && selectionForAdd.id && window.BW_CartPopup) {
                                         const cartPromise = ensureCartHasItems(true);
 
                                         if (cartPromise && typeof cartPromise.then === 'function') {
                                                 cartPromise
                                                         .then(function() {
-                                                                if (isVariationAlreadyInCart(productId, variationForAdd.id)) {
+                                                                if (isVariationAlreadyInCart(productId, selectionForAdd.id)) {
                                                                         showAlreadyInCartMessage();
                                                                         return;
                                                                 }
@@ -751,7 +803,7 @@
                                                 return;
                                         }
 
-                                        if (isVariationAlreadyInCart(productId, variationForAdd.id)) {
+                                        if (isVariationAlreadyInCart(productId, selectionForAdd.id)) {
                                                 showAlreadyInCartMessage();
                                                 return;
                                         }
@@ -844,8 +896,8 @@
                                 var text = $addToCartButton.text().trim();
                                 $floatBtn.text(text || 'Add to Cart');
 
-                                var isOos     = activeVariation && activeVariation.is_in_stock === false;
-                                var isDisabled = !activeVariation || isOos || $addToCartButton.hasClass('disabled');
+                                var isOos     = activeSelection && activeSelection.is_in_stock === false;
+                                var isDisabled = !activeSelection || isOos || $addToCartButton.hasClass('disabled');
                                 $floatBtn
                                         .prop('disabled', isDisabled)
                                         .toggleClass('is-disabled', isDisabled);
