@@ -12,13 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
     class BW_Reviews_Widget_Renderer {
         /**
-         * Track whether the shared modal markup has already been rendered.
-         *
-         * @var bool
-         */
-        private static $modal_rendered = false;
-
-        /**
          * @var BW_Reviews_Repository
          */
         private $repository;
@@ -47,7 +40,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 return '';
             }
 
-            $view['render_modal'] = $this->should_render_modal();
+            $view['render_modal'] = true;
 
             ob_start();
             $this->include_template( 'widget.php', [ 'view' => $view ] );
@@ -203,7 +196,6 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && absint( $summary['approved_count'] ) > 0,
                 'review_source'        => $review_source,
                 'config'               => $config,
-                'render_modal'         => false,
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
                 'modal_title_edit'     => __( 'Edit your review', 'bw' ),
                 'empty_title'          => __( 'No reviews yet', 'bw' ),
@@ -485,19 +477,5 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
             include $template_path;
         }
 
-        /**
-         * Render the shared modal markup only once per page request.
-         *
-         * @return bool
-         */
-        private function should_render_modal() {
-            if ( self::$modal_rendered ) {
-                return false;
-            }
-
-            self::$modal_rendered = true;
-
-            return true;
-        }
     }
 }
