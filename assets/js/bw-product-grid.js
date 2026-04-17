@@ -2060,7 +2060,9 @@
             html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
             html += '</button>';
             html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+            html += '<div class="bw-fpw-discovery-group__panel-inner">';
             html += renderDiscoveryYearPanelContent(widgetId, state);
+            html += '</div>';
             html += '</div>';
             html += '</section>';
 
@@ -2073,7 +2075,9 @@
         html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
         html += '</button>';
         html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+        html += '<div class="bw-fpw-discovery-group__panel-inner">';
         html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'drawer');
+        html += '</div>';
         html += '</div>';
         html += '</section>';
 

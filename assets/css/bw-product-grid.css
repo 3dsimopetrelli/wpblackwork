@@ -1770,18 +1770,22 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel {
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   overflow: hidden;
   visibility: hidden;
-  transition: max-height 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 360ms;
-  padding: 0;
+  transition: grid-template-rows 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 360ms;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group.is-open .bw-fpw-discovery-group__panel {
-  max-height: 520px;
-  padding: 0;
+  grid-template-rows: 1fr;
   visibility: visible;
-  transition: max-height 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+  transition: grid-template-rows 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel-inner {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group-search {
