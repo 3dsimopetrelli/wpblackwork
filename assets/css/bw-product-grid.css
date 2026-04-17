@@ -1981,7 +1981,7 @@ body.bw-fpw-drawer-no-scroll {
   margin: 0 4px 14px 4px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
+  background: transparent;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-slider__topline {
