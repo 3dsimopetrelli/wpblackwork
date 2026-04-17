@@ -1608,7 +1608,7 @@ body.bw-fpw-drawer-no-scroll {
   align-self: center;
   border: 0;
   border-radius: 2px;
-  background: rgba(46, 46, 46, 0.66);
+  background: #101010;
   box-shadow: none;
   outline: none;
 }
@@ -1924,7 +1924,7 @@ body.bw-fpw-drawer-no-scroll {
   align-self: center;
   border: 0;
   border-radius: 2px;
-  background: rgba(46, 46, 46, 0.66);
+  background: #101010;
   box-shadow: none;
   outline: none;
 }
