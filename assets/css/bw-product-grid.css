@@ -1754,6 +1754,7 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel {
   max-height: 0;
   overflow: hidden;
+  clip-path: inset(0);
   transition: max-height 220ms ease-in-out;
   padding: 0 6px;
 }
@@ -1768,11 +1769,10 @@ body.bw-fpw-drawer-no-scroll {
   display: flex;
   align-items: center;
   min-height: 40px;
-  margin: 2px 0 8px;
+  margin: 0 0 8px;
   padding: 0 10px 0 36px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.06);
   color: rgba(247, 246, 242, 0.7);
 }
 
