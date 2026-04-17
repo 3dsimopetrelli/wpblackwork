@@ -1759,7 +1759,6 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel {
   max-height: 0;
   overflow: hidden;
-  clip-path: inset(0);
   visibility: hidden;
   transition: max-height 220ms ease-in-out, visibility 0s 220ms;
   padding: 0;
