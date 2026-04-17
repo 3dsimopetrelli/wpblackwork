@@ -1971,10 +1971,14 @@
             renderedIndex += 1;
         }
 
-        html += '<label class="bw-fpw-discovery-group-search">';
-        html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
-        html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-surface="' + escapeHtml(surfaceKey || 'drawer') + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
-        html += '</label>';
+        var showSearchInput = (surfaceKey || 'drawer') !== 'drawer' || options.length > 5;
+
+        if (showSearchInput) {
+            html += '<label class="bw-fpw-discovery-group-search">';
+            html += '<span class="bw-fpw-discovery-group-search__icon" aria-hidden="true"></span>';
+            html += '<input class="bw-fpw-discovery-group-search__input" type="search" data-widget-id="' + widgetId + '" data-group="' + groupKey + '" data-surface="' + escapeHtml(surfaceKey || 'drawer') + '" value="' + escapeHtml(state.ui.optionSearches[groupKey]) + '" placeholder="' + escapeHtml(groupConfig.placeholder) + '" autocomplete="off" />';
+            html += '</label>';
+        }
         html += '<div class="bw-fpw-discovery-options">';
 
         if (orderedVisibleOptions.length) {
@@ -2051,7 +2055,7 @@
 
         if (groupKey === 'years') {
             html += '<section class="bw-fpw-discovery-group bw-fpw-discovery-group--years' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="years">';
-            html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="years">';
+            html += '<button class="bw-fpw-discovery-group__toggle" type="button" aria-expanded="' + (isOpen ? 'true' : 'false') + '" data-widget-id="' + widgetId + '" data-group="years">';
             html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
             html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
             html += '</button>';
@@ -2064,7 +2068,7 @@
         }
 
         html += '<section class="bw-fpw-discovery-group' + (isOpen ? ' is-open' : '') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
-        html += '<button class="bw-fpw-discovery-group__toggle" type="button" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
+        html += '<button class="bw-fpw-discovery-group__toggle" type="button" aria-expanded="' + (isOpen ? 'true' : 'false') + '" data-widget-id="' + widgetId + '" data-group="' + groupKey + '">';
         html += '<span class="bw-fpw-discovery-group__title">' + escapeHtml(groupConfig.label) + '</span>';
         html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
         html += '</button>';
@@ -2123,14 +2127,26 @@
 
             if ((targetGroupKey && targetGroupKey !== groupKey && $existing.length) ? false : previousMarkup !== markup || !$existing.length) {
                 if ($existing.length) {
-                    $existing.replaceWith(markup);
+                    // Surgical update — preserve the existing section element to keep CSS transitions alive.
+                    var $tmpWrapper = $('<div>').html(markup);
+                    var $tmpSection = $tmpWrapper.children('.bw-fpw-discovery-group').first();
+                    var newIsOpen = $tmpSection.hasClass('is-open');
+                    var $tmpPanel = $tmpSection.children('.bw-fpw-discovery-group__panel').first();
+
+                    $existing.toggleClass('is-open', newIsOpen);
+                    var $existingPanel = $existing.children('.bw-fpw-discovery-group__panel').first();
+                    $existingPanel.attr('aria-hidden', newIsOpen ? 'false' : 'true');
+                    $existingPanel.html($tmpPanel.html());
+                    $existing.children('.bw-fpw-discovery-group__toggle').first().attr('aria-expanded', newIsOpen ? 'true' : 'false');
+
+                    $current = $existing;
                 } else if (nextSelector && $groups.children(nextSelector).length) {
                     $(markup).insertBefore($groups.children(nextSelector).first());
+                    $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
                 } else {
                     $groups.append(markup);
+                    $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
                 }
-
-                $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
             }
 
             if ($current.length && nextSelector) {
@@ -2155,6 +2171,29 @@
         preserveDiscoveryDrawerScrollPosition(widgetId, function () {
             patchDiscoveryDrawerGroups(widgetId, groupKey);
         });
+    }
+
+    function applyDiscoveryGroupOpenState(widgetId, groupKey) {
+        var state = getDiscoveryState(widgetId);
+
+        if (!state) {
+            return;
+        }
+
+        var isOpen = groupKey === 'years'
+            ? (!!state.ui.openGroups.years || hasActiveYearFilter(state))
+            : (!!state.ui.openGroups[groupKey] || !!normalizeDiscoveryText(state.ui.optionSearches[groupKey]));
+
+        var $groups = $('.bw-fpw-drawer-groups[data-widget-id="' + widgetId + '"]');
+        var $section = $groups.children('.bw-fpw-discovery-group[data-group="' + groupKey + '"]');
+
+        if (!$section.length) {
+            return;
+        }
+
+        $section.toggleClass('is-open', isOpen);
+        $section.children('.bw-fpw-discovery-group__panel').attr('aria-hidden', isOpen ? 'false' : 'true');
+        $section.children('.bw-fpw-discovery-group__toggle').attr('aria-expanded', isOpen ? 'true' : 'false');
     }
 
     function getDiscoveryVisibleFilterSummary(state, groupKey) {
@@ -4418,7 +4457,7 @@
             }
 
             state.ui.openGroups[groupKey] = !state.ui.openGroups[groupKey];
-            renderDiscoveryDrawerGroup(widgetId, groupKey);
+            applyDiscoveryGroupOpenState(widgetId, groupKey);
         });
 
         $(document).on('input', '.bw-fpw-discovery-group-search__input', function () {
@@ -4698,6 +4737,36 @@
             var widgetId = $(this).closest('.bw-fpw-mobile-filter-panel').attr('data-widget-id') || $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
             filterPosts(widgetId);
             closeMobilePanel(widgetId);
+        });
+
+        $(document).on('click', '.bw-fpw-drawer-clear-all', function (e) {
+            e.preventDefault();
+
+            var widgetId = $(this).attr('data-widget-id')
+                || $(this).closest('.bw-fpw-mobile-filter-panel').attr('data-widget-id')
+                || $(this).closest('.bw-fpw-mobile-filter').attr('data-widget-id');
+            var state = getDiscoveryState(widgetId);
+
+            if (!state) {
+                return;
+            }
+
+            state.subcategories = [];
+            state.tags = [];
+            state.year = createEmptyYearState();
+            state.ui.yearDraft = createEmptyYearState();
+
+            getDiscoveryGroupConfigs().forEach(function (groupConfig) {
+                var groupKey = groupConfig.key;
+
+                if (groupKey !== 'types' && groupKey !== 'tags' && groupKey !== 'years' && isDiscoveryTokenGroup(groupKey)) {
+                    setDiscoverySelectionState(state, groupKey, []);
+                }
+            });
+
+            clearDiscoveryVisibleFilterFeedback(widgetId, false);
+            renderDiscoveryUi(widgetId);
+            filterPosts(widgetId);
         });
 
         $(document).on('click', '.bw-fpw-mobile-filter-panel--drawer', function (e) {
