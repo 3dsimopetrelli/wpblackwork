@@ -1701,15 +1701,24 @@ body.bw-fpw-drawer-no-scroll {
   transition: color 180ms ease-out;
 }
 
-.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   outline: none;
 }
 
-.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:hover .bw-fpw-discovery-group__title,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:focus-visible .bw-fpw-discovery-group__title {
   color: rgba(247, 246, 242, 0.95);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:hover .bw-fpw-discovery-group__title {
+    color: rgba(247, 246, 242, 0.95);
+  }
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__chevron {
