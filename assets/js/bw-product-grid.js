@@ -4773,6 +4773,14 @@
                 if (groupKey !== 'types' && groupKey !== 'tags' && groupKey !== 'years' && isDiscoveryTokenGroup(groupKey)) {
                     setDiscoverySelectionState(state, groupKey, []);
                 }
+
+                if (state.ui.openGroups.hasOwnProperty(groupKey)) {
+                    state.ui.openGroups[groupKey] = false;
+                }
+
+                if (state.ui.optionSearches.hasOwnProperty(groupKey)) {
+                    state.ui.optionSearches[groupKey] = '';
+                }
             });
 
             clearDiscoveryVisibleFilterFeedback(widgetId, false);

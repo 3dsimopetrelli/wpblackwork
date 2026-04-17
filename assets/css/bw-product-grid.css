@@ -1695,8 +1695,8 @@ body.bw-fpw-drawer-no-scroll {
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  min-height: 36px;
-  padding: 5px 12px;
+  min-height: 26px;
+  padding: 3px 12px;
   border: none;
   border-radius: 50px;
   background: transparent;
@@ -2579,8 +2579,8 @@ body.bw-fpw-drawer-no-scroll {
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle {
-    min-height: 36px;
-    padding: 5px 12px;
+    min-height: 26px;
+    padding: 3px 12px;
     font-size: 14px;
   }
 
