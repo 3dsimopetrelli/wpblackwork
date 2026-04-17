@@ -2176,8 +2176,7 @@ body.bw-fpw-drawer-no-scroll {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
-  padding: 12px 16px;
+  padding: 8px 16px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -2212,8 +2211,9 @@ body.bw-fpw-drawer-no-scroll {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  min-height: 52px;
-  padding: 12px 18px !important;
+  min-width: 0 !important;
+  min-height: 25px;
+  padding: 8px 18px !important;
   border-radius: 999px !important;
   border: 0 !important;
   background: rgba(128, 253, 3, 0.75) !important;
