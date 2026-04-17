@@ -1670,7 +1670,7 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-drawer-groups {
   display: grid;
-  gap: 4px;
+  gap: 0;
   padding-bottom: 2px;
 }
 
@@ -1689,10 +1689,10 @@ body.bw-fpw-drawer-no-scroll {
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 40px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 10px;
+  border-radius: 50px;
   background: transparent;
   color: inherit;
   font-size: 14px;
