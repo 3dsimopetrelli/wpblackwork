@@ -515,7 +515,7 @@
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-drawer-content-shell {
   display: grid;
-  gap: 14px;
+  gap: 6px;
   min-height: 100%;
 }
 
@@ -1151,19 +1151,20 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip.bw-fpw-quick-filter {
   align-self: flex-start;
   min-height: 25px;
-  padding: 0 6px 0 8px;
+  padding: 0 3px 0 10px;
   gap: 4px;
   border-color: transparent;
-  background: #41414140;
+  background: #141313;
   box-shadow: none;
   color: inherit;
   font-size: 11px;
+  line-height: 1;
   transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip.bw-fpw-quick-filter:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip.bw-fpw-quick-filter:focus-within {
-  background: #4a4a4a4d;
+  background: #1a1919;
   border-color: transparent;
   box-shadow: none;
 }
@@ -1179,6 +1180,7 @@ body.bw-fpw-drawer-no-scroll {
   border: none;
   background: transparent;
   color: inherit;
+  margin-left: 0;
   opacity: 0.72;
   transform: none;
 }
