@@ -1770,17 +1770,17 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel {
-  display: grid;
-  grid-template-rows: 0fr;
+  height: 0;
   overflow: hidden;
   visibility: hidden;
-  transition: grid-template-rows 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 360ms;
+  will-change: height;
+  transition: height 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 360ms;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group.is-open .bw-fpw-discovery-group__panel {
-  grid-template-rows: 1fr;
+  height: auto;
   visibility: visible;
-  transition: grid-template-rows 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+  transition: height 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel-inner {
@@ -1860,6 +1860,7 @@ body.bw-fpw-drawer-no-scroll {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 4px 2px;
+  margin-bottom: 30px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.06);
