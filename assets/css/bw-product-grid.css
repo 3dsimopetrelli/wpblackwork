@@ -1147,10 +1147,10 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip.bw-fpw-quick-filter {
   min-height: 25px;
-  padding: 8px 12px;
-  gap: 6px;
+  padding: 0 6px 0 8px;
+  gap: 4px;
   border-color: transparent;
-  background: rgba(255, 255, 255, 0.045);
+  background: #41414140;
   box-shadow: none;
   color: inherit;
   font-size: 11px;
@@ -1159,7 +1159,7 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip.bw-fpw-quick-filter:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-active-chips--drawer .bw-fpw-active-chip.bw-fpw-quick-filter:focus-within {
-  background: rgba(255, 255, 255, 0.065);
+  background: #4a4a4a4d;
   border-color: transparent;
   box-shadow: none;
 }
@@ -1529,7 +1529,7 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel .bw-fpw-discovery-option.is-selected {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(46, 46, 46, 0.66);
   border-color: transparent;
   transform: none;
 }
@@ -1608,7 +1608,7 @@ body.bw-fpw-drawer-no-scroll {
   align-self: center;
   border: 0;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(46, 46, 46, 0.66);
   box-shadow: none;
   outline: none;
 }
@@ -1894,13 +1894,13 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(46, 46, 46, 0.66);
   border-color: transparent;
   transform: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option.is-selected {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(46, 46, 46, 0.66);
   border-color: transparent;
   transform: none;
 }
@@ -1924,7 +1924,7 @@ body.bw-fpw-drawer-no-scroll {
   align-self: center;
   border: 0;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(46, 46, 46, 0.66);
   box-shadow: none;
   outline: none;
 }
