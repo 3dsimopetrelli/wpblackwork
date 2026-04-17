@@ -450,13 +450,10 @@
     // Keys: widgetId + '_subcats' | widgetId + '_tags'
     var filterAnimTimers = {};
     var discoverySearchTimers = {};
-    var discoveryAccordionTimers = {};
-    var discoveryAccordionPendingGroups = {};
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
     var mobilePanelDragState = null;
     var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 135;
-    var DISCOVERY_ACCORDION_SWITCH_DELAY_MS = 360;
     var gridRefreshTimers = {};
     var VISIBLE_FILTER_ADD_EXIT_MS = 210;
     var VISIBLE_FILTER_ADD_HOLD_MS = 620;
@@ -2197,33 +2194,6 @@
         $section.toggleClass('is-open', isOpen);
         $section.children('.bw-fpw-discovery-group__panel').attr('aria-hidden', isOpen ? 'false' : 'true');
         $section.children('.bw-fpw-discovery-group__toggle').attr('aria-expanded', isOpen ? 'true' : 'false');
-    }
-
-    function clearDiscoveryAccordionSwitchTimer(widgetId) {
-        if (!widgetId || !discoveryAccordionTimers[widgetId]) {
-            return;
-        }
-
-        clearTimeout(discoveryAccordionTimers[widgetId]);
-        delete discoveryAccordionTimers[widgetId];
-        delete discoveryAccordionPendingGroups[widgetId];
-    }
-
-    function scheduleDiscoveryAccordionSwitch(widgetId, groupKey) {
-        clearDiscoveryAccordionSwitchTimer(widgetId);
-
-        discoveryAccordionPendingGroups[widgetId] = groupKey;
-        discoveryAccordionTimers[widgetId] = setTimeout(function () {
-            var state = getDiscoveryState(widgetId);
-
-            if (!state || discoveryAccordionPendingGroups[widgetId] !== groupKey) {
-                return;
-            }
-
-            clearDiscoveryAccordionSwitchTimer(widgetId);
-            state.ui.openGroups[groupKey] = true;
-            applyDiscoveryGroupOpenState(widgetId, groupKey);
-        }, DISCOVERY_ACCORDION_SWITCH_DELAY_MS);
     }
 
     function getDiscoveryVisibleFilterSummary(state, groupKey) {
@@ -4487,16 +4457,8 @@
             }
 
             var willOpen = !state.ui.openGroups[groupKey];
-            var hasPendingSwitch = !!discoveryAccordionTimers[widgetId];
-            var hasOpenGroup = false;
 
             if (willOpen) {
-                Object.keys(state.ui.openGroups).forEach(function (key) {
-                    if (key !== groupKey && state.ui.openGroups[key]) {
-                        hasOpenGroup = true;
-                    }
-                });
-
                 Object.keys(state.ui.openGroups).forEach(function (key) {
                     if (key !== groupKey && state.ui.openGroups[key]) {
                         state.ui.openGroups[key] = false;
@@ -4505,12 +4467,6 @@
                 });
             }
 
-            if (willOpen && (hasOpenGroup || hasPendingSwitch)) {
-                scheduleDiscoveryAccordionSwitch(widgetId, groupKey);
-                return;
-            }
-
-            clearDiscoveryAccordionSwitchTimer(widgetId);
             state.ui.openGroups[groupKey] = willOpen;
             applyDiscoveryGroupOpenState(widgetId, groupKey);
         });
@@ -4806,8 +4762,6 @@
                 return;
             }
 
-            clearDiscoveryAccordionSwitchTimer(widgetId);
-
             state.subcategories = [];
             state.tags = [];
             state.year = createEmptyYearState();
@@ -5074,7 +5028,6 @@
 
         if ($panel.length) {
             resetMobilePanelDrag(widgetId);
-            clearDiscoveryAccordionSwitchTimer(widgetId);
             $wrapper.removeClass('bw-fpw-mobile-panel-open');
             $host.removeClass('bw-fpw-mobile-panel-open');
             $panel.attr('aria-hidden', 'true');

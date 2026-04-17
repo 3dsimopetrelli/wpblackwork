@@ -498,6 +498,7 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  overflow-anchor: none;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter-panel__body--drawer::-webkit-scrollbar {
