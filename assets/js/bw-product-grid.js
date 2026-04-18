@@ -4617,6 +4617,15 @@
 
             var willOpen = !state.ui.openGroups[groupKey];
 
+            if (willOpen) {
+                Object.keys(state.ui.openGroups).forEach(function (key) {
+                    if (key !== groupKey && state.ui.openGroups[key]) {
+                        state.ui.openGroups[key] = false;
+                        applyDiscoveryGroupOpenState(widgetId, key);
+                    }
+                });
+            }
+
             state.ui.openGroups[groupKey] = willOpen;
             applyDiscoveryGroupOpenState(widgetId, groupKey);
         });
