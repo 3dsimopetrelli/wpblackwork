@@ -14,7 +14,7 @@ function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order
     ];
 
     switch ($normalized_sort_key) {
-        case 'recent':
+        case 'newest':
             $effective_order_by = 'date';
             $effective_order = 'DESC';
             $query_args = [
@@ -49,6 +49,12 @@ function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order
         case 'year_asc':
         case 'year_desc':
             if ('product' !== $post_type) {
+                $effective_order_by = 'date';
+                $effective_order = 'DESC';
+                $query_args = [
+                    'orderby' => 'date',
+                    'order' => 'DESC',
+                ];
                 break;
             }
 
@@ -65,15 +71,8 @@ function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order
                 'order' => $effective_order,
             ];
             break;
-        case 'default':
         default:
             break;
-    }
-
-    if ('rand' === $effective_order_by) {
-        $effective_order = 'ASC';
-        $query_args['orderby'] = 'rand';
-        $query_args['order'] = 'ASC';
     }
 
     return [

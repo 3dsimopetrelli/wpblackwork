@@ -30,6 +30,10 @@ This file is the entry point only.
   - audit history
   - hardening sessions
   - closure reports
+- [Mobile Filter Drawer Restoration and Accordion Hardening](fixes/2026-04-18-mobile-filter-drawer-restoration.md)
+  - responsive drawer restoration
+  - accordion behavior notes
+  - search visibility and year-source contract
 - [Final Audit And Closure](fixes/2026-04-06-product-grid-final-audit-and-closure.md)
   - consolidated closure snapshot for the current Product Grid implementation cycle
 
