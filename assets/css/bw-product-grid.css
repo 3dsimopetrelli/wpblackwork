@@ -1722,15 +1722,16 @@ body.bw-fpw-drawer-no-scroll {
   font-weight: 600;
   line-height: 20px;
   text-align: left;
-  transition: background-color 180ms ease-out, color 180ms ease-out;
+  transition: background-color 180ms ease-out;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  transform: translateZ(0);
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__title {
-  transition: color 180ms ease-out;
+  will-change: auto;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle:focus-visible {
