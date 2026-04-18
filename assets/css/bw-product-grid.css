@@ -2330,11 +2330,11 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger {
-  width: 30px;
-  max-width: 30px;
-  min-width: 30px;
-  height: 30px;
-  min-height: 30px;
+  width: 35px;
+  max-width: 35px;
+  min-width: 35px;
+  height: 35px;
+  min-height: 35px;
   box-sizing: border-box;
   padding: 0;
   justify-content: center;
@@ -2355,9 +2355,9 @@ body.bw-fpw-drawer-no-scroll {
 
 .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:hover,
 .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:focus {
-  width: 30px;
-  max-width: 30px;
-  min-width: 30px;
+  width: 35px;
+  max-width: 35px;
+  min-width: 35px;
   padding: 0;
   justify-content: center;
   gap: 0;
@@ -2552,13 +2552,13 @@ body.bw-fpw-drawer-no-scroll {
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__icon-shell {
     display: inline-flex;
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__icon-svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-search__icon-shell {
@@ -2568,11 +2568,11 @@ body.bw-fpw-drawer-no-scroll {
   }
 
   .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger {
-    width: 30px;
-    max-width: 30px;
-    min-width: 30px;
-    min-height: 30px;
-    height: 30px;
+    width: 35px;
+    max-width: 35px;
+    min-width: 35px;
+    min-height: 35px;
+    height: 35px;
     padding: 0;
     gap: 0;
     justify-content: center;
@@ -2591,9 +2591,9 @@ body.bw-fpw-drawer-no-scroll {
 
   .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:hover,
   .elementor-widget-bw-product-grid .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter .bw-fpw-mobile-filter-trigger:focus {
-    width: 30px;
-    max-width: 30px;
-    min-width: 30px;
+    width: 35px;
+    max-width: 35px;
+    min-width: 35px;
     padding: 0;
     gap: 0;
     justify-content: center;
