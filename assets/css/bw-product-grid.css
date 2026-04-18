@@ -518,6 +518,7 @@
   display: grid;
   gap: 6px;
   min-height: 100%;
+  align-content: start;
 }
 
 .bw-fpw-filter-option,
