@@ -2758,6 +2758,7 @@
         $sort.attr('data-sort-icon-key', config.iconKey || '');
         $sort.attr('data-trigger-style', getDiscoverySortTriggerStyle(widgetId, state));
         $trigger.attr('aria-expanded', isOpen ? 'true' : 'false');
+        $trigger.attr('aria-label', 'Change product order: ' + config.triggerLabel);
         $menu.attr('aria-hidden', isOpen ? 'false' : 'true');
         $sort.find('[data-sort-current-label]').text(config.triggerLabel);
 
