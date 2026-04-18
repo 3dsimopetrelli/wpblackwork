@@ -1204,9 +1204,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                                 </div>
                                 <div class="bw-fpw-mobile-filter-drawer-title-row">
                                     <span class="bw-fpw-mobile-filter-drawer-title"><?php echo esc_html( $drawer_title ); ?></span>
-                                    <button class="bw-fpw-mobile-filter-close bw-fpw-drawer-close-btn" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                    </button>
+                                    <button class="bw-fpw-drawer-clear-all bw-fpw-drawer-clear-all--header" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
                                 </div>
                             </div>
 
@@ -1218,7 +1216,6 @@ class BW_Product_Grid_Widget extends Widget_Base {
                             </div>
 
                             <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
-                                <button class="bw-fpw-drawer-clear-all" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
                                 <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
                             </div>
                         </div>
