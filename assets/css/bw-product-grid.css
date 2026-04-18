@@ -2654,7 +2654,7 @@ body.bw-fpw-drawer-no-scroll {
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__toggle {
     min-height: 36px;
     padding: 5px 12px;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel-inner {
