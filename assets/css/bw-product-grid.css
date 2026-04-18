@@ -878,7 +878,8 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__chevron {
-  display: none;
+  display: inline-flex;
+  margin-left: auto;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown:hover,
