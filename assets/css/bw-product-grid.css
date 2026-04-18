@@ -2245,12 +2245,35 @@ body.bw-fpw-drawer-no-scroll {
   font-size: 13px;
   font-weight: 500;
   color: rgba(247, 246, 242, 0.45);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    color 150ms ease,
+    background 150ms ease,
+    visibility 0s linear 0s;
+  will-change: opacity, transform;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-drawer-clear-all--header:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-drawer-clear-all--header:focus-visible {
   background: transparent;
   color: rgba(247, 246, 242, 0.75);
+}
+
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-drawer-clear-all--header.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    color 150ms ease,
+    background 150ms ease,
+    visibility 0s linear 180ms;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-apply--drawer {

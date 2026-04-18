@@ -607,6 +607,42 @@
         return !!(state && state.year && (state.year.from !== null || state.year.to !== null));
     }
 
+    function hasActiveDiscoveryFilters(state) {
+        if (!state) {
+            return false;
+        }
+
+        if ((Array.isArray(state.subcategories) && state.subcategories.length) || (Array.isArray(state.tags) && state.tags.length)) {
+            return true;
+        }
+
+        if (hasActiveYearFilter(state)) {
+            return true;
+        }
+
+        if (getDiscoveryTokenGroupKeys().some(function (key) {
+            return getDiscoverySelections(state, key).length > 0;
+        })) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function updateDiscoveryDrawerClearAllVisibility(widgetId, state) {
+        var resolvedState = state || getDiscoveryState(widgetId);
+        var $button = $('.bw-fpw-drawer-clear-all--header[data-widget-id="' + widgetId + '"]');
+        var isVisible = hasActiveDiscoveryFilters(resolvedState);
+
+        if (!$button.length) {
+            return;
+        }
+
+        $button
+            .toggleClass('is-hidden', !isVisible)
+            .attr('aria-hidden', isVisible ? 'false' : 'true');
+    }
+
     function isWidgetSearchEnabled(widgetId, state) {
         var resolvedState = state || (widgetId ? filterState[widgetId] : null);
         var $grid;
@@ -2737,6 +2773,7 @@
             renderDiscoveryResultCount(widgetId);
             renderDiscoveryActiveChips(widgetId);
             renderDiscoveryDrawerGroups(widgetId);
+            updateDiscoveryDrawerClearAllVisibility(widgetId, state);
         });
     }
 
