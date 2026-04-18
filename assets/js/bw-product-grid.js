@@ -2060,7 +2060,9 @@
             html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
             html += '</button>';
             html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+            html += '<div class="bw-fpw-discovery-group__panel-inner">';
             html += renderDiscoveryYearPanelContent(widgetId, state);
+            html += '</div>';
             html += '</div>';
             html += '</section>';
 
@@ -2073,7 +2075,9 @@
         html += '<span class="bw-fpw-discovery-group__chevron" aria-hidden="true">' + chevronIcon + '</span>';
         html += '</button>';
         html += '<div class="bw-fpw-discovery-group__panel" aria-hidden="' + (isOpen ? 'false' : 'true') + '">';
+        html += '<div class="bw-fpw-discovery-group__panel-inner">';
         html += renderDiscoveryTokenPanelContent(widgetId, state, groupConfig, 'drawer');
+        html += '</div>';
         html += '</div>';
         html += '</section>';
 
@@ -2143,9 +2147,11 @@
                 } else if (nextSelector && $groups.children(nextSelector).length) {
                     $(markup).insertBefore($groups.children(nextSelector).first());
                     $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+                    initAccordionPanelState($current);
                 } else {
                     $groups.append(markup);
                     $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
+                    initAccordionPanelState($current);
                 }
             }
 
@@ -2173,6 +2179,65 @@
         });
     }
 
+    function initAccordionPanelState($section) {
+        var $panel = $section.children('.bw-fpw-discovery-group__panel').first();
+        if (!$panel.length) { return; }
+        var panel = $panel[0];
+        var isOpen = $section.hasClass('is-open');
+        $panel.off('transitionend.accordion');
+        panel.style.transition = 'none';
+        if (isOpen) {
+            panel.style.height = 'auto';
+            panel.style.overflow = '';
+            panel.style.visibility = 'visible';
+        } else {
+            panel.style.height = '0';
+            panel.style.overflow = 'hidden';
+            panel.style.visibility = 'hidden';
+        }
+    }
+
+    function animateAccordionPanel($section, open) {
+        var $panel = $section.children('.bw-fpw-discovery-group__panel').first();
+        if (!$panel.length) { return; }
+        var panel = $panel[0];
+        var dur = 320;
+        var easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+        $panel.off('transitionend.accordion');
+        panel.style.transition = 'none';
+
+        if (open) {
+            panel.style.overflow = 'hidden';
+            panel.style.visibility = 'visible';
+            var startH = panel.offsetHeight;
+            var $inner = $panel.children('.bw-fpw-discovery-group__panel-inner');
+            var targetH = ($inner.length ? $inner[0] : panel).scrollHeight;
+            panel.style.height = startH + 'px';
+            panel.offsetHeight;
+            panel.style.transition = 'height ' + dur + 'ms ' + easing;
+            panel.style.height = targetH + 'px';
+            $panel.one('transitionend.accordion', function (e) {
+                if (e.originalEvent.propertyName !== 'height') { return; }
+                panel.style.height = 'auto';
+                panel.style.overflow = '';
+                panel.style.transition = '';
+            });
+        } else {
+            var currentH = panel.offsetHeight;
+            panel.style.height = currentH + 'px';
+            panel.style.overflow = 'hidden';
+            panel.offsetHeight;
+            panel.style.transition = 'height ' + dur + 'ms ' + easing + ', visibility 0s ' + dur + 'ms';
+            panel.style.height = '0';
+            panel.style.visibility = 'hidden';
+            $panel.one('transitionend.accordion', function (e) {
+                if (e.originalEvent.propertyName !== 'height') { return; }
+                panel.style.transition = '';
+            });
+        }
+    }
+
     function applyDiscoveryGroupOpenState(widgetId, groupKey) {
         var state = getDiscoveryState(widgetId);
 
@@ -2194,6 +2259,7 @@
         $section.toggleClass('is-open', isOpen);
         $section.children('.bw-fpw-discovery-group__panel').attr('aria-hidden', isOpen ? 'false' : 'true');
         $section.children('.bw-fpw-discovery-group__toggle').attr('aria-expanded', isOpen ? 'true' : 'false');
+        animateAccordionPanel($section, isOpen);
     }
 
     function getDiscoveryVisibleFilterSummary(state, groupKey) {
