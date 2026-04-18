@@ -149,4 +149,5 @@ class BW_Widget_Helper {
 
         return $options;
     }
+
 }

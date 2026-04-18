@@ -385,12 +385,12 @@ function bw_render_digital_products_metabox( $post ) {
         <div class="bw-metabox-section bw-digital-fields">
             <h3><?php esc_html_e( 'Digital Data', 'bw' ); ?></h3>
             <div class="bw-metabox-field-group">
-                <?php bw_render_metabox_label_with_hint( 'bw_file_size', __( 'File Size (MB)', 'bw' ), '_bw_file_size' ); ?>
+                <?php bw_render_metabox_label_with_hint( 'bw_file_size', __( 'File Size', 'bw' ), '_bw_file_size' ); ?>
                 <input type="text" id="bw_file_size" name="bw_file_size" value="<?php echo esc_attr( $file_size ); ?>" style="width:100%;" />
             </div>
             <div class="bw-metabox-field-group">
                 <?php bw_render_metabox_label_with_hint( 'bw_assets_count', __( 'Assets Count', 'bw' ), '_bw_assets_count' ); ?>
-                <input type="number" id="bw_assets_count" name="bw_assets_count" value="<?php echo esc_attr( $assets_count ); ?>" style="width:100%;" />
+                <input type="text" id="bw_assets_count" name="bw_assets_count" value="<?php echo esc_attr( $assets_count ); ?>" style="width:100%;" />
             </div>
             <div class="bw-metabox-field-group">
                 <?php bw_render_metabox_label_with_hint( 'bw_formats', __( 'Formats (comma separated)', 'bw' ), '_bw_formats' ); ?>
@@ -477,10 +477,7 @@ function bw_save_digital_products( $post_id ) {
     }
 
     $file_size    = isset( $_POST['bw_file_size'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_file_size'] ) ) : '';
-    $assets_count = '';
-    if ( isset( $_POST['bw_assets_count'] ) && '' !== $_POST['bw_assets_count'] ) {
-        $assets_count = absint( wp_unslash( $_POST['bw_assets_count'] ) );
-    }
+    $assets_count = isset( $_POST['bw_assets_count'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_assets_count'] ) ) : '';
     $formats       = isset( $_POST['bw_formats'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_formats'] ) ) : '';
     $info_1        = isset( $_POST['bw_info_1'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_info_1'] ) ) : '';
     $info_2        = isset( $_POST['bw_info_2'] ) ? sanitize_text_field( wp_unslash( $_POST['bw_info_2'] ) ) : '';

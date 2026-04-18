@@ -1067,8 +1067,14 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
                             <?php endif; ?>
                         <?php elseif ( ! empty( $slide['labels'] ) ) : ?>
                             <div class="bw-showcase-slide-labels">
-                                <?php foreach ( $slide['labels'] as $label ) : ?>
-                                    <span class="bw-showcase-slide-badge"><?php echo esc_html( $label ); ?></span>
+                                <?php foreach ( $slide['labels'] as $index => $label ) : ?>
+                                    <?php
+                                    $badge_classes = [ 'bw-showcase-slide-badge' ];
+                                    if ( $index < 2 ) {
+                                        $badge_classes[] = 'bw-showcase-slide-badge--slide-based';
+                                    }
+                                    ?>
+                                    <span class="<?php echo esc_attr( implode( ' ', $badge_classes ) ); ?>"><?php echo esc_html( $label ); ?></span>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -1170,21 +1176,14 @@ class BW_Showcase_Slide_Widget extends Widget_Base {
             $formats      = $get_meta( '_bw_formats' );
 
             if ( '' !== $assets_count ) {
-                $assets_number = absint( $assets_count );
-                if ( $assets_number > 0 ) {
-                    $labels[] = sprintf(
-                        '%d %s',
-                        $assets_number,
-                        _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' )
-                    );
+                $assets_display = trim( wp_strip_all_tags( $assets_count ) );
+                if ( '' !== $assets_display ) {
+                    $labels[] = $assets_display;
                 }
             }
 
             if ( '' !== $file_size ) {
                 $size_display = trim( wp_strip_all_tags( $file_size ) );
-                if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
-                    $size_display .= 'MB';
-                }
                 if ( '' !== $size_display ) {
                     $labels[] = $size_display;
                 }

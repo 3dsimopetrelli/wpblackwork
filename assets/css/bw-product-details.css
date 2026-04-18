@@ -54,28 +54,33 @@
     border-bottom: 1px solid #000;
 }
 
-.bw-biblio-table--compatibility .bw-biblio-row--compatibility {
-    grid-template-columns: 1fr;
-    gap: 0;
+.bw-biblio-table--product-details {
+    width: 100%;
 }
 
 .bw-biblio-table--compatibility {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 32px;
+    justify-items: stretch;
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility {
-    min-height: 100%;
-    padding: 18px 0;
+    grid-template-columns: 1fr;
+    gap: 0;
+    min-height: auto;
+    padding: 12px 0;
+    width: 100%;
+    justify-items: start;
+    border-bottom: 1px solid #000;
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(odd) {
-    padding-right: 12px;
+    padding-right: 0;
 }
 
 .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(even) {
-    padding-left: 12px;
+    padding-left: 0;
 }
 
 /* ========================================
@@ -85,12 +90,18 @@
     font-weight: 600;
 }
 
-.bw-biblio-value {
+.bw-biblio-table--product-details .bw-biblio-row > .bw-biblio-value {
+    width: 100%;
     text-align: right;
 }
 
-.bw-biblio-value--compatibility {
+.bw-biblio-table--compatibility .bw-biblio-value--compatibility {
+    width: 100%;
     text-align: left;
+}
+
+.bw-biblio-table--product-details .bw-biblio-pills {
+    justify-content: flex-end;
 }
 
 /* ========================================
@@ -99,19 +110,22 @@
 .bw-biblio-row--assets {
     gap: 12px;
     grid-template-columns: 1fr 3fr;
+    min-height: 130px;
+    align-items: flex-start;
 }
 
-.bw-biblio-label--assets {
-    font-size: 22px;
-    font-weight: 700;
+.bw-biblio-widget .bw-biblio-label.bw-biblio-label--assets {
+    font-size: inherit;
+    font-weight: 400 !important;
     line-height: 1.2;
     text-align: left;
 }
 
-.bw-biblio-value--assets-list {
+.bw-biblio-table--product-details .bw-biblio-value.bw-biblio-value--assets-list {
     line-height: 1.5;
-    text-align: left;
     white-space: pre-wrap;
+    text-align: left !important;
+    justify-self: start;
 }
 
 /* ========================================
@@ -121,17 +135,17 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .bw-biblio-pill {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    border: 1px solid #000;
+    padding: 3px 6px;
+    border: 0.8px solid #000;
     border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 400;
     text-transform: uppercase;
     line-height: 1.2;
 }
@@ -158,13 +172,22 @@
         gap: 4px;
     }
 
-    .bw-biblio-value,
-    .bw-biblio-value--assets-list {
+    .bw-biblio-table--product-details .bw-biblio-value,
+    .bw-biblio-table--product-details .bw-biblio-value--assets-list {
+        text-align: right;
+    }
+
+    .bw-biblio-table--product-details .bw-biblio-value--assets-list {
+        text-align: left !important;
+        justify-self: start;
+    }
+
+    .bw-biblio-table--compatibility .bw-biblio-value--compatibility {
         text-align: left;
     }
 
-    .bw-biblio-pills {
-        justify-content: flex-start;
+    .bw-biblio-table--product-details .bw-biblio-pills {
+        justify-content: flex-end;
     }
 
     .bw-biblio-table--compatibility {

@@ -8,8 +8,21 @@
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget,
 .bw-newsletter-subscription-widget {
     --bw-ns-label-bg: #ffffff;
+    color: var(--bw-ns-widget-color, #181a20);
     width: 100% !important;
     max-width: 100% !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-shell,
+.bw-newsletter-subscription-shell {
+    position: relative !important;
+    z-index: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    border-radius: var(--bw-ns-widget-radius, 0) !important;
+    background-color: var(--bw-ns-widget-bg, transparent) !important;
+    color: inherit !important;
 }
 
 .bw-newsletter-subscription-widget--section {
@@ -17,6 +30,8 @@
     --bw-ns-section-title-color: #f7f7f2;
     --bw-ns-section-subtitle-color: rgba(247, 247, 242, 0.86);
     --bw-ns-section-privacy-color: rgba(247, 247, 242, 0.84);
+    --bw-ns-section-message-color: rgba(247, 247, 242, 0.88);
+    --bw-ns-section-preview-color: rgba(247, 247, 242, 0.8);
     --bw-ns-overlay-color: rgba(8, 8, 8, 0.82);
     --bw-ns-glow-color: rgba(128, 253, 3, 0.16);
     --bw-ns-overlay-opacity: 1;
@@ -27,7 +42,7 @@
     justify-content: center !important;
     min-height: var(--bw-ns-section-height, 72vh) !important;
     padding: clamp(32px, 4vw, 56px) !important;
-    border-radius: 24px !important;
+    border-radius: var(--bw-ns-widget-radius, 24px) !important;
     background: var(--bw-ns-section-bg, #050505) !important;
     isolation: isolate !important;
 }
@@ -89,6 +104,94 @@
     gap: 16px !important;
 }
 
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-inline {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding-top: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 50px !important;
+    background: var(--bw-ns-label-bg) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email {
+    flex: 1 1 70% !important;
+    min-width: 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
+    height: 100% !important;
+    min-height: 42px !important;
+    padding: 0 18px !important;
+    border: none !important;
+    border-radius: 50px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button {
+    flex: 0 0 30% !important;
+    width: auto !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+    position: static !important;
+    transform: none !important;
+    z-index: 1 !important;
+}
+
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button__label {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 0 16px !important;
+    border: none !important;
+    border-radius: 50px !important;
+    background-color: #80fd03 !important;
+    color: #080808 !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-copy,
+.bw-newsletter-subscription-footer-copy {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 0 18px !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-title,
+.bw-newsletter-subscription-footer-title {
+    margin: 0 !important;
+    color: var(--bw-ns-footer-title-color, rgba(111, 111, 111, 0.11)) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
+    line-height: 12px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-subtitle,
+.bw-newsletter-subscription-footer-subtitle {
+    color: var(--bw-ns-footer-subtitle-color, #080808) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    line-height: 24px !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-subtitle p,
+.bw-newsletter-subscription-footer-subtitle p {
+    margin: 0 !important;
+}
+
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-form {
     position: relative !important;
     z-index: 2 !important;
@@ -130,7 +233,7 @@
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-title,
 .bw-newsletter-subscription-section-title {
     margin: 0 !important;
-    color: var(--bw-ns-section-title-color, #f7f7f2) !important;
+    color: var(--bw-ns-section-title-color, var(--bw-ns-widget-color, #f7f7f2)) !important;
     font-size: clamp(36px, 4.5vw, 64px) !important;
     font-weight: 500 !important;
     font-style: normal !important;
@@ -143,7 +246,7 @@
 .bw-newsletter-subscription-section-subtitle {
     max-width: 620px !important;
     margin: 0 !important;
-    color: var(--bw-ns-section-subtitle-color, rgba(247, 247, 242, 0.86)) !important;
+    color: var(--bw-ns-section-subtitle-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.86))) !important;
     font-size: 19px !important;
     font-weight: 400 !important;
     font-style: normal !important;
@@ -163,35 +266,7 @@
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-label,
 .bw-newsletter-subscription-label {
-    position: absolute !important;
-    top: 50% !important;
-    left: 16px !important;
-    z-index: 3 !important;
-    display: inline-block !important;
-    margin: 0 !important;
-    padding: 0 6px !important;
-    background: var(--bw-ns-label-bg) !important;
-    border-radius: 10px !important;
-    color: #6b7280 !important;
-    font-size: 13px !important;
-    font-weight: 400 !important;
-    line-height: 1.2 !important;
-    transform: translateY(-50%) !important;
-    pointer-events: none !important;
-    white-space: nowrap !important;
-    transition: all 0.2s ease !important;
-}
-
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-label {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
+    display: none !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input,
@@ -202,10 +277,10 @@ input.bw-newsletter-subscription-input {
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
-    height: 70px !important;
-    min-height: 70px !important;
+    height: 42px !important;
+    min-height: 42px !important;
     margin: 0 !important;
-    padding: 0 18px !important;
+    padding: 0 15px !important;
     border: 1px solid #d1d5db !important;
     border-radius: 14px !important;
     background: var(--bw-ns-label-bg) !important;
@@ -213,7 +288,7 @@ input.bw-newsletter-subscription-input {
     color: #1f2937 !important;
     font-size: 16px !important;
     font-weight: 400 !important;
-    line-height: 68px !important;
+    line-height: 40px !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     appearance: none !important;
     -webkit-appearance: none !important;
@@ -224,29 +299,35 @@ input.bw-newsletter-subscription-input {
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input,
 .bw-newsletter-subscription-widget--section input.bw-newsletter-subscription-input {
-    height: 68px !important;
-    min-height: 68px !important;
-    padding: 0 24px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 20px !important;
     border: 1px solid rgba(247, 247, 242, 0.78) !important;
     border-radius: 999px !important;
     background: transparent !important;
     box-shadow: none !important;
     color: #f7f7f2 !important;
     font-size: 16px !important;
-    line-height: 66px !important;
+    line-height: 40px !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input::placeholder,
 .bw-newsletter-subscription-input::placeholder {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    color: transparent !important;
+    opacity: 0.82 !important;
+    color: rgba(55, 65, 81, 0.72) !important;
+    transition: opacity 0.18s ease, color 0.18s ease !important;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input::placeholder {
-    opacity: 1 !important;
-    visibility: visible !important;
+    opacity: 0.82 !important;
     color: rgba(247, 247, 242, 0.66) !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-input::placeholder,
+.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder {
+    opacity: 0 !important;
+    color: transparent !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input:focus,
@@ -254,40 +335,20 @@ input.bw-newsletter-subscription-input {
 .bw-newsletter-subscription-input:focus,
 input.bw-newsletter-subscription-input:focus {
     border: 2px solid #000000 !important;
-    padding: 0 17px !important;
+    padding: 0 14px !important;
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Floating label animation: move label up on focus or input fill.
-   :focus-within works on all modern browsers (IE edge case only).
-   :has(:not(:placeholder-shown)) is a modern enhancement for when user types
-   (provides visual feedback even if field loses focus). Fallback to :focus-within
-   works on Safari < 15.4 and all other browsers without :has() support. */
+/* Placeholder fade on focus or input fill.
+   The JS helper toggles .is-filled so the placeholder can transition out cleanly. */
 
 /* Section variant: highlight input focus with branded color */
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input:focus,
 .bw-newsletter-subscription-widget--section input.bw-newsletter-subscription-input:focus {
-    padding: 0 23px !important;
+    padding: 0 18px !important;
     border: 2px solid #80fd03 !important;
     box-shadow: 0 0 0 4px rgba(128, 253, 3, 0.12) !important;
 }
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-label,
-.bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
-.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-label {
-    top: 0 !important;
-    transform: translateY(-50%) !important;
-    background: var(--bw-ns-label-bg) !important;
-    font-size: 10px !important;
-    color: #374151 !important;
-    font-weight: 500 !important;
-}
-
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-label,
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-label {
-    transform: none !important;
-}
-
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-inline,
 .bw-newsletter-subscription-inline {
     position: relative !important;
@@ -305,7 +366,7 @@ input.bw-newsletter-subscription-input:focus {
     gap: 10px !important;
     width: auto !important;
     margin: 0 !important;
-    color: #181a20 !important;
+    color: inherit !important;
     font-size: 12px !important;
     line-height: 1.25 !important;
     cursor: default !important;
@@ -313,7 +374,7 @@ input.bw-newsletter-subscription-input:focus {
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent {
     justify-content: center !important;
-    color: var(--bw-ns-section-privacy-color, rgba(247, 247, 242, 0.84)) !important;
+    color: var(--bw-ns-section-privacy-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.84))) !important;
     font-size: 13px !important;
 }
 
@@ -365,25 +426,37 @@ input.bw-newsletter-subscription-input:focus {
     align-items: center !important;
     flex-wrap: wrap !important;
     gap: 6px;
+    color: inherit;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent__text {
-    color: var(--bw-ns-section-privacy-color, rgba(247, 247, 242, 0.84));
+    color: var(--bw-ns-section-privacy-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.84)));
+}
+
+.bw-newsletter-subscription-consent__text--custom {
+    color: inherit !important;
+}
+
+.bw-newsletter-subscription-consent__text--custom a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .bw-newsletter-subscription-consent__label {
     cursor: pointer;
+    color: inherit;
 }
 
 .bw-newsletter-subscription-consent__link {
-    color: #181a20;
+    color: inherit;
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor: pointer;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-consent__link {
-    color: var(--bw-ns-section-privacy-color, #f7f7f2);
+    color: var(--bw-ns-section-privacy-color, var(--bw-ns-widget-color, #f7f7f2));
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button,
@@ -506,14 +579,14 @@ input.bw-newsletter-subscription-input:focus {
 .bw-newsletter-subscription-message {
     min-height: 24px !important;
     margin: 0;
-    color: #181a20;
+    color: inherit;
     font-size: 13px;
     line-height: 1.4;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-message {
     text-align: center;
-    color: rgba(247, 247, 242, 0.88);
+    color: var(--bw-ns-section-message-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.88)));
 }
 
 .bw-newsletter-subscription-message.is-success {
@@ -538,7 +611,7 @@ input.bw-newsletter-subscription-input:focus {
 
 .bw-newsletter-subscription-noscript {
     margin: 0;
-    color: #8a1f1f;
+    color: inherit;
     font-size: 12px;
     line-height: 1.4;
 }
@@ -559,14 +632,14 @@ input.bw-newsletter-subscription-input:focus {
     z-index: 1 !important;
     background: rgba(255, 255, 255, 0.04) !important;
     border-color: rgba(247, 247, 242, 0.2) !important;
-    color: rgba(247, 247, 242, 0.8);
+    color: var(--bw-ns-section-preview-color, var(--bw-ns-widget-color, rgba(247, 247, 242, 0.8)));
 }
 
 @media (max-width: 767px) {
     .bw-newsletter-subscription-widget--section {
         min-height: auto !important;
         padding: 28px 18px !important;
-        border-radius: 20px !important;
+        border-radius: var(--bw-ns-widget-radius, 20px) !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-art,
@@ -591,15 +664,53 @@ input.bw-newsletter-subscription-input:focus {
         gap: 16px !important;
     }
 
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-inline {
+        flex-direction: column !important;
+        gap: 12px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-radius: 50px !important;
+        background: transparent !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+    }
+
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email,
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+    }
+
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email {
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
+        min-height: 40px !important;
+        padding: 0 16px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 50px !important;
+        background: var(--bw-ns-label-bg) !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button__label {
+        min-height: 40px !important;
+        border-radius: 50px !important;
+    }
+
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input,
     .elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription-input,
     .bw-newsletter-subscription-input,
     input.bw-newsletter-subscription-input {
-        height: 64px !important;
-        min-height: 64px !important;
-        padding: 0 16px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 0 14px !important;
         font-size: 15px !important;
-        line-height: 62px !important;
+        line-height: 38px !important;
         border-radius: 12px !important;
     }
 
@@ -607,7 +718,7 @@ input.bw-newsletter-subscription-input:focus {
     .elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription-input:focus,
     .bw-newsletter-subscription-input:focus,
     input.bw-newsletter-subscription-input:focus {
-        padding: 0 15px !important;
+        padding: 0 13px !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-consent,
@@ -657,7 +768,8 @@ input.bw-newsletter-subscription-input:focus {
         justify-content: flex-start !important;
     }
 
-    .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-message {
-        text-align: left !important;
-    }
+.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-message {
+    text-align: left !important;
+}
+
 }

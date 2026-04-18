@@ -515,19 +515,8 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $showcase_title       = '' !== $showcase_title_meta ? $showcase_title_meta : $product_title;
         $showcase_description = trim( (string) $get_meta( '_bw_showcase_description' ) );
         $meta_assets_count = $get_meta( '_bw_assets_count' );
-        if ( '' === $meta_assets_count ) {
-            $meta_assets_count = $get_meta( '_product_assets_count' );
-        }
-
-        $meta_size_mb = $get_meta( '_bw_file_size' );
-        if ( '' === $meta_size_mb ) {
-            $meta_size_mb = $get_meta( '_product_size_mb' );
-        }
-
-        $meta_formats = $get_meta( '_bw_formats' );
-        if ( '' === $meta_formats ) {
-            $meta_formats = $get_meta( '_product_formats' );
-        }
+        $meta_size_mb      = $get_meta( '_bw_file_size' );
+        $meta_formats      = $get_meta( '_bw_formats' );
 
         $meta_product_type_raw = $get_meta( '_bw_product_type' );
         $product_type_value    = sanitize_key( $meta_product_type_raw );
@@ -539,9 +528,6 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
         $meta_button_link = $get_meta( '_product_button_link' );
 
         $meta_color_value = $get_meta( '_bw_texts_color' );
-        if ( '' === $meta_color_value ) {
-            $meta_color_value = $get_meta( '_product_color' );
-        }
         $meta_color = sanitize_hex_color( $meta_color_value );
         if ( empty( $meta_color ) ) {
             $meta_color = '#ffffff';
@@ -563,19 +549,12 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
 
         $assets_display = '';
         if ( '' !== $meta_assets_count ) {
-            $assets_number = absint( $meta_assets_count );
-            if ( $assets_number > 0 ) {
-                $assets_label   = _n( 'Asset', 'Assets', $assets_number, 'bw-elementor-widgets' );
-                $assets_display = sprintf( '%d %s', $assets_number, $assets_label );
-            }
+            $assets_display = trim( wp_strip_all_tags( $meta_assets_count ) );
         }
 
         $size_display = '';
         if ( '' !== $meta_size_mb ) {
             $size_display = trim( wp_strip_all_tags( $meta_size_mb ) );
-            if ( '' !== $size_display && ! preg_match( '/[a-zA-Z]/', $size_display ) ) {
-                $size_display .= 'MB';
-            }
         }
 
         $format_badges = [];
@@ -683,7 +662,9 @@ class Widget_Bw_Static_Showcase extends Widget_Base {
                         <?php if ( $has_cta ) : ?>
                             <div class="bw-slide-showcase-cta">
                                 <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-arrow" aria-label="<?php echo esc_attr( $button_text ); ?>">
-                                    <span aria-hidden="true">&rsaquo;</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="lucide lucide-chevron-right-icon lucide-chevron-right">
+                                        <path d="m9 18 6-6-6-6"/>
+                                    </svg>
                                 </a>
                                 <a href="<?php echo esc_url( $btn_url ); ?>" class="bw-slide-showcase-view-btn">
                                     <?php echo esc_html( $button_text ); ?>

@@ -2142,16 +2142,17 @@
                     $existingPanel.attr('aria-hidden', newIsOpen ? 'false' : 'true');
                     $existingPanel.html($tmpPanel.html());
                     $existing.children('.bw-fpw-discovery-group__toggle').first().attr('aria-expanded', newIsOpen ? 'true' : 'false');
+                    syncDiscoveryAccordionPanelState($existing, newIsOpen, false);
 
                     $current = $existing;
                 } else if (nextSelector && $groups.children(nextSelector).length) {
                     $(markup).insertBefore($groups.children(nextSelector).first());
                     $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
-                    initAccordionPanelState($current);
+                    syncDiscoveryAccordionPanelState($current, $current.hasClass('is-open'), false);
                 } else {
                     $groups.append(markup);
                     $current = $groups.children('.bw-fpw-discovery-group[data-widget-id="' + widgetId + '"][data-group="' + groupKey + '"]');
-                    initAccordionPanelState($current);
+                    syncDiscoveryAccordionPanelState($current, $current.hasClass('is-open'), false);
                 }
             }
 
@@ -2163,6 +2164,10 @@
                 }
             } else if ($current.length && !nextSelector && $current.index() !== $groups.children().length - 1) {
                 $groups.append($current);
+            }
+
+            if ($current.length) {
+                syncDiscoveryAccordionPanelState($current, $current.hasClass('is-open'), false);
             }
 
             state.ui.drawerGroupMarkup[groupKey] = markup;
@@ -2179,63 +2184,102 @@
         });
     }
 
-    function initAccordionPanelState($section) {
+    function syncDiscoveryAccordionPanelState($section, isOpen, animate) {
         var $panel = $section.children('.bw-fpw-discovery-group__panel').first();
-        if (!$panel.length) { return; }
+        var $inner = $panel.children('.bw-fpw-discovery-group__panel-inner').first();
         var panel = $panel[0];
-        var isOpen = $section.hasClass('is-open');
-        $panel.off('transitionend.accordion');
-        panel.style.transition = 'none';
-        if (isOpen) {
-            panel.style.height = 'auto';
-            panel.style.overflow = '';
-            panel.style.visibility = 'visible';
-        } else {
-            panel.style.height = '0';
-            panel.style.overflow = 'hidden';
-            panel.style.visibility = 'hidden';
-        }
-    }
-
-    function animateAccordionPanel($section, open) {
-        var $panel = $section.children('.bw-fpw-discovery-group__panel').first();
-        if (!$panel.length) { return; }
-        var panel = $panel[0];
-        var dur = 320;
+        var inner = $inner[0];
+        var existingHandler = panel && panel._bwFpwAccordionTransitionHandler ? panel._bwFpwAccordionTransitionHandler : null;
+        var duration = '360ms';
         var easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-        $panel.off('transitionend.accordion');
-        panel.style.transition = 'none';
-
-        if (open) {
-            panel.style.overflow = 'hidden';
-            panel.style.visibility = 'visible';
-            var startH = panel.offsetHeight;
-            var $inner = $panel.children('.bw-fpw-discovery-group__panel-inner');
-            var targetH = ($inner.length ? $inner[0] : panel).scrollHeight;
-            panel.style.height = startH + 'px';
-            panel.offsetHeight;
-            panel.style.transition = 'height ' + dur + 'ms ' + easing;
-            panel.style.height = targetH + 'px';
-            $panel.one('transitionend.accordion', function (e) {
-                if (e.originalEvent.propertyName !== 'height') { return; }
-                panel.style.height = 'auto';
-                panel.style.overflow = '';
-                panel.style.transition = '';
-            });
-        } else {
-            var currentH = panel.offsetHeight;
-            panel.style.height = currentH + 'px';
-            panel.style.overflow = 'hidden';
-            panel.offsetHeight;
-            panel.style.transition = 'height ' + dur + 'ms ' + easing + ', visibility 0s ' + dur + 'ms';
-            panel.style.height = '0';
-            panel.style.visibility = 'hidden';
-            $panel.one('transitionend.accordion', function (e) {
-                if (e.originalEvent.propertyName !== 'height') { return; }
-                panel.style.transition = '';
-            });
+        if (!panel || !inner) {
+            return;
         }
+
+        if (existingHandler) {
+            panel.removeEventListener('transitionend', existingHandler);
+            panel._bwFpwAccordionTransitionHandler = null;
+        }
+
+        panel.style.overflow = 'hidden';
+
+        if (!animate) {
+            panel.style.transition = 'none';
+            panel.style.willChange = '';
+            panel.style.visibility = isOpen ? 'visible' : 'hidden';
+            panel.style.height = isOpen ? 'auto' : '0px';
+            return;
+        }
+
+        panel.style.transition = 'height ' + duration + ' ' + easing + ', visibility 0s ' + (isOpen ? '0ms' : duration);
+        panel.style.willChange = 'height';
+
+        if (isOpen) {
+            var openHandler = function (event) {
+                if (event.target !== panel || event.propertyName !== 'height') {
+                    return;
+                }
+
+                if (!$section.hasClass('is-open')) {
+                    return;
+                }
+
+                panel.style.height = 'auto';
+                panel.style.willChange = '';
+                panel.style.transition = '';
+                panel.removeEventListener('transitionend', openHandler);
+                panel._bwFpwAccordionTransitionHandler = null;
+            };
+
+            panel.style.visibility = 'visible';
+            panel.style.height = '0px';
+            panel.offsetHeight;
+
+            panel._bwFpwAccordionTransitionHandler = openHandler;
+            panel.addEventListener('transitionend', openHandler);
+
+            window.requestAnimationFrame(function () {
+                if (!$section.hasClass('is-open')) {
+                    return;
+                }
+
+                panel.style.height = inner.scrollHeight + 'px';
+            });
+
+            return;
+        }
+
+        var closeHandler = function (event) {
+            if (event.target !== panel || event.propertyName !== 'height') {
+                return;
+            }
+
+            if ($section.hasClass('is-open')) {
+                return;
+            }
+
+            panel.style.visibility = 'hidden';
+            panel.style.willChange = '';
+            panel.style.transition = '';
+            panel.removeEventListener('transitionend', closeHandler);
+            panel._bwFpwAccordionTransitionHandler = null;
+        };
+
+        panel.style.visibility = 'visible';
+        panel.style.height = panel.getBoundingClientRect().height + 'px';
+        panel.offsetHeight;
+
+        panel._bwFpwAccordionTransitionHandler = closeHandler;
+        panel.addEventListener('transitionend', closeHandler);
+
+        window.requestAnimationFrame(function () {
+            if ($section.hasClass('is-open')) {
+                return;
+            }
+
+            panel.style.height = '0px';
+        });
     }
 
     function applyDiscoveryGroupOpenState(widgetId, groupKey) {
@@ -2259,7 +2303,7 @@
         $section.toggleClass('is-open', isOpen);
         $section.children('.bw-fpw-discovery-group__panel').attr('aria-hidden', isOpen ? 'false' : 'true');
         $section.children('.bw-fpw-discovery-group__toggle').attr('aria-expanded', isOpen ? 'true' : 'false');
-        animateAccordionPanel($section, isOpen);
+        syncDiscoveryAccordionPanelState($section, isOpen, true);
     }
 
     function getDiscoveryVisibleFilterSummary(state, groupKey) {
@@ -4838,6 +4882,14 @@
 
                 if (groupKey !== 'types' && groupKey !== 'tags' && groupKey !== 'years' && isDiscoveryTokenGroup(groupKey)) {
                     setDiscoverySelectionState(state, groupKey, []);
+                }
+
+                if (state.ui.openGroups.hasOwnProperty(groupKey)) {
+                    state.ui.openGroups[groupKey] = false;
+                }
+
+                if (state.ui.optionSearches.hasOwnProperty(groupKey)) {
+                    state.ui.optionSearches[groupKey] = '';
                 }
             });
 

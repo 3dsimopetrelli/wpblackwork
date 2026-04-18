@@ -127,6 +127,10 @@ if (!function_exists('bw_header_enqueue_assets')) {
         $inner_padding_right = isset($inner_padding['right']) ? (float) $inner_padding['right'] : 28;
         $inner_padding_bottom = isset($inner_padding['bottom']) ? (float) $inner_padding['bottom'] : 18;
         $inner_padding_left = isset($inner_padding['left']) ? (float) $inner_padding['left'] : 28;
+
+        if ($inner_padding_unit === '%') {
+            $inner_padding_top = 1;
+        }
         $background_transparent = !empty($settings['background_transparent']);
         $header_bg = isset($settings['background_color']) ? sanitize_hex_color($settings['background_color']) : '#efefef';
         if (!$header_bg) {

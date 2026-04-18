@@ -274,20 +274,6 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			],
 		] );
 
-		$this->add_responsive_control( 'values_alignment', [
-			'label'     => __( 'Text Alignment', 'bw' ),
-			'type'      => Controls_Manager::CHOOSE,
-			'options'   => [
-				'left'   => [ 'title' => __( 'Left', 'bw' ),   'icon' => 'eicon-text-align-left' ],
-				'center' => [ 'title' => __( 'Center', 'bw' ), 'icon' => 'eicon-text-align-center' ],
-				'right'  => [ 'title' => __( 'Right', 'bw' ),  'icon' => 'eicon-text-align-right' ],
-			],
-			'default'   => 'left',
-			'selectors' => [
-				'{{WRAPPER}} .bw-biblio-value' => 'text-align: {{VALUE}};',
-			],
-		] );
-
 		$this->end_controls_section();
 
 		$this->start_controls_section( 'section_style_assets', [
@@ -297,7 +283,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
 		$this->add_group_control( Group_Control_Typography::get_type(), [
 			'name'     => 'assets_typography',
-			'selector' => '{{WRAPPER}} .bw-biblio-row--assets .bw-biblio-label--assets, {{WRAPPER}} .bw-biblio-row--assets .bw-biblio-value--assets-list',
+			'selector' => '{{WRAPPER}} .bw-biblio-row--assets .bw-biblio-value--assets-list',
 		] );
 
 		$this->end_controls_section();
@@ -518,7 +504,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				echo '<div class="bw-biblio-section-subtitle">' . esc_html( $section['subtitle'] ) . '</div>';
 			}
 
-			echo '<div class="bw-biblio-table">';
+			echo '<div class="bw-biblio-table bw-biblio-table--product-details">';
 
 			if ( 'digital' === $section['id'] ) {
 				$total_assets_row = $this->pull_row_by_meta( $rows, '_digital_total_assets' );

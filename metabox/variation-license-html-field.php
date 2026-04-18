@@ -18,12 +18,12 @@ add_action( 'woocommerce_variation_options_pricing', 'bw_add_variation_license_h
 function bw_add_variation_license_html_field( $loop, $variation_data, $variation ) {
 $variation_id = $variation->ID;
 $column_one   = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col1' );
-$column_two   = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col2' );
+$column_two   = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col2', true );
 ?>
 <div class="form-row form-row-full bw-variation-license-html-wrapper">
 <label>
 <?php esc_html_e( 'License Terms', 'bw' ); ?>
-<?php echo wc_help_tip( __( 'Populate up to 10 rows per column. These entries replace the old HTML block and will appear in the license box under the variation buttons.', 'bw' ) ); ?>
+<?php echo wc_help_tip( __( 'Populate up to 10 rows per column. Column 2 accepts safe HTML and will appear in the license box under the variation buttons.', 'bw' ) ); ?>
 </label>
 <p class="description" style="margin-top: 0;">
 <?php esc_html_e( 'Only non-empty rows are displayed on the product.', 'bw' ); ?>
@@ -42,13 +42,12 @@ value="<?php echo esc_attr( $column_one[ $i ] ); ?>"
 placeholder="<?php printf( esc_attr__( 'Row %d label', 'bw' ), $i + 1 ); ?>"
 class="bw-variation-license-table__input"
 />
-<input
-type="text"
+<textarea
 name="bw_variation_license_col2[<?php echo esc_attr( $loop ); ?>][<?php echo esc_attr( $i ); ?>]"
-value="<?php echo esc_attr( $column_two[ $i ] ); ?>"
-placeholder="<?php printf( esc_attr__( 'Row %d value', 'bw' ), $i + 1 ); ?>"
-class="bw-variation-license-table__input"
-/>
+placeholder="<?php printf( esc_attr__( 'Row %d HTML', 'bw' ), $i + 1 ); ?>"
+class="bw-variation-license-table__input bw-variation-license-table__textarea"
+rows="2"
+><?php echo esc_textarea( $column_two[ $i ] ); ?></textarea>
 </div>
 <?php endfor; ?>
 </div>
@@ -75,7 +74,7 @@ $col2_sanitized = [];
 
 for ( $index = 0; $index < 10; $index++ ) {
 $col1_sanitized[ $index ] = isset( $col1_values[ $index ] ) ? sanitize_text_field( wp_unslash( $col1_values[ $index ] ) ) : '';
-$col2_sanitized[ $index ] = isset( $col2_values[ $index ] ) ? sanitize_text_field( wp_unslash( $col2_values[ $index ] ) ) : '';
+$col2_sanitized[ $index ] = isset( $col2_values[ $index ] ) ? wp_kses_post( wp_unslash( $col2_values[ $index ] ) ) : '';
 }
 
 update_post_meta( $variation_id, '_bw_variation_license_col1', $col1_sanitized );
@@ -139,6 +138,11 @@ width: 100%;
 box-sizing: border-box;
 }
 
+.bw-variation-license-table__textarea {
+min-height: 56px;
+resize: vertical;
+}
+
 .bw-variation-license-table__input:focus {
 border-color: #2271b1;
 outline: 2px solid transparent;
@@ -161,10 +165,11 @@ margin-top: 8px;
  *
  * @param int    $variation_id Variation ID.
  * @param string $meta_key     Meta key to read.
+ * @param bool   $allow_html   Whether to preserve safe HTML tags.
  *
  * @return array
  */
-function bw_get_variation_license_column( $variation_id, $meta_key ) {
+function bw_get_variation_license_column( $variation_id, $meta_key, $allow_html = false ) {
 $values = get_post_meta( $variation_id, $meta_key, true );
 
 if ( ! is_array( $values ) ) {
@@ -174,7 +179,9 @@ $values = [];
 $normalized = [];
 
 for ( $index = 0; $index < 10; $index++ ) {
-$normalized[ $index ] = isset( $values[ $index ] ) ? sanitize_text_field( wp_unslash( $values[ $index ] ) ) : '';
+$normalized[ $index ] = isset( $values[ $index ] )
+	? ( $allow_html ? wp_kses_post( wp_unslash( $values[ $index ] ) ) : sanitize_text_field( wp_unslash( $values[ $index ] ) ) )
+	: '';
 }
 
 return $normalized;
@@ -189,7 +196,7 @@ return $normalized;
  */
 function bw_get_variation_license_table_html( $variation_id ) {
 $col1 = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col1' );
-$col2 = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col2' );
+$col2 = bw_get_variation_license_column( $variation_id, '_bw_variation_license_col2', true );
 $rows = [];
 
 for ( $index = 0; $index < 10; $index++ ) {
@@ -216,7 +223,7 @@ foreach ( $rows as $row ) {
 $markup .= sprintf(
 '<tr><td class="bw-license-table__cell bw-license-table__cell--label">%1$s</td><td class="bw-license-table__cell bw-license-table__cell--value">%2$s</td></tr>',
 esc_html( $row['left'] ),
-esc_html( $row['right'] )
+wp_kses_post( $row['right'] )
 );
 }
 

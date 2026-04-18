@@ -49,6 +49,7 @@ class BW_Trust_Box_Widget extends Widget_Base {
 
 	protected function register_controls() {
 		$this->register_content_controls();
+		$this->register_style_controls();
 	}
 
 	private function register_content_controls() {
@@ -241,6 +242,130 @@ class BW_Trust_Box_Widget extends Widget_Base {
 				],
 				'condition'     => [
 					'show_faq_button' => 'yes',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	private function register_style_controls() {
+		$this->start_controls_section(
+			'section_trust_review_style',
+			[
+				'label' => __( 'Review Trust Box', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_control(
+			'review_slider_background_color',
+			[
+				'label'     => __( 'Review Slider Background', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-trust-box__review-slider' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'review_slider_border_radius',
+			[
+				'label'      => __( 'Review Slider Border Radius', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', '%' ],
+				'range'      => [
+					'px'  => [ 'min' => 0, 'max' => 80 ],
+					'em'  => [ 'min' => 0, 'max' => 10 ],
+					'%'   => [ 'min' => 0, 'max' => 50 ],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-trust-box__review-slider' => 'border-radius: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'review_box_background_color',
+			[
+				'label'     => __( 'Review Box Background', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-trust-box__review-box' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'review_box_border_radius',
+			[
+				'label'      => __( 'Review Box Border Radius', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', '%' ],
+				'range'      => [
+					'px'  => [ 'min' => 0, 'max' => 80 ],
+					'em'  => [ 'min' => 0, 'max' => 10 ],
+					'%'   => [ 'min' => 0, 'max' => 50 ],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-trust-box__review-box' => 'border-radius: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'info_card_background_color',
+			[
+				'label'     => __( 'Info Card Background', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-trust-box__info-card' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'info_card_border_radius',
+			[
+				'label'      => __( 'Info Card Border Radius', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', '%' ],
+				'range'      => [
+					'px'  => [ 'min' => 0, 'max' => 80 ],
+					'em'  => [ 'min' => 0, 'max' => 10 ],
+					'%'   => [ 'min' => 0, 'max' => 50 ],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-trust-box__info-card' => 'border-radius: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'faq_button_background_color',
+			[
+				'label'     => __( 'FAQ Button Background', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-trust-box__faq-button' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'faq_button_border_radius',
+			[
+				'label'      => __( 'FAQ Button Border Radius', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', '%' ],
+				'range'      => [
+					'px'  => [ 'min' => 0, 'max' => 80 ],
+					'em'  => [ 'min' => 0, 'max' => 10 ],
+					'%'   => [ 'min' => 0, 'max' => 50 ],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-trust-box__faq-button' => 'border-radius: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
