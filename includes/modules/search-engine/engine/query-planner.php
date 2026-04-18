@@ -14,7 +14,7 @@ function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order
     ];
 
     switch ($normalized_sort_key) {
-        case 'recent':
+        case 'newest':
             $effective_order_by = 'date';
             $effective_order = 'DESC';
             $query_args = [
@@ -65,6 +65,7 @@ function bw_fpw_resolve_sort_config($sort_key, $default_order_by, $default_order
                 'order' => $effective_order,
             ];
             break;
+        case 'random_seeded':
         case 'default':
         default:
             break;

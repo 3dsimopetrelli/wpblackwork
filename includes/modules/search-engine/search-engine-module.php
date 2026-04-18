@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/context/context-registry.php';
+require_once __DIR__ . '/engine/sort-config.php';
 require_once __DIR__ . '/request/request-normalizer.php';
 require_once __DIR__ . '/cache/cache-service.php';
 require_once __DIR__ . '/middleware/rate-limiter.php';

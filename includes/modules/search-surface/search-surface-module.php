@@ -8,6 +8,7 @@ if ( ! defined( 'BW_SS_REWRITE_VERSION' ) ) {
 }
 
 require_once __DIR__ . '/runtime/url-state.php';
+require_once __DIR__ . '/../search-engine/engine/sort-config.php';
 require_once __DIR__ . '/runtime/headless-product-grid-renderer.php';
 require_once __DIR__ . '/runtime/search-results-page.php';
 require_once __DIR__ . '/runtime/trending-source.php';

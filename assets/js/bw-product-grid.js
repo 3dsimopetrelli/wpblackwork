@@ -910,7 +910,7 @@
             }
 
             filterState[widgetId] = {
-                sortKey: normalizeDiscoverySortKey($grid.attr('data-default-sort-key') || 'default'),
+                sortKey: normalizeDiscoverySortKey($grid.attr('data-default-sort-key') || getDiscoverySortDefaultKey()),
                 category: initialCategory,
                 subcategories: [],
                 tags: [],
@@ -1057,58 +1057,114 @@
         return result;
     }
 
+    function getDiscoverySortDefaultKey() {
+        return 'random_seeded';
+    }
+
+    function getDiscoverySortAliases() {
+        return {
+            default: 'random_seeded',
+            recent: 'newest'
+        };
+    }
+
     function getDiscoverySortOptions() {
         return {
-            'default': {
+            random_seeded: {
                 triggerLabel: 'Default',
                 menuLabel: 'Default order',
                 orderBy: null,
-                order: null
+                order: null,
+                iconKey: 'arrow-down-up'
             },
-            recent: {
+            newest: {
                 triggerLabel: 'Latest',
                 menuLabel: 'Recently added',
                 orderBy: 'date',
-                order: 'DESC'
+                order: 'DESC',
+                iconKey: 'clock-arrow-down'
             },
             oldest: {
                 triggerLabel: 'Earliest',
                 menuLabel: 'Oldest added',
                 orderBy: 'date',
-                order: 'ASC'
+                order: 'ASC',
+                iconKey: 'clock-arrow-up'
             },
             title_asc: {
                 triggerLabel: 'A–Z',
                 menuLabel: 'Alphabetical A to Z',
                 orderBy: 'title',
-                order: 'ASC'
+                order: 'ASC',
+                iconKey: 'arrow-down-a-z'
             },
             title_desc: {
                 triggerLabel: 'Z–A',
                 menuLabel: 'Alphabetical Z to A',
                 orderBy: 'title',
-                order: 'DESC'
+                order: 'DESC',
+                iconKey: 'arrow-up-z-a'
             },
             year_asc: {
                 triggerLabel: 'Year ↑',
                 menuLabel: 'Year, oldest first',
-                orderBy: 'date',
-                order: 'ASC'
+                orderBy: 'year_int',
+                order: 'ASC',
+                iconKey: 'calendar-arrow-up'
             },
             year_desc: {
                 triggerLabel: 'Year ↓',
                 menuLabel: 'Year, newest first',
-                orderBy: 'date',
-                order: 'DESC'
+                orderBy: 'year_int',
+                order: 'DESC',
+                iconKey: 'calendar-arrow-down'
             }
         };
     }
 
     function normalizeDiscoverySortKey(value) {
-        var sortKey = String(value || 'default').toLowerCase();
+        var sortKey = String(value || getDiscoverySortDefaultKey()).toLowerCase();
+        var aliases = getDiscoverySortAliases();
         var options = getDiscoverySortOptions();
 
-        return options.hasOwnProperty(sortKey) ? sortKey : 'default';
+        if (aliases.hasOwnProperty(sortKey)) {
+            sortKey = aliases[sortKey];
+        }
+
+        return options.hasOwnProperty(sortKey) ? sortKey : getDiscoverySortDefaultKey();
+    }
+
+    function getDiscoverySortIconSvgByKey(iconKey) {
+        switch (String(iconKey || '').toLowerCase()) {
+            case 'clock-arrow-down':
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8"/><path d="M12 8v5"/><path d="m12 13 2.5 2.5"/><path d="M10 16h4"/></svg>';
+
+            case 'clock-arrow-up':
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8"/><path d="M12 16v-5"/><path d="m12 11-2.5-2.5"/><path d="M10 8h4"/></svg>';
+
+            case 'arrow-down-a-z':
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 4v14"/><path d="m4 15 3 3 3-3"/><text x="15" y="10" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.75" font-weight="700" fill="currentColor">A</text><text x="15" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.75" font-weight="700" fill="currentColor">Z</text></svg>';
+
+            case 'arrow-up-z-a':
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 20V6"/><path d="m4 9 3-3 3 3"/><text x="15" y="10" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.75" font-weight="700" fill="currentColor">Z</text><text x="15" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.75" font-weight="700" fill="currentColor">A</text></svg>';
+
+            case 'calendar-arrow-up':
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 9h18"/><path d="M12 16V8"/><path d="m9 11 3-3 3 3"/></svg>';
+
+            case 'calendar-arrow-down':
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 9h18"/><path d="M12 8v8"/><path d="m9 13 3 3 3-3"/></svg>';
+
+            case 'arrow-down-up':
+            default:
+                return '<svg class="bw-fpw-sort-trigger__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>';
+        }
+    }
+
+    function getDiscoverySortIconSvg(sortKey) {
+        var options = getDiscoverySortOptions();
+        var option = options[normalizeDiscoverySortKey(sortKey)] || options[getDiscoverySortDefaultKey()];
+
+        return getDiscoverySortIconSvgByKey(option && option.iconKey ? option.iconKey : 'arrow-down-up');
     }
 
     function getDefaultDiscoverySortConfig(widgetId) {
@@ -1116,7 +1172,7 @@
         var orderBy = String($grid.attr('data-default-order-by') || $grid.attr('data-order-by') || 'date');
         var order = String($grid.attr('data-default-order') || $grid.attr('data-order') || 'DESC').toUpperCase();
 
-        if (['date', 'modified', 'title', 'rand', 'ID'].indexOf(orderBy) === -1) {
+        if (['date', 'modified', 'title', 'rand', 'ID', 'year_int'].indexOf(orderBy) === -1) {
             orderBy = 'date';
         }
 
@@ -1137,7 +1193,7 @@
     function getDiscoverySortConfigCacheKey(widgetId, state) {
         var resolvedState = state || getDiscoveryState(widgetId);
         var defaults = getDefaultDiscoverySortConfig(widgetId);
-        var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
+        var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : getDiscoverySortDefaultKey());
 
         return [
             sortKey,
@@ -1428,17 +1484,18 @@
             return resolvedState.ui.sortConfigCacheValue;
         }
 
-        sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : 'default');
+        sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : getDiscoverySortDefaultKey());
         options = getDiscoverySortOptions();
-        option = options[sortKey] || options['default'];
+        option = options[sortKey] || options[getDiscoverySortDefaultKey()];
         defaults = getDefaultDiscoverySortConfig(widgetId);
 
         config = {
             sortKey: sortKey,
             triggerLabel: option.triggerLabel,
             menuLabel: option.menuLabel,
-            orderBy: sortKey === 'default' ? defaults.orderBy : option.orderBy,
-            order: sortKey === 'default' ? defaults.order : option.order
+            iconKey: option.iconKey || 'arrow-down-up',
+            orderBy: sortKey === getDiscoverySortDefaultKey() ? defaults.orderBy : option.orderBy,
+            order: sortKey === getDiscoverySortDefaultKey() ? defaults.order : option.order
         };
 
         if (resolvedState && resolvedState.ui) {
@@ -2678,6 +2735,7 @@
         var $sort;
         var $trigger;
         var $menu;
+        var $iconShell;
 
         if (!isDiscoverySortEnabled(widgetId, state)) {
             return;
@@ -2693,13 +2751,19 @@
 
         $trigger = $sort.find('.bw-fpw-sort-trigger');
         $menu = $sort.find('.bw-fpw-sort-menu');
+        $iconShell = $sort.find('.bw-fpw-sort-trigger__icon-shell');
 
         $sort.toggleClass('is-open', isOpen);
         $sort.attr('data-sort-key', config.sortKey);
+        $sort.attr('data-sort-icon-key', config.iconKey || '');
         $sort.attr('data-trigger-style', getDiscoverySortTriggerStyle(widgetId, state));
         $trigger.attr('aria-expanded', isOpen ? 'true' : 'false');
         $menu.attr('aria-hidden', isOpen ? 'false' : 'true');
         $sort.find('[data-sort-current-label]').text(config.triggerLabel);
+
+        if ($iconShell.length) {
+            $iconShell.html(getDiscoverySortIconSvg(config.sortKey));
+        }
 
         $sort.find('.bw-fpw-sort-option').each(function () {
             var $option = $(this);
@@ -5305,7 +5369,7 @@
                     state.ui.desktopFilterOrder
                 );
                 state.ui.orderTriggerStyle = bootstrapPayload.order_trigger_style === 'dropdown' ? 'dropdown' : 'icon';
-                state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || 'default');
+                state.sortKey = normalizeDiscoverySortKey(bootstrapPayload.default_sort_key || state.sortKey || getDiscoverySortDefaultKey());
                 hydrateDiscoveryStateFromBootstrap(state, bootstrapPayload, defaultCategory);
                 state.resultCount = Math.max(0, parseInteger($grid.attr('data-result-count'), 0));
 
