@@ -453,6 +453,7 @@
     var visibleFilterFeedbackTimers = {};
     var yearInputCommitTimers = {};
     var mobilePanelDragState = null;
+    var discoveryAccordionScrollLock = null;
     var VISIBLE_FILTER_ADD_SELECTION_BEAT_MS = 135;
     var gridRefreshTimers = {};
     var VISIBLE_FILTER_ADD_EXIT_MS = 210;
@@ -4592,8 +4593,19 @@
             closeAllDiscoveryVisibleFilterPanels();
         });
 
+        $(document).on('pointerdown', '.bw-fpw-discovery-group__toggle', function () {
+            var widgetId = $(this).attr('data-widget-id');
+            var drawerBody = getDiscoveryDrawerBody(widgetId);
+            discoveryAccordionScrollLock = drawerBody ? { body: drawerBody, scrollTop: drawerBody.scrollTop } : null;
+        });
+
         $(document).on('click', '.bw-fpw-discovery-group__toggle', function (e) {
             e.preventDefault();
+
+            if (discoveryAccordionScrollLock) {
+                discoveryAccordionScrollLock.body.scrollTop = discoveryAccordionScrollLock.scrollTop;
+                discoveryAccordionScrollLock = null;
+            }
 
             var widgetId = $(this).attr('data-widget-id');
             var groupKey = $(this).attr('data-group');
