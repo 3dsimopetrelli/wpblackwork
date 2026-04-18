@@ -1204,7 +1204,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                                 </div>
                                 <div class="bw-fpw-mobile-filter-drawer-title-row">
                                     <span class="bw-fpw-mobile-filter-drawer-title"><?php echo esc_html( $drawer_title ); ?></span>
-                                    <button class="bw-fpw-drawer-clear-all bw-fpw-drawer-clear-all--header" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
+                                    <button class="bw-fpw-drawer-clear-all bw-fpw-drawer-clear-all--header is-hidden" type="button" aria-hidden="true" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
                                 </div>
                             </div>
 
