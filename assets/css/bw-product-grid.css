@@ -874,7 +874,7 @@ body.bw-fpw-drawer-no-scroll {
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__content {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__chevron {
