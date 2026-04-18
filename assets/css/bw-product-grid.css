@@ -861,6 +861,14 @@ body.bw-fpw-drawer-no-scroll {
   outline: none;
 }
 
+.bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown:hover,
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown:focus-visible {
   background: #f5f5f5;
@@ -889,6 +897,7 @@ body.bw-fpw-drawer-no-scroll {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1 1 auto;
   font-size: 16px;
   font-weight: 600;
   line-height: 1;

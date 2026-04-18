@@ -307,7 +307,12 @@ function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id,
                 <div class="bw-fpw-sort bw-fpw-sort--<?php echo esc_attr( $settings['order_trigger_style'] ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
                     <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--<?php echo esc_attr( $settings['order_trigger_style'] ); ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
                         <?php if ( 'dropdown' === $settings['order_trigger_style'] ) : ?>
-                            <span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php echo esc_html( $default_sort_label ); ?></span>
+                            <span class="bw-fpw-sort-trigger__content">
+                                <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
+                                    <?php echo $default_sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                </span>
+                                <span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php echo esc_html( $default_sort_label ); ?></span>
+                            </span>
                             <span class="bw-fpw-sort-trigger__chevron" aria-hidden="true">
                                 <?php echo $sort_chevron_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </span>
