@@ -1700,7 +1700,6 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group {
   border: none;
   color: inherit;
-  overflow: hidden;
   box-shadow: none;
   transition: none;
 }
@@ -1727,7 +1726,7 @@ body.bw-fpw-drawer-no-scroll {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
-  transform: translateZ(0);
+  contain: layout;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__title {
@@ -1801,7 +1800,6 @@ body.bw-fpw-drawer-no-scroll {
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__panel-inner {
   min-height: 0;
-  overflow: hidden;
   padding: 0 0 8px;
 }
 
