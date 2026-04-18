@@ -1726,7 +1726,6 @@ body.bw-fpw-drawer-no-scroll {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
-  contain: layout;
 }
 
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group__title {
