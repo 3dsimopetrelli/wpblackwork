@@ -1058,25 +1058,19 @@
     }
 
     function getDiscoverySortDefaultKey() {
-        return 'random_seeded';
+        return 'newest';
     }
 
     function getDiscoverySortAliases() {
         return {
-            default: 'random_seeded',
-            recent: 'newest'
+            default: 'newest',
+            recent: 'newest',
+            random_seeded: 'newest'
         };
     }
 
     function getDiscoverySortOptions() {
         return {
-            random_seeded: {
-                triggerLabel: 'Default',
-                menuLabel: 'Default order',
-                orderBy: null,
-                order: null,
-                iconKey: 'arrow-down-up'
-            },
             newest: {
                 triggerLabel: 'Latest',
                 menuLabel: 'Recently added',
@@ -1192,14 +1186,9 @@
 
     function getDiscoverySortConfigCacheKey(widgetId, state) {
         var resolvedState = state || getDiscoveryState(widgetId);
-        var defaults = getDefaultDiscoverySortConfig(widgetId);
         var sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : getDiscoverySortDefaultKey());
 
-        return [
-            sortKey,
-            defaults.orderBy,
-            defaults.order
-        ].join('|');
+        return sortKey;
     }
 
     function isDiscoverySortEnabled(widgetId, state) {
@@ -1487,15 +1476,14 @@
         sortKey = normalizeDiscoverySortKey(resolvedState && resolvedState.sortKey ? resolvedState.sortKey : getDiscoverySortDefaultKey());
         options = getDiscoverySortOptions();
         option = options[sortKey] || options[getDiscoverySortDefaultKey()];
-        defaults = getDefaultDiscoverySortConfig(widgetId);
 
         config = {
             sortKey: sortKey,
             triggerLabel: option.triggerLabel,
             menuLabel: option.menuLabel,
-            iconKey: option.iconKey || 'arrow-down-up',
-            orderBy: sortKey === getDiscoverySortDefaultKey() ? defaults.orderBy : option.orderBy,
-            order: sortKey === getDiscoverySortDefaultKey() ? defaults.order : option.order
+            iconKey: option.iconKey || 'clock-arrow-down',
+            orderBy: option.orderBy,
+            order: option.order
         };
 
         if (resolvedState && resolvedState.ui) {

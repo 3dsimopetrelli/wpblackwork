@@ -1098,7 +1098,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $sort_chevron_html     = function_exists( 'bw_fpw_get_discovery_sort_chevron_svg' ) ? bw_fpw_get_discovery_sort_chevron_svg() : '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
         $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
         $discovery_sort_options = function_exists( 'bw_fpw_get_discovery_sort_options' ) ? bw_fpw_get_discovery_sort_options() : [];
-        $default_sort_key       = function_exists( 'bw_fpw_get_discovery_sort_default_key' ) ? bw_fpw_get_discovery_sort_default_key() : 'random_seeded';
+        $default_sort_key       = function_exists( 'bw_fpw_get_discovery_sort_default_key' ) ? bw_fpw_get_discovery_sort_default_key() : 'newest';
         $default_sort_option    = isset( $discovery_sort_options[ $default_sort_key ] ) ? $discovery_sort_options[ $default_sort_key ] : [];
         $default_sort_label     = isset( $default_sort_option['trigger_label'] ) ? $default_sort_option['trigger_label'] : __( 'Default', 'bw-elementor-widgets' );
         $default_sort_icon_html = function_exists( 'bw_fpw_get_discovery_sort_icon_svg' ) ? bw_fpw_get_discovery_sort_icon_svg( $default_sort_key ) : '';

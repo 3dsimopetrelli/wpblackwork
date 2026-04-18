@@ -113,8 +113,8 @@ function bw_fpw_normalize_sort_key($raw_sort_key)
 {
     $sort_key = sanitize_key((string) $raw_sort_key);
     $aliases = function_exists('bw_fpw_get_discovery_sort_aliases') ? bw_fpw_get_discovery_sort_aliases() : [];
-    $default_sort_key = function_exists('bw_fpw_get_discovery_sort_default_key') ? bw_fpw_get_discovery_sort_default_key() : 'random_seeded';
-    $valid_sort_keys = ['random_seeded', 'newest', 'oldest', 'title_asc', 'title_desc', 'year_asc', 'year_desc'];
+    $default_sort_key = function_exists('bw_fpw_get_discovery_sort_default_key') ? bw_fpw_get_discovery_sort_default_key() : 'newest';
+    $valid_sort_keys = ['newest', 'oldest', 'title_asc', 'title_desc', 'year_asc', 'year_desc'];
 
     if (isset($aliases[$sort_key])) {
         $sort_key = $aliases[$sort_key];
@@ -477,7 +477,7 @@ function bw_fpw_build_engine_request(array $source = [])
         'open_cart_popup' => bw_fpw_normalize_bool(isset($source['open_cart_popup']) ? wp_unslash($source['open_cart_popup']) : null, false),
         'default_order_by' => bw_fpw_normalize_order_by(isset($source['order_by']) ? wp_unslash($source['order_by']) : 'date'),
         'default_order' => bw_fpw_normalize_order(isset($source['order']) ? wp_unslash($source['order']) : 'DESC'),
-        'sort_key' => bw_fpw_normalize_sort_key(isset($source['sort_key']) ? wp_unslash($source['sort_key']) : (function_exists('bw_fpw_get_discovery_sort_default_key') ? bw_fpw_get_discovery_sort_default_key() : 'random_seeded')),
+        'sort_key' => bw_fpw_normalize_sort_key(isset($source['sort_key']) ? wp_unslash($source['sort_key']) : (function_exists('bw_fpw_get_discovery_sort_default_key') ? bw_fpw_get_discovery_sort_default_key() : 'newest')),
         'per_page' => $per_page,
         'page' => bw_fpw_normalize_positive_int(
             isset($source['page']) ? wp_unslash($source['page']) : 1,
