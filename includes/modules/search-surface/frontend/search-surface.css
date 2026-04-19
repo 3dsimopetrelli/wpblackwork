@@ -31,6 +31,22 @@ body.bw-search-overlay-active {
     font: inherit;
 }
 
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog button,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog input,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog select,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog textarea,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog a,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog label {
+    font-family: var(--e-global-typography-text-font-family, inherit);
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    text-transform: none;
+    text-decoration: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
 .bw-search-surface .bw-search-surface__dialog,
 .bw-search-surface .bw-search-surface__dialog h1,
 .bw-search-surface .bw-search-surface__dialog h2,
@@ -463,6 +479,18 @@ body.bw-search-overlay-active {
     overscroll-behavior: contain;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+}
+
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__sidebar > .bw-search-surface__nav-item,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__scope-row > .bw-search-surface__scope-option,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__content .bw-search-surface__facet-link,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__content .bw-search-surface__action-row,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__content .bw-search-surface__suggestion-row,
+body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-search-surface__dialog .bw-search-surface__close {
+    font-family: var(--e-global-typography-text-font-family, inherit);
+    letter-spacing: inherit;
+    text-decoration: none;
+    text-transform: none;
 }
 
 .bw-search-surface__scope-row::-webkit-scrollbar {
@@ -960,6 +988,38 @@ body.bw-search-overlay-active {
         transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
         width 260ms cubic-bezier(0.22, 1, 0.36, 1);
     will-change: transform, width;
+}
+
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__trigger,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__summary,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__label,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__chevron,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__clear,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-visible-filter__panel-inner,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group-search,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-group-search__input,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option__check,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option__tick,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option__label,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-option__count,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-slider,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-inputs,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-input__field,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-quick-range,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter--search-results .bw-fpw-mobile-filter-trigger,
+body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort-trigger--dropdown {
+    font-family: var(--e-global-typography-text-font-family, inherit);
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    text-transform: none;
+    text-decoration: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__sidebar .bw-search-surface__nav-icon,
