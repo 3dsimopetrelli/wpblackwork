@@ -115,16 +115,17 @@
     function setScope(surfaceState, scope) {
         surfaceState.scope = scope in scopeOptions ? scope : 'all';
         surfaceState.activeGroup = 'trending';
-        surfaceState.scopeCurrent.textContent = getScopeLabel(surfaceState.scope);
         if (surfaceState.scopeInput) {
             surfaceState.scopeInput.value = surfaceState.scope;
         }
 
-        Array.prototype.forEach.call(surfaceState.scopeMenu.querySelectorAll('[data-bw-scope-option]'), function (button) {
-            var selected = button.getAttribute('data-bw-scope-option') === surfaceState.scope;
-            button.classList.toggle('is-selected', selected);
-            button.setAttribute('aria-checked', selected ? 'true' : 'false');
-        });
+        if (surfaceState.scopeRow) {
+            Array.prototype.forEach.call(surfaceState.scopeRow.querySelectorAll('[data-bw-scope-option]'), function (button) {
+                var selected = button.getAttribute('data-bw-scope-option') === surfaceState.scope;
+                button.classList.toggle('is-selected', selected);
+                button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            });
+        }
 
         renderSidebar(surfaceState);
 
@@ -166,7 +167,6 @@
 
         window.clearTimeout(surfaceState.debounceTimer);
         surfaceState.surface.classList.remove('is-open');
-        surfaceState.scopeRoot.classList.remove('is-open');
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.input.value = '';
@@ -461,9 +461,7 @@
             preview: surface.querySelector('[data-bw-search-preview]'),
             title: surface.querySelector('[data-bw-search-title]'),
             scopeInput: surface.querySelector('[data-bw-search-scope-input]'),
-            scopeRoot: surface.querySelector('[data-bw-search-scope]'),
-            scopeCurrent: surface.querySelector('[data-bw-scope-current]'),
-            scopeMenu: surface.querySelector('[data-bw-scope-menu]'),
+            scopeRow: surface.querySelector('[data-bw-search-scope]'),
             scope: surface.getAttribute('data-default-scope') || 'all',
             activeGroup: 'trending',
             query: '',
@@ -514,35 +512,22 @@
             requestBrowse(surfaceState, groupButton.getAttribute('data-bw-search-group'));
         });
 
-        surfaceState.scopeRoot.addEventListener('click', function (event) {
-            var scopeButton = event.target.closest('[data-bw-scope-option]');
+        if (surfaceState.scopeRow) {
+            surfaceState.scopeRow.addEventListener('click', function (event) {
+                var scopeButton = event.target.closest('[data-bw-scope-option]');
 
-            if (scopeButton) {
+                if (!scopeButton) {
+                    return;
+                }
+
                 event.preventDefault();
-                surfaceState.scopeRoot.classList.remove('is-open');
                 setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
-                return;
-            }
-
-            if (event.target.closest('[data-bw-scope-toggle]')) {
-                event.preventDefault();
-                surfaceState.scopeRoot.classList.toggle('is-open');
-            }
-        });
+            });
+        }
 
         root.dataset.bwSearchSurfaceBound = '1';
         root._bwSearchSurfaceState = surfaceState;
     }
-
-    document.addEventListener('click', function (event) {
-        if (!openSurface) {
-            return;
-        }
-
-        if (!event.target.closest('[data-bw-scope-toggle]') && !event.target.closest('[data-bw-scope-menu]')) {
-            openSurface.scopeRoot.classList.remove('is-open');
-        }
-    });
 
     document.addEventListener('keydown', function (event) {
         if (!openSurface) {
