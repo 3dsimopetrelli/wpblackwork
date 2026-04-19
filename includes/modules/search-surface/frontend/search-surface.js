@@ -549,9 +549,13 @@
             chips.push({ type: 'year', label: getYearRangeLabel(normalizeYearRange(sel.year.from, sel.year.to, null, null)) });
         }
         if (sel.advanced) {
+            var advUi = (filterUi.advanced && typeof filterUi.advanced === 'object') ? filterUi.advanced : {};
             Object.keys(sel.advanced).forEach(function (key) {
-                (sel.advanced[key] || []).forEach(function (slug) {
-                    chips.push({ type: 'advanced', key: key, slug: slug, label: slug });
+                var opts = (advUi[key] && Array.isArray(advUi[key].options)) ? advUi[key].options : [];
+                (sel.advanced[key] || []).forEach(function (val) {
+                    var opt   = opts.filter(function (o) { return String(o.value) === String(val); })[0];
+                    var label = opt ? (opt.name || String(val)) : String(val);
+                    chips.push({ type: 'advanced', key: key, slug: val, label: label });
                 });
             });
         }
@@ -703,7 +707,7 @@
         var tags     = Array.isArray(filterUi.tags)  ? filterUi.tags  : [];
         var year     = (filterUi.year && filterUi.year.supported) ? filterUi.year : null;
         var advanced = (filterUi.advanced && typeof filterUi.advanced === 'object') ? filterUi.advanced : {};
-        var advKeys  = Object.keys(advanced).filter(function (k) { return Array.isArray(advanced[k]) && advanced[k].length; });
+        var advKeys  = Object.keys(advanced).filter(function (k) { return advanced[k] && advanced[k].supported && Array.isArray(advanced[k].options) && advanced[k].options.length; });
 
         var initialCount = filterUi.result_count !== undefined ? filterUi.result_count : (payload && payload.result_count !== undefined ? payload.result_count : 0);
         updateFilterCount(surfaceState, initialCount);
@@ -730,7 +734,7 @@
         }
         advKeys.forEach(function (key) {
             var advLabel = key.charAt(0).toUpperCase() + key.slice(1);
-            html += renderFilterGroupHtml('advanced_' + key, advLabel, advanced[key], (surfaceState.filterSel.advanced || {})[key] || [], 'slug');
+            html += renderFilterGroupHtml('advanced_' + key, advLabel, advanced[key].options, (surfaceState.filterSel.advanced || {})[key] || [], 'value');
         });
 
         html += '</div>';
