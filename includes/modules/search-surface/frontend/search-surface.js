@@ -551,10 +551,8 @@
             var item = findInItems(tags, id);
             chips.push({ type: 'tag', id: id, label: item ? (item.label || item.name || String(id)) : String(id) });
         });
-        if (sel.year && (sel.year.from || sel.year.to)) {
-            var yFrom = sel.year.from ? String(sel.year.from) : (strings.filterYearAny || 'Any');
-            var yTo   = sel.year.to   ? String(sel.year.to)   : (strings.filterYearAny || 'Any');
-            chips.push({ type: 'year', label: yFrom + '–' + yTo });
+        if (sel.year && (sel.year.from !== null && sel.year.from !== undefined || sel.year.to !== null && sel.year.to !== undefined)) {
+            chips.push({ type: 'year', label: getYearRangeLabel(normalizeYearRange(sel.year.from, sel.year.to, null, null)) });
         }
         if (sel.advanced) {
             Object.keys(sel.advanced).forEach(function (key) {
@@ -586,6 +584,16 @@
         });
         html += '</div>';
         return html;
+    }
+
+    function updateFilterChips(surfaceState) {
+        var chips = surfaceState && surfaceState.content ? surfaceState.content.querySelector('.bw-search-surface__filter-chips') : null;
+
+        if (!chips) {
+            return;
+        }
+
+        chips.outerHTML = renderFilterChipsHtml(surfaceState);
     }
 
     function renderFilterGroupHtml(groupType, label, items, selectedList, idField) {
@@ -1052,6 +1060,7 @@
 
                 surfaceState.filterSel.year = normalizeYearRange(fromVal, toVal, getPopupYearBounds(surfaceState).min, getPopupYearBounds(surfaceState).max);
                 updatePopupYearPresentation(surfaceState);
+                updateFilterChips(surfaceState);
                 scheduleFilterCount(surfaceState);
             }
         });
