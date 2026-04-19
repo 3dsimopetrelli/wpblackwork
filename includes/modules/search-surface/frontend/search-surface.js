@@ -5,6 +5,7 @@
     var strings = config.strings || {};
     var sidebarGroups = config.sidebarGroups || {};
     var scopeOptions = config.scopeOptions || {};
+    var groupIcons = config.groupIcons || {};
     var openSurface = null;
 
     function getSearchResultsUrl(query, scope) {
@@ -47,45 +48,12 @@
         return scopeOptions[scope] || scopeOptions.all || 'All';
     }
 
-    function getGroupIconSvg(groupKey) {
-        switch (String(groupKey || '')) {
-            case 'trending':
-                return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg>';
-            case 'categories':
-                return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 2h10"></path><path d="M5 6h14"></path><rect width="18" height="12" x="3" y="10" rx="2"></rect></svg>';
-            case 'tags':
-            case 'technique':
-            case 'source':
-            case 'artist':
-                return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 12V4a1 1 0 0 1 1-1h6.297a1 1 0 0 1 .651 1.759l-4.696 4.025"></path><path d="m12 21-7.414-7.414A2 2 0 0 1 4 12.172V6.415a1.002 1.002 0 0 1 1.707-.707L20 20.009"></path><path d="m12.214 3.381 8.414 14.966a1 1 0 0 1-.167 1.199l-1.168 1.163a1 1 0 0 1-.706.291H6.351a1 1 0 0 1-.625-.219L3.25 18.8a1 1 0 0 1 .631-1.781l4.165.027"></path></svg>';
-            case 'author':
-            case 'publisher':
-                return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 7v14"></path><path d="M16 12h2"></path><path d="M16 8h2"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path><path d="M6 12h2"></path><path d="M6 8h2"></path></svg>';
-            case 'years':
-                return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 14v2.2l1.6 1"></path><path d="M16 2v4"></path><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"></path><path d="M3 10h5"></path><path d="M8 2v4"></path><circle cx="16" cy="16" r="6"></circle></svg>';
-            default:
-                return '';
-        }
-    }
-
     function moveSurfaceToBody(surface) {
         if (!surface || !surface.parentNode || surface.parentNode === document.body) {
             return;
         }
 
         document.body.appendChild(surface);
-    }
-
-    function renderPreview(surfaceState, title, body) {
-        if (!surfaceState.preview) {
-            return;
-        }
-
-        surfaceState.preview.innerHTML =
-            '<div class="bw-search-surface__preview-card">' +
-                '<h3 class="bw-search-surface__preview-title">' + escapeHtml(title) + '</h3>' +
-                '<p class="bw-search-surface__preview-copy">' + escapeHtml(body) + '</p>' +
-            '</div>';
     }
 
     function syncLayoutMode(surfaceState) {
@@ -103,7 +71,7 @@
 
             return (
                 '<button class="bw-search-surface__nav-item' + (isActive ? ' is-active' : '') + '" type="button" data-bw-search-group="' + escapeHtml(group.key) + '">' +
-                    '<span class="bw-search-surface__nav-icon" aria-hidden="true">' + getGroupIconSvg(group.key) + '</span>' +
+                    '<span class="bw-search-surface__nav-icon" aria-hidden="true">' + (groupIcons[group.key] || '') + '</span>' +
                     '<span class="bw-search-surface__nav-label">' + escapeHtml(group.label) + '</span>' +
                 '</button>'
             );
@@ -167,6 +135,13 @@
 
         window.clearTimeout(surfaceState.debounceTimer);
         surfaceState.surface.classList.remove('is-open');
+<<<<<<< HEAD
+=======
+        surfaceState.scopeRoot.classList.remove('is-open');
+        if (surfaceState.scopeTrigger) {
+            surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
+        }
+>>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.input.value = '';
@@ -178,14 +153,21 @@
         }
     }
 
-    function setContentTitle(surfaceState, title) {
-        if (surfaceState.title) {
-            surfaceState.title.textContent = title;
+    function setContentHeader(surfaceState, text) {
+        if (!surfaceState.contentHeader) {
+            return;
+        }
+
+        if (text) {
+            surfaceState.contentHeader.textContent = text;
+            surfaceState.contentHeader.hidden = false;
+        } else {
+            surfaceState.contentHeader.hidden = true;
         }
     }
 
     function setLoadingState(surfaceState) {
-        setContentTitle(surfaceState, strings.loading || 'Loading…');
+        setContentHeader(surfaceState, '');
         surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.loading || 'Loading…') + '</div>';
     }
 
@@ -196,8 +178,7 @@
         surfaceState.activeGroup = 'trending';
         syncLayoutMode(surfaceState);
         renderSidebar(surfaceState);
-        setContentTitle(surfaceState, strings.trendingTitle || 'Trending');
-        renderPreview(surfaceState, strings.previewTitle || 'Preview', strings.previewBody || '');
+        setContentHeader(surfaceState, getScopeLabel(surfaceState.scope));
 
         if (!rows.length) {
             surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyTrending || 'No curated products are available right now.') + '</div>';
@@ -239,7 +220,7 @@
         var query = surfaceState.query;
         var searchUrl = payload.search_url || getSearchResultsUrl(query, surfaceState.scope);
         var actionLabel = (strings.searchActionLabel || 'Search for') + ' "' + query + '"';
-        var rows = [
+        var actionRow =
             '<a class="bw-search-surface__action-row" href="' + escapeHtml(searchUrl) + '" data-bw-search-action-link>' +
                 '<span class="bw-search-surface__action-icon" aria-hidden="true">' +
                     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7"></circle><path d="M20 20L16.65 16.65"></path></svg>' +
@@ -249,26 +230,25 @@
                     '<span class="bw-search-surface__row-meta">' + escapeHtml(getScopeLabel(surfaceState.scope)) + '</span>' +
                 '</span>' +
                 '<span class="bw-search-surface__row-action">' + escapeHtml(strings.searchActionHint || 'Enter') + '</span>' +
-            '</a>'
-        ];
+            '</a>';
 
         surfaceState.mode = 'suggest';
         syncLayoutMode(surfaceState);
-        setContentTitle(surfaceState, strings.suggestionsTitle || 'Suggested products');
-        renderPreview(surfaceState, strings.previewTitle || 'Preview', strings.previewBody || '');
+        setContentHeader(surfaceState, '');
 
         if (!items.length) {
-            rows.push('<div class="bw-search-surface__empty">' + escapeHtml(strings.emptySuggestions || 'No matching products found.') + '</div>');
-            surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + rows.join('') + '</div>';
+            surfaceState.content.innerHTML =
+                '<div class="bw-search-surface__row-group">' + actionRow + '</div>' +
+                '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptySuggestions || 'No matching products found.') + '</div>';
             return;
         }
 
-        items.forEach(function (item) {
+        var suggestRows = items.map(function (item) {
             var imageHtml = item.image_url
                 ? '<div class="bw-search-surface__suggestion-media"><img src="' + escapeHtml(item.image_url) + '" alt="' + escapeHtml(item.title) + '" loading="lazy"></div>'
                 : '<div class="bw-search-surface__suggestion-media"></div>';
 
-            rows.push(
+            return (
                 '<a class="bw-search-surface__suggestion-row" href="' + escapeHtml(item.permalink) + '">' +
                     imageHtml +
                     '<span class="bw-search-surface__row-body">' +
@@ -278,9 +258,9 @@
                     '<span class="bw-search-surface__row-action"></span>' +
                 '</a>'
             );
-        });
+        }).join('');
 
-        surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + rows.join('') + '</div>';
+        surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + actionRow + suggestRows + '</div>';
     }
 
     function renderBrowse(surfaceState, groupKey, payload) {
@@ -301,6 +281,7 @@
         surfaceState.activeGroup = groupKey;
         syncLayoutMode(surfaceState);
         renderSidebar(surfaceState);
+        setContentHeader(surfaceState, active ? active.label : '');
 
         if (!items.length) {
             surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyBrowse || 'No values are available for this filter.') + '</div>';
@@ -458,10 +439,16 @@
             form: surface.querySelector('[data-bw-search-form]'),
             sidebar: surface.querySelector('[data-bw-search-sidebar]'),
             content: surface.querySelector('[data-bw-search-content]'),
-            preview: surface.querySelector('[data-bw-search-preview]'),
-            title: surface.querySelector('[data-bw-search-title]'),
+            contentHeader: surface.querySelector('[data-bw-search-content-header]'),
             scopeInput: surface.querySelector('[data-bw-search-scope-input]'),
+<<<<<<< HEAD
             scopeRow: surface.querySelector('[data-bw-search-scope]'),
+=======
+            scopeTrigger: surface.querySelector('[data-bw-scope-toggle]'),
+            scopeRoot: surface.querySelector('[data-bw-search-scope]'),
+            scopeCurrent: surface.querySelector('[data-bw-scope-current]'),
+            scopeMenu: surface.querySelector('[data-bw-scope-menu]'),
+>>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
             scope: surface.getAttribute('data-default-scope') || 'all',
             activeGroup: 'trending',
             query: '',
@@ -473,7 +460,6 @@
         };
 
         renderSidebar(surfaceState);
-        renderPreview(surfaceState, strings.previewTitle || 'Preview', strings.previewBody || '');
 
         button.addEventListener('click', function (event) {
             event.preventDefault();
@@ -521,14 +507,49 @@
                 }
 
                 event.preventDefault();
+<<<<<<< HEAD
                 setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
             });
         }
+=======
+                surfaceState.scopeRoot.classList.remove('is-open');
+                if (surfaceState.scopeTrigger) {
+                    surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
+                }
+                setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
+                return;
+            }
+
+            if (event.target.closest('[data-bw-scope-toggle]')) {
+                event.preventDefault();
+                surfaceState.scopeRoot.classList.toggle('is-open');
+                if (surfaceState.scopeTrigger) {
+                    surfaceState.scopeTrigger.setAttribute('aria-expanded', surfaceState.scopeRoot.classList.contains('is-open') ? 'true' : 'false');
+                }
+            }
+        });
+>>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
 
         root.dataset.bwSearchSurfaceBound = '1';
         root._bwSearchSurfaceState = surfaceState;
     }
 
+<<<<<<< HEAD
+=======
+    document.addEventListener('click', function (event) {
+        if (!openSurface) {
+            return;
+        }
+
+        if (!event.target.closest('[data-bw-scope-toggle]') && !event.target.closest('[data-bw-scope-menu]')) {
+            openSurface.scopeRoot.classList.remove('is-open');
+            if (openSurface.scopeTrigger) {
+                openSurface.scopeTrigger.setAttribute('aria-expanded', 'false');
+            }
+        }
+    });
+
+>>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
     document.addEventListener('keydown', function (event) {
         if (!openSurface) {
             return;

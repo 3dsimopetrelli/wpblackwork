@@ -20,71 +20,44 @@ function bw_ss_should_enqueue_frontend_assets() {
 }
 
 function bw_ss_get_overlay_scope_options() {
-    return [
-        'all'                 => bw_ss_get_scope_label( 'all' ),
-        'digital-collections' => bw_ss_get_scope_label( 'digital-collections' ),
-        'books'               => bw_ss_get_scope_label( 'books' ),
-        'prints'              => bw_ss_get_scope_label( 'prints' ),
-    ];
+    $options = [];
+
+    foreach ( bw_ss_get_scope_definitions() as $scope_key => $scope_def ) {
+        $options[ $scope_key ] = (string) $scope_def['label'];
+    }
+
+    return $options;
 }
 
 function bw_ss_get_overlay_sidebar_groups_map() {
-    return [
-        'all'                 => [
-            [ 'key' => 'trending', 'label' => __( 'Trending', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'categories', 'label' => __( 'Categories', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'tags', 'label' => __( 'Style / Subject', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'years', 'label' => __( 'Year', 'bw-elementor-widgets' ) ],
-        ],
-        'digital-collections' => [
-            [ 'key' => 'trending', 'label' => __( 'Trending', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'categories', 'label' => __( 'Categories', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'source', 'label' => __( 'Sources', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'technique', 'label' => __( 'Technique', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'years', 'label' => __( 'Year', 'bw-elementor-widgets' ) ],
-        ],
-        'books'               => [
-            [ 'key' => 'trending', 'label' => __( 'Trending', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'categories', 'label' => __( 'Categories', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'author', 'label' => __( 'Authors', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'publisher', 'label' => __( 'Publisher', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'years', 'label' => __( 'Year', 'bw-elementor-widgets' ) ],
-        ],
-        'prints'              => [
-            [ 'key' => 'trending', 'label' => __( 'Trending', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'categories', 'label' => __( 'Categories', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'artist', 'label' => __( 'Artists', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'technique', 'label' => __( 'Technique', 'bw-elementor-widgets' ) ],
-            [ 'key' => 'years', 'label' => __( 'Year', 'bw-elementor-widgets' ) ],
-        ],
-    ];
+    $group_definitions = bw_ss_get_group_definitions();
+    $map               = [];
+
+    foreach ( bw_ss_get_scope_definitions() as $scope_key => $scope_def ) {
+        $groups = [];
+
+        foreach ( $scope_def['groups'] as $group_key ) {
+            if ( ! isset( $group_definitions[ $group_key ] ) ) {
+                continue;
+            }
+
+            $groups[] = [
+                'key'   => $group_key,
+                'label' => (string) $group_definitions[ $group_key ]['label'],
+            ];
+        }
+
+        $map[ $scope_key ] = $groups;
+    }
+
+    return $map;
 }
 
 function bw_ss_get_overlay_sidebar_icon_svg( $group_key ) {
-    $group_key = sanitize_key( (string) $group_key );
+    $group_key   = sanitize_key( (string) $group_key );
+    $definitions = bw_ss_get_group_definitions();
 
-    switch ( $group_key ) {
-        case 'trending':
-            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg>';
-
-        case 'categories':
-            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 2h10"/><path d="M5 6h14"/><rect width="18" height="12" x="3" y="10" rx="2"/></svg>';
-
-        case 'tags':
-        case 'technique':
-        case 'source':
-        case 'artist':
-            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 12V4a1 1 0 0 1 1-1h6.297a1 1 0 0 1 .651 1.759l-4.696 4.025"/><path d="m12 21-7.414-7.414A2 2 0 0 1 4 12.172V6.415a1.002 1.002 0 0 1 1.707-.707L20 20.009"/><path d="m12.214 3.381 8.414 14.966a1 1 0 0 1-.167 1.199l-1.168 1.163a1 1 0 0 1-.706.291H6.351a1 1 0 0 1-.625-.219L3.25 18.8a1 1 0 0 1 .631-1.781l4.165.027"/></svg>';
-
-        case 'author':
-        case 'publisher':
-            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 7v14"/><path d="M16 12h2"/><path d="M16 8h2"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/><path d="M6 12h2"/><path d="M6 8h2"/></svg>';
-
-        case 'years':
-            return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>';
-    }
-
-    return '';
+    return isset( $definitions[ $group_key ] ) ? (string) $definitions[ $group_key ]['icon_svg'] : '';
 }
 
 function bw_ss_enqueue_frontend_assets() {
@@ -119,18 +92,15 @@ function bw_ss_enqueue_frontend_assets() {
             'searchResultsUrl' => bw_ss_get_search_results_url(),
             'scopeOptions'     => bw_ss_get_overlay_scope_options(),
             'sidebarGroups'    => bw_ss_get_overlay_sidebar_groups_map(),
+            'groupIcons'       => bw_ss_get_group_icon_map(),
             'strings'          => [
-                'searchActionLabel'   => __( 'Search for', 'bw-elementor-widgets' ),
-                'searchActionHint'    => __( 'Enter', 'bw-elementor-widgets' ),
-                'suggestionsTitle'    => __( 'Suggested products', 'bw-elementor-widgets' ),
-                'trendingTitle'       => __( 'Trending', 'bw-elementor-widgets' ),
-                'browsePlaceholder'   => __( 'Facet browsing will be expanded in the next milestone.', 'bw-elementor-widgets' ),
-                'emptyBrowse'         => __( 'No values are available for this filter.', 'bw-elementor-widgets' ),
-                'previewTitle'        => __( 'Preview', 'bw-elementor-widgets' ),
-                'previewBody'         => __( 'Start typing to search, or browse a group to refine the next view.', 'bw-elementor-widgets' ),
-                'emptySuggestions'    => __( 'No matching products found.', 'bw-elementor-widgets' ),
-                'emptyTrending'       => __( 'No curated products are available right now.', 'bw-elementor-widgets' ),
-                'loading'             => __( 'Loading…', 'bw-elementor-widgets' ),
+                'searchActionLabel' => __( 'Search for', 'bw-elementor-widgets' ),
+                'searchActionHint'  => __( 'Enter', 'bw-elementor-widgets' ),
+                'browsePlaceholder' => __( 'Facet browsing will be expanded in the next milestone.', 'bw-elementor-widgets' ),
+                'emptyBrowse'       => __( 'No values are available for this filter.', 'bw-elementor-widgets' ),
+                'emptySuggestions'  => __( 'No matching products found.', 'bw-elementor-widgets' ),
+                'emptyTrending'     => __( 'No curated products are available right now.', 'bw-elementor-widgets' ),
+                'loading'           => __( 'Loading…', 'bw-elementor-widgets' ),
             ],
         ]
     );
@@ -216,7 +186,8 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                 </aside>
 
                 <section class="bw-search-surface__main">
-                    <div class="bw-search-surface__content" data-bw-search-content>
+                    <div class="bw-search-surface__content-header" data-bw-search-content-header hidden></div>
+                    <div class="bw-search-surface__content" data-bw-search-content aria-live="polite">
                         <div class="bw-search-surface__empty"><?php esc_html_e( 'Loading…', 'bw-elementor-widgets' ); ?></div>
                     </div>
                 </section>
