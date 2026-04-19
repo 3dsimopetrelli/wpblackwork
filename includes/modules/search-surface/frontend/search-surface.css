@@ -1121,64 +1121,63 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 /* Options (checkboxes) */
 .bw-search-surface__filter-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    display: grid;
+    gap: 2px;
 }
 
 .bw-search-surface__filter-option {
-    display: flex;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
     width: 100%;
-    min-height: 32px;
-    padding: 5px 0;
-    border: none;
+    min-height: 44px;
+    padding: 8px 16px 8px 12px;
+    border: 0;
+    border-radius: 50px;
     background: transparent !important;
     background-color: transparent !important;
     cursor: pointer;
-    color: var(--bw-search-surface-text-muted) !important;
+    color: inherit;
     text-align: left;
-    border-radius: 0;
-    font-size: 0.78rem;
-    line-height: 1.15;
-    transition: background 0.12s, color 0.12s;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    transition: background 220ms ease;
 }
 
 .bw-search-surface__filter-option:hover {
-    background: rgba(255, 255, 255, 0.04) !important;
-    background-color: rgba(255, 255, 255, 0.04) !important;
-    color: var(--bw-search-surface-text) !important;
+    background: rgba(46, 46, 46, 0.66) !important;
+    background-color: rgba(46, 46, 46, 0.66) !important;
 }
 
 .bw-search-surface__filter-option.is-selected {
-    background: rgba(255, 255, 255, 0.05) !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    color: var(--bw-search-surface-text) !important;
+    background: rgba(46, 46, 46, 0.66) !important;
+    background-color: rgba(46, 46, 46, 0.66) !important;
 }
 
 .bw-search-surface__filter-option-check {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    border: 1.5px solid rgba(255, 255, 255, 0.26);
-    background: transparent;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 0;
+    background: #101010;
     flex-shrink: 0;
-    transition: border-color 0.12s, background 0.12s;
+    transition: background 0.12s;
 }
 
 .bw-search-surface__filter-option.is-selected .bw-search-surface__filter-option-check {
-    background: #ffffff;
-    border-color: #ffffff;
+    background: #86ef54;
+    color: #000000;
 }
 
 .bw-search-surface__filter-option-tick {
-    width: 7px;
-    height: 7px;
-    stroke: #111;
+    width: 8px;
+    height: 8px;
+    stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -1192,14 +1191,20 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 }
 
 .bw-search-surface__filter-option-label {
-    flex: 1;
-    line-height: 1.15;
+    min-width: 0;
+    line-height: 20px;
 }
 
 .bw-search-surface__filter-option-count {
-    font-size: 0.72em;
-    color: var(--bw-search-surface-text-soft);
-    margin-left: 2px;
+    flex: 0 0 auto;
+    align-self: center;
+    white-space: nowrap;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 20px;
+    color: rgba(247, 246, 242, 0.56);
+    margin-left: 8px;
 }
 
 /* Year range */
@@ -1449,8 +1454,8 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     }
 
     .bw-search-surface__filter-option {
-        min-height: 30px;
-        padding: 4px 0;
+        min-height: 38px;
+        padding: 6px 12px 6px 10px;
     }
 
     .bw-search-surface__year-fields {
