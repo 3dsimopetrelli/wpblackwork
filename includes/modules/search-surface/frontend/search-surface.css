@@ -456,8 +456,8 @@ body.bw-search-overlay-active {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 0;
-    border-radius: 36px;
+    padding: 12px;
+    border-radius: 32px;
     background: var(--bw-search-surface-scope-track-bg);
     overflow: hidden;
     overscroll-behavior: contain;
@@ -478,9 +478,9 @@ body.bw-search-overlay-active {
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    min-height: 52px;
-    height: 52px;
-    padding: 0 28px;
+    min-height: 42px;
+    height: 42px;
+    padding: 0 20px;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -949,7 +949,7 @@ body.bw-search-overlay-active {
     left: 0;
     z-index: 1;
     width: 0;
-    height: 52px;
+    height: 42px;
     border-radius: 999px;
     background: var(--bw-search-surface-scope-chip-bg-active);
     box-shadow: none;
@@ -1052,8 +1052,8 @@ body.bw-search-overlay-active {
     }
 
     .bw-search-surface__scope-row {
-        padding: 0;
-        gap: 8px;
+        padding: 12px;
+        gap: 10px;
     }
 
     .bw-search-surface__trending-grid {
