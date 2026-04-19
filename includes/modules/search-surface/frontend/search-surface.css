@@ -1402,8 +1402,8 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     flex-wrap: wrap;
     gap: 4px;
     margin: 0;
-    padding: 0 0 8px;
-    background: linear-gradient(180deg, rgba(23, 23, 23, 0.99) 0%, rgba(23, 23, 23, 0.93) 100%);
+    padding: 0 0 6px;
+    background: linear-gradient(180deg, rgba(23, 23, 23, 0.97) 0%, rgba(23, 23, 23, 0.88) 100%);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
@@ -1412,12 +1412,12 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    min-height: 24px;
-    padding: 3px 7px 3px 8px;
+    min-height: 22px;
+    padding: 2px 7px 2px 8px;
     border-radius: 999px;
     background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: rgba(250, 250, 250, 0.94);
     line-height: 1;
     box-shadow: none;
@@ -1459,8 +1459,8 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
 /* Accordion group */
 .bw-search-surface__filter-group {
-    padding-top: 1px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding-top: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .bw-search-surface__filter-group-toggle {
@@ -1468,44 +1468,44 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    min-height: 34px;
-    padding: 5px 0 6px;
-    border-radius: 12px;
+    min-height: 28px;
+    padding: 4px 0;
+    border-radius: 0;
     border: none;
-    background: rgba(255, 255, 255, 0.02) !important;
-    background-color: rgba(255, 255, 255, 0.02) !important;
+    background: transparent !important;
+    background-color: transparent !important;
     cursor: pointer;
     color: var(--bw-search-surface-text) !important;
     text-align: left;
-    gap: 8px;
+    gap: 10px;
     transition: background 0.12s, color 0.12s;
 }
 
 .bw-search-surface__filter-group-toggle:hover,
 .bw-search-surface__filter-group-toggle:focus-visible,
 .bw-search-surface__filter-group.is-open .bw-search-surface__filter-group-toggle {
-    background: rgba(255, 255, 255, 0.05) !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    background-color: rgba(255, 255, 255, 0.03) !important;
     outline: none;
 }
 
 .bw-search-surface__filter-group-label {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
     flex: 1;
 }
 
 .bw-search-surface__filter-group-chevron {
     flex-shrink: 0;
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     color: var(--bw-search-surface-text-muted);
     transition: transform 0.2s;
 }
 
 .bw-search-surface__filter-group-chevron svg {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
@@ -1518,14 +1518,14 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 }
 
 .bw-search-surface__filter-group-panel {
-    padding-bottom: 6px;
+    padding-bottom: 2px;
 }
 
 /* Options (checkboxes) */
 .bw-search-surface__filter-options {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0;
 }
 
 .bw-search-surface__filter-option {
@@ -1533,29 +1533,29 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     align-items: center;
     gap: 8px;
     width: 100%;
-    min-height: 30px;
-    padding: 4px 6px;
+    min-height: 32px;
+    padding: 5px 0;
     border: none;
-    background: rgba(255, 255, 255, 0.02) !important;
-    background-color: rgba(255, 255, 255, 0.02) !important;
+    background: transparent !important;
+    background-color: transparent !important;
     cursor: pointer;
     color: var(--bw-search-surface-text-muted) !important;
     text-align: left;
-    border-radius: 10px;
-    font-size: 0.76rem;
+    border-radius: 0;
+    font-size: 0.78rem;
     line-height: 1.15;
     transition: background 0.12s, color 0.12s;
 }
 
 .bw-search-surface__filter-option:hover {
-    background: rgba(255, 255, 255, 0.06) !important;
-    background-color: rgba(255, 255, 255, 0.06) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
     color: var(--bw-search-surface-text) !important;
 }
 
 .bw-search-surface__filter-option.is-selected {
-    background: rgba(255, 255, 255, 0.08) !important;
-    background-color: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
     color: var(--bw-search-surface-text) !important;
 }
 
@@ -1563,23 +1563,23 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 13px;
-    height: 13px;
-    border-radius: 4px;
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
-    background: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(255, 255, 255, 0.26);
+    background: transparent;
     flex-shrink: 0;
     transition: border-color 0.12s, background 0.12s;
 }
 
 .bw-search-surface__filter-option.is-selected .bw-search-surface__filter-option-check {
-    background: #fff;
-    border-color: #fff;
+    background: #ffffff;
+    border-color: #ffffff;
 }
 
 .bw-search-surface__filter-option-tick {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     stroke: #111;
     stroke-width: 2;
     stroke-linecap: round;
@@ -1609,13 +1609,13 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 1px 0 4px;
+    padding: 0 0 2px;
 }
 
 .bw-search-surface__year-field {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
     flex: 1;
 }
 
@@ -1627,11 +1627,11 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
 .bw-search-surface__year-input {
     width: 100%;
-    min-height: 32px;
-    padding: 5px 8px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
+    min-height: 30px;
+    padding: 4px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
     color: var(--bw-search-surface-text);
     font-size: 0.78rem;
     appearance: textfield;
@@ -1653,14 +1653,14 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     font-size: 0.9rem;
     color: var(--bw-search-surface-text-muted);
     align-self: flex-end;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
     flex-shrink: 0;
 }
 
 /* Filter footer */
 .bw-search-surface__filter-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 8px 12px;
+    padding: 6px 10px 8px;
     background: var(--bw-search-surface-panel-bg);
 }
 
@@ -1668,7 +1668,7 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
 }
 
 .bw-search-surface__filter-meta {
@@ -1678,13 +1678,13 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 }
 
 .bw-search-surface__filter-count {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--bw-search-surface-text-muted);
     font-weight: 500;
 }
 
 .bw-search-surface__filter-reset {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 500;
     color: var(--bw-search-surface-text-muted);
     background: none;
@@ -1699,13 +1699,13 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 }
 
 .bw-search-surface__filter-apply {
-    min-height: 32px;
-    padding: 0 12px;
-    border-radius: 10px;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
     border: none;
     background: rgba(34, 197, 94, 0.9);
     color: #fff;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
@@ -1731,24 +1731,24 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     }
 
     .bw-search-surface__filter-chips {
-        gap: 4px;
-        padding-bottom: 6px;
+        gap: 3px;
+        padding-bottom: 5px;
     }
 
     .bw-search-surface__filter-chip {
-        min-height: 23px;
+        min-height: 21px;
         padding: 2px 6px 2px 7px;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
     }
 
     .bw-search-surface__filter-group-toggle {
-        min-height: 32px;
-        padding: 4px 0 5px;
+        min-height: 26px;
+        padding: 3px 0 4px;
     }
 
     .bw-search-surface__filter-option {
-        min-height: 28px;
-        padding: 3px 6px;
+        min-height: 30px;
+        padding: 4px 0;
     }
 
     .bw-search-surface__year-fields {
@@ -1756,12 +1756,12 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     }
 
     .bw-search-surface__filter-footer {
-        padding: 8px 10px;
+        padding: 6px 8px 7px;
     }
 
     .bw-search-surface__filter-apply {
-        min-height: 30px;
-        padding: 0 12px;
+        min-height: 28px;
+        padding: 0 9px;
     }
 
     .bw-search-surface__year-fields {
