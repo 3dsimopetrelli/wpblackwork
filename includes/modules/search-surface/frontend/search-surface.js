@@ -347,6 +347,142 @@
         surfaceState.filterCount.textContent = template.replace('%d', String(count !== undefined ? count : 0));
     }
 
+    function parseNullableYear(value) {
+        var year = parseInt(value, 10);
+
+        return isFinite(year) ? year : null;
+    }
+
+    function normalizeYearRange(from, to, min, max) {
+        var normalizedFrom = parseNullableYear(from);
+        var normalizedTo   = parseNullableYear(to);
+
+        if (min !== null && normalizedFrom !== null) {
+            normalizedFrom = Math.max(normalizedFrom, min);
+        }
+
+        if (max !== null && normalizedFrom !== null) {
+            normalizedFrom = Math.min(normalizedFrom, max);
+        }
+
+        if (min !== null && normalizedTo !== null) {
+            normalizedTo = Math.max(normalizedTo, min);
+        }
+
+        if (max !== null && normalizedTo !== null) {
+            normalizedTo = Math.min(normalizedTo, max);
+        }
+
+        if (normalizedFrom !== null && normalizedTo !== null && normalizedFrom > normalizedTo) {
+            var swap = normalizedFrom;
+            normalizedFrom = normalizedTo;
+            normalizedTo = swap;
+        }
+
+        return {
+            from: normalizedFrom,
+            to: normalizedTo
+        };
+    }
+
+    function getYearRangeLabel(yearState) {
+        if (!yearState) {
+            return '';
+        }
+
+        if (yearState.from === null && yearState.to === null) {
+            return strings.filterYearAny || 'Any year';
+        }
+
+        return String(yearState.from !== null && yearState.from !== undefined ? yearState.from : (strings.filterYearAny || 'Any')) +
+            '–' +
+            String(yearState.to !== null && yearState.to !== undefined ? yearState.to : (strings.filterYearAny || 'Any'));
+    }
+
+    function getPopupYearBounds(surfaceState) {
+        var filterUi = (surfaceState && surfaceState.filterData && surfaceState.filterData.filter_ui) ? surfaceState.filterData.filter_ui : {};
+        var year = (filterUi.year && filterUi.year.supported) ? filterUi.year : {};
+        var min = parseNullableYear(year.min);
+        var max = parseNullableYear(year.max);
+
+        if (min === null) {
+            min = 1900;
+        }
+
+        if (max === null) {
+            max = new Date().getFullYear();
+        }
+
+        return {
+            min: min,
+            max: max
+        };
+    }
+
+    function getResolvedYearDraft(surfaceState) {
+        var bounds = getPopupYearBounds(surfaceState);
+        var yearSel = surfaceState && surfaceState.filterSel && surfaceState.filterSel.year ? surfaceState.filterSel.year : {};
+        var normalized = normalizeYearRange(yearSel.from, yearSel.to, bounds.min, bounds.max);
+
+        return {
+            from: normalized.from !== null ? normalized.from : bounds.min,
+            to: normalized.to !== null ? normalized.to : bounds.max,
+            min: bounds.min,
+            max: bounds.max
+        };
+    }
+
+    function buildYearSliderTrackStyle(resolvedDraft) {
+        if (!resolvedDraft || resolvedDraft.min === null || resolvedDraft.max === null || resolvedDraft.max <= resolvedDraft.min) {
+            return '';
+        }
+
+        var span = resolvedDraft.max - resolvedDraft.min;
+        var start = Math.max(0, ((resolvedDraft.from - resolvedDraft.min) / span) * 100);
+        var end = Math.max(start, ((resolvedDraft.to - resolvedDraft.min) / span) * 100);
+
+        return 'left:' + start + '%;width:' + Math.max(0, end - start) + '%;';
+    }
+
+    function updatePopupYearPresentation(surfaceState) {
+        var resolvedDraft = getResolvedYearDraft(surfaceState);
+        var selectionLabel = getYearRangeLabel(normalizeYearRange(resolvedDraft.from, resolvedDraft.to, resolvedDraft.min, resolvedDraft.max));
+        var fromSlider = surfaceState.content.querySelector('[data-bw-year-edge="from"]');
+        var toSlider = surfaceState.content.querySelector('[data-bw-year-edge="to"]');
+        var fromInput = surfaceState.content.querySelector('[data-bw-year-from]');
+        var toInput = surfaceState.content.querySelector('[data-bw-year-to]');
+        var activeTrack = surfaceState.content.querySelector('[data-bw-year-active-track]');
+        var selection = surfaceState.content.querySelector('[data-bw-year-selection]');
+
+        if (activeTrack) {
+            activeTrack.setAttribute('style', buildYearSliderTrackStyle(resolvedDraft));
+        }
+
+        if (selection) {
+            selection.textContent = selectionLabel;
+        }
+
+        if (fromSlider) {
+            fromSlider.value = String(resolvedDraft.from);
+        }
+
+        if (toSlider) {
+            toSlider.value = String(resolvedDraft.to);
+        }
+
+        if (fromInput) {
+            fromInput.value = surfaceState.filterSel.year.from !== null && surfaceState.filterSel.year.from !== undefined
+                ? String(surfaceState.filterSel.year.from)
+                : '';
+        }
+
+        if (toInput) {
+            toInput.value = surfaceState.filterSel.year.to !== null && surfaceState.filterSel.year.to !== undefined
+                ? String(surfaceState.filterSel.year.to)
+                : '';
+        }
+    }
+
     function scheduleFilterCount(surfaceState) {
         window.clearTimeout(surfaceState.filterCountTimer);
         surfaceState.filterCountTimer = window.setTimeout(function () {
@@ -493,6 +629,11 @@
         var fromVal = yearSel && yearSel.from ? String(yearSel.from) : '';
         var toVal   = yearSel && yearSel.to   ? String(yearSel.to)   : '';
         var chevron = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+        var resolvedDraft = getResolvedYearDraft({
+            filterData: { filter_ui: { year: year } },
+            filterSel: { year: yearSel || { from: null, to: null } }
+        });
+        var selectionLabel = getYearRangeLabel(normalizeYearRange(resolvedDraft.from, resolvedDraft.to, resolvedDraft.min, resolvedDraft.max));
 
         return (
             '<div class="bw-search-surface__filter-group" data-bw-filter-group="year">' +
@@ -501,6 +642,19 @@
                     '<span class="bw-search-surface__filter-group-chevron" aria-hidden="true">' + chevron + '</span>' +
                 '</button>' +
                 '<div class="bw-search-surface__filter-group-panel" hidden>' +
+                    '<div class="bw-search-surface__year-slider" data-bw-year-slider>' +
+                        '<div class="bw-search-surface__year-slider-topline">' +
+                            '<span class="bw-search-surface__year-slider-bound">' + escapeHtml(min) + '</span>' +
+                            '<span class="bw-search-surface__year-slider-bound">' + escapeHtml(max) + '</span>' +
+                        '</div>' +
+                        '<div class="bw-search-surface__year-slider-range">' +
+                            '<div class="bw-search-surface__year-slider-track"></div>' +
+                            '<div class="bw-search-surface__year-slider-active" data-bw-year-active-track style="' + buildYearSliderTrackStyle(resolvedDraft) + '"></div>' +
+                            '<input type="range" class="bw-search-surface__year-slider-input bw-search-surface__year-slider-input--from" data-bw-year-edge="from" min="' + min + '" max="' + max + '" value="' + escapeHtml(resolvedDraft.from) + '" aria-label="' + escapeHtml(strings.filterYearFrom || 'From') + '">' +
+                            '<input type="range" class="bw-search-surface__year-slider-input bw-search-surface__year-slider-input--to" data-bw-year-edge="to" min="' + min + '" max="' + max + '" value="' + escapeHtml(resolvedDraft.to) + '" aria-label="' + escapeHtml(strings.filterYearTo || 'To') + '">' +
+                        '</div>' +
+                        '<div class="bw-search-surface__year-slider-selection" data-bw-year-selection>' + escapeHtml(selectionLabel || (strings.filterYearAny || 'Any year')) + '</div>' +
+                    '</div>' +
                     '<div class="bw-search-surface__year-fields">' +
                         '<label class="bw-search-surface__year-field">' +
                             '<span class="bw-search-surface__year-field-label">' + escapeHtml(strings.filterYearFrom || 'From') + '</span>' +
@@ -880,12 +1034,24 @@
 
         surfaceState.content.addEventListener('input', function (event) {
             if (surfaceState.mode !== 'filter') { return; }
-            if (event.target.hasAttribute('data-bw-year-from') || event.target.hasAttribute('data-bw-year-to')) {
-                var fromEl  = surfaceState.content.querySelector('[data-bw-year-from]');
-                var toEl    = surfaceState.content.querySelector('[data-bw-year-to]');
-                var fromVal = fromEl && fromEl.value ? (parseInt(fromEl.value, 10) || null) : null;
-                var toVal   = toEl && toEl.value ? (parseInt(toEl.value, 10) || null) : null;
-                surfaceState.filterSel.year = { from: fromVal, to: toVal };
+            if (event.target.hasAttribute('data-bw-year-from') || event.target.hasAttribute('data-bw-year-to') || event.target.hasAttribute('data-bw-year-edge')) {
+                var fromInput = surfaceState.content.querySelector('[data-bw-year-from]');
+                var toInput = surfaceState.content.querySelector('[data-bw-year-to]');
+                var fromSlider = surfaceState.content.querySelector('[data-bw-year-edge="from"]');
+                var toSlider = surfaceState.content.querySelector('[data-bw-year-edge="to"]');
+                var fromVal;
+                var toVal;
+
+                if (event.target.hasAttribute('data-bw-year-edge')) {
+                    fromVal = fromSlider && fromSlider.value ? parseNullableYear(fromSlider.value) : null;
+                    toVal = toSlider && toSlider.value ? parseNullableYear(toSlider.value) : null;
+                } else {
+                    fromVal = fromInput && fromInput.value ? parseNullableYear(fromInput.value) : null;
+                    toVal = toInput && toInput.value ? parseNullableYear(toInput.value) : null;
+                }
+
+                surfaceState.filterSel.year = normalizeYearRange(fromVal, toVal, getPopupYearBounds(surfaceState).min, getPopupYearBounds(surfaceState).max);
+                updatePopupYearPresentation(surfaceState);
                 scheduleFilterCount(surfaceState);
             }
         });

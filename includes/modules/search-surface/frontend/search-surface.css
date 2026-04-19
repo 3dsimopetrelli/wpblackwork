@@ -1202,6 +1202,100 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 }
 
 /* Year range */
+.bw-search-surface__year-slider {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 10px;
+    padding: 10px 0 0;
+}
+
+.bw-search-surface__year-slider-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--bw-search-surface-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.bw-search-surface__year-slider-bound {
+    color: inherit;
+}
+
+.bw-search-surface__year-slider-range {
+    position: relative;
+    height: 22px;
+}
+
+.bw-search-surface__year-slider-track,
+.bw-search-surface__year-slider-active {
+    position: absolute;
+    top: 50%;
+    height: 6px;
+    border-radius: 999px;
+    transform: translateY(-50%);
+}
+
+.bw-search-surface__year-slider-track {
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.bw-search-surface__year-slider-active {
+    background: #86ef54;
+}
+
+.bw-search-surface__year-slider-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+    color-scheme: dark;
+}
+
+.bw-search-surface__year-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #111111;
+    border-radius: 50%;
+    background: #86ef54;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.bw-search-surface__year-slider-input::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #111111;
+    border-radius: 50%;
+    background: #86ef54;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.bw-search-surface__year-slider-input::-webkit-slider-runnable-track,
+.bw-search-surface__year-slider-input::-moz-range-track {
+    background: transparent;
+}
+
+.bw-search-surface__year-slider-selection {
+    color: var(--bw-search-surface-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
 .bw-search-surface__year-fields {
     display: flex;
     align-items: center;
@@ -1343,6 +1437,16 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
         padding: 8px 12px 6px 12px !important;
     }
 
+    .bw-search-surface__year-slider {
+        gap: 8px;
+        margin-bottom: 8px;
+        padding-top: 8px;
+    }
+
+    .bw-search-surface__year-slider-range {
+        height: 20px;
+    }
+
     .bw-search-surface__filter-option {
         min-height: 30px;
         padding: 4px 0;
@@ -1367,5 +1471,9 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
     .bw-search-surface__year-sep {
         display: none;
+    }
+
+    .bw-search-surface__year-slider-selection {
+        font-size: 0.76rem;
     }
 }
