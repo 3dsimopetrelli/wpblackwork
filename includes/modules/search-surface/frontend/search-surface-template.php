@@ -151,8 +151,7 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
     $widget_id   = isset( $overlay_args['widget_id'] ) ? sanitize_key( (string) $overlay_args['widget_id'] ) : wp_generate_uuid4();
     $placeholder = isset( $overlay_args['placeholder'] ) && '' !== (string) $overlay_args['placeholder']
         ? (string) $overlay_args['placeholder']
-        : __( 'Search Blackwork...', 'bw-elementor-widgets' );
-    $scope_label = bw_ss_get_scope_label( 'all' );
+        : __( 'Search Blackwork', 'bw-elementor-widgets' );
 
     ob_start();
     ?>
@@ -160,51 +159,39 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
         <div class="bw-search-surface__backdrop" data-bw-search-close></div>
         <div class="bw-search-surface__dialog" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Search', 'bw-elementor-widgets' ); ?>">
             <div class="bw-search-surface__topbar">
-                <form class="bw-search-surface__form" data-bw-search-form method="get" action="<?php echo esc_url( bw_ss_get_search_results_url() ); ?>">
-                    <label class="bw-search-surface__input-shell">
-                        <span class="bw-search-surface__search-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="11" cy="11" r="7"></circle>
-                                <path d="M20 20L16.65 16.65"></path>
-                            </svg>
-                        </span>
-                        <input
-                            type="search"
-                            class="bw-search-surface__input"
-                            data-bw-search-input
-                            name="q"
-                            placeholder="<?php echo esc_attr( $placeholder ); ?>"
-                            autocomplete="off"
-                        />
-                    </label>
-                    <input type="hidden" name="scope" value="all" data-bw-search-scope-input />
-                </form>
+                <div class="bw-search-surface__search-row">
+                    <form class="bw-search-surface__form" data-bw-search-form method="get" action="<?php echo esc_url( bw_ss_get_search_results_url() ); ?>">
+                        <label class="bw-search-surface__input-shell">
+                            <span class="bw-search-surface__search-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <path d="M20 20L16.65 16.65"></path>
+                                </svg>
+                            </span>
+                            <input
+                                type="search"
+                                class="bw-search-surface__input"
+                                data-bw-search-input
+                                name="q"
+                                placeholder="<?php echo esc_attr( $placeholder ); ?>"
+                                autocomplete="off"
+                            />
+                        </label>
+                        <input type="hidden" name="scope" value="all" data-bw-search-scope-input />
+                    </form>
 
-                <div class="bw-search-surface__scope" data-bw-search-scope>
-                    <button class="bw-search-surface__scope-trigger" type="button" data-bw-scope-toggle aria-haspopup="menu" aria-expanded="false">
-                        <span data-bw-scope-current><?php echo esc_html( $scope_label ); ?></span>
-                        <span class="bw-search-surface__scope-chevron" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="m6 9 6 6 6-6"></path>
-                            </svg>
-                        </span>
+                    <button class="bw-search-surface__close" type="button" data-bw-search-close aria-label="<?php esc_attr_e( 'Close search', 'bw-elementor-widgets' ); ?>">
+                        <span class="bw-search-surface__close-label"><?php esc_html_e( 'Close', 'bw-elementor-widgets' ); ?></span>
                     </button>
-
-                    <div class="bw-search-surface__scope-menu" data-bw-scope-menu role="menu" aria-hidden="true">
-                        <?php foreach ( bw_ss_get_overlay_scope_options() as $scope_key => $scope_item_label ) : ?>
-                            <button class="bw-search-surface__scope-option<?php echo 'all' === $scope_key ? ' is-selected' : ''; ?>" type="button" role="menuitemradio" aria-checked="<?php echo 'all' === $scope_key ? 'true' : 'false'; ?>" data-bw-scope-option="<?php echo esc_attr( $scope_key ); ?>">
-                                <?php echo esc_html( $scope_item_label ); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
                 </div>
 
-                <button class="bw-search-surface__close" type="button" data-bw-search-close aria-label="<?php esc_attr_e( 'Close search', 'bw-elementor-widgets' ); ?>">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6 6 18"></path>
-                        <path d="m6 6 12 12"></path>
-                    </svg>
-                </button>
+                <div class="bw-search-surface__scope-row" data-bw-search-scope>
+                    <?php foreach ( bw_ss_get_overlay_scope_options() as $scope_key => $scope_item_label ) : ?>
+                        <button class="bw-search-surface__scope-option<?php echo 'all' === $scope_key ? ' is-selected' : ''; ?>" type="button" data-bw-scope-option="<?php echo esc_attr( $scope_key ); ?>" aria-pressed="<?php echo 'all' === $scope_key ? 'true' : 'false'; ?>">
+                            <?php echo esc_html( $scope_item_label ); ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
             </div>
 
             <div class="bw-search-surface__body">

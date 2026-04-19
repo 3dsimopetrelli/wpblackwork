@@ -80,21 +80,100 @@
         surfaceState.sidebar.innerHTML = html;
     }
 
+    function ensureScopeIndicator(surfaceState) {
+        var indicator;
+
+        if (!surfaceState || !surfaceState.scopeRow) {
+            return null;
+        }
+
+        indicator = surfaceState.scopeRow.querySelector('[data-bw-search-scope-indicator]');
+
+        if (indicator) {
+            return indicator;
+        }
+
+        indicator = document.createElement('span');
+        indicator.className = 'bw-search-surface__scope-indicator';
+        indicator.setAttribute('data-bw-search-scope-indicator', '');
+        indicator.setAttribute('aria-hidden', 'true');
+
+        surfaceState.scopeRow.insertBefore(indicator, surfaceState.scopeRow.firstChild);
+
+        return indicator;
+    }
+
+    function updateScopeIndicator(surfaceState) {
+        var indicator;
+        var selected;
+        var rowRect;
+        var selectedRect;
+
+        if (!surfaceState || !surfaceState.scopeRow) {
+            return;
+        }
+
+        indicator = surfaceState.scopeIndicator || ensureScopeIndicator(surfaceState);
+
+        if (!indicator) {
+            return;
+        }
+
+        selected = surfaceState.scopeRow.querySelector('.bw-search-surface__scope-option.is-selected');
+
+        if (!selected) {
+            selected = surfaceState.scopeRow.querySelector('[data-bw-scope-option="' + surfaceState.scope + '"]');
+        }
+
+        if (!selected) {
+            selected = surfaceState.scopeRow.querySelector('[data-bw-scope-option]');
+        }
+
+        if (!selected) {
+            return;
+        }
+
+        rowRect = surfaceState.scopeRow.getBoundingClientRect();
+        selectedRect = selected.getBoundingClientRect();
+
+        indicator.style.width = selectedRect.width + 'px';
+        indicator.style.height = selectedRect.height + 'px';
+        indicator.style.transform = 'translate3d(' + (selectedRect.left - rowRect.left) + 'px, ' + (selectedRect.top - rowRect.top) + 'px, 0)';
+        indicator.classList.add('is-visible');
+    }
+
+    function scheduleScopeIndicatorUpdate(surfaceState) {
+        if (!surfaceState) {
+            return;
+        }
+
+        if (surfaceState.scopeIndicatorFrame) {
+            window.cancelAnimationFrame(surfaceState.scopeIndicatorFrame);
+        }
+
+        surfaceState.scopeIndicatorFrame = window.requestAnimationFrame(function () {
+            surfaceState.scopeIndicatorFrame = null;
+            updateScopeIndicator(surfaceState);
+        });
+    }
+
     function setScope(surfaceState, scope) {
         surfaceState.scope = scope in scopeOptions ? scope : 'all';
         surfaceState.activeGroup = 'trending';
-        surfaceState.scopeCurrent.textContent = getScopeLabel(surfaceState.scope);
         if (surfaceState.scopeInput) {
             surfaceState.scopeInput.value = surfaceState.scope;
         }
 
-        Array.prototype.forEach.call(surfaceState.scopeMenu.querySelectorAll('[data-bw-scope-option]'), function (button) {
-            var selected = button.getAttribute('data-bw-scope-option') === surfaceState.scope;
-            button.classList.toggle('is-selected', selected);
-            button.setAttribute('aria-checked', selected ? 'true' : 'false');
-        });
+        if (surfaceState.scopeRow) {
+            Array.prototype.forEach.call(surfaceState.scopeRow.querySelectorAll('[data-bw-scope-option]'), function (button) {
+                var selected = button.getAttribute('data-bw-scope-option') === surfaceState.scope;
+                button.classList.toggle('is-selected', selected);
+                button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            });
+        }
 
         renderSidebar(surfaceState);
+        scheduleScopeIndicatorUpdate(surfaceState);
 
         if (surfaceState.query) {
             requestSuggest(surfaceState);
@@ -120,6 +199,8 @@
         if (!surfaceState.query) {
             requestMode(surfaceState, surfaceState.mode);
         }
+
+        scheduleScopeIndicatorUpdate(surfaceState);
     }
 
     function closeSurfaceDialog(surfaceState) {
@@ -136,10 +217,6 @@
 
         window.clearTimeout(surfaceState.debounceTimer);
         surfaceState.surface.classList.remove('is-open');
-        surfaceState.scopeRoot.classList.remove('is-open');
-        if (surfaceState.scopeTrigger) {
-            surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
-        }
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.mode = 'trending';
@@ -807,10 +884,7 @@
             filterApply: surface.querySelector('[data-bw-filter-apply]'),
             filterReset: surface.querySelector('[data-bw-filter-reset]'),
             scopeInput: surface.querySelector('[data-bw-search-scope-input]'),
-            scopeTrigger: surface.querySelector('[data-bw-scope-toggle]'),
-            scopeRoot: surface.querySelector('[data-bw-search-scope]'),
-            scopeCurrent: surface.querySelector('[data-bw-scope-current]'),
-            scopeMenu: surface.querySelector('[data-bw-scope-menu]'),
+            scopeRow: surface.querySelector('[data-bw-search-scope]'),
             scope: surface.getAttribute('data-default-scope') || 'all',
             activeGroup: 'trending',
             query: '',
@@ -820,10 +894,18 @@
             filterCountTimer: null,
             filterCountAbortController: null,
             debounceTimer: null,
-            abortController: null
+            abortController: null,
+            scopeIndicatorFrame: null
         };
 
         renderSidebar(surfaceState);
+        surfaceState.scopeIndicator = ensureScopeIndicator(surfaceState);
+        scheduleScopeIndicatorUpdate(surfaceState);
+        surfaceState.onResize = function () {
+            scheduleScopeIndicatorUpdate(surfaceState);
+        };
+
+        window.addEventListener('resize', surfaceState.onResize);
 
         button.addEventListener('click', function (event) {
             event.preventDefault();
@@ -946,44 +1028,23 @@
             });
         }
 
-        surfaceState.scopeRoot.addEventListener('click', function (event) {
-            var scopeButton = event.target.closest('[data-bw-scope-option]');
+        if (surfaceState.scopeRow) {
+            surfaceState.scopeRow.addEventListener('click', function (event) {
+                var scopeButton = event.target.closest('[data-bw-scope-option]');
 
-            if (scopeButton) {
-                event.preventDefault();
-                surfaceState.scopeRoot.classList.remove('is-open');
-                if (surfaceState.scopeTrigger) {
-                    surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
+                if (!scopeButton) {
+                    return;
                 }
+
+                event.preventDefault();
                 setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
-                return;
-            }
+            });
+        }
 
-            if (event.target.closest('[data-bw-scope-toggle]')) {
-                event.preventDefault();
-                surfaceState.scopeRoot.classList.toggle('is-open');
-                if (surfaceState.scopeTrigger) {
-                    surfaceState.scopeTrigger.setAttribute('aria-expanded', surfaceState.scopeRoot.classList.contains('is-open') ? 'true' : 'false');
-                }
-            }
-        });
-
+        surfaceState.scopeIndicator = ensureScopeIndicator(surfaceState);
         root.dataset.bwSearchSurfaceBound = '1';
         root._bwSearchSurfaceState = surfaceState;
     }
-
-    document.addEventListener('click', function (event) {
-        if (!openSurface) {
-            return;
-        }
-
-        if (!event.target.closest('[data-bw-scope-toggle]') && !event.target.closest('[data-bw-scope-menu]')) {
-            openSurface.scopeRoot.classList.remove('is-open');
-            if (openSurface.scopeTrigger) {
-                openSurface.scopeTrigger.setAttribute('aria-expanded', 'false');
-            }
-        }
-    });
 
     document.addEventListener('keydown', function (event) {
         if (!openSurface) {

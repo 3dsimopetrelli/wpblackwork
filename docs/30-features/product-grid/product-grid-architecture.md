@@ -106,9 +106,9 @@ values in JS — always add a matching data-attribute in PHP first.
 | `data-show-order-by` | `show_order_by` control gated by responsive discovery mode and `specific_ids` absence | runtime sort trigger/menu gating in JS |
 | `data-show-visible-filters` | `show_visible_filters` control gated by responsive discovery mode + `post_type = product` | desktop visible-filter row gating in JS |
 | `data-order-trigger-style` | `order_by_trigger_style` control | shared runtime sort trigger rendering |
-| `data-default-sort-key` | hardcoded `default` | initial JS sort state |
+| `data-default-sort-key` | canonical `newest` | initial JS sort state |
 | `data-order-by`, `data-order` | query controls | `filterPosts()` AJAX payload |
-| `data-default-order-by`, `data-default-order` | query controls | runtime `Default order` mapping in JS |
+| `data-default-order-by`, `data-default-order` | query controls | runtime `newest` mapping in JS |
 | `data-specific-ids-mode` | `specific_ids` present or not | runtime sort disablement in curated-ID mode |
 | `data-initial-items`, `data-load-batch-size`, `data-per-page` | controls | paging state |
 | `data-current-page`, `data-next-page`, `data-next-offset` | `render_posts()` derived | paging state |
@@ -221,15 +221,18 @@ Shared client-side source of truth:
 
 - `filterState[widgetId].sortKey`
 
-Supported values:
+Canonical sort values:
 
-- `default`
-- `recent`
+- `newest`
 - `oldest`
 - `title_asc`
 - `title_desc`
 - `year_asc`
 - `year_desc`
+
+Backward compatibility aliases:
+
+- `random_seeded` -> `newest`
 
 Both trigger modes read and update the same state key.
 
@@ -252,8 +255,7 @@ Only the trigger UI differs. State, menu logic, AJAX, and backend mapping remain
 
 Trigger labels are short:
 
-- `default` -> `Default`
-- `recent` -> `Latest`
+- `newest` -> `Latest`
 - `oldest` -> `Earliest`
 - `title_asc` -> `A–Z`
 - `title_desc` -> `Z–A`
@@ -262,7 +264,6 @@ Trigger labels are short:
 
 Menu labels remain full:
 
-- `Default order`
 - `Recently added`
 - `Oldest added`
 - `Alphabetical A to Z`
@@ -276,21 +277,22 @@ This keeps the trigger compact and the menu explicit.
 
 `sort_key` is authoritative when present.
 
-- `default` -> widget defaults (`order_by` + `order`)
-- `recent` -> `date DESC`
+- `newest` -> `date DESC`
 - `oldest` -> `date ASC`
 - `title_asc` -> `title ASC`
 - `title_desc` -> `title DESC`
 - `year_asc` -> canonical `_bw_filter_year_int ASC`
 - `year_desc` -> canonical `_bw_filter_year_int DESC`
 
+Unknown or legacy values fall back to `newest`.
+
 Year sorting uses canonical meta and not raw editorial year fields.
 
-#### Default order
+#### Newest order
 
-`Default` means the widget’s Elementor query defaults.
+`Newest` means the widget’s default runtime order.
 
-It is not a hardcoded fallback to `date DESC`.
+It is intentionally resolved backend-first and not left as a UI-only label.
 
 #### Interaction with the rest of Product Grid
 
@@ -300,6 +302,10 @@ It is not a hardcoded fallback to `date DESC`.
 - search ON/OFF is compatible
 - sort is not represented as a chip
 - `Reset filters` does not reset sort
+- exact Lucide SVG mapping is preserved across widget, headless renderer,
+  and JS runtime
+- desktop trigger shows left-aligned label + right-aligned chevron
+- mobile trigger uses icon-only presentation for compact toolbar spacing
 
 #### Infinite scroll
 
