@@ -165,6 +165,8 @@ function bw_ss_sanitize_current_query_arg_value( $key, $raw_value ) {
         case 'page':
             return max( 1, absint( bw_ss_sanitize_query_arg_text_value( $raw_value ) ) );
         case 'year':
+        case 'year_from':
+        case 'year_to':
         case 'q':
         case 'category':
             return bw_ss_sanitize_query_arg_text_value( $raw_value );
@@ -357,9 +359,14 @@ function bw_ss_build_search_results_state_from_url() {
         isset( $query_args['tag'] ) ? $query_args['tag'] : ( $query_args['tags'] ?? [] ),
         'product_tag'
     );
-    $year             = function_exists( 'bw_fpw_normalize_year_bound' )
-        ? bw_fpw_normalize_year_bound( $query_args['year'] ?? null )
-        : null;
+    $year_from_raw    = $query_args['year_from'] ?? ( $query_args['year'] ?? null );
+    $year_to_raw      = $query_args['year_to'] ?? ( $query_args['year'] ?? null );
+    $year_from        = function_exists( 'bw_fpw_normalize_year_bound' )
+        ? bw_fpw_normalize_year_bound( $year_from_raw )
+        : ( ! empty( $year_from_raw ) ? absint( $year_from_raw ) : null );
+    $year_to          = function_exists( 'bw_fpw_normalize_year_bound' )
+        ? bw_fpw_normalize_year_bound( $year_to_raw )
+        : ( ! empty( $year_to_raw ) ? absint( $year_to_raw ) : null );
     $artist           = bw_ss_resolve_advanced_filter_tokens_from_query( 'artist', $query_args['artist'] ?? [], $scope );
     $author           = bw_ss_resolve_advanced_filter_tokens_from_query( 'author', $query_args['author'] ?? [], $scope );
     $publisher        = bw_ss_resolve_advanced_filter_tokens_from_query( 'publisher', $query_args['publisher'] ?? [], $scope );
@@ -391,8 +398,8 @@ function bw_ss_build_search_results_state_from_url() {
         'tags'          => isset( $tags_data['ids'] ) ? (array) $tags_data['ids'] : [],
         'tag_terms'     => isset( $tags_data['terms'] ) ? (array) $tags_data['terms'] : [],
         'year'          => [
-            'from' => $year,
-            'to'   => $year,
+            'from' => $year_from,
+            'to'   => $year_to,
         ],
         'advanced'      => [
             'artist'    => $artist,
@@ -463,6 +470,27 @@ function bw_ss_build_search_results_query_args( $query = '', $scope = 'all', $fi
 
         if ( ! empty( $year ) ) {
             $args['year'] = (string) $year;
+        }
+    }
+
+    if ( ! empty( $filters['year_from'] ) ) {
+        $yf = function_exists( 'bw_fpw_normalize_year_bound' ) ? bw_fpw_normalize_year_bound( $filters['year_from'] ) : absint( $filters['year_from'] );
+        if ( ! empty( $yf ) ) {
+            $args['year_from'] = (string) $yf;
+        }
+    }
+
+    if ( ! empty( $filters['year_to'] ) ) {
+        $yt = function_exists( 'bw_fpw_normalize_year_bound' ) ? bw_fpw_normalize_year_bound( $filters['year_to'] ) : absint( $filters['year_to'] );
+        if ( ! empty( $yt ) ) {
+            $args['year_to'] = (string) $yt;
+        }
+    }
+
+    if ( ! empty( $filters['subcategories'] ) && is_array( $filters['subcategories'] ) ) {
+        $sub_ids = array_values( array_filter( array_map( 'absint', $filters['subcategories'] ) ) );
+        if ( ! empty( $sub_ids ) ) {
+            $args['subcategories'] = $sub_ids;
         }
     }
 
