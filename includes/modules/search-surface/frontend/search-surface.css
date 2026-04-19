@@ -456,7 +456,7 @@ body.bw-search-overlay-active {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 10px;
+    padding: 0;
     border-radius: 36px;
     background: var(--bw-search-surface-scope-track-bg);
     overflow: hidden;
@@ -945,7 +945,7 @@ body.bw-search-overlay-active {
 
 .bw-search-surface__scope-indicator {
     position: absolute;
-    top: 10px;
+    top: 0;
     left: 0;
     z-index: 1;
     width: 0;
@@ -1052,7 +1052,7 @@ body.bw-search-overlay-active {
     }
 
     .bw-search-surface__scope-row {
-        padding: 8px;
+        padding: 0;
         gap: 8px;
     }
 

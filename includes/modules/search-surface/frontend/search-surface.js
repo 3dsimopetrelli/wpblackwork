@@ -106,6 +106,8 @@
     function updateScopeIndicator(surfaceState) {
         var indicator;
         var selected;
+        var rowRect;
+        var selectedRect;
 
         if (!surfaceState || !surfaceState.scopeRow) {
             return;
@@ -131,9 +133,12 @@
             return;
         }
 
-        indicator.style.width = selected.offsetWidth + 'px';
-        indicator.style.height = selected.offsetHeight + 'px';
-        indicator.style.transform = 'translate3d(' + selected.offsetLeft + 'px, ' + selected.offsetTop + 'px, 0)';
+        rowRect = surfaceState.scopeRow.getBoundingClientRect();
+        selectedRect = selected.getBoundingClientRect();
+
+        indicator.style.width = selectedRect.width + 'px';
+        indicator.style.height = selectedRect.height + 'px';
+        indicator.style.transform = 'translate3d(' + (selectedRect.left - rowRect.left) + 'px, ' + (selectedRect.top - rowRect.top) + 'px, 0)';
         indicator.classList.add('is-visible');
     }
 
