@@ -974,7 +974,6 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-direction: column;
     gap: 0;
-    max-width: 600px;
 }
 
 /* Chips */
@@ -1051,8 +1050,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 /* Accordion group */
 .bw-search-surface__filter-group {
-    padding-top: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 4px;
 }
 
 .bw-search-surface__filter-group-toggle {
@@ -1061,7 +1059,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     justify-content: space-between;
     width: 100%;
     min-height: 44px;
-    padding: 10px 16px !important;
+    padding: 8px 14px !important;
     border: 0 !important;
     border-style: none !important;
     border-width: 0 !important;
@@ -1129,7 +1127,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     gap: 8px;
     width: 100%;
     min-height: 44px;
-    padding: 8px 16px 8px 12px;
+    padding: 6px 14px 6px 12px;
     border: 0 !important;
     border-radius: 50px !important;
     background: transparent !important;
