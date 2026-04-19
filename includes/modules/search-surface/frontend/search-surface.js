@@ -159,7 +159,7 @@
 
     function setScope(surfaceState, scope) {
         surfaceState.scope = scope in scopeOptions ? scope : 'all';
-        surfaceState.activeGroup = 'trending';
+        surfaceState.filterSel = { subcategories: [], tags: [], year: { from: null, to: null }, advanced: {} };
         if (surfaceState.scopeInput) {
             surfaceState.scopeInput.value = surfaceState.scope;
         }
@@ -248,50 +248,6 @@
     function setLoadingState(surfaceState) {
         setContentHeader(surfaceState, '');
         surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.loading || 'Loading…') + '</div>';
-    }
-
-    function renderTrending(surfaceState, rows) {
-        var html;
-
-        surfaceState.mode = 'trending';
-        surfaceState.activeGroup = 'trending';
-        syncLayoutMode(surfaceState);
-        renderSidebar(surfaceState);
-        setContentHeader(surfaceState, getScopeLabel(surfaceState.scope));
-
-        if (!rows.length) {
-            surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyTrending || 'No curated products are available right now.') + '</div>';
-            return;
-        }
-
-        html = rows.map(function (row) {
-            var cards = (row.products || []).map(function (product) {
-                var imageHtml = product.image_url
-                    ? '<div class="bw-search-surface__trending-image"><img src="' + escapeHtml(product.image_url) + '" alt="' + escapeHtml(product.title) + '" loading="lazy"></div>'
-                    : '<div class="bw-search-surface__trending-image"></div>';
-
-                return (
-                    '<a class="bw-search-surface__trending-card" href="' + escapeHtml(product.permalink) + '">' +
-                        imageHtml +
-                        '<div class="bw-search-surface__trending-copy">' +
-                            '<span class="bw-search-surface__row-title-text">' + escapeHtml(product.title) + '</span>' +
-                            '<span class="bw-search-surface__row-meta">' + escapeHtml(product.description || '') + '</span>' +
-                        '</div>' +
-                    '</a>'
-                );
-            }).join('');
-
-            return (
-                '<section class="bw-search-surface__trending-row">' +
-                    '<div class="bw-search-surface__trending-header">' +
-                        '<h3 class="bw-search-surface__trending-title">' + escapeHtml(row.title) + '</h3>' +
-                    '</div>' +
-                    '<div class="bw-search-surface__trending-grid">' + cards + '</div>' +
-                '</section>'
-            );
-        }).join('');
-
-        surfaceState.content.innerHTML = '<div class="bw-search-surface__rows">' + html + '</div>';
     }
 
     function renderFeed(surfaceState, mode, payload) {
@@ -633,6 +589,7 @@
             '</a>';
 
         surfaceState.mode = 'suggest';
+        if (surfaceState.filterFooter) { surfaceState.filterFooter.hidden = true; }
         syncLayoutMode(surfaceState);
         setContentHeader(surfaceState, '');
 
@@ -667,65 +624,6 @@
         surfaceState.content.innerHTML =
             '<div class="bw-search-surface__row-group">' + actionRow + suggestRows + '</div>' +
             hasMoreFooter;
-    }
-
-    function renderBrowse(surfaceState, groupKey, payload) {
-        var groups = getScopeGroups(surfaceState.scope);
-        var active = null;
-        var items = payload && Array.isArray(payload.items) ? payload.items : [];
-        var index;
-        var rows;
-
-        for (index = 0; index < groups.length; index += 1) {
-            if (groups[index].key === groupKey) {
-                active = groups[index];
-                break;
-            }
-        }
-
-        surfaceState.mode = 'browse';
-        surfaceState.activeGroup = groupKey;
-        syncLayoutMode(surfaceState);
-        renderSidebar(surfaceState);
-        setContentHeader(surfaceState, active ? active.label : '');
-
-        if (!items.length) {
-            surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyBrowse || 'No values are available for this filter.') + '</div>';
-            return;
-        }
-
-        rows = items.map(function (item) {
-            return (
-                '<a class="bw-search-surface__facet-link" href="' + escapeHtml(item.url || '#') + '" data-bw-search-facet-link>' +
-                    '<span class="bw-search-surface__facet-label">' + escapeHtml(item.label || '') + '</span>' +
-                    '<span class="bw-search-surface__facet-count">' + escapeHtml(item.count || 0) + '</span>' +
-                '</a>'
-            );
-        }).join('');
-
-        surfaceState.content.innerHTML =
-            '<div class="bw-search-surface__facet-group">' +
-                '<div class="bw-search-surface__facet-list">' + rows + '</div>' +
-            '</div>';
-    }
-
-    function requestBrowse(surfaceState, groupKey) {
-        setLoadingState(surfaceState);
-
-        requestPayload(surfaceState, 'browse', { group: groupKey }).then(function (response) {
-            if (!response || !response.success || !response.data) {
-                renderBrowse(surfaceState, groupKey, { items: [] });
-                return;
-            }
-
-            renderBrowse(surfaceState, groupKey, response.data);
-        }).catch(function (error) {
-            if (error && error.name === 'AbortError') {
-                return;
-            }
-
-            renderBrowse(surfaceState, groupKey, { items: [] });
-        });
     }
 
     function requestMode(surfaceState, mode) {
@@ -790,27 +688,6 @@
         });
     }
 
-    function requestTrending(surfaceState) {
-        setLoadingState(surfaceState);
-
-        requestPayload(surfaceState, 'trending', { query: '' }).then(function (response) {
-            if (!response || !response.success || !response.data) {
-                renderTrending(surfaceState, []);
-                return;
-            }
-
-            surfaceState.trendingRows = response.data.rows || [];
-            surfaceState.hasLoadedTrending = true;
-            renderTrending(surfaceState, surfaceState.trendingRows);
-        }).catch(function (error) {
-            if (error && error.name === 'AbortError') {
-                return;
-            }
-
-            renderTrending(surfaceState, []);
-        });
-    }
-
     function requestSuggest(surfaceState) {
         setLoadingState(surfaceState);
 
@@ -837,7 +714,7 @@
         window.clearTimeout(surfaceState.debounceTimer);
 
         if (!surfaceState.query) {
-            requestMode(surfaceState, surfaceState.mode);
+            requestMode(surfaceState, surfaceState.mode === 'suggest' ? 'trending' : surfaceState.mode);
             return;
         }
 
