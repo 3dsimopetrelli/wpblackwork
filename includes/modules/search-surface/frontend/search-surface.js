@@ -135,13 +135,6 @@
 
         window.clearTimeout(surfaceState.debounceTimer);
         surfaceState.surface.classList.remove('is-open');
-<<<<<<< HEAD
-=======
-        surfaceState.scopeRoot.classList.remove('is-open');
-        if (surfaceState.scopeTrigger) {
-            surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
-        }
->>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.input.value = '';
@@ -441,14 +434,7 @@
             content: surface.querySelector('[data-bw-search-content]'),
             contentHeader: surface.querySelector('[data-bw-search-content-header]'),
             scopeInput: surface.querySelector('[data-bw-search-scope-input]'),
-<<<<<<< HEAD
             scopeRow: surface.querySelector('[data-bw-search-scope]'),
-=======
-            scopeTrigger: surface.querySelector('[data-bw-scope-toggle]'),
-            scopeRoot: surface.querySelector('[data-bw-search-scope]'),
-            scopeCurrent: surface.querySelector('[data-bw-scope-current]'),
-            scopeMenu: surface.querySelector('[data-bw-scope-menu]'),
->>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
             scope: surface.getAttribute('data-default-scope') || 'all',
             activeGroup: 'trending',
             query: '',
@@ -507,49 +493,14 @@
                 }
 
                 event.preventDefault();
-<<<<<<< HEAD
                 setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
             });
         }
-=======
-                surfaceState.scopeRoot.classList.remove('is-open');
-                if (surfaceState.scopeTrigger) {
-                    surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
-                }
-                setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
-                return;
-            }
-
-            if (event.target.closest('[data-bw-scope-toggle]')) {
-                event.preventDefault();
-                surfaceState.scopeRoot.classList.toggle('is-open');
-                if (surfaceState.scopeTrigger) {
-                    surfaceState.scopeTrigger.setAttribute('aria-expanded', surfaceState.scopeRoot.classList.contains('is-open') ? 'true' : 'false');
-                }
-            }
-        });
->>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
 
         root.dataset.bwSearchSurfaceBound = '1';
         root._bwSearchSurfaceState = surfaceState;
     }
 
-<<<<<<< HEAD
-=======
-    document.addEventListener('click', function (event) {
-        if (!openSurface) {
-            return;
-        }
-
-        if (!event.target.closest('[data-bw-scope-toggle]') && !event.target.closest('[data-bw-scope-menu]')) {
-            openSurface.scopeRoot.classList.remove('is-open');
-            if (openSurface.scopeTrigger) {
-                openSurface.scopeTrigger.setAttribute('aria-expanded', 'false');
-            }
-        }
-    });
-
->>>>>>> 7503aa23e259a920fe6d48bed8f0831a31ea7a2b
     document.addEventListener('keydown', function (event) {
         if (!openSurface) {
             return;
