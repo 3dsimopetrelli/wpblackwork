@@ -895,7 +895,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     color: inherit;
     border-radius: 14px;
     overflow: hidden;
-    background: var(--bw-search-surface-card-bg);
+    background: #1c1c1c;
     border: 1px solid var(--bw-search-surface-card-border);
     transition: background 0.15s;
 }
@@ -1098,7 +1098,8 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     width: 12px;
     height: 12px;
     color: var(--bw-search-surface-text-muted);
-    transition: transform 0.2s;
+    transform: rotate(0deg);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bw-search-surface__filter-group-chevron svg {
@@ -1133,8 +1134,8 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     width: 100%;
     min-height: 44px;
     padding: 8px 16px 8px 12px;
-    border: 0;
-    border-radius: 50px;
+    border: 0 !important;
+    border-radius: 50px !important;
     background: transparent !important;
     background-color: transparent !important;
     cursor: pointer;
