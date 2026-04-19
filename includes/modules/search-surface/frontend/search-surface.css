@@ -908,15 +908,15 @@ body.bw-search-overlay-active {
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close {
-    min-width: 96px !important;
-    min-height: 52px !important;
-    height: 52px !important;
-    padding: 0 20px !important;
+    min-width: 84px !important;
+    min-height: 50px !important;
+    height: 50px !important;
+    padding: 0 18px !important;
     border: 0 !important;
     border-radius: 999px !important;
     background: var(--bw-search-surface-close-bg) !important;
     color: #ffffff !important;
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em !important;
 }
@@ -952,7 +952,7 @@ body.bw-search-overlay-active {
     height: 52px;
     border-radius: 999px;
     background: var(--bw-search-surface-scope-chip-bg-active);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    box-shadow: none;
     pointer-events: none;
     opacity: 1;
     transform: translate3d(0, 0, 0);
