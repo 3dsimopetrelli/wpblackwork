@@ -1400,10 +1400,10 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     z-index: 6;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
     margin: 0;
-    padding: 2px 0 12px;
-    background: linear-gradient(180deg, rgba(23, 23, 23, 0.98) 0%, rgba(23, 23, 23, 0.92) 100%);
+    padding: 0 0 8px;
+    background: linear-gradient(180deg, rgba(23, 23, 23, 0.99) 0%, rgba(23, 23, 23, 0.93) 100%);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
@@ -1411,13 +1411,13 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 .bw-search-surface__filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    min-height: 28px;
-    padding: 4px 8px 4px 10px;
+    gap: 4px;
+    min-height: 24px;
+    padding: 3px 7px 3px 8px;
     border-radius: 999px;
     background: #111111;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    font-size: 0.74rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.72rem;
     color: rgba(250, 250, 250, 0.94);
     line-height: 1;
     box-shadow: none;
@@ -1432,8 +1432,8 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     padding: 0;
     border: none;
     background: none;
@@ -1459,6 +1459,7 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
 /* Accordion group */
 .bw-search-surface__filter-group {
+    padding-top: 1px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
@@ -1467,18 +1468,27 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    min-height: 40px;
-    padding: 8px 0;
+    min-height: 34px;
+    padding: 5px 0 6px;
+    border-radius: 12px;
     border: none;
-    background: none;
+    background: rgba(255, 255, 255, 0.02);
     cursor: pointer;
     color: var(--bw-search-surface-text);
     text-align: left;
     gap: 8px;
+    transition: background 0.12s, color 0.12s;
+}
+
+.bw-search-surface__filter-group-toggle:hover,
+.bw-search-surface__filter-group-toggle:focus-visible,
+.bw-search-surface__filter-group.is-open .bw-search-surface__filter-group-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    outline: none;
 }
 
 .bw-search-surface__filter-group-label {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
     flex: 1;
 }
@@ -1506,7 +1516,7 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 }
 
 .bw-search-surface__filter-group-panel {
-    padding-bottom: 8px;
+    padding-bottom: 6px;
 }
 
 /* Options (checkboxes) */
@@ -1519,18 +1529,18 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 .bw-search-surface__filter-option {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    min-height: 34px;
-    padding: 5px 8px;
+    min-height: 30px;
+    padding: 4px 6px;
     border: none;
-    background: none;
+    background: rgba(255, 255, 255, 0.02);
     cursor: pointer;
     color: var(--bw-search-surface-text-muted);
     text-align: left;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    line-height: 1.25;
+    border-radius: 10px;
+    font-size: 0.76rem;
+    line-height: 1.15;
     transition: background 0.12s, color 0.12s;
 }
 
@@ -1540,6 +1550,7 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 }
 
 .bw-search-surface__filter-option.is-selected {
+    background: rgba(255, 255, 255, 0.08);
     color: var(--bw-search-surface-text);
 }
 
@@ -1547,8 +1558,8 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     border-radius: 4px;
     border: 1.5px solid rgba(255, 255, 255, 0.3);
     background: none;
@@ -1579,11 +1590,11 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
 .bw-search-surface__filter-option-label {
     flex: 1;
-    line-height: 1.2;
+    line-height: 1.15;
 }
 
 .bw-search-surface__filter-option-count {
-    font-size: 0.75em;
+    font-size: 0.72em;
     color: var(--bw-search-surface-text-soft);
     margin-left: 2px;
 }
@@ -1592,14 +1603,14 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 .bw-search-surface__year-fields {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 2px 0 6px;
+    gap: 6px;
+    padding: 1px 0 4px;
 }
 
 .bw-search-surface__year-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     flex: 1;
 }
 
@@ -1611,13 +1622,13 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
 .bw-search-surface__year-input {
     width: 100%;
-    min-height: 36px;
-    padding: 6px 10px;
+    min-height: 32px;
+    padding: 5px 8px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.05);
     color: var(--bw-search-surface-text);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     appearance: textfield;
     -moz-appearance: textfield;
 }
@@ -1637,14 +1648,14 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     font-size: 0.9rem;
     color: var(--bw-search-surface-text-muted);
     align-self: flex-end;
-    padding-bottom: 6px;
+    padding-bottom: 4px;
     flex-shrink: 0;
 }
 
 /* Filter footer */
 .bw-search-surface__filter-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 10px 16px;
+    padding: 8px 12px;
     background: var(--bw-search-surface-panel-bg);
 }
 
@@ -1652,23 +1663,23 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 
 .bw-search-surface__filter-meta {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .bw-search-surface__filter-count {
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     color: var(--bw-search-surface-text-muted);
     font-weight: 500;
 }
 
 .bw-search-surface__filter-reset {
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 500;
     color: var(--bw-search-surface-text-muted);
     background: none;
@@ -1683,13 +1694,13 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 }
 
 .bw-search-surface__filter-apply {
-    min-height: 36px;
-    padding: 0 16px;
-    border-radius: 12px;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 10px;
     border: none;
-    background: #22c55e;
+    background: rgba(34, 197, 94, 0.9);
     color: #fff;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
@@ -1716,23 +1727,23 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
     .bw-search-surface__filter-chips {
         gap: 4px;
-        padding-bottom: 8px;
+        padding-bottom: 6px;
     }
 
     .bw-search-surface__filter-chip {
-        min-height: 26px;
-        padding: 3px 7px 3px 8px;
-        font-size: 0.72rem;
+        min-height: 23px;
+        padding: 2px 6px 2px 7px;
+        font-size: 0.7rem;
     }
 
     .bw-search-surface__filter-group-toggle {
-        min-height: 36px;
-        padding: 7px 0;
+        min-height: 32px;
+        padding: 4px 0 5px;
     }
 
     .bw-search-surface__filter-option {
-        min-height: 32px;
-        padding: 4px 6px;
+        min-height: 28px;
+        padding: 3px 6px;
     }
 
     .bw-search-surface__year-fields {
@@ -1740,12 +1751,12 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     }
 
     .bw-search-surface__filter-footer {
-        padding: 10px 12px;
+        padding: 8px 10px;
     }
 
     .bw-search-surface__filter-apply {
-        min-height: 34px;
-        padding: 0 14px;
+        min-height: 30px;
+        padding: 0 12px;
     }
 
     .bw-search-surface__year-fields {
