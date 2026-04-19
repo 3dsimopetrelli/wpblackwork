@@ -1395,53 +1395,63 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
 /* Chips */
 .bw-search-surface__filter-chips {
+    position: sticky;
+    top: 0;
+    z-index: 6;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 0 0 12px;
+    margin: 0;
+    padding: 2px 0 12px;
+    background: linear-gradient(180deg, rgba(23, 23, 23, 0.98) 0%, rgba(23, 23, 23, 0.92) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .bw-search-surface__filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 6px 4px 10px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    font-size: 0.77rem;
-    color: var(--bw-search-surface-text);
+    gap: 5px;
+    min-height: 28px;
+    padding: 4px 8px 4px 10px;
+    border-radius: 999px;
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.74rem;
+    color: rgba(250, 250, 250, 0.94);
     line-height: 1;
+    box-shadow: none;
 }
 
 .bw-search-surface__filter-chip-label {
     white-space: nowrap;
+    font-weight: 600;
 }
 
 .bw-search-surface__filter-chip-remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     padding: 0;
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--bw-search-surface-text-muted);
+    color: rgba(250, 250, 250, 0.72);
     border-radius: 50%;
     flex-shrink: 0;
     transition: background 0.15s, color 0.15s;
 }
 
 .bw-search-surface__filter-chip-remove:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--bw-search-surface-text);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
 }
 
 .bw-search-surface__filter-chip-remove svg {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
@@ -1710,7 +1720,9 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     }
 
     .bw-search-surface__filter-chip {
-        padding: 3px 5px 3px 8px;
+        min-height: 26px;
+        padding: 3px 7px 3px 8px;
+        font-size: 0.72rem;
     }
 
     .bw-search-surface__filter-group-toggle {
