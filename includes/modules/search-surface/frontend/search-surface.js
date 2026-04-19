@@ -135,6 +135,9 @@
         window.clearTimeout(surfaceState.debounceTimer);
         surfaceState.surface.classList.remove('is-open');
         surfaceState.scopeRoot.classList.remove('is-open');
+        if (surfaceState.scopeTrigger) {
+            surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
+        }
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.input.value = '';
@@ -146,7 +149,21 @@
         }
     }
 
+    function setContentHeader(surfaceState, text) {
+        if (!surfaceState.contentHeader) {
+            return;
+        }
+
+        if (text) {
+            surfaceState.contentHeader.textContent = text;
+            surfaceState.contentHeader.hidden = false;
+        } else {
+            surfaceState.contentHeader.hidden = true;
+        }
+    }
+
     function setLoadingState(surfaceState) {
+        setContentHeader(surfaceState, '');
         surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.loading || 'Loading…') + '</div>';
     }
 
@@ -157,6 +174,7 @@
         surfaceState.activeGroup = 'trending';
         syncLayoutMode(surfaceState);
         renderSidebar(surfaceState);
+        setContentHeader(surfaceState, getScopeLabel(surfaceState.scope));
 
         if (!rows.length) {
             surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyTrending || 'No curated products are available right now.') + '</div>';
@@ -198,7 +216,7 @@
         var query = surfaceState.query;
         var searchUrl = payload.search_url || getSearchResultsUrl(query, surfaceState.scope);
         var actionLabel = (strings.searchActionLabel || 'Search for') + ' "' + query + '"';
-        var rows = [
+        var actionRow =
             '<a class="bw-search-surface__action-row" href="' + escapeHtml(searchUrl) + '" data-bw-search-action-link>' +
                 '<span class="bw-search-surface__action-icon" aria-hidden="true">' +
                     '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7"></circle><path d="M20 20L16.65 16.65"></path></svg>' +
@@ -208,24 +226,25 @@
                     '<span class="bw-search-surface__row-meta">' + escapeHtml(getScopeLabel(surfaceState.scope)) + '</span>' +
                 '</span>' +
                 '<span class="bw-search-surface__row-action">' + escapeHtml(strings.searchActionHint || 'Enter') + '</span>' +
-            '</a>'
-        ];
+            '</a>';
 
         surfaceState.mode = 'suggest';
         syncLayoutMode(surfaceState);
+        setContentHeader(surfaceState, '');
 
         if (!items.length) {
-            rows.push('<div class="bw-search-surface__empty">' + escapeHtml(strings.emptySuggestions || 'No matching products found.') + '</div>');
-            surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + rows.join('') + '</div>';
+            surfaceState.content.innerHTML =
+                '<div class="bw-search-surface__row-group">' + actionRow + '</div>' +
+                '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptySuggestions || 'No matching products found.') + '</div>';
             return;
         }
 
-        items.forEach(function (item) {
+        var suggestRows = items.map(function (item) {
             var imageHtml = item.image_url
                 ? '<div class="bw-search-surface__suggestion-media"><img src="' + escapeHtml(item.image_url) + '" alt="' + escapeHtml(item.title) + '" loading="lazy"></div>'
                 : '<div class="bw-search-surface__suggestion-media"></div>';
 
-            rows.push(
+            return (
                 '<a class="bw-search-surface__suggestion-row" href="' + escapeHtml(item.permalink) + '">' +
                     imageHtml +
                     '<span class="bw-search-surface__row-body">' +
@@ -235,9 +254,9 @@
                     '<span class="bw-search-surface__row-action"></span>' +
                 '</a>'
             );
-        });
+        }).join('');
 
-        surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + rows.join('') + '</div>';
+        surfaceState.content.innerHTML = '<div class="bw-search-surface__row-group">' + actionRow + suggestRows + '</div>';
     }
 
     function renderBrowse(surfaceState, groupKey, payload) {
@@ -258,6 +277,7 @@
         surfaceState.activeGroup = groupKey;
         syncLayoutMode(surfaceState);
         renderSidebar(surfaceState);
+        setContentHeader(surfaceState, active ? active.label : '');
 
         if (!items.length) {
             surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.emptyBrowse || 'No values are available for this filter.') + '</div>';
@@ -415,7 +435,9 @@
             form: surface.querySelector('[data-bw-search-form]'),
             sidebar: surface.querySelector('[data-bw-search-sidebar]'),
             content: surface.querySelector('[data-bw-search-content]'),
+            contentHeader: surface.querySelector('[data-bw-search-content-header]'),
             scopeInput: surface.querySelector('[data-bw-search-scope-input]'),
+            scopeTrigger: surface.querySelector('[data-bw-scope-toggle]'),
             scopeRoot: surface.querySelector('[data-bw-search-scope]'),
             scopeCurrent: surface.querySelector('[data-bw-scope-current]'),
             scopeMenu: surface.querySelector('[data-bw-scope-menu]'),
@@ -474,6 +496,9 @@
             if (scopeButton) {
                 event.preventDefault();
                 surfaceState.scopeRoot.classList.remove('is-open');
+                if (surfaceState.scopeTrigger) {
+                    surfaceState.scopeTrigger.setAttribute('aria-expanded', 'false');
+                }
                 setScope(surfaceState, scopeButton.getAttribute('data-bw-scope-option'));
                 return;
             }
@@ -481,6 +506,9 @@
             if (event.target.closest('[data-bw-scope-toggle]')) {
                 event.preventDefault();
                 surfaceState.scopeRoot.classList.toggle('is-open');
+                if (surfaceState.scopeTrigger) {
+                    surfaceState.scopeTrigger.setAttribute('aria-expanded', surfaceState.scopeRoot.classList.contains('is-open') ? 'true' : 'false');
+                }
             }
         });
 
@@ -495,6 +523,9 @@
 
         if (!event.target.closest('[data-bw-scope-toggle]') && !event.target.closest('[data-bw-scope-menu]')) {
             openSurface.scopeRoot.classList.remove('is-open');
+            if (openSurface.scopeTrigger) {
+                openSurface.scopeTrigger.setAttribute('aria-expanded', 'false');
+            }
         }
     });
 
