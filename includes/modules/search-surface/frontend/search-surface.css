@@ -17,8 +17,9 @@ body.bw-search-overlay-active {
     --bw-search-surface-chip-active: rgba(255, 255, 255, 0.1);
     --bw-search-surface-chip-active-text: #ffffff;
     --bw-search-surface-scope-track-bg: #2a2a2a;
-    --bw-search-surface-scope-chip-bg: #111111;
-    --bw-search-surface-scope-chip-text: rgba(255, 255, 255, 0.66);
+    --bw-search-surface-scope-chip-bg: #80fd03;
+    --bw-search-surface-scope-chip-bg-active: #111111;
+    --bw-search-surface-scope-chip-text: #ffffff;
     --bw-search-surface-scope-chip-text-active: #ffffff;
     font-family: var(--e-global-typography-text-font-family, inherit);
 }
@@ -333,13 +334,14 @@ body.bw-search-overlay-active {
 
 .bw-search-surface__search-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 16px;
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr) clamp(96px, 8vw, 150px);
+    gap: 18px;
+    align-items: stretch;
 }
 
 .bw-search-surface__form {
     margin: 0;
+    min-width: 0;
 }
 
 .bw-search-surface__input-shell {
@@ -411,23 +413,26 @@ body.bw-search-overlay-active {
     align-items: center;
     justify-content: center;
     justify-self: end;
+    min-width: 96px;
     min-height: 48px;
-    padding: 0 4px 0 12px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: rgba(250, 250, 250, 0.94);
-    font-size: 1rem;
+    padding: 0 20px;
+    border: 2px solid rgba(255, 255, 255, 0.96);
+    border-radius: 999px;
+    background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
+    font-size: 1.05rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     cursor: pointer;
     box-shadow: none;
-    transition: color 0.18s ease, opacity 0.18s ease;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
 }
 
 .bw-search-surface__close:hover,
 .bw-search-surface__close:focus-visible {
-    color: #ffffff;
+    background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
     outline: none;
 }
 
@@ -442,10 +447,10 @@ body.bw-search-overlay-active {
 .bw-search-surface__scope-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
-    padding: 8px;
-    border-radius: 999px;
+    padding: 10px;
+    border-radius: 36px;
     background: var(--bw-search-surface-scope-track-bg);
     overflow: auto;
     overscroll-behavior: contain;
@@ -465,10 +470,10 @@ body.bw-search-overlay-active {
     justify-content: center;
     flex: 0 0 auto;
     min-height: 52px;
-    padding: 0 24px;
-    border: 0;
+    padding: 0 28px;
+    border: 2px solid rgba(255, 255, 255, 0.96);
     border-radius: 999px;
-    background: transparent;
+    background: var(--bw-search-surface-scope-chip-bg);
     color: var(--bw-search-surface-scope-chip-text);
     font-size: 1rem;
     font-weight: 600;
@@ -481,11 +486,17 @@ body.bw-search-overlay-active {
 }
 
 .bw-search-surface__scope-option:hover,
-.bw-search-surface__scope-option:focus-visible,
-.bw-search-surface__scope-option.is-selected {
+.bw-search-surface__scope-option:focus-visible {
     background: var(--bw-search-surface-scope-chip-bg);
-    color: var(--bw-search-surface-scope-chip-text-active);
+    color: var(--bw-search-surface-scope-chip-text);
+    border-color: rgba(255, 255, 255, 0.96);
     outline: none;
+}
+
+.bw-search-surface__scope-option.is-selected {
+    background: var(--bw-search-surface-scope-chip-bg-active);
+    color: var(--bw-search-surface-scope-chip-text-active);
+    border-color: rgba(255, 255, 255, 0.96);
 }
 
 .bw-search-surface__scope-option:hover {
@@ -494,7 +505,8 @@ body.bw-search-overlay-active {
 
 .bw-search-surface__close:hover,
 .bw-search-surface__close:focus-visible {
-    color: #ffffff;
+    background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
 }
 
 .bw-search-surface__body {
@@ -855,7 +867,6 @@ body.bw-search-overlay-active {
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close svg {
-    color: #ffffff !important;
     stroke: currentColor !important;
 }
 
@@ -873,19 +884,45 @@ body.bw-search-overlay-active {
     align-items: center !important;
     justify-content: center !important;
     min-height: 52px !important;
-    padding: 0 24px !important;
+    padding: 0 28px !important;
+    border: 2px solid rgba(255, 255, 255, 0.96) !important;
     border-radius: 999px !important;
     font-size: 1rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close {
+    min-width: 96px !important;
+    min-height: 48px !important;
+    padding: 0 20px !important;
+    border: 2px solid rgba(255, 255, 255, 0.96) !important;
+    border-radius: 999px !important;
+    background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
+    font-size: 1.05rem !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em !important;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:hover,
-.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:focus-visible,
-.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:hover,
-.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:focus-visible,
-.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option.is-selected {
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:focus-visible {
     background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
+    outline: none !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:hover,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:focus-visible {
+    background: var(--bw-search-surface-scope-chip-bg) !important;
+    color: #ffffff !important;
+    outline: none !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option.is-selected {
+    background: var(--bw-search-surface-scope-chip-bg-active) !important;
     color: #ffffff !important;
     outline: none !important;
 }
