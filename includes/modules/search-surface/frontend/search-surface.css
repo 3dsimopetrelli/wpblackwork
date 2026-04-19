@@ -1013,9 +1013,9 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
-    padding: 0;
+    width: 14px !important;
+    height: 14px !important;
+    padding: 0 !important;
     border: 0 !important;
     border-style: none !important;
     border-width: 0 !important;
@@ -1037,13 +1037,15 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 }
 
 .bw-search-surface__filter-chip-remove svg {
-    width: 14px;
-    height: 14px;
+    width: 14px !important;
+    height: 14px !important;
+    display: block !important;
     stroke: currentColor;
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
     fill: none;
+    flex-shrink: 0;
 }
 
 /* Accordion group */
