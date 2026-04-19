@@ -446,20 +446,14 @@
 
     function updatePopupYearPresentation(surfaceState) {
         var resolvedDraft = getResolvedYearDraft(surfaceState);
-        var selectionLabel = getYearRangeLabel(normalizeYearRange(resolvedDraft.from, resolvedDraft.to, resolvedDraft.min, resolvedDraft.max));
         var fromSlider = surfaceState.content.querySelector('[data-bw-year-edge="from"]');
         var toSlider = surfaceState.content.querySelector('[data-bw-year-edge="to"]');
         var fromInput = surfaceState.content.querySelector('[data-bw-year-from]');
         var toInput = surfaceState.content.querySelector('[data-bw-year-to]');
         var activeTrack = surfaceState.content.querySelector('[data-bw-year-active-track]');
-        var selection = surfaceState.content.querySelector('[data-bw-year-selection]');
 
         if (activeTrack) {
             activeTrack.setAttribute('style', buildYearSliderTrackStyle(resolvedDraft));
-        }
-
-        if (selection) {
-            selection.textContent = selectionLabel;
         }
 
         if (fromSlider) {
@@ -587,13 +581,25 @@
     }
 
     function updateFilterChips(surfaceState) {
+        var panel = surfaceState && surfaceState.content ? surfaceState.content.querySelector('.bw-search-surface__filter-panel') : null;
         var chips = surfaceState && surfaceState.content ? surfaceState.content.querySelector('.bw-search-surface__filter-chips') : null;
+        var html = renderFilterChipsHtml(surfaceState);
 
-        if (!chips) {
+        if (!html) {
             return;
         }
 
-        chips.outerHTML = renderFilterChipsHtml(surfaceState);
+        if (chips) {
+            chips.outerHTML = html;
+            return;
+        }
+
+        if (panel && panel.parentNode === surfaceState.content) {
+            panel.insertAdjacentHTML('beforebegin', html);
+            return;
+        }
+
+        surfaceState.content.insertAdjacentHTML('afterbegin', html);
     }
 
     function renderFilterGroupHtml(groupType, label, items, selectedList, idField) {
@@ -661,7 +667,6 @@
                             '<input type="range" class="bw-search-surface__year-slider-input bw-search-surface__year-slider-input--from" data-bw-year-edge="from" min="' + min + '" max="' + max + '" value="' + escapeHtml(resolvedDraft.from) + '" aria-label="' + escapeHtml(strings.filterYearFrom || 'From') + '">' +
                             '<input type="range" class="bw-search-surface__year-slider-input bw-search-surface__year-slider-input--to" data-bw-year-edge="to" min="' + min + '" max="' + max + '" value="' + escapeHtml(resolvedDraft.to) + '" aria-label="' + escapeHtml(strings.filterYearTo || 'To') + '">' +
                         '</div>' +
-                        '<div class="bw-search-surface__year-slider-selection" data-bw-year-selection>' + escapeHtml(selectionLabel || (strings.filterYearAny || 'Any year')) + '</div>' +
                     '</div>' +
                     '<div class="bw-search-surface__year-fields">' +
                         '<label class="bw-search-surface__year-field">' +
