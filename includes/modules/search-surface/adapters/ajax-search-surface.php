@@ -203,24 +203,18 @@ function bw_ss_build_overlay_advanced_group_items( $scope, $group_key, $query = 
 }
 
 function bw_ss_build_overlay_browse_items( $scope, $group_key, $query = '' ) {
-    $group_key = bw_ss_normalize_overlay_group_key( $group_key, $scope );
+    $group_key   = bw_ss_normalize_overlay_group_key( $group_key, $scope );
+    $definitions = bw_ss_get_group_definitions();
+    $browse_type = isset( $definitions[ $group_key ] ) ? (string) $definitions[ $group_key ]['browse_type'] : '';
 
-    if ( '' === $group_key || 'trending' === $group_key ) {
-        return [];
-    }
-
-    switch ( $group_key ) {
-        case 'categories':
+    switch ( $browse_type ) {
+        case 'category':
             return bw_ss_build_overlay_category_items( $scope, $query );
-        case 'tags':
+        case 'tag':
             return bw_ss_build_overlay_tag_items( $scope, $query );
-        case 'years':
+        case 'year':
             return bw_ss_build_overlay_year_items( $scope, $query );
-        case 'author':
-        case 'artist':
-        case 'publisher':
-        case 'source':
-        case 'technique':
+        case 'advanced':
             return bw_ss_build_overlay_advanced_group_items( $scope, $group_key, $query );
         default:
             return [];
