@@ -212,6 +212,7 @@ function bw_ss_build_overlay_product_preview( $product_id ) {
         'permalink'   => get_permalink( $product_id ),
         'image_url'   => is_string( $image_url ) ? $image_url : '',
         'description' => $description,
+        'price_html'  => function_exists( 'bw_fpw_get_price_markup' ) ? bw_fpw_get_price_markup( $product_id ) : '',
     ];
 }
 

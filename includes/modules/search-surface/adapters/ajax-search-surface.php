@@ -35,192 +35,6 @@ function bw_ss_normalize_overlay_group_key( $group_key, $scope = 'all' ) {
     return '';
 }
 
-function bw_ss_get_overlay_candidate_post_ids( $scope, $query = '' ) {
-    $scope        = bw_ss_normalize_scope_param( $scope );
-    $context_slug = bw_ss_get_scope_context_slug( $scope );
-    $category     = bw_ss_get_scope_default_category( $scope );
-    $search       = function_exists( 'bw_fpw_normalize_search_query' )
-        ? bw_fpw_normalize_search_query( $query )
-        : sanitize_text_field( (string) $query );
-
-    if ( '' !== $search && function_exists( 'bw_fpw_get_matching_post_ids' ) ) {
-        return bw_fpw_get_matching_post_ids( 'product', $category, [], [], $search, null, null, $context_slug, [] );
-    }
-
-    if ( function_exists( 'bw_fpw_get_candidate_post_ids_without_search' ) ) {
-        return bw_fpw_get_candidate_post_ids_without_search( 'product', $category, [], [], null, null, $context_slug, [] );
-    }
-
-    return [];
-}
-
-function bw_ss_build_overlay_category_items( $scope, $query = '' ) {
-    $scope        = bw_ss_normalize_scope_param( $scope );
-    $context_slug = bw_ss_get_scope_context_slug( $scope );
-    $category     = bw_ss_get_scope_default_category( $scope );
-    $items        = function_exists( 'bw_fpw_get_available_subcategories_data' )
-        ? bw_fpw_get_available_subcategories_data( 'product', $category, [], $query, null, null, $context_slug, [] )
-        : [];
-    $results      = [];
-
-    foreach ( (array) $items as $item ) {
-        $term = get_term( isset( $item['term_id'] ) ? (int) $item['term_id'] : 0, 'product_cat' );
-
-        if ( ! $term instanceof WP_Term || is_wp_error( $term ) ) {
-            continue;
-        }
-
-        $results[] = [
-            'label' => $term->name,
-            'count' => isset( $item['count'] ) ? (int) $item['count'] : 0,
-            'url'   => bw_ss_build_search_results_navigation_url(
-                $query,
-                $scope,
-                [ 'category' => $term->slug ]
-            ),
-        ];
-    }
-
-    return $results;
-}
-
-function bw_ss_build_overlay_tag_items( $scope, $query = '' ) {
-    $scope        = bw_ss_normalize_scope_param( $scope );
-    $context_slug = bw_ss_get_scope_context_slug( $scope );
-    $category     = bw_ss_get_scope_default_category( $scope );
-    $items        = function_exists( 'bw_fpw_get_related_tags_data' )
-        ? bw_fpw_get_related_tags_data( 'product', $category, [], $query, null, null, $context_slug, [] )
-        : [];
-    $results      = [];
-
-    foreach ( (array) $items as $item ) {
-        $term = get_term( isset( $item['term_id'] ) ? (int) $item['term_id'] : 0, 'product_tag' );
-
-        if ( ! $term instanceof WP_Term || is_wp_error( $term ) ) {
-            continue;
-        }
-
-        $results[] = [
-            'label' => $term->name,
-            'count' => isset( $item['count'] ) ? (int) $item['count'] : 0,
-            'url'   => bw_ss_build_search_results_navigation_url(
-                $query,
-                $scope,
-                [ 'tag' => $term->slug ]
-            ),
-        ];
-    }
-
-    return $results;
-}
-
-function bw_ss_build_overlay_year_items( $scope, $query = '' ) {
-    $scope        = bw_ss_normalize_scope_param( $scope );
-    $context_slug = bw_ss_get_scope_context_slug( $scope );
-    $search       = function_exists( 'bw_fpw_normalize_search_query' )
-        ? bw_fpw_normalize_search_query( $query )
-        : sanitize_text_field( (string) $query );
-    $counts       = [];
-
-    if ( '' === $search && function_exists( 'bw_fpw_get_year_index' ) ) {
-        $year_index = bw_fpw_get_year_index( $context_slug );
-        $counts     = isset( $year_index['years'] ) && is_array( $year_index['years'] ) ? $year_index['years'] : [];
-    } elseif ( function_exists( 'bw_fpw_get_year_postmap' ) ) {
-        $post_map = bw_fpw_get_year_postmap( $context_slug );
-
-        foreach ( bw_ss_get_overlay_candidate_post_ids( $scope, $query ) as $post_id ) {
-            $year = isset( $post_map[ $post_id ] ) ? (int) $post_map[ $post_id ] : 0;
-
-            if ( $year <= 0 ) {
-                continue;
-            }
-
-            if ( ! isset( $counts[ $year ] ) ) {
-                $counts[ $year ] = 0;
-            }
-
-            $counts[ $year ]++;
-        }
-    }
-
-    if ( empty( $counts ) ) {
-        return [];
-    }
-
-    krsort( $counts, SORT_NUMERIC );
-    $results = [];
-
-    foreach ( $counts as $year => $count ) {
-        $results[] = [
-            'label' => (string) $year,
-            'count' => (int) $count,
-            'url'   => bw_ss_build_search_results_navigation_url(
-                $query,
-                $scope,
-                [ 'year' => (string) $year ]
-            ),
-        ];
-    }
-
-    return array_values( $results );
-}
-
-function bw_ss_build_overlay_advanced_group_items( $scope, $group_key, $query = '' ) {
-    $scope        = bw_ss_normalize_scope_param( $scope );
-    $context_slug = bw_ss_get_scope_context_slug( $scope );
-    $group_key    = sanitize_key( (string) $group_key );
-
-    if ( '' === $context_slug || ! function_exists( 'bw_fpw_get_supported_advanced_filter_groups_for_context' ) ) {
-        return [];
-    }
-
-    $supported = bw_fpw_get_supported_advanced_filter_groups_for_context( $context_slug );
-
-    if ( ! isset( $supported[ $group_key ] ) || ! function_exists( 'bw_fpw_build_advanced_filter_options_from_post_ids' ) ) {
-        return [];
-    }
-
-    $results = [];
-    $items   = bw_fpw_build_advanced_filter_options_from_post_ids( $context_slug, $group_key, bw_ss_get_overlay_candidate_post_ids( $scope, $query ) );
-
-    foreach ( (array) $items as $item ) {
-        if ( empty( $item['name'] ) ) {
-            continue;
-        }
-
-        $results[] = [
-            'label' => (string) $item['name'],
-            'count' => isset( $item['count'] ) ? (int) $item['count'] : 0,
-            'url'   => bw_ss_build_search_results_navigation_url(
-                $query,
-                $scope,
-                [ $group_key => bw_ss_build_filter_value_slug( $item['name'] ) ]
-            ),
-        ];
-    }
-
-    return $results;
-}
-
-function bw_ss_build_overlay_browse_items( $scope, $group_key, $query = '' ) {
-    $group_key   = bw_ss_normalize_overlay_group_key( $group_key, $scope );
-    $definitions = bw_ss_get_group_definitions();
-    $browse_type = isset( $definitions[ $group_key ] ) ? (string) $definitions[ $group_key ]['browse_type'] : '';
-
-    switch ( $browse_type ) {
-        case 'category':
-            return bw_ss_build_overlay_category_items( $scope, $query );
-        case 'tag':
-            return bw_ss_build_overlay_tag_items( $scope, $query );
-        case 'year':
-            return bw_ss_build_overlay_year_items( $scope, $query );
-        case 'advanced':
-            return bw_ss_build_overlay_advanced_group_items( $scope, $group_key, $query );
-        default:
-            return [];
-    }
-}
-
 function bw_ss_build_overlay_suggestions( $page_post_ids ) {
     $suggestions = [];
 
@@ -235,17 +49,143 @@ function bw_ss_build_overlay_suggestions( $page_post_ids ) {
     return $suggestions;
 }
 
+/**
+ * Build the filter UI payload for the popup Filter mode.
+ * Executes a minimal engine request to retrieve available facets for a given scope.
+ */
+function bw_ss_build_popup_filter_ui_payload( $scope ) {
+    $empty = [
+        'types'        => [],
+        'tags'         => [],
+        'year'         => [ 'supported' => false ],
+        'advanced'     => [],
+        'result_count' => 0,
+        'context'      => '',
+        'scope'        => $scope,
+    ];
+
+    if ( ! function_exists( 'bw_fpw_build_engine_request' ) || ! function_exists( 'bw_fpw_execute_search' ) ) {
+        return $empty;
+    }
+
+    $context_slug = bw_ss_get_scope_context_slug( $scope );
+    $category     = bw_ss_get_scope_default_category( $scope );
+    $sort_key     = function_exists( 'bw_fpw_get_discovery_sort_default_key' ) ? bw_fpw_get_discovery_sort_default_key() : 'newest';
+
+    $request = bw_fpw_build_engine_request(
+        [
+            'widget_id'        => 'bw-search-surface-filter',
+            'post_type'        => 'product',
+            'context_slug'     => $context_slug,
+            'category'         => $category,
+            'subcategories'    => [],
+            'tags'             => [],
+            'search_enabled'   => 'no',
+            'search'           => '',
+            'per_page'         => 1,
+            'page'             => 1,
+            'offset'           => 0,
+            'request_profile'  => 'filter_ui',
+            'sort_key'         => $sort_key,
+            'order_by'         => 'date',
+            'order'            => 'DESC',
+        ]
+    );
+
+    $result    = bw_fpw_execute_search( $request );
+    $filter_ui = isset( $result['filter_ui'] ) && is_array( $result['filter_ui'] ) ? $result['filter_ui'] : [];
+
+    return [
+        'types'        => isset( $filter_ui['types'] ) ? array_values( (array) $filter_ui['types'] ) : [],
+        'tags'         => isset( $filter_ui['tags'] ) ? array_values( (array) $filter_ui['tags'] ) : [],
+        'year'         => isset( $filter_ui['year'] ) ? $filter_ui['year'] : [ 'supported' => false ],
+        'advanced'     => isset( $filter_ui['advanced'] ) ? $filter_ui['advanced'] : [],
+        'result_count' => isset( $result['result_count'] ) ? (int) $result['result_count'] : 0,
+        'context'      => $context_slug ?: 'mixed',
+        'scope'        => $scope,
+    ];
+}
+
+/**
+ * Execute a filtered count-only search for popup filter live count updates.
+ */
+function bw_ss_get_popup_filter_result_count( $scope, $post_data ) {
+    if ( ! function_exists( 'bw_fpw_build_engine_request' ) || ! function_exists( 'bw_fpw_execute_search' ) ) {
+        return 0;
+    }
+
+    $context_slug = bw_ss_get_scope_context_slug( $scope );
+    $category     = bw_ss_get_scope_default_category( $scope );
+    $sort_key     = function_exists( 'bw_fpw_get_discovery_sort_default_key' ) ? bw_fpw_get_discovery_sort_default_key() : 'newest';
+
+    $raw_subs      = isset( $post_data['subcategories'] ) ? wp_unslash( $post_data['subcategories'] ) : '';
+    $subcategories = array_values( array_filter( array_map( 'absint', explode( ',', (string) $raw_subs ) ) ) );
+
+    $raw_tags = isset( $post_data['tags'] ) ? wp_unslash( $post_data['tags'] ) : '';
+    $tags     = array_values( array_filter( array_map( 'absint', explode( ',', (string) $raw_tags ) ) ) );
+
+    $year_from = ! empty( $post_data['year_from'] ) ? absint( wp_unslash( $post_data['year_from'] ) ) : null;
+    $year_to   = ! empty( $post_data['year_to'] ) ? absint( wp_unslash( $post_data['year_to'] ) ) : null;
+
+    $advanced_keys = [ 'artist', 'author', 'publisher', 'source', 'technique' ];
+    $advanced      = [];
+
+    foreach ( $advanced_keys as $key ) {
+        if ( empty( $post_data[ $key ] ) ) {
+            continue;
+        }
+
+        $raw_values = array_filter( explode( ',', sanitize_text_field( wp_unslash( (string) $post_data[ $key ] ) ) ) );
+        $tokens     = [];
+
+        foreach ( $raw_values as $slug ) {
+            $label    = trim( str_replace( '-', ' ', sanitize_text_field( $slug ) ) );
+            $tokens[] = $label;
+        }
+
+        $advanced[ $key ] = $tokens;
+    }
+
+    $request = bw_fpw_build_engine_request(
+        [
+            'widget_id'       => 'bw-search-surface-filter-count',
+            'post_type'       => 'product',
+            'context_slug'    => $context_slug,
+            'category'        => $category,
+            'subcategories'   => $subcategories,
+            'tags'            => $tags,
+            'search_enabled'  => 'no',
+            'search'          => '',
+            'year_from'       => $year_from,
+            'year_to'         => $year_to,
+            'artist'          => $advanced['artist'] ?? [],
+            'author'          => $advanced['author'] ?? [],
+            'publisher'       => $advanced['publisher'] ?? [],
+            'source'          => $advanced['source'] ?? [],
+            'technique'       => $advanced['technique'] ?? [],
+            'per_page'        => 1,
+            'page'            => 1,
+            'offset'          => 0,
+            'request_profile' => 'count_only',
+            'sort_key'        => $sort_key,
+            'order_by'        => 'date',
+            'order'           => 'DESC',
+        ]
+    );
+
+    $result = bw_fpw_execute_search( $request );
+
+    return isset( $result['result_count'] ) ? (int) $result['result_count'] : 0;
+}
+
 function bw_ss_send_overlay_throttled_response( $mode, $scope, $query ) {
     wp_send_json_success(
         [
-            'mode'       => sanitize_key( (string) $mode ),
-            'scope'      => bw_ss_normalize_scope_param( $scope ),
-            'query'      => function_exists( 'bw_fpw_normalize_search_query' ) ? bw_fpw_normalize_search_query( $query ) : sanitize_text_field( (string) $query ),
-            'throttled'  => true,
-            'search_url' => bw_ss_build_search_results_navigation_url( $query, $scope ),
-            'rows'       => [],
-            'items'      => [],
-            'group'      => '',
+            'mode'      => sanitize_key( (string) $mode ),
+            'scope'     => bw_ss_normalize_scope_param( $scope ),
+            'query'     => function_exists( 'bw_fpw_normalize_search_query' ) ? bw_fpw_normalize_search_query( $query ) : sanitize_text_field( (string) $query ),
+            'throttled' => true,
+            'items'     => [],
         ]
     );
 }
@@ -255,7 +195,6 @@ function bw_ss_ajax_overlay_payload() {
 
     $mode  = sanitize_key( isset( $_POST['mode'] ) ? wp_unslash( $_POST['mode'] ) : 'trending' );
     $scope = bw_ss_normalize_scope_param( isset( $_POST['scope'] ) ? wp_unslash( $_POST['scope'] ) : 'all' );
-    $group = bw_ss_normalize_overlay_group_key( isset( $_POST['group'] ) ? wp_unslash( $_POST['group'] ) : '', $scope );
     $query = function_exists( 'bw_fpw_normalize_search_query' )
         ? bw_fpw_normalize_search_query( isset( $_POST['query'] ) ? wp_unslash( $_POST['query'] ) : '' )
         : sanitize_text_field( (string) ( $_POST['query'] ?? '' ) );
@@ -264,41 +203,76 @@ function bw_ss_ajax_overlay_payload() {
         bw_ss_send_overlay_throttled_response( $mode, $scope, $query );
     }
 
+    // ── Suggest mode ──────────────────────────────────────────────────────────
     if ( 'suggest' === $mode && '' !== $query ) {
         $request = bw_ss_build_overlay_suggest_request( $query, $scope );
         $result  = bw_fpw_execute_search( $request );
 
         wp_send_json_success(
             [
-                'mode'       => 'suggest',
-                'scope'      => $scope,
-                'query'      => $query,
-                'search_url' => bw_ss_build_search_results_navigation_url( $query, $scope ),
-                'items'      => bw_ss_build_overlay_suggestions( isset( $result['page_post_ids'] ) ? $result['page_post_ids'] : [] ),
-                'has_more'   => ! empty( $result['has_more'] ),
+                'mode'         => 'suggest',
+                'scope'        => $scope,
+                'query'        => $query,
+                'search_url'   => bw_ss_build_search_results_navigation_url( $query, $scope ),
+                'items'        => bw_ss_build_overlay_suggestions( isset( $result['page_post_ids'] ) ? $result['page_post_ids'] : [] ),
+                'has_more'     => ! empty( $result['has_more'] ),
+                'result_count' => isset( $result['result_count'] ) ? (int) $result['result_count'] : 0,
             ]
         );
     }
 
-    if ( 'browse' === $mode && '' !== $group ) {
+    // ── Filter mode ───────────────────────────────────────────────────────────
+    if ( 'filter' === $mode ) {
         wp_send_json_success(
             [
-                'mode'       => 'browse',
-                'scope'      => $scope,
-                'group'      => $group,
-                'query'      => $query,
-                'search_url' => bw_ss_build_search_results_navigation_url( $query, $scope ),
-                'items'      => bw_ss_build_overlay_browse_items( $scope, $group, $query ),
+                'mode'      => 'filter',
+                'scope'     => $scope,
+                'filter_ui' => bw_ss_build_popup_filter_ui_payload( $scope ),
             ]
         );
     }
+
+    // ── Filter count mode ─────────────────────────────────────────────────────
+    if ( 'filter_count' === $mode ) {
+        wp_send_json_success(
+            [
+                'mode'  => 'filter_count',
+                'count' => bw_ss_get_popup_filter_result_count( $scope, $_POST ),
+            ]
+        );
+    }
+
+    // ── Feed modes: trending (staff-selected), new, sale, free ───────────────
+    $feed_label_map = [
+        'trending' => 'staff_select',
+        'new'      => 'new',
+        'sale'     => 'sale',
+        'free'     => 'free_download',
+    ];
+
+    if ( isset( $feed_label_map[ $mode ] ) ) {
+        $label_key   = $feed_label_map[ $mode ];
+        $settings    = function_exists( 'bw_get_product_labels_settings' ) ? bw_get_product_labels_settings() : [];
+        $product_ids = bw_ss_get_trending_product_ids_for_label( $label_key, $scope, 12, $settings );
+
+        wp_send_json_success(
+            [
+                'mode'  => $mode,
+                'scope' => $scope,
+                'items' => bw_ss_build_overlay_suggestions( $product_ids ),
+            ]
+        );
+    }
+
+    // ── Fallback ──────────────────────────────────────────────────────────────
+    $settings    = function_exists( 'bw_get_product_labels_settings' ) ? bw_get_product_labels_settings() : [];
+    $product_ids = bw_ss_get_trending_product_ids_for_label( 'staff_select', $scope, 12, $settings );
 
     wp_send_json_success(
         [
-            'mode'       => 'trending',
-            'scope'      => $scope,
-            'search_url' => bw_ss_build_search_results_navigation_url( '', $scope ),
-            'rows'       => bw_ss_get_trending_rows( $scope ),
+            'mode'  => 'trending',
+            'scope' => $scope,
+            'items' => bw_ss_build_overlay_suggestions( $product_ids ),
         ]
     );
 }
