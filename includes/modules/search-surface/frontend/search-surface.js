@@ -996,6 +996,18 @@
                 if (group) {
                     var panel = group.querySelector('.bw-search-surface__filter-group-panel');
                     var isOpen = group.classList.contains('is-open');
+                    if (!isOpen) {
+                        Array.prototype.forEach.call(
+                            surfaceState.content.querySelectorAll('.bw-search-surface__filter-group.is-open'),
+                            function (other) {
+                                if (other !== group) {
+                                    other.classList.remove('is-open');
+                                    var otherPanel = other.querySelector('.bw-search-surface__filter-group-panel');
+                                    if (otherPanel) { otherPanel.hidden = true; }
+                                }
+                            }
+                        );
+                    }
                     group.classList.toggle('is-open', !isOpen);
                     if (panel) { panel.hidden = isOpen; }
                 }
