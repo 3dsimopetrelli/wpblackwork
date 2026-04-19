@@ -623,7 +623,8 @@
                 '<button type="button" class="bw-search-surface__filter-option' + (isSelected ? ' is-selected' : '') + '" ' +
                     'data-bw-filter-option="' + escapeHtml(groupType) + '" data-bw-option-id="' + escapeHtml(itemId) + '">' +
                     '<span class="bw-search-surface__filter-option-check" aria-hidden="true">' + tick + '</span>' +
-                    '<span class="bw-search-surface__filter-option-label">' + escapeHtml(itemLabel) + count + '</span>' +
+                    '<span class="bw-search-surface__filter-option-label">' + escapeHtml(itemLabel) + '</span>' +
+                    count +
                 '</button>'
             );
         }).join('');
