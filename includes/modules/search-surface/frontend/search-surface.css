@@ -1469,9 +1469,12 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
     justify-content: space-between;
     width: 100%;
     min-height: 28px;
-    padding: 4px 0;
+    padding: 8px 12px 6px 12px !important;
     border-radius: 0;
-    border: none;
+    border: 0 !important;
+    border-style: none !important;
+    border-width: 0 !important;
+    border-radius: 0 !important;
     background: transparent !important;
     background-color: transparent !important;
     cursor: pointer;
@@ -1486,6 +1489,10 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 .bw-search-surface__filter-group.is-open .bw-search-surface__filter-group-toggle {
     background: rgba(255, 255, 255, 0.03) !important;
     background-color: rgba(255, 255, 255, 0.03) !important;
+    border: 0 !important;
+    border-style: none !important;
+    border-width: 0 !important;
+    border-radius: 0 !important;
     outline: none;
 }
 
@@ -1743,7 +1750,7 @@ body.bw-search-results-page--plugin-owned .bw-search-results-page__main .bw-prod
 
     .bw-search-surface__filter-group-toggle {
         min-height: 26px;
-        padding: 3px 0 4px;
+        padding: 8px 12px 6px 12px !important;
     }
 
     .bw-search-surface__filter-option {
