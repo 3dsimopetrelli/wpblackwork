@@ -7,6 +7,7 @@ if ( ! defined( 'BW_SS_REWRITE_VERSION' ) ) {
     define( 'BW_SS_REWRITE_VERSION', '1' );
 }
 
+require_once __DIR__ . '/runtime/popup-config.php';
 require_once __DIR__ . '/runtime/url-state.php';
 require_once __DIR__ . '/../search-engine/engine/sort-config.php';
 require_once __DIR__ . '/runtime/headless-product-grid-renderer.php';

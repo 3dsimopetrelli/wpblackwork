@@ -78,17 +78,9 @@ function bw_ss_normalize_scope_param( $raw_scope ) {
 }
 
 function bw_ss_get_scope_label( $scope ) {
-    switch ( $scope ) {
-        case 'digital-collections':
-            return __( 'Digital Collections', 'bw-elementor-widgets' );
-        case 'books':
-            return __( 'Books', 'bw-elementor-widgets' );
-        case 'prints':
-            return __( 'Prints', 'bw-elementor-widgets' );
-        case 'all':
-        default:
-            return __( 'All', 'bw-elementor-widgets' );
-    }
+    $definitions = bw_ss_get_scope_definitions();
+
+    return isset( $definitions[ $scope ] ) ? (string) $definitions[ $scope ]['label'] : (string) $definitions['all']['label'];
 }
 
 function bw_ss_get_scope_context_slug( $scope ) {
@@ -117,22 +109,10 @@ function bw_ss_get_scope_default_category( $scope ) {
 }
 
 function bw_ss_get_filter_param_key_for_group( $group_key ) {
-    switch ( sanitize_key( (string) $group_key ) ) {
-        case 'categories':
-            return 'category';
-        case 'tags':
-            return 'tag';
-        case 'years':
-            return 'year';
-        case 'author':
-        case 'artist':
-        case 'publisher':
-        case 'source':
-        case 'technique':
-            return sanitize_key( (string) $group_key );
-        default:
-            return '';
-    }
+    $group_key   = sanitize_key( (string) $group_key );
+    $definitions = bw_ss_get_group_definitions();
+
+    return isset( $definitions[ $group_key ] ) ? (string) $definitions[ $group_key ]['param_key'] : '';
 }
 
 function bw_ss_parse_query_value_list( $raw_value ) {
