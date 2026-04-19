@@ -199,7 +199,8 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                 </aside>
 
                 <section class="bw-search-surface__main">
-                    <div class="bw-search-surface__content" data-bw-search-content>
+                    <div class="bw-search-surface__content-header" data-bw-search-content-header hidden></div>
+                    <div class="bw-search-surface__content" data-bw-search-content aria-live="polite">
                         <div class="bw-search-surface__empty"><?php esc_html_e( 'Loading…', 'bw-elementor-widgets' ); ?></div>
                     </div>
                 </section>
