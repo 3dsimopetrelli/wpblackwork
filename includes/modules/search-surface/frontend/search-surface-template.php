@@ -94,13 +94,27 @@ function bw_ss_enqueue_frontend_assets() {
             'sidebarGroups'    => bw_ss_get_overlay_sidebar_groups_map(),
             'groupIcons'       => bw_ss_get_group_icon_map(),
             'strings'          => [
-                'searchActionLabel' => __( 'Search for', 'bw-elementor-widgets' ),
-                'searchActionHint'  => __( 'Enter', 'bw-elementor-widgets' ),
-                'browsePlaceholder' => __( 'Facet browsing will be expanded in the next milestone.', 'bw-elementor-widgets' ),
-                'emptyBrowse'       => __( 'No values are available for this filter.', 'bw-elementor-widgets' ),
-                'emptySuggestions'  => __( 'No matching products found.', 'bw-elementor-widgets' ),
-                'emptyTrending'     => __( 'No curated products are available right now.', 'bw-elementor-widgets' ),
-                'loading'           => __( 'Loading…', 'bw-elementor-widgets' ),
+                'searchActionLabel'   => __( 'Search for', 'bw-elementor-widgets' ),
+                'searchActionHint'    => __( 'Enter', 'bw-elementor-widgets' ),
+                'emptyBrowse'         => __( 'No values are available for this filter.', 'bw-elementor-widgets' ),
+                'emptySuggestions'    => __( 'No matching products found.', 'bw-elementor-widgets' ),
+                'emptyFeed'           => __( 'No products available right now.', 'bw-elementor-widgets' ),
+                'loading'             => __( 'Loading…', 'bw-elementor-widgets' ),
+                'seeAllResults'       => __( 'See all results', 'bw-elementor-widgets' ),
+                'modeLabelTrending'   => __( 'Trending', 'bw-elementor-widgets' ),
+                'modeLabelNew'        => __( 'New Arrivals', 'bw-elementor-widgets' ),
+                'modeLabelSale'       => __( 'On Sale', 'bw-elementor-widgets' ),
+                'modeLabelFree'       => __( 'Free Downloads', 'bw-elementor-widgets' ),
+                'filterGroupCategories' => __( 'Categories', 'bw-elementor-widgets' ),
+                'filterGroupTags'       => __( 'Style / Subject', 'bw-elementor-widgets' ),
+                'filterGroupYear'       => __( 'Year', 'bw-elementor-widgets' ),
+                'filterYearFrom'        => __( 'From', 'bw-elementor-widgets' ),
+                'filterYearTo'          => __( 'To', 'bw-elementor-widgets' ),
+                'filterYearAny'         => __( 'Any year', 'bw-elementor-widgets' ),
+                'filterResultCount'     => __( '%d results', 'bw-elementor-widgets' ),
+                'filterReset'           => __( 'Reset', 'bw-elementor-widgets' ),
+                'filterShowResults'     => __( 'Show results', 'bw-elementor-widgets' ),
+                'filterEmpty'           => __( 'No filters available for this scope.', 'bw-elementor-widgets' ),
             ],
         ]
     );
@@ -202,6 +216,15 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                     <div class="bw-search-surface__content-header" data-bw-search-content-header hidden></div>
                     <div class="bw-search-surface__content" data-bw-search-content aria-live="polite">
                         <div class="bw-search-surface__empty"><?php esc_html_e( 'Loading…', 'bw-elementor-widgets' ); ?></div>
+                    </div>
+                    <div class="bw-search-surface__filter-footer" data-bw-filter-footer hidden>
+                        <div class="bw-search-surface__filter-footer-inner">
+                            <div class="bw-search-surface__filter-meta">
+                                <span class="bw-search-surface__filter-count" data-bw-filter-count></span>
+                                <button class="bw-search-surface__filter-reset" type="button" data-bw-filter-reset><?php esc_html_e( 'Reset', 'bw-elementor-widgets' ); ?></button>
+                            </div>
+                            <button class="bw-search-surface__filter-apply" type="button" data-bw-filter-apply><?php esc_html_e( 'Show results', 'bw-elementor-widgets' ); ?></button>
+                        </div>
                     </div>
                 </section>
             </div>
