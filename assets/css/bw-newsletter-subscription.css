@@ -111,7 +111,7 @@
     padding-top: 0 !important;
     width: 100% !important;
     overflow: visible !important;
-    border: 1px solid #d1d5db !important;
+    border: none !important;
     border-radius: 50px !important;
     background: var(--bw-ns-label-bg) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
@@ -669,7 +669,7 @@ input.bw-newsletter-subscription-input:focus {
         gap: 12px !important;
         padding: 0 !important;
         margin: 0 !important;
-        border: 0 !important;
+        border: none !important;
         border-radius: 50px !important;
         background: transparent !important;
         overflow: visible !important;
