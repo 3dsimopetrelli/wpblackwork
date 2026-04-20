@@ -83,9 +83,25 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 .bw-search-surface__backdrop {
     position: absolute;
     inset: 0;
+    background: rgba(0, 0, 0, 0);
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+    /* close */
+    transition:
+        background 0.18s ease-in,
+        backdrop-filter 0.18s ease-in,
+        -webkit-backdrop-filter 0.18s ease-in;
+}
+
+.bw-search-surface.is-open .bw-search-surface__backdrop {
     background: rgba(0, 0, 0, 0.08);
     -webkit-backdrop-filter: blur(4px) saturate(1.5);
     backdrop-filter: blur(4px) saturate(1.5);
+    /* open: blur grows with overlay */
+    transition:
+        background 0.38s ease-out,
+        backdrop-filter 0.5s ease-out,
+        -webkit-backdrop-filter 0.5s ease-out;
 }
 
 .bw-search-surface__dialog {
@@ -101,18 +117,26 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     background: var(--bw-search-surface-panel-bg);
     color: var(--bw-search-surface-text);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
     overflow: hidden;
-    /* close: snap back quickly */
+    /* start: no glass, scaled down — close: snap back */
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
     transform: scale(0.96) translateY(-10px);
-    transition: transform 0.16s cubic-bezier(0.4, 0, 1, 1);
+    transition:
+        transform 0.16s cubic-bezier(0.4, 0, 1, 1),
+        backdrop-filter 0.16s ease-in,
+        -webkit-backdrop-filter 0.16s ease-in;
 }
 
 .bw-search-surface.is-open .bw-search-surface__dialog {
-    /* open: spring zoom-in concurrent with overlay fade */
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     transform: scale(1) translateY(0);
-    transition: transform 0.46s cubic-bezier(0.16, 1, 0.3, 1);
+    /* open: spring zoom + glass grows together */
+    transition:
+        transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
+        backdrop-filter 0.5s ease-out,
+        -webkit-backdrop-filter 0.5s ease-out;
 }
 
 .bw-search-surface__topbar {
