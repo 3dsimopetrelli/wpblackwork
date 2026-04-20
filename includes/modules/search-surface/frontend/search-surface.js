@@ -585,11 +585,12 @@
     }
 
     function updateFilterChips(surfaceState) {
-        var panel = surfaceState && surfaceState.content ? surfaceState.content.querySelector('.bw-search-surface__filter-panel') : null;
-        var chips = surfaceState && surfaceState.content ? surfaceState.content.querySelector('.bw-search-surface__filter-chips') : null;
-        var html = renderFilterChipsHtml(surfaceState);
+        var main  = surfaceState && surfaceState.content ? surfaceState.content.parentNode : null;
+        var chips = main ? main.querySelector(':scope > .bw-search-surface__filter-chips') : null;
+        var html  = renderFilterChipsHtml(surfaceState);
 
         if (!html) {
+            if (chips) { chips.parentNode.removeChild(chips); }
             return;
         }
 
@@ -598,12 +599,9 @@
             return;
         }
 
-        if (panel && panel.parentNode === surfaceState.content) {
-            panel.insertAdjacentHTML('beforebegin', html);
-            return;
+        if (surfaceState.content) {
+            surfaceState.content.insertAdjacentHTML('beforebegin', html);
         }
-
-        surfaceState.content.insertAdjacentHTML('afterbegin', html);
     }
 
     function renderFilterGroupHtml(groupType, label, items, selectedList, idField) {
@@ -1061,6 +1059,33 @@
                 return;
             }
         });
+
+        if (surfaceState.content && surfaceState.content.parentNode) {
+            surfaceState.content.parentNode.addEventListener('click', function (event) {
+                if (surfaceState.mode !== 'filter') { return; }
+                if (surfaceState.content.contains(event.target)) { return; }
+                var chipRemove = event.target.closest('[data-bw-chip-type]');
+                if (!chipRemove) { return; }
+                var chipType = chipRemove.getAttribute('data-bw-chip-type');
+                var chipId   = chipRemove.getAttribute('data-bw-chip-id');
+                var chipKey  = chipRemove.getAttribute('data-bw-chip-key');
+                var chipSlug = chipRemove.getAttribute('data-bw-chip-slug');
+                var cSel = surfaceState.filterSel;
+                if (chipType === 'subcategory' && chipId) {
+                    cSel.subcategories = cSel.subcategories.filter(function (v) { return String(v) !== chipId; });
+                } else if (chipType === 'tag' && chipId) {
+                    cSel.tags = cSel.tags.filter(function (v) { return String(v) !== chipId; });
+                } else if (chipType === 'year') {
+                    cSel.year = { from: null, to: null };
+                } else if (chipType === 'advanced' && chipKey && chipSlug) {
+                    if (cSel.advanced[chipKey]) {
+                        cSel.advanced[chipKey] = cSel.advanced[chipKey].filter(function (s) { return s !== chipSlug; });
+                    }
+                }
+                renderFilter(surfaceState, surfaceState.filterData);
+                scheduleFilterCount(surfaceState);
+            });
+        }
 
         surfaceState.content.addEventListener('input', function (event) {
             if (surfaceState.mode !== 'filter') { return; }

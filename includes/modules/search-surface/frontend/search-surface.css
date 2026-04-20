@@ -411,7 +411,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-direction: column;
     padding: 20px 24px 24px;
-    overflow: hidden;
+    overflow: visible;
     background: rgba(255, 255, 255, 0.012);
 }
 
@@ -978,15 +978,13 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 /* Chips */
 .bw-search-surface__filter-chips {
-    position: sticky;
-    top: 0;
     z-index: 6;
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    /* bleed past __main (24px) and __content padding-right (6px) */
-    margin: 0 -30px 8px -24px;
-    padding: 8px 30px 10px 24px;
+    /* bleed to the edges of __main's box (absorbing its 24px padding) */
+    margin: -20px -24px 0 -24px;
+    padding: 10px 24px 10px;
     background: #171717d9;
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
