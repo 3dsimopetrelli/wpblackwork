@@ -349,12 +349,12 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     width: 100%;
-    min-height: 58px;
+    min-height: 45px;
     padding: 0 16px;
-    border: 1px solid transparent;
-    border-radius: 18px;
+    border: 0;
+    border-radius: 50px;
     background: transparent;
     color: rgba(250, 250, 250, 0.78) !important;
     text-align: left;
@@ -368,14 +368,12 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 .bw-search-surface__sidebar button:focus-visible {
     background: rgba(255, 255, 255, 0.06);
     color: var(--bw-search-surface-text) !important;
-    border-color: rgba(255, 255, 255, 0.08);
     outline: none;
 }
 
 .bw-search-surface__sidebar button.is-active {
     background: var(--bw-search-surface-chip-active);
     color: var(--bw-search-surface-chip-active-text) !important;
-    border-color: rgba(255, 255, 255, 0.06);
 }
 
 .bw-search-surface__sidebar button.is-active .bw-search-surface__nav-label {
