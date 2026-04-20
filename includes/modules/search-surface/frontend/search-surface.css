@@ -1442,7 +1442,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     outline: none !important;
 }
 
-.bw-search-surface__filter-apply {
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-apply {
     --bw-search-button-bg: #80fd03;
     --bw-search-button-bg-hover: var(--bw-search-button-bg);
     --bw-search-button-border-color: #080808;
@@ -1454,30 +1454,33 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     --bw-search-button-padding-bottom: 10px;
     --bw-search-button-padding-left: 24px;
 
-    min-width: 200px;
-    min-height: 0;
-    padding: 10px 24px;
-    border: 1px solid var(--bw-search-button-border-color);
-    border-radius: 999px;
-    background-color: var(--bw-search-button-bg);
-    color: #080808;
-    font-size: 20px;
-    font-weight: 500;
-    line-height: 1;
-    cursor: pointer;
-    box-shadow: none;
-    transition: all 0.3s ease;
-    white-space: nowrap;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 200px !important;
+    min-height: 0 !important;
+    padding: 10px 24px !important;
+    border: 1px solid var(--bw-search-button-border-color) !important;
+    border-radius: 999px !important;
+    background-color: var(--bw-search-button-bg) !important;
+    color: #080808 !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap !important;
 }
 
-.bw-search-surface__filter-apply:hover {
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-apply:hover,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-apply:focus-visible {
     outline: none;
-}
-.bw-search-surface__filter-apply:hover,
-.bw-search-surface__filter-apply:focus-visible {
-    color: #080808;
-    background-color: var(--bw-search-button-bg-hover);
-    border-color: var(--bw-search-button-border-color-hover);
+    color: #080808 !important;
+    background-color: var(--bw-search-button-bg-hover) !important;
+    border-color: var(--bw-search-button-border-color-hover) !important;
 }
 
 /* ─── Responsive overrides ───────────────────────────────────────────────── */
