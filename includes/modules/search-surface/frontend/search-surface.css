@@ -1008,9 +1008,9 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-direction: column;
     gap: 0;
-    background: rgba(255, 255, 255, 0.025);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 /* Chips */
@@ -1091,7 +1091,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 /* Accordion group */
 .bw-search-surface__filter-group {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .bw-search-surface__filter-group-toggle {

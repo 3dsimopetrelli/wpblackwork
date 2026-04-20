@@ -364,6 +364,7 @@
    Animation: GPU-only transform + opacity — no layout cost.
    ----------------------------------------------------------------------- */
 .bw-float-atc-wrap {
+	display: none;
 	position: fixed;
 	bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 	right: 88px;
@@ -414,21 +415,27 @@
 @media (max-width: 480px) {
 	/* On small screens: full-width bottom bar */
 	.bw-float-atc-wrap {
+		display: block;
 		right: 0;
 		left: 0;
 		bottom: env(safe-area-inset-bottom, 0px);
 		padding: 10px 16px;
-		background: rgba(255, 255, 255, 0.96);
-		backdrop-filter: blur(6px);
-		-webkit-backdrop-filter: blur(6px);
-		border-top: 1px solid rgba(0, 0, 0, 0.08);
-		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+		background: transparent;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		border-top: 0;
+		box-shadow: none;
+		text-align: center;
 	}
 
 	.bw-float-atc {
 		min-width: 0;
 		width: 100%;
+		max-width: 300px;
+		margin: 0 auto;
 		box-shadow: none;
+		padding: 8px 10px !important;
+		font-size: 18px !important;
 	}
 }
 

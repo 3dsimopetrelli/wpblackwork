@@ -834,16 +834,24 @@
                                 return;
                         }
 
-                        // IntersectionObserver is available in all modern browsers;
-                        // graceful no-op on very old environments
-                        if (typeof IntersectionObserver === 'undefined') {
-                                return;
-                        }
+	                        // IntersectionObserver is available in all modern browsers;
+	                        // graceful no-op on very old environments
+	                        if (typeof IntersectionObserver === 'undefined') {
+	                                return;
+	                        }
 
-                        var $addToCartWrapper = $widget.find('.bw-add-to-cart-wrapper');
-                        if (!$addToCartWrapper.length || !$addToCartButton.length) {
-                                return;
-                        }
+	                        // Mobile-only CTA: below 481px the floating button turns into
+	                        // a full-width bottom bar. Outside that range we do not
+	                        // initialize the floating layer at all.
+	                        var mobileMql = window.matchMedia('(max-width: 480px)');
+	                        if (!mobileMql.matches) {
+	                                return;
+	                        }
+
+	                        var $addToCartWrapper = $widget.find('.bw-add-to-cart-wrapper');
+	                        if (!$addToCartWrapper.length || !$addToCartButton.length) {
+	                                return;
+	                        }
 
                         // ---------- Singleton floating button ----------
                         // One element for the whole page regardless of how many
