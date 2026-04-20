@@ -591,7 +591,6 @@
 
         if (!html) {
             if (chips) { chips.parentNode.removeChild(chips); }
-            if (main) { main.classList.remove('has-chips'); }
             return;
         }
 
@@ -600,7 +599,6 @@
         } else if (surfaceState.content) {
             surfaceState.content.insertAdjacentHTML('beforebegin', html);
         }
-        if (main) { main.classList.add('has-chips'); }
     }
 
     function renderFilterGroupHtml(groupType, label, items, selectedList, idField) {
