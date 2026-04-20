@@ -188,6 +188,7 @@
             closeSurfaceDialog(openSurface);
         }
 
+        surfaceState.surface.inert = false;
         surfaceState.surface.classList.add('is-open');
         document.body.classList.add('bw-search-overlay-active');
         openSurface = surfaceState;
@@ -217,6 +218,7 @@
 
         window.clearTimeout(surfaceState.debounceTimer);
         surfaceState.surface.classList.remove('is-open');
+        surfaceState.surface.inert = true;
         surfaceState.query = '';
         surfaceState.activeGroup = 'trending';
         surfaceState.mode = 'trending';
@@ -942,6 +944,7 @@
             scopeIndicatorFrame: null
         };
 
+        surfaceState.surface.inert = true;
         renderSidebar(surfaceState);
         surfaceState.scopeIndicator = ensureScopeIndicator(surfaceState);
         scheduleScopeIndicatorUpdate(surfaceState);
