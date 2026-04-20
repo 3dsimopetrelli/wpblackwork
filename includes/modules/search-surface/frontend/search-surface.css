@@ -65,25 +65,10 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     position: fixed;
     inset: 0;
     z-index: 10030;
-    opacity: 0;
-    visibility: hidden;
     pointer-events: none;
-    /* close: quick fade-out */
-    transition: opacity 0.2s ease-in, visibility 0s linear 0.2s;
-}
-
-.bw-search-surface.is-open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    /* open: overlay fades in slightly slower than the dialog spring */
-    transition: opacity 0.32s ease-out, visibility 0s linear;
-}
-
-.bw-search-surface__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0);
+    /* page-blur + dark tint live on the parent so the compositing
+       layer is never destroyed — avoids the backdrop-filter snap */
+    background: transparent;
     -webkit-backdrop-filter: blur(0px);
     backdrop-filter: blur(0px);
     /* close */
@@ -93,15 +78,22 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
         -webkit-backdrop-filter 0.18s ease-in;
 }
 
-.bw-search-surface.is-open .bw-search-surface__backdrop {
+.bw-search-surface.is-open {
+    pointer-events: auto;
     background: rgba(0, 0, 0, 0.08);
     -webkit-backdrop-filter: blur(4px) saturate(1.5);
     backdrop-filter: blur(4px) saturate(1.5);
-    /* open: blur grows with overlay */
+    /* open */
     transition:
         background 0.38s ease-out,
         backdrop-filter 0.5s ease-out,
         -webkit-backdrop-filter 0.5s ease-out;
+}
+
+/* backdrop is now only a click-to-close hit target */
+.bw-search-surface__backdrop {
+    position: absolute;
+    inset: 0;
 }
 
 .bw-search-surface__dialog {
@@ -118,24 +110,32 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     color: var(--bw-search-surface-text);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    /* start: no glass, scaled down — close: snap back */
+    /* dialog has its own opacity + glass — independent of parent */
+    opacity: 0;
     -webkit-backdrop-filter: blur(0px);
     backdrop-filter: blur(0px);
     transform: scale(0.96) translateY(-10px);
+    /* close: quick snap-back */
     transition:
+        opacity 0.16s ease-in,
         transform 0.16s cubic-bezier(0.4, 0, 1, 1),
         backdrop-filter 0.16s ease-in,
         -webkit-backdrop-filter 0.16s ease-in;
 }
 
 .bw-search-surface.is-open .bw-search-surface__dialog {
+    opacity: 1;
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     transform: scale(1) translateY(0);
-    /* open: spring zoom + glass grows together */
+    /* open: spring zoom + glass grow together */
     transition:
+        opacity 0.32s ease-out,
         transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
         backdrop-filter 0.5s ease-out,
+        -webkit-backdrop-filter 0.5s ease-out;
+}
+
         -webkit-backdrop-filter 0.5s ease-out;
 }
 
