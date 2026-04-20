@@ -699,6 +699,7 @@ input.bw-newsletter-subscription-input:focus {
 
     .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button__label {
         min-height: 40px !important;
+        border: none !important;
         border-radius: 50px !important;
     }
 
