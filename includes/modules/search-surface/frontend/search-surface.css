@@ -233,7 +233,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     width: 100%;
     padding: 5px;
     border-radius: 32px;
@@ -269,14 +269,14 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    min-height: 52px;
-    height: 52px;
-    padding: 5px 18px;
+    min-height: 42px;
+    height: 42px;
+    padding: 4px 14px;
     border: 0;
     border-radius: 999px;
     background: transparent;
     color: var(--bw-search-surface-scope-chip-text);
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: -0.01em;
     text-align: center;
@@ -690,12 +690,12 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     justify-content: center !important;
     position: relative !important;
     z-index: 2 !important;
-    min-height: 52px !important;
-    height: 52px !important;
-    padding: 5px 18px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 4px 14px !important;
     border: 0 !important;
     border-radius: 999px !important;
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em !important;
     background: transparent !important;
@@ -840,7 +840,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
     .bw-search-surface__scope-row {
         padding: 5px;
-        gap: 10px;
+        gap: 8px;
     }
 
     .bw-search-surface__trending-grid {
