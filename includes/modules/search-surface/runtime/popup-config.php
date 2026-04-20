@@ -24,7 +24,7 @@ function bw_ss_get_group_definitions() {
 
     return [
         'filter'   => [
-            'label'     => __( 'Filter', 'bw-elementor-widgets' ),
+            'label'     => __( 'Filters', 'bw-elementor-widgets' ),
             'icon_svg'  => $filter_svg,
             'mode_type' => 'filter',
             'param_key' => '',
