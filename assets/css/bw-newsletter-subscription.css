@@ -549,6 +549,12 @@ input.bw-newsletter-subscription-input:focus {
     border-color: #93ff2a !important;
 }
 
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button:hover .bw-newsletter-subscription-button__label,
+.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label {
+    background-color: #80fd03 !important;
+    border-color: #fff !important;
+}
+
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button[disabled],
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button[aria-disabled="true"],
 .bw-newsletter-subscription-button[disabled],
