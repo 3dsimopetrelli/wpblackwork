@@ -1008,6 +1008,9 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-direction: column;
     gap: 0;
+    background: rgba(255, 255, 255, 0.025);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
 }
 
 /* Chips */
@@ -1021,7 +1024,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     flex-wrap: wrap;
     gap: 4px;
     padding: 10px 24px 10px;
-    background: #171717d9;
+    background: rgba(255, 255, 255, 0.025);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
 }
