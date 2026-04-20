@@ -269,9 +269,9 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    min-height: 42px;
-    height: 42px;
-    padding: 0 20px;
+    min-height: 52px;
+    height: 52px;
+    padding: 5px 18px;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -688,7 +688,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     z-index: 2 !important;
     min-height: 52px !important;
     height: 52px !important;
-    padding: 0 28px !important;
+    padding: 5px 18px !important;
     border: 0 !important;
     border-radius: 999px !important;
     font-size: 1rem !important;
@@ -1127,7 +1127,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     gap: 8px;
     width: 100%;
     min-height: 44px;
-    padding: 6px 14px 6px 12px;
+    padding: 8px 21px 8px 15px;
     border: 0 !important;
     border-radius: 50px !important;
     background: transparent !important;
