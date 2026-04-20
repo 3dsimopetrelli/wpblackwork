@@ -68,13 +68,16 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.24s ease, visibility 0.24s ease;
+    /* close: quick fade-out */
+    transition: opacity 0.2s ease-in, visibility 0s linear 0.2s;
 }
 
 .bw-search-surface.is-open {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    /* open: overlay fades in slightly slower than the dialog spring */
+    transition: opacity 0.32s ease-out, visibility 0s linear;
 }
 
 .bw-search-surface__backdrop {
@@ -101,6 +104,15 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     overflow: hidden;
+    /* close: snap back quickly */
+    transform: scale(0.96) translateY(-10px);
+    transition: transform 0.16s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.bw-search-surface.is-open .bw-search-surface__dialog {
+    /* open: spring zoom-in concurrent with overlay fade */
+    transform: scale(1) translateY(0);
+    transition: transform 0.46s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bw-search-surface__topbar {
