@@ -1443,21 +1443,41 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 }
 
 .bw-search-surface__filter-apply {
-    min-height: 30px;
-    padding: 0 10px;
+    --bw-search-button-bg: #80fd03;
+    --bw-search-button-bg-hover: var(--bw-search-button-bg);
+    --bw-search-button-border-color: #080808;
+    --bw-search-button-border-color-hover: var(--bw-search-button-border-color);
+    --bw-search-button-border-width: 1px;
+    --bw-search-button-border-radius: 999px;
+    --bw-search-button-padding-top: 10px;
+    --bw-search-button-padding-right: 24px;
+    --bw-search-button-padding-bottom: 10px;
+    --bw-search-button-padding-left: 24px;
+
+    min-width: 200px;
+    min-height: 0;
+    padding: 10px 24px;
+    border: 1px solid var(--bw-search-button-border-color);
     border-radius: 999px;
-    border: none;
-    background: rgba(34, 197, 94, 0.9);
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 600;
+    background-color: var(--bw-search-button-bg);
+    color: #080808;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1;
     cursor: pointer;
-    transition: background 0.15s;
+    box-shadow: none;
+    transition: all 0.3s ease;
     white-space: nowrap;
 }
 
 .bw-search-surface__filter-apply:hover {
-    background: #16a34a;
+    outline: none;
+}
+.bw-search-surface__filter-apply:hover,
+.bw-search-surface__filter-apply:focus-visible {
+    color: #080808;
+    background-color: var(--bw-search-button-bg-hover);
+    border-color: var(--bw-search-button-border-color-hover);
 }
 
 /* ─── Responsive overrides ───────────────────────────────────────────────── */
@@ -1514,8 +1534,8 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     }
 
     .bw-search-surface__filter-apply {
-        min-height: 28px;
-        padding: 0 9px;
+        min-width: 200px;
+        min-height: 0;
     }
 
     .bw-search-surface__year-fields {
