@@ -1416,18 +1416,25 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 }
 
 .bw-search-surface__filter-reset {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: var(--bw-search-surface-text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 0;
+    min-height: 0;
     padding: 0;
-    transition: color 0.15s;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: rgba(250, 250, 250, 0.62);
+    cursor: pointer;
+    transition: color 0.15s ease;
 }
 
 .bw-search-surface__filter-reset:hover {
-    color: var(--bw-search-surface-text);
+    color: rgba(250, 250, 250, 0.82);
 }
 
 .bw-search-surface__filter-apply {
