@@ -469,7 +469,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
-    padding: 80px 6px 80px 0;
+    padding: 15px 6px 50px 0;
     align-content: start;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
