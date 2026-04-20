@@ -302,6 +302,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
+    min-width: 60px;
     min-height: 42px;
     height: 42px;
     padding: 4px 14px;
