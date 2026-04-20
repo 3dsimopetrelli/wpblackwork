@@ -591,17 +591,16 @@
 
         if (!html) {
             if (chips) { chips.parentNode.removeChild(chips); }
+            if (main) { main.classList.remove('has-chips'); }
             return;
         }
 
         if (chips) {
             chips.outerHTML = html;
-            return;
-        }
-
-        if (surfaceState.content) {
+        } else if (surfaceState.content) {
             surfaceState.content.insertAdjacentHTML('beforebegin', html);
         }
+        if (main) { main.classList.add('has-chips'); }
     }
 
     function renderFilterGroupHtml(groupType, label, items, selectedList, idField) {
