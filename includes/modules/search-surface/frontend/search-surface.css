@@ -136,9 +136,6 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
         -webkit-backdrop-filter 0.5s ease-out;
 }
 
-        -webkit-backdrop-filter 0.5s ease-out;
-}
-
 .bw-search-surface__topbar {
     display: flex;
     flex-direction: column;
