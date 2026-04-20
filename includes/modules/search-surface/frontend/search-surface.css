@@ -984,11 +984,12 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin: 0;
-    padding: 6px 0 8px;
-    background: rgba(12, 12, 12, 0.80);
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    backdrop-filter: blur(20px) saturate(1.5);
+    /* bleed past __main (24px) and __content padding-right (6px) */
+    margin: 0 -30px 8px -24px;
+    padding: 8px 30px 10px 24px;
+    background: #171717d9;
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
 }
 
 .bw-search-surface__filter-chip {
