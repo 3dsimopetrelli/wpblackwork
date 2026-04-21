@@ -860,12 +860,15 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     .bw-search-surface__body {
         grid-template-columns: 1fr;
         min-height: 0;
+        align-items: start;
     }
 
     .bw-search-surface__sidebar {
         grid-auto-flow: column;
         grid-auto-columns: max-content;
         overflow: auto;
+        align-self: start;
+        height: auto;
         border-right: 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         padding: 12px 16px;
@@ -1239,7 +1242,6 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     align-items: center;
     gap: 8px;
     width: 100%;
-    min-height: 44px;
     padding: 8px 20px 8px 15px !important;
     border: 0 !important;
     border-radius: 50px !important;
