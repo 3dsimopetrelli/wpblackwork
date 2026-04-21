@@ -862,7 +862,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
         grid-template-rows: auto minmax(0, 1fr);
         min-height: 0;
         align-content: start;
-        align-items: start;
+        align-items: stretch;
     }
 
     .bw-search-surface__sidebar {
@@ -895,6 +895,8 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     }
 
     .bw-search-surface__main {
+        align-self: stretch;
+        height: 100%;
         padding: 18px 16px 0;
     }
 
