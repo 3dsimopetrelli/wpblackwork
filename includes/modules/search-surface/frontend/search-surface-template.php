@@ -208,7 +208,7 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                         <div class="bw-search-surface__filter-footer-inner">
                             <div class="bw-search-surface__filter-meta">
                                 <span class="bw-search-surface__filter-count" data-bw-filter-count></span>
-                                <button class="bw-search-surface__filter-reset" type="button" data-bw-filter-reset><?php esc_html_e( 'Reset', 'bw-elementor-widgets' ); ?></button>
+                                <button class="bw-search-surface__filter-reset" type="button" data-bw-filter-reset hidden><?php esc_html_e( 'Reset', 'bw-elementor-widgets' ); ?></button>
                             </div>
                             <button class="bw-search-surface__filter-apply" type="button" data-bw-filter-apply><?php esc_html_e( 'Show results', 'bw-elementor-widgets' ); ?></button>
                         </div>
