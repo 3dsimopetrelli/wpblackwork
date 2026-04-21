@@ -204,6 +204,67 @@
         requestMode(surfaceState, surfaceState.mode);
     }
 
+    function isMobileSearchSurface() {
+        return window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    }
+
+    function lockBodyScroll(surfaceState) {
+        if (!surfaceState || surfaceState.bodyScrollLocked) {
+            return;
+        }
+
+        document.body.classList.add('bw-search-overlay-active');
+
+        if (!isMobileSearchSurface()) {
+            return;
+        }
+
+        var scrollY = window.pageYOffset || window.scrollY || 0;
+
+        surfaceState.bodyScrollLocked = true;
+        surfaceState.bodyScrollTop = scrollY;
+        surfaceState.bodyScrollPrevStyle = {
+            position: document.body.style.position,
+            top: document.body.style.top,
+            left: document.body.style.left,
+            right: document.body.style.right,
+            width: document.body.style.width,
+            overflow: document.body.style.overflow
+        };
+
+        document.body.style.position = 'fixed';
+        document.body.style.top = '-' + scrollY + 'px';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function unlockBodyScroll(surfaceState) {
+        if (!surfaceState || !surfaceState.bodyScrollLocked) {
+            document.body.classList.remove('bw-search-overlay-active');
+            return;
+        }
+
+        var prev = surfaceState.bodyScrollPrevStyle || {};
+        var scrollY = surfaceState.bodyScrollTop || 0;
+
+        document.body.style.position = prev.position || '';
+        document.body.style.top = prev.top || '';
+        document.body.style.left = prev.left || '';
+        document.body.style.right = prev.right || '';
+        document.body.style.width = prev.width || '';
+        document.body.style.overflow = prev.overflow || '';
+        document.body.classList.remove('bw-search-overlay-active');
+        surfaceState.bodyScrollLocked = false;
+        surfaceState.bodyScrollTop = 0;
+        surfaceState.bodyScrollPrevStyle = null;
+
+        if (scrollY) {
+            window.scrollTo(0, scrollY);
+        }
+    }
+
     function openSurfaceDialog(surfaceState) {
         if (openSurface && openSurface !== surfaceState) {
             closeSurfaceDialog(openSurface);
@@ -211,7 +272,7 @@
 
         surfaceState.surface.inert = false;
         surfaceState.surface.classList.add('is-open');
-        document.body.classList.add('bw-search-overlay-active');
+        lockBodyScroll(surfaceState);
         openSurface = surfaceState;
 
         window.setTimeout(function () {
@@ -249,7 +310,7 @@
         if (surfaceState.filterReset) { surfaceState.filterReset.hidden = true; }
 
         syncLayoutMode(surfaceState);
-        document.body.classList.remove('bw-search-overlay-active');
+        unlockBodyScroll(surfaceState);
 
         if (openSurface === surfaceState) {
             openSurface = null;
@@ -1033,7 +1094,10 @@
             filterCountAbortController: null,
             debounceTimer: null,
             abortController: null,
-            scopeIndicatorFrame: null
+            scopeIndicatorFrame: null,
+            bodyScrollLocked: false,
+            bodyScrollTop: 0,
+            bodyScrollPrevStyle: null
         };
 
         surfaceState.surface.inert = true;
