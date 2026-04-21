@@ -633,6 +633,7 @@
             return;
         }
 
+        // Keep the Reset button aligned with the actual active filter state.
         surfaceState.filterReset.hidden = !hasActiveFilterSelection(surfaceState);
     }
 

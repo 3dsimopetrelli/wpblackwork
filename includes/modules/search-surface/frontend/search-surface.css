@@ -1444,6 +1444,10 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     transition: color 0.15s ease !important;
 }
 
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-reset[hidden] {
+    display: none !important;
+}
+
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-reset:hover,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-reset:focus-visible {
     color: rgba(250, 250, 250, 0.82) !important;

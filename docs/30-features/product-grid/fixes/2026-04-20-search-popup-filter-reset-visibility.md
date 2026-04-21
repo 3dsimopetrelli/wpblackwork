@@ -63,6 +63,13 @@ The Reset action still clears the full popup filter state:
 The footer then returns to its hidden-reset state after the filter panel
 rerenders.
 
+### Hidden attribute safeguard
+
+The Reset button is now marked with `hidden` in the template and is also
+protected by a popup-native CSS rule for the `[hidden]` state. This ensures
+the button stays hidden even though the popup footer uses aggressive button
+styling that would otherwise override the browser default hidden behavior.
+
 ---
 
 ## Files Updated
@@ -133,4 +140,3 @@ Expected manual QA behavior in the browser:
 - Task closure status: `CLOSED`
 - Date: `2026-04-20`
 - This report documents a popup-native UI-state refinement only
-
