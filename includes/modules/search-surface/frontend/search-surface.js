@@ -1107,6 +1107,9 @@
         surfaceState.onResize = function () {
             scheduleScopeIndicatorUpdate(surfaceState);
         };
+        surfaceState.onScopeRowScroll = function () {
+            scheduleScopeIndicatorUpdate(surfaceState);
+        };
 
         window.addEventListener('resize', surfaceState.onResize);
 
@@ -1291,6 +1294,7 @@
         }
 
         if (surfaceState.scopeRow) {
+            surfaceState.scopeRow.addEventListener('scroll', surfaceState.onScopeRowScroll, { passive: true });
             surfaceState.scopeRow.addEventListener('click', function (event) {
                 var scopeButton = event.target.closest('[data-bw-scope-option]');
 
