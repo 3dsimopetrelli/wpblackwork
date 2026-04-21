@@ -451,13 +451,13 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: 20;
     display: flex;
     align-items: center;
     min-height: 45px;
     padding: 10px 24px;
     margin: 0;
-    border-radius: 32px;
+    border-radius: 0;
     background: rgba(255, 255, 255, 0.025);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
@@ -1519,6 +1519,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     box-shadow: none !important;
     transition: all 0.3s ease !important;
     white-space: nowrap !important;
+    margin-right: 24px !important;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-apply:hover,
