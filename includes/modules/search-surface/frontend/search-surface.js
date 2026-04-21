@@ -188,6 +188,7 @@
             closeSurfaceDialog(openSurface);
         }
 
+        window.clearTimeout(surfaceState.scopeIndicatorOpenTimer);
         surfaceState.surface.inert = false;
         surfaceState.surface.classList.add('is-open');
         document.body.classList.add('bw-search-overlay-active');
@@ -202,6 +203,11 @@
         }
 
         scheduleScopeIndicatorUpdate(surfaceState);
+        surfaceState.scopeIndicatorOpenTimer = window.setTimeout(function () {
+            if (surfaceState.surface && surfaceState.surface.classList.contains('is-open')) {
+                scheduleScopeIndicatorUpdate(surfaceState);
+            }
+        }, 520);
     }
 
     function closeSurfaceDialog(surfaceState) {
@@ -210,6 +216,8 @@
             surfaceState.abortController = null;
         }
 
+        window.clearTimeout(surfaceState.scopeIndicatorOpenTimer);
+        surfaceState.scopeIndicatorOpenTimer = null;
         window.clearTimeout(surfaceState.filterCountTimer);
         if (surfaceState.filterCountAbortController) {
             surfaceState.filterCountAbortController.abort();
@@ -983,7 +991,8 @@
             filterCountAbortController: null,
             debounceTimer: null,
             abortController: null,
-            scopeIndicatorFrame: null
+            scopeIndicatorFrame: null,
+            scopeIndicatorOpenTimer: null
         };
 
         surfaceState.surface.inert = true;
