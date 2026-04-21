@@ -746,10 +746,12 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     font-size: 13px !important;
     font-weight: 400 !important;
     letter-spacing: -0.01em !important;
+    transition: color 0.12s ease, background-color 0.12s ease, transform 0.12s ease;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close .bw-search-surface__close-label {
     color: #b3b3b3 !important;
+    transition: color 0.12s ease;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:hover,
