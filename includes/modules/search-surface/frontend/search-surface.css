@@ -1453,6 +1453,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     font-size: 0.7rem;
     color: var(--bw-search-surface-text-muted);
     font-weight: 500;
+    margin-left: 27px;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__filter-footer .bw-search-surface__filter-reset {
