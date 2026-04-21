@@ -1135,6 +1135,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     justify-content: center !important;
     flex: 0 0 auto;
     margin-left: auto;
+    margin-right: 23px !important;
     min-width: 0 !important;
     min-height: 0 !important;
     padding: 0 !important;
