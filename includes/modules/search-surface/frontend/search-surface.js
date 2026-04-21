@@ -267,6 +267,10 @@
         } else {
             surfaceState.contentHeader.hidden = true;
         }
+
+        if (surfaceState.main) {
+            surfaceState.main.classList.toggle('has-content-header', !!text);
+        }
     }
 
     function setLoadingState(surfaceState) {
@@ -986,6 +990,7 @@
             input: surface.querySelector('[data-bw-search-input]'),
             form: surface.querySelector('[data-bw-search-form]'),
             sidebar: surface.querySelector('[data-bw-search-sidebar]'),
+            main: surface.querySelector('.bw-search-surface__main'),
             content: surface.querySelector('[data-bw-search-content]'),
             contentHeader: surface.querySelector('[data-bw-search-content-header]'),
             filterFooter: surface.querySelector('[data-bw-filter-footer]'),

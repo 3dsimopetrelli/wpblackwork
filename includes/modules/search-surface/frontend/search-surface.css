@@ -447,8 +447,20 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 
 .bw-search-surface__content-header {
-    flex: 0 0 auto;
-    padding-bottom: 12px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    min-height: 45px;
+    padding: 10px 24px;
+    margin: 0;
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.025);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
     font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -458,6 +470,10 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 .bw-search-surface__content-header[hidden] {
     display: none;
+}
+
+.bw-search-surface__main.has-content-header .bw-search-surface__content {
+    padding-top: 60px;
 }
 
 .bw-search-surface__content {
