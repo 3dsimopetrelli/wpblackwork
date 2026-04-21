@@ -71,6 +71,20 @@ sync also applies an inline `display: none !important` when the reset state
 is inactive, which prevents the footer button styling from re-exposing the
 control.
 
+### Close button refinement
+
+The popup `Close` control now uses the same compact muted-text treatment as
+the sidebar category labels:
+
+- 13px type size
+- normal font weight
+- gray default text color
+- white hover/focus text color
+- no background fill on hover
+
+The change is kept inside the popup-native selector chain so the button
+remains isolated from Elementor/global button styling.
+
 ---
 
 ## Files Updated

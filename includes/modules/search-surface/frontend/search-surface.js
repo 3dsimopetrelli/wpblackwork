@@ -256,7 +256,7 @@
     function renderFeed(surfaceState, mode, payload) {
         var items = (payload && Array.isArray(payload.items)) ? payload.items : [];
         var modeLabels = {
-            trending: strings.modeLabelTrending || 'Trending',
+            trending: strings.modeLabelTrending || 'Selects',
             new:      strings.modeLabelNew      || 'New Arrivals',
             sale:     strings.modeLabelSale     || 'On Sale',
             free:     strings.modeLabelFree     || 'Free Downloads'

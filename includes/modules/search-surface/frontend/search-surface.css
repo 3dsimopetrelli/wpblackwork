@@ -236,9 +236,9 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     border: 0;
     border-radius: 999px;
     background: var(--bw-search-surface-close-bg) !important;
-    color: #ffffff !important;
-    font-size: 1rem;
-    font-weight: 600;
+    color: rgba(250, 250, 250, 0.62) !important;
+    font-size: 13px;
+    font-weight: 400;
     letter-spacing: -0.01em;
     white-space: nowrap;
     cursor: pointer;
@@ -302,10 +302,10 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    min-width: 60px;
+    min-width: 68px;
     min-height: 42px;
     height: 42px;
-    padding: 4px 14px;
+    padding: 0 18px;
     border: 0;
     border-radius: 999px;
     background: transparent;
@@ -313,6 +313,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+    line-height: 1;
     text-align: center;
     cursor: pointer;
     white-space: nowrap;
@@ -722,12 +723,13 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     z-index: 2 !important;
     min-height: 42px !important;
     height: 42px !important;
-    padding: 4px 14px !important;
+    padding: 0 18px !important;
     border: 0 !important;
     border-radius: 999px !important;
     font-size: 0.95rem !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em !important;
+    line-height: 1 !important;
     background: transparent !important;
     color: var(--bw-search-surface-scope-chip-text) !important;
 }
@@ -741,7 +743,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     border-radius: 0 !important;
     background: none !important;
     color: rgba(250, 250, 250, 0.62) !important;
-    font-size: 16px !important;
+    font-size: 13px !important;
     font-weight: 400 !important;
     letter-spacing: -0.01em !important;
 }
@@ -749,7 +751,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:hover,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:focus-visible {
     background: none !important;
-    color: rgba(250, 250, 250, 0.82) !important;
+    color: #ffffff !important;
     outline: none !important;
 }
 
@@ -895,7 +897,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
         min-width: 88px;
         min-height: 48px;
         padding: 0 18px;
-        font-size: 0.95rem;
+        font-size: 13px;
     }
 
     .bw-search-surface__trending-grid {

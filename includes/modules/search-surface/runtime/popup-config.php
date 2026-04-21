@@ -30,7 +30,7 @@ function bw_ss_get_group_definitions() {
             'param_key' => '',
         ],
         'trending' => [
-            'label'     => __( 'Trending', 'bw-elementor-widgets' ),
+            'label'     => __( 'Selects', 'bw-elementor-widgets' ),
             'icon_svg'  => $trending_svg,
             'mode_type' => 'feed',
             'param_key' => '',

@@ -101,7 +101,7 @@ function bw_ss_enqueue_frontend_assets() {
                 'emptyFeed'           => __( 'No products available right now.', 'bw-elementor-widgets' ),
                 'loading'             => __( 'Loading…', 'bw-elementor-widgets' ),
                 'seeAllResults'       => __( 'See all results', 'bw-elementor-widgets' ),
-                'modeLabelTrending'   => __( 'Trending', 'bw-elementor-widgets' ),
+                'modeLabelTrending'   => __( 'Selects', 'bw-elementor-widgets' ),
                 'modeLabelNew'        => __( 'New Arrivals', 'bw-elementor-widgets' ),
                 'modeLabelSale'       => __( 'On Sale', 'bw-elementor-widgets' ),
                 'modeLabelFree'       => __( 'Free Downloads', 'bw-elementor-widgets' ),
