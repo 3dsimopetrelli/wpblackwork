@@ -158,6 +158,10 @@
             return;
         }
 
+        if (!instant && (!surfaceState.surface || !surfaceState.surface.classList.contains('is-open'))) {
+            return;
+        }
+
         if (surfaceState.scopeIndicatorFrame) {
             window.cancelAnimationFrame(surfaceState.scopeIndicatorFrame);
         }
