@@ -66,9 +66,10 @@ rerenders.
 ### Hidden attribute safeguard
 
 The Reset button is now marked with `hidden` in the template and is also
-protected by a popup-native CSS rule for the `[hidden]` state. This ensures
-the button stays hidden even though the popup footer uses aggressive button
-styling that would otherwise override the browser default hidden behavior.
+protected by a popup-native CSS rule for the `[hidden]` state. The runtime
+sync also applies an inline `display: none !important` when the reset state
+is inactive, which prevents the footer button styling from re-exposing the
+control.
 
 ---
 
