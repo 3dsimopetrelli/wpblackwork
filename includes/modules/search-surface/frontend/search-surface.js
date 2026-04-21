@@ -273,8 +273,22 @@
         }
     }
 
+    function clearFilterChips(surfaceState) {
+        var main  = surfaceState && surfaceState.content ? surfaceState.content.parentNode : null;
+        var chips = main ? main.querySelector(':scope > .bw-search-surface__filter-chips') : null;
+
+        if (chips) {
+            chips.parentNode.removeChild(chips);
+        }
+
+        if (surfaceState) {
+            surfaceState.filterReset = null;
+        }
+    }
+
     function setLoadingState(surfaceState) {
         setContentHeader(surfaceState, '');
+        clearFilterChips(surfaceState);
         surfaceState.content.innerHTML = '<div class="bw-search-surface__empty">' + escapeHtml(strings.loading || 'Loading…') + '</div>';
     }
 
@@ -290,6 +304,7 @@
         surfaceState.mode = mode;
         surfaceState.activeGroup = mode;
         syncLayoutMode(surfaceState);
+        clearFilterChips(surfaceState);
         renderSidebar(surfaceState);
         setContentHeader(surfaceState, modeLabels[mode] || mode);
 
@@ -570,6 +585,7 @@
         var tags     = Array.isArray(filterUi.tags)  ? filterUi.tags  : [];
         var chips    = [];
         var closeIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+        var clearAllLabel = strings.filterClearAll || strings.filterReset || 'Clear all';
 
         (sel.subcategories || []).forEach(function (id) {
             var item = findInItems(types, id);
@@ -596,7 +612,8 @@
 
         if (!chips.length) { return ''; }
 
-        var html = '<div class="bw-search-surface__filter-chips">';
+        var html = '<div class="bw-search-surface__filter-chips">' +
+            '<div class="bw-search-surface__filter-chips-list">';
         chips.forEach(function (chip) {
             var attrs = '';
             if (chip.type === 'subcategory') {
@@ -614,6 +631,8 @@
                     '<button type="button" class="bw-search-surface__filter-chip-remove" aria-label="Remove filter" ' + attrs + '>' + closeIcon + '</button>' +
                 '</span>';
         });
+        html += '</div>';
+        html += '<button class="bw-search-surface__filter-reset" type="button" data-bw-filter-reset>' + escapeHtml(clearAllLabel) + '</button>';
         html += '</div>';
         return html;
     }
@@ -634,6 +653,9 @@
             surfaceState.content.insertAdjacentHTML('beforebegin', html);
         }
 
+        if (surfaceState && surfaceState.surface) {
+            surfaceState.filterReset = surfaceState.surface.querySelector('[data-bw-filter-reset]');
+        }
         syncFilterResetVisibility(surfaceState);
     }
 
@@ -661,7 +683,7 @@
             return;
         }
 
-        // Keep the Reset button aligned with the actual active filter state.
+        // Keep the Clear all button aligned with the actual active filter state.
         var isVisible = hasActiveFilterSelection(surfaceState);
 
         surfaceState.filterReset.hidden = !isVisible;
@@ -780,12 +802,12 @@
                 '<div class="bw-search-surface__empty">' +
                 escapeHtml(strings.filterEmpty || 'No filters available for this scope.') +
                 '</div>';
+            updateFilterChips(surfaceState);
             syncFilterResetVisibility(surfaceState);
             return;
         }
 
-        var html = renderFilterChipsHtml(surfaceState);
-        html += '<div class="bw-search-surface__filter-panel">';
+        var html = '<div class="bw-search-surface__filter-panel">';
 
         if (types.length) {
             html += renderFilterGroupHtml('subcategory', strings.filterGroupCategories || 'Categories', types, surfaceState.filterSel.subcategories, 'id');
@@ -803,6 +825,7 @@
 
         html += '</div>';
         surfaceState.content.innerHTML = html;
+        updateFilterChips(surfaceState);
         restoreOpenFilterGroups(surfaceState, openGroups);
         syncFilterResetVisibility(surfaceState);
     }
@@ -827,6 +850,7 @@
         surfaceState.mode = 'suggest';
         if (surfaceState.filterFooter) { surfaceState.filterFooter.hidden = true; }
         syncLayoutMode(surfaceState);
+        clearFilterChips(surfaceState);
         setContentHeader(surfaceState, '');
 
         if (!items.length) {
@@ -1186,8 +1210,15 @@
             });
         }
 
-        if (surfaceState.filterReset) {
-            surfaceState.filterReset.addEventListener('click', function () {
+        if (surfaceState.main) {
+            surfaceState.main.addEventListener('click', function (event) {
+                var resetButton = event.target.closest('[data-bw-filter-reset]');
+
+                if (!resetButton || surfaceState.mode !== 'filter') {
+                    return;
+                }
+
+                event.preventDefault();
                 surfaceState.filterSel = { subcategories: [], tags: [], year: { from: null, to: null }, advanced: {} };
                 renderFilter(surfaceState, surfaceState.filterData);
                 var fUi = (surfaceState.filterData && surfaceState.filterData.filter_ui) ? surfaceState.filterData.filter_ui : {};

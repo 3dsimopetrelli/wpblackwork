@@ -112,7 +112,7 @@ function bw_ss_enqueue_frontend_assets() {
                 'filterYearTo'          => __( 'To', 'bw-elementor-widgets' ),
                 'filterYearAny'         => __( 'Any year', 'bw-elementor-widgets' ),
                 'filterResultCount'     => __( '%d results', 'bw-elementor-widgets' ),
-                'filterReset'           => __( 'Reset', 'bw-elementor-widgets' ),
+                'filterClearAll'        => __( 'Clear all', 'bw-elementor-widgets' ),
                 'filterShowResults'     => __( 'Show results', 'bw-elementor-widgets' ),
                 'filterEmpty'           => __( 'No filters available for this scope.', 'bw-elementor-widgets' ),
             ],
@@ -208,7 +208,6 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
                         <div class="bw-search-surface__filter-footer-inner">
                             <div class="bw-search-surface__filter-meta">
                                 <span class="bw-search-surface__filter-count" data-bw-filter-count></span>
-                                <button class="bw-search-surface__filter-reset" type="button" data-bw-filter-reset hidden><?php esc_html_e( 'Reset', 'bw-elementor-widgets' ); ?></button>
                             </div>
                             <button class="bw-search-surface__filter-apply" type="button" data-bw-filter-apply><?php esc_html_e( 'Show results', 'bw-elementor-widgets' ); ?></button>
                         </div>
