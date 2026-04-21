@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 $widget_id = isset($overlay_args['widget_id']) ? (string) $overlay_args['widget_id'] : wp_generate_uuid4();
 $show_header_text = !empty($overlay_args['show_header_text']);
 $header_text = isset($overlay_args['header_text']) ? (string) $overlay_args['header_text'] : __("Type what you're looking for", 'bw');
-$placeholder = isset($overlay_args['placeholder']) ? (string) $overlay_args['placeholder'] : __('Search Blackwork', 'bw');
+$placeholder = isset($overlay_args['placeholder']) ? (string) $overlay_args['placeholder'] : __('Search Blackwork...', 'bw');
 $hint_text = isset($overlay_args['hint_text']) ? (string) $overlay_args['hint_text'] : __('Hit enter to search or ESC to close', 'bw');
 
 if ( function_exists( 'bw_ss_render_search_surface_template' ) ) {

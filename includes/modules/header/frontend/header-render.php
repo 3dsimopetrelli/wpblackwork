@@ -48,7 +48,7 @@ if (!function_exists('bw_header_render_search_block')) {
         $icon_markup = isset($args['icon_markup']) ? (string) $args['icon_markup'] : bw_header_default_search_icon_svg();
         $show_header_text = !empty($args['show_header_text']);
         $header_text = isset($args['header_text']) ? (string) $args['header_text'] : __("Type what you're looking for", 'bw');
-        $placeholder = isset($args['placeholder']) ? (string) $args['placeholder'] : __('Search Blackwork', 'bw');
+        $placeholder = isset($args['placeholder']) ? (string) $args['placeholder'] : __('Search Blackwork...', 'bw');
         $hint_text = isset($args['hint_text']) ? (string) $args['hint_text'] : __('Hit enter to search or ESC to close', 'bw');
 
         ob_start();
@@ -189,7 +189,7 @@ if (!function_exists('bw_header_render_frontend')) {
                 'icon_markup' => $search_icon,
                 'show_header_text' => true,
                 'header_text' => __("Type what you're looking for", 'bw'),
-                'placeholder' => __('Search Blackwork', 'bw'),
+                'placeholder' => __('Search Blackwork...', 'bw'),
                 'hint_text' => __('Hit enter to search or ESC to close', 'bw'),
             ]);
 
@@ -199,7 +199,7 @@ if (!function_exists('bw_header_render_frontend')) {
                 'icon_markup' => $search_icon,
                 'show_header_text' => true,
                 'header_text' => __("Type what you're looking for", 'bw'),
-                'placeholder' => __('Search Blackwork', 'bw'),
+                'placeholder' => __('Search Blackwork...', 'bw'),
                 'hint_text' => __('Hit enter to search or ESC to close', 'bw'),
             ]);
         }

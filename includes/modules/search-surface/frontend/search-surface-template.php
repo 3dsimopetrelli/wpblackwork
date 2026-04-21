@@ -151,7 +151,7 @@ function bw_ss_render_search_surface_template( $overlay_args = [] ) {
     $widget_id   = isset( $overlay_args['widget_id'] ) ? sanitize_key( (string) $overlay_args['widget_id'] ) : wp_generate_uuid4();
     $placeholder = isset( $overlay_args['placeholder'] ) && '' !== (string) $overlay_args['placeholder']
         ? (string) $overlay_args['placeholder']
-        : __( 'Search Blackwork', 'bw-elementor-widgets' );
+        : __( 'Search Blackwork...', 'bw-elementor-widgets' );
 
     ob_start();
     ?>
