@@ -748,11 +748,20 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     letter-spacing: -0.01em !important;
 }
 
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close .bw-search-surface__close-label {
+    color: #b3b3b3 !important;
+}
+
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:hover,
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:focus-visible {
     background: none !important;
     color: #ffffff !important;
     outline: none !important;
+}
+
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:hover .bw-search-surface__close-label,
+.bw-search-surface .bw-search-surface__dialog .bw-search-surface__close:focus-visible .bw-search-surface__close-label {
+    color: #ffffff !important;
 }
 
 .bw-search-surface .bw-search-surface__dialog .bw-search-surface__scope-option:hover,
