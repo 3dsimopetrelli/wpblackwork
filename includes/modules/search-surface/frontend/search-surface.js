@@ -103,7 +103,7 @@
         return indicator;
     }
 
-    function updateScopeIndicator(surfaceState) {
+    function updateScopeIndicator(surfaceState, instant) {
         var indicator;
         var selected;
         var rowRect;
@@ -136,13 +136,24 @@
         rowRect = surfaceState.scopeRow.getBoundingClientRect();
         selectedRect = selected.getBoundingClientRect();
 
+        if (instant) {
+            indicator.style.transition = 'none';
+        }
         indicator.style.width = selectedRect.width + 'px';
         indicator.style.height = selectedRect.height + 'px';
         indicator.style.transform = 'translate3d(' + (selectedRect.left - rowRect.left) + 'px, ' + (selectedRect.top - rowRect.top) + 'px, 0)';
         indicator.classList.add('is-visible');
+
+        if (instant) {
+            window.requestAnimationFrame(function () {
+                if (indicator) {
+                    indicator.style.transition = '';
+                }
+            });
+        }
     }
 
-    function scheduleScopeIndicatorUpdate(surfaceState) {
+    function scheduleScopeIndicatorUpdate(surfaceState, instant) {
         if (!surfaceState) {
             return;
         }
@@ -151,9 +162,15 @@
             window.cancelAnimationFrame(surfaceState.scopeIndicatorFrame);
         }
 
+        if (instant) {
+            surfaceState.scopeIndicatorFrame = null;
+            updateScopeIndicator(surfaceState, true);
+            return;
+        }
+
         surfaceState.scopeIndicatorFrame = window.requestAnimationFrame(function () {
             surfaceState.scopeIndicatorFrame = null;
-            updateScopeIndicator(surfaceState);
+            updateScopeIndicator(surfaceState, instant);
         });
     }
 
@@ -188,7 +205,6 @@
             closeSurfaceDialog(openSurface);
         }
 
-        window.clearTimeout(surfaceState.scopeIndicatorOpenTimer);
         surfaceState.surface.inert = false;
         surfaceState.surface.classList.add('is-open');
         document.body.classList.add('bw-search-overlay-active');
@@ -202,12 +218,7 @@
             requestMode(surfaceState, surfaceState.mode);
         }
 
-        scheduleScopeIndicatorUpdate(surfaceState);
-        surfaceState.scopeIndicatorOpenTimer = window.setTimeout(function () {
-            if (surfaceState.surface && surfaceState.surface.classList.contains('is-open')) {
-                scheduleScopeIndicatorUpdate(surfaceState);
-            }
-        }, 520);
+        scheduleScopeIndicatorUpdate(surfaceState, true);
     }
 
     function closeSurfaceDialog(surfaceState) {
@@ -216,8 +227,6 @@
             surfaceState.abortController = null;
         }
 
-        window.clearTimeout(surfaceState.scopeIndicatorOpenTimer);
-        surfaceState.scopeIndicatorOpenTimer = null;
         window.clearTimeout(surfaceState.filterCountTimer);
         if (surfaceState.filterCountAbortController) {
             surfaceState.filterCountAbortController.abort();
@@ -991,8 +1000,7 @@
             filterCountAbortController: null,
             debounceTimer: null,
             abortController: null,
-            scopeIndicatorFrame: null,
-            scopeIndicatorOpenTimer: null
+            scopeIndicatorFrame: null
         };
 
         surfaceState.surface.inert = true;
