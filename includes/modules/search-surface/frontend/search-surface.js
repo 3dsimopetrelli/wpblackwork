@@ -225,6 +225,7 @@
         surfaceState.input.value = '';
 
         if (surfaceState.filterFooter) { surfaceState.filterFooter.hidden = true; }
+        if (surfaceState.filterReset) { surfaceState.filterReset.hidden = true; }
 
         syncLayoutMode(surfaceState);
         document.body.classList.remove('bw-search-overlay-active');
@@ -269,6 +270,9 @@
 
         if (surfaceState.filterFooter) {
             surfaceState.filterFooter.hidden = true;
+        }
+        if (surfaceState.filterReset) {
+            surfaceState.filterReset.hidden = true;
         }
 
         if (!items.length) {
@@ -601,6 +605,35 @@
         } else if (surfaceState.content) {
             surfaceState.content.insertAdjacentHTML('beforebegin', html);
         }
+
+        syncFilterResetVisibility(surfaceState);
+    }
+
+    function hasActiveFilterSelection(surfaceState) {
+        var sel = surfaceState && surfaceState.filterSel ? surfaceState.filterSel : {};
+
+        if ((sel.subcategories || []).length) { return true; }
+        if ((sel.tags || []).length) { return true; }
+        if (sel.year && (
+            (sel.year.from !== null && sel.year.from !== undefined) ||
+            (sel.year.to !== null && sel.year.to !== undefined)
+        )) { return true; }
+
+        if (sel.advanced) {
+            return Object.keys(sel.advanced).some(function (key) {
+                return Array.isArray(sel.advanced[key]) && sel.advanced[key].length;
+            });
+        }
+
+        return false;
+    }
+
+    function syncFilterResetVisibility(surfaceState) {
+        if (!surfaceState || !surfaceState.filterReset) {
+            return;
+        }
+
+        surfaceState.filterReset.hidden = !hasActiveFilterSelection(surfaceState);
     }
 
     function renderFilterGroupHtml(groupType, label, items, selectedList, idField) {
@@ -715,6 +748,7 @@
                 '<div class="bw-search-surface__empty">' +
                 escapeHtml(strings.filterEmpty || 'No filters available for this scope.') +
                 '</div>';
+            syncFilterResetVisibility(surfaceState);
             return;
         }
 
@@ -738,6 +772,7 @@
         html += '</div>';
         surfaceState.content.innerHTML = html;
         restoreOpenFilterGroups(surfaceState, openGroups);
+        syncFilterResetVisibility(surfaceState);
     }
 
     function renderSuggest(surfaceState, payload) {
@@ -1141,6 +1176,7 @@
         }
 
         surfaceState.scopeIndicator = ensureScopeIndicator(surfaceState);
+        syncFilterResetVisibility(surfaceState);
         root.dataset.bwSearchSurfaceBound = '1';
         root._bwSearchSurfaceState = surfaceState;
     }

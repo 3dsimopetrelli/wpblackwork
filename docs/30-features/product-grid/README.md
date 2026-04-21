@@ -30,6 +30,8 @@ This file is the entry point only.
   - audit history
   - hardening sessions
   - closure reports
+  - [Search Popup Filter Reset Visibility](fixes/2026-04-20-search-popup-filter-reset-visibility.md)
+    - state-aware Reset visibility for popup-native filters
   - [Responsive Sort Mapping and Trigger Refinement](fixes/2026-04-19-responsive-sort-mapping-and-trigger-refinement.md)
     - canonical runtime sort keys
     - exact Lucide icon mapping
