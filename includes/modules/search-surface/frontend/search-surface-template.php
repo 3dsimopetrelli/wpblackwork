@@ -71,7 +71,7 @@ function bw_ss_enqueue_frontend_assets() {
     wp_enqueue_style(
         'bw-search-surface-style',
         $base_url . 'search-surface.css',
-        [],
+        wp_style_is( 'bw-product-labels-style', 'registered' ) ? [ 'bw-product-labels-style' ] : [],
         filemtime( $base_path . 'search-surface.css' ) ?: '1.0.0'
     );
 

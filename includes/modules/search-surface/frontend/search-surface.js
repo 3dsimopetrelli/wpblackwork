@@ -284,10 +284,13 @@
         }
 
         var html = items.map(function (item) {
+            var labelsHtml = item.labels_html
+                ? '<div class="bw-search-surface__feed-labels">' + item.labels_html + '</div>'
+                : '';
             var imageHtml = item.image_url
-                ? '<div class="bw-search-surface__feed-image"><img src="' + escapeHtml(item.image_url) +
+                ? '<div class="bw-search-surface__feed-image">' + labelsHtml + '<img src="' + escapeHtml(item.image_url) +
                   '" alt="' + escapeHtml(item.title) + '" loading="lazy"></div>'
-                : '<div class="bw-search-surface__feed-image bw-search-surface__feed-image--empty"></div>';
+                : '<div class="bw-search-surface__feed-image bw-search-surface__feed-image--empty">' + labelsHtml + '</div>';
 
             var priceHtml = item.price_html
                 ? '<span class="bw-search-surface__feed-price">' + item.price_html + '</span>'

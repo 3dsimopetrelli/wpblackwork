@@ -206,6 +206,10 @@ function bw_ss_build_overlay_product_preview( $product_id ) {
         $image_url = function_exists( 'wc_placeholder_img_src' ) ? wc_placeholder_img_src( 'woocommerce_thumbnail' ) : '';
     }
 
+    $labels_html = function_exists( 'bw_render_product_labels' )
+        ? bw_render_product_labels( $product, 'archive' )
+        : '';
+
     return [
         'id'          => $product_id,
         'title'       => get_the_title( $product_id ),
@@ -213,6 +217,7 @@ function bw_ss_build_overlay_product_preview( $product_id ) {
         'image_url'   => is_string( $image_url ) ? $image_url : '',
         'description' => $description,
         'price_html'  => function_exists( 'bw_fpw_get_price_markup' ) ? bw_fpw_get_price_markup( $product_id ) : '',
+        'labels_html' => $labels_html,
     ];
 }
 
