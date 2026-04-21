@@ -859,6 +859,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
     .bw-search-surface__body {
         grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
         min-height: 0;
         align-content: start;
         align-items: start;
@@ -894,7 +895,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     }
 
     .bw-search-surface__main {
-        padding: 18px 16px 22px;
+        padding: 18px 16px 0;
     }
 
     .bw-search-surface__scope-row {
@@ -904,6 +905,16 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
     .bw-search-surface__trending-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bw-search-surface__filter-footer {
+        position: relative;
+        top: auto;
+        right: auto;
+        bottom: auto;
+        left: auto;
+        margin-top: auto;
+        width: 100%;
     }
 }
 
