@@ -2484,11 +2484,6 @@ body.bw-fpw-drawer-no-scroll {
     align-self: center;
   }
 
-  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-sort--dropdown .bw-fpw-sort-trigger--dropdown {
-    width: auto;
-    min-width: 140px;
-  }
-
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-mobile-filter {
     grid-column: 1;
     grid-row: 1;
