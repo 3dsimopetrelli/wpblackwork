@@ -997,7 +997,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     color: inherit;
     border-radius: 8px !important;
     overflow: hidden;
-    background: #1c1c1c;
+    background: transparent;
     border: 0;
     transition: background 0.15s;
 }
