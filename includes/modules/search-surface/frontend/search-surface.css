@@ -961,7 +961,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 .bw-search-surface__feed-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    gap: 20px 10px;
     padding: 4px 0;
 }
 
@@ -1011,7 +1011,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-direction: column;
     gap: 3px;
-    padding: 0 10px 10px;
+    padding: 10px 10px 10px;
     background: #f9f9f9;
 }
 
