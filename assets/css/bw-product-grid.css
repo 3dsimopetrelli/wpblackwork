@@ -2114,7 +2114,7 @@ body.bw-fpw-drawer-no-scroll {
   appearance: none;
   width: 16px;
   height: 16px;
-  border: 2px solid #111111;
+  border: 0;
   border-radius: 50%;
   background: #86ef54;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -2125,7 +2125,7 @@ body.bw-fpw-drawer-no-scroll {
 .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-year-slider__input::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  border: 2px solid #111111;
+  border: 0;
   border-radius: 50%;
   background: #86ef54;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
