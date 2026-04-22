@@ -283,10 +283,13 @@ function bw_ss_render_headless_discovery_toolbar( $settings, $state, $widget_id,
                 <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
                     <div class="bw-fpw-mobile-filter-drawer">
                         <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
-                            <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $drawer_title ); ?></span>
-                            <button class="bw-fpw-mobile-filter-close bw-fpw-mobile-filter-close--drawer" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">
-                                <span class="bw-fpw-drawer-close-icon" aria-hidden="true"></span>
-                            </button>
+                            <div class="bw-fpw-mobile-filter-sheet-handle" aria-hidden="true">
+                                <span class="bw-fpw-mobile-filter-sheet-handle-bar"></span>
+                            </div>
+                            <div class="bw-fpw-mobile-filter-drawer-title-row">
+                                <span class="bw-fpw-mobile-filter-drawer-title"><?php echo esc_html( $drawer_title ); ?></span>
+                                <button class="bw-fpw-drawer-clear-all bw-fpw-drawer-clear-all--header is-hidden" type="button" aria-hidden="true" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
+                            </div>
                         </div>
 
                         <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
