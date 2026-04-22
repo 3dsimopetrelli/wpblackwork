@@ -397,7 +397,6 @@ body.bw-has-sticky-header:not(.elementor-editor-active) .bw-header-spacer {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-variant-numeric: tabular-nums;
     }
 
     .bw-custom-header__mobile-right .bw-header-navshop--mobile .bw-navshop__cart-count {

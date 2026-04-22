@@ -486,6 +486,31 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     align-content: start;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a transparent;
+}
+
+.bw-search-surface__content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.bw-search-surface__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.bw-search-surface__content::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.bw-search-surface__content::-webkit-scrollbar-thumb:hover,
+.bw-search-surface__content::-webkit-scrollbar-thumb:active {
+    background: #2a2a2a;
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
 .bw-search-surface__empty {
