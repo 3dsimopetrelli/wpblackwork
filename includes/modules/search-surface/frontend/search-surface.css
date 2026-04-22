@@ -1013,12 +1013,13 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     flex-direction: column;
     gap: 3px;
     padding: 0 10px 10px;
+    background: #ffffff;
 }
 
 .bw-search-surface__feed-title {
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--bw-search-surface-text);
+    color: #000000;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1028,11 +1029,11 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 .bw-search-surface__feed-price {
     font-size: 0.75rem;
-    color: var(--bw-search-surface-text-muted);
+    color: #000000;
 }
 
 .bw-search-surface__feed-price .woocommerce-Price-amount {
-    color: var(--bw-search-surface-text-muted);
+    color: #000000;
 }
 
 /* "See all results" footer link (suggest has_more) */
