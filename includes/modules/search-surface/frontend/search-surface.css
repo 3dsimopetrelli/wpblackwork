@@ -1013,6 +1013,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     overflow: hidden;
     background: rgba(255, 255, 255, 0.06);
     flex-shrink: 0;
+    border-radius: 8px;
 }
 
 .bw-search-surface__feed-image .bw-product-labels--archive {
@@ -1036,17 +1037,15 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     display: flex;
     flex-direction: column;
     gap: 3px;
-    padding: 10px 10px 10px;
-    background: #f9f9f9;
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
+    padding: 0 0 10px;
+    background: transparent;
 }
 
 .bw-search-surface .bw-search-surface__feed-card .bw-search-surface__feed-copy .bw-search-surface__feed-title {
     font-size: 0.78rem;
     font-weight: 600;
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1056,13 +1055,13 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 
 .bw-search-surface .bw-search-surface__feed-card .bw-search-surface__feed-copy .bw-search-surface__feed-price {
     font-size: 0.75rem;
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 
 .bw-search-surface .bw-search-surface__feed-card .bw-search-surface__feed-copy .bw-search-surface__feed-price .woocommerce-Price-amount {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 
 /* "See all results" footer link (suggest has_more) */
