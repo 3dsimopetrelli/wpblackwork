@@ -2545,6 +2545,46 @@ body.bw-fpw-drawer-no-scroll {
     max-width: none;
   }
 
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"]:not(.bw-search-results-grid-wrapper) .bw-fpw-sort--dropdown .bw-fpw-sort-trigger--dropdown {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #f5f5f5;
+    color: #737373;
+    border: 1px solid transparent;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"]:not(.bw-search-results-grid-wrapper) .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"]:not(.bw-search-results-grid-wrapper) .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__label,
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"]:not(.bw-search-results-grid-wrapper) .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__chevron {
+    display: none;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"]:not(.bw-search-results-grid-wrapper) .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__icon-shell {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+  }
+
+  .bw-product-grid-wrapper[data-responsive-filter-mode="yes"]:not(.bw-search-results-grid-wrapper) .bw-fpw-sort--dropdown .bw-fpw-sort-trigger__icon-svg {
+    width: 22px;
+    height: 22px;
+  }
+
   .bw-product-grid-wrapper[data-responsive-filter-mode="yes"] .bw-fpw-discovery-toolbar__controls--search-results .bw-fpw-sort--dropdown .bw-fpw-sort-trigger--dropdown {
     width: 40px;
     min-width: 40px;
