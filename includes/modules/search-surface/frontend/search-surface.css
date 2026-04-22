@@ -1428,7 +1428,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
     appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid #111111;
+    border: 0;
     border-radius: 50%;
     background: #86ef54;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -1439,7 +1439,7 @@ body.bw-search-overlay-active .bw-search-surface[data-bw-search-surface] .bw-sea
 .bw-search-surface__year-slider-input::-moz-range-thumb {
     width: 16px;
     height: 16px;
-    border: 2px solid #111111;
+    border: 0;
     border-radius: 50%;
     background: #86ef54;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
