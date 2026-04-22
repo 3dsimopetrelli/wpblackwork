@@ -265,4 +265,13 @@
         grid-column: 1 / -1;
         grid-row: 2;
     }
+
+    .bw-search-results-page .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-product-card .bw-fpw-overlay,
+    .bw-search-results-page .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-product-card .overlay-buttons,
+    .bw-search-results-page .bw-product-grid-wrapper.bw-search-results-grid-wrapper[data-responsive-filter-mode="yes"] .bw-product-card .bw-ss__overlay {
+        display: none !important;
+        opacity: 0 !important;
+        transform: none !important;
+        pointer-events: none !important;
+    }
 }
