@@ -8,6 +8,11 @@ High-level entry points and orientation for the documentation set.
 - [Cultural Manifesto](cultural-manifesto.md)
 - [Business Model](business-model.md)
 
+## Orientation & Handoff
+- [System Map](system-map.md)
+- [Domain Map](domain-map.md)
+- [GPT Handoff & Documentation Method](gpt-handoff-workflow.md)
+
 ## Root technical files (not moved)
 - `AGENTS.md`: workflow checks and execution constraints for coding agents.
 - `CLAUDE.md`: project guidance for assistant tooling.
