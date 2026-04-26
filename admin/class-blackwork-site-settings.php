@@ -5827,6 +5827,29 @@ function bw_export_handle_request()
     exit;
 }
 
+/**
+ * Process product export before the admin page sends HTML output.
+ *
+ * Successful exports stream the CSV and exit. Failed exports are stored so the
+ * tab renderer can show a standard admin notice without retrying the request.
+ */
+function bw_export_maybe_handle_admin_request()
+{
+    if (!is_admin() || !isset($_POST['bw_export_products_submit'])) {
+        return;
+    }
+
+    $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+
+    if ($page !== 'blackwork-site-settings' || $tab !== 'import-product') {
+        return;
+    }
+
+    $GLOBALS['bw_export_request_result'] = bw_export_handle_request();
+}
+add_action('admin_init', 'bw_export_maybe_handle_admin_request', 5);
+
 function bw_export_resolve_product_ids($category_id, $product_value)
 {
     if ($product_value !== 'all') {
@@ -5875,7 +5898,7 @@ function bw_export_resolve_product_ids($category_id, $product_value)
 
 function bw_export_stream_csv($product_ids, $include_variations, $category_id, $product_value)
 {
-    $columns = bw_export_get_template_columns();
+    $columns = bw_export_get_request_columns($product_ids, $include_variations);
     $filename = bw_export_build_filename($category_id, $product_value);
 
     nocache_headers();
@@ -5887,6 +5910,7 @@ function bw_export_stream_csv($product_ids, $include_variations, $category_id, $
         wp_die(esc_html__('Unable to open export stream.', 'bw'));
     }
 
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
     fputcsv($output, $columns);
 
     foreach ((array) $product_ids as $product_id) {
@@ -5912,6 +5936,20 @@ function bw_export_stream_csv($product_ids, $include_variations, $category_id, $
     }
 
     fclose($output);
+}
+
+function bw_export_get_request_columns($product_ids, $include_variations)
+{
+    $columns = bw_export_get_template_columns();
+    $dynamic_meta_columns = bw_export_get_dynamic_meta_columns($product_ids, $include_variations);
+
+    foreach ($dynamic_meta_columns as $meta_key) {
+        if (!in_array($meta_key, $columns, true)) {
+            $columns[] = $meta_key;
+        }
+    }
+
+    return $columns;
 }
 
 function bw_export_build_filename($category_id, $product_value)
@@ -5974,6 +6012,116 @@ function bw_export_order_row_for_csv($row, $columns)
 function bw_export_blank_csv_row()
 {
     return array_fill_keys(bw_export_get_template_columns(), '');
+}
+
+function bw_export_get_dynamic_meta_columns($product_ids, $include_variations)
+{
+    global $wpdb;
+
+    $scan_post_ids = bw_export_get_meta_scan_post_ids($product_ids, $include_variations);
+    if (empty($scan_post_ids)) {
+        return [];
+    }
+
+    $meta_keys = [];
+
+    foreach (array_chunk($scan_post_ids, 250) as $chunk) {
+        $placeholders = implode(',', array_fill(0, count($chunk), '%d'));
+        $query = $wpdb->prepare(
+            "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ($placeholders)",
+            $chunk
+        );
+
+        $results = $wpdb->get_col($query);
+        if (empty($results)) {
+            continue;
+        }
+
+        foreach ($results as $meta_key) {
+            if (!is_string($meta_key) || bw_export_should_skip_dynamic_meta_key($meta_key)) {
+                continue;
+            }
+
+            $meta_keys[$meta_key] = true;
+        }
+    }
+
+    $columns = array_keys($meta_keys);
+    natcasesort($columns);
+
+    return array_values($columns);
+}
+
+function bw_export_get_meta_scan_post_ids($product_ids, $include_variations)
+{
+    $scan_post_ids = [];
+
+    foreach ((array) $product_ids as $product_id) {
+        $product_id = absint($product_id);
+        if ($product_id < 1) {
+            continue;
+        }
+
+        $scan_post_ids[$product_id] = true;
+
+        if (!$include_variations) {
+            continue;
+        }
+
+        $product = wc_get_product($product_id);
+        if (!$product || !$product->is_type('variable')) {
+            continue;
+        }
+
+        foreach ((array) $product->get_children() as $variation_id) {
+            $variation_id = absint($variation_id);
+            if ($variation_id > 0) {
+                $scan_post_ids[$variation_id] = true;
+            }
+        }
+    }
+
+    return array_map('intval', array_keys($scan_post_ids));
+}
+
+function bw_export_should_skip_dynamic_meta_key($meta_key)
+{
+    static $blocked_exact = [
+        '_edit_lock',
+        '_edit_last',
+        '_wp_old_slug',
+        '_wp_old_date',
+        '_wp_desired_post_slug',
+        '_wp_trash_meta_status',
+        '_wp_trash_meta_time',
+    ];
+
+    if ($meta_key === '') {
+        return true;
+    }
+
+    if (in_array($meta_key, $blocked_exact, true)) {
+        return true;
+    }
+
+    return strpos($meta_key, '_oembed_') === 0;
+}
+
+function bw_export_apply_dynamic_meta_to_row(&$row, $all_meta)
+{
+    foreach ((array) $all_meta as $meta_key => $values) {
+        if (!is_string($meta_key) || bw_export_should_skip_dynamic_meta_key($meta_key)) {
+            continue;
+        }
+
+        $normalized_values = array_map('maybe_unserialize', (array) $values);
+        if (count($normalized_values) === 1) {
+            $row[$meta_key] = bw_export_meta_scalar($normalized_values[0]);
+            continue;
+        }
+
+        $row[$meta_key] = bw_export_meta_scalar($normalized_values);
+    }
 }
 
 function bw_export_build_product_csv_row($product)
@@ -6095,6 +6243,7 @@ function bw_export_build_product_csv_row($product)
     $row['_bw_slider_hover_image'] = bw_export_media_meta_value($get_meta('_bw_slider_hover_image'));
     $row['_bw_slider_hover_video'] = bw_export_media_meta_value($get_meta('_bw_slider_hover_video'));
     $row['_product_showcase_image'] = bw_export_media_meta_value($get_meta('_product_showcase_image'));
+    bw_export_apply_dynamic_meta_to_row($row, $all_meta);
 
     return $row;
 }
@@ -6155,6 +6304,7 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     $row['variation_description'] = (string) $variation->get_description();
     $row['_bw_variation_license_col1_json'] = bw_export_json($get_meta('_bw_variation_license_col1'));
     $row['_bw_variation_license_col2_json'] = bw_export_json($get_meta('_bw_variation_license_col2'));
+    bw_export_apply_dynamic_meta_to_row($row, $all_meta);
 
     return $row;
 }
@@ -6385,8 +6535,8 @@ function bw_site_render_import_product_tab()
     $selected_export_category_id = bw_export_get_selected_category_id();
     $selected_export_product_value = bw_export_get_selected_product_value();
 
-    if (isset($_POST['bw_export_products_submit'])) {
-        $export_result = bw_export_handle_request();
+    if (isset($GLOBALS['bw_export_request_result'])) {
+        $export_result = $GLOBALS['bw_export_request_result'];
         if (is_wp_error($export_result)) {
             $notices[] = ['type' => 'error', 'message' => $export_result->get_error_message()];
         }
@@ -6452,7 +6602,7 @@ function bw_site_render_import_product_tab()
     <?php if ($active_mode === 'export') : ?>
         <section class="bw-admin-card">
             <h3 class="bw-admin-card-title"><?php esc_html_e('Export Product', 'bw'); ?></h3>
-            <p class="bw-admin-card-helper"><?php esc_html_e('Export a category or a single product to a master CSV with WooCommerce standard fields and Blackwork meta keys.', 'bw'); ?></p>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Export a category or a single product to a master CSV with WooCommerce standard fields, Blackwork meta keys, and the raw product meta keys detected on the exported products.', 'bw'); ?></p>
 
             <form method="get" style="max-width: 760px;">
                 <input type="hidden" name="page" value="<?php echo isset($_GET['page']) ? esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) : 'blackwork-site-settings'; ?>" />
