@@ -1217,7 +1217,7 @@ function bw_site_settings_page()
                 </a>
                 <a href="?page=blackwork-site-settings&tab=import-product"
                     class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
-                    Import Product
+                    Product Import / Export
                 </a>
                 <a href="?page=blackwork-site-settings&tab=loading"
                     class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
@@ -5939,6 +5939,24 @@ function bw_export_build_filename($category_id, $product_value)
     return implode('-', $parts) . '.csv';
 }
 
+function bw_product_transfer_get_active_mode()
+{
+    $mode = 'export';
+
+    if (isset($_POST['bw_import_upload_submit']) || isset($_POST['bw_import_run'])) {
+        $mode = 'import';
+    } elseif (isset($_POST['bw_export_products_submit'])) {
+        $mode = 'export';
+    } elseif (isset($_GET['product_flow'])) {
+        $requested = sanitize_key(wp_unslash($_GET['product_flow']));
+        if (in_array($requested, ['export', 'import'], true)) {
+            $mode = $requested;
+        }
+    }
+
+    return $mode;
+}
+
 function bw_export_order_row_for_csv($row, $columns)
 {
     $ordered = [];
@@ -6363,6 +6381,7 @@ function bw_site_render_import_product_tab()
 
     $notices = [];
     $state = bw_import_get_state();
+    $active_mode = bw_product_transfer_get_active_mode();
     $selected_export_category_id = bw_export_get_selected_category_id();
     $selected_export_product_value = bw_export_get_selected_product_value();
 
@@ -6414,86 +6433,108 @@ function bw_site_render_import_product_tab()
         }
     }
     ?>
-    <div class="wrap">
-        <h2><?php esc_html_e('Import Product', 'bw'); ?></h2>
-        <p><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?>
-        </p>
+    <section class="bw-admin-card">
+        <h2 class="bw-admin-card-title"><?php esc_html_e('Product Import / Export', 'bw'); ?></h2>
+        <p class="bw-admin-card-helper"><?php esc_html_e('Use Export to generate a structured product CSV, or switch to Import to upload and map a CSV back into WooCommerce.', 'bw'); ?></p>
 
-        <hr />
-        <h3><?php esc_html_e('Export Product', 'bw'); ?></h3>
-        <p><?php esc_html_e('Export a category or a single product to a master CSV with WooCommerce standard fields and Blackwork meta keys.', 'bw'); ?></p>
+        <nav class="nav-tab-wrapper bw-admin-tabs" style="margin-top:12px;">
+            <a href="?page=blackwork-site-settings&tab=import-product&product_flow=export"
+                class="nav-tab <?php echo $active_mode === 'export' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e('Export Product', 'bw'); ?>
+            </a>
+            <a href="?page=blackwork-site-settings&tab=import-product&product_flow=import"
+                class="nav-tab <?php echo $active_mode === 'import' ? 'nav-tab-active' : ''; ?>">
+                <?php esc_html_e('Import Product', 'bw'); ?>
+            </a>
+        </nav>
+    </section>
 
-        <form method="get" style="margin-bottom: 16px; max-width: 760px;">
-            <input type="hidden" name="page" value="<?php echo isset($_GET['page']) ? esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) : 'blackwork-site-settings'; ?>" />
-            <input type="hidden" name="tab" value="import-product" />
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row"><label for="bw_export_category"><?php esc_html_e('Category', 'bw'); ?></label></th>
-                        <td>
-                            <select id="bw_export_category" name="bw_export_category" style="min-width: 320px;">
-                                <option value="0" <?php selected($selected_export_category_id, 0); ?>>
-                                    <?php esc_html_e('All product categories', 'bw'); ?>
-                                </option>
-                                <?php foreach ($export_category_options as $term_id => $term_label): ?>
-                                    <option value="<?php echo esc_attr($term_id); ?>" <?php selected($selected_export_category_id, (int) $term_id); ?>>
-                                        <?php echo esc_html($term_label); ?>
+    <?php if ($active_mode === 'export') : ?>
+        <section class="bw-admin-card">
+            <h3 class="bw-admin-card-title"><?php esc_html_e('Export Product', 'bw'); ?></h3>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Export a category or a single product to a master CSV with WooCommerce standard fields and Blackwork meta keys.', 'bw'); ?></p>
+
+            <form method="get" style="max-width: 760px;">
+                <input type="hidden" name="page" value="<?php echo isset($_GET['page']) ? esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) : 'blackwork-site-settings'; ?>" />
+                <input type="hidden" name="tab" value="import-product" />
+                <input type="hidden" name="product_flow" value="export" />
+                <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="bw_export_category"><?php esc_html_e('Category', 'bw'); ?></label></th>
+                            <td>
+                                <select id="bw_export_category" name="bw_export_category" style="min-width: 320px;">
+                                    <option value="0" <?php selected($selected_export_category_id, 0); ?>>
+                                        <?php esc_html_e('All product categories', 'bw'); ?>
                                     </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p class="description"><?php esc_html_e('Select a product category to narrow the product picker. Leave on "All product categories" to export the whole catalog.', 'bw'); ?></p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <?php submit_button(__('Load Products', 'bw'), 'secondary', '', false); ?>
-        </form>
+                                    <?php foreach ($export_category_options as $term_id => $term_label): ?>
+                                        <option value="<?php echo esc_attr($term_id); ?>" <?php selected($selected_export_category_id, (int) $term_id); ?>>
+                                            <?php echo esc_html($term_label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="description"><?php esc_html_e('Choose a category first if you want a smaller product list. Leave it on all categories to export the whole catalog.', 'bw'); ?></p>
+                                <p style="margin-top:10px;"><?php submit_button(__('Load Products', 'bw'), 'secondary', '', false); ?></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
 
-        <form method="post" style="max-width: 760px;">
-            <?php wp_nonce_field('bw_export_products', 'bw_export_products_nonce'); ?>
-            <input type="hidden" name="bw_export_category" value="<?php echo esc_attr($selected_export_category_id); ?>" />
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row"><label for="bw_export_product"><?php esc_html_e('Product', 'bw'); ?></label></th>
-                        <td>
-                            <select id="bw_export_product" name="bw_export_product" style="min-width: 420px;">
-                                <option value="all" <?php selected($selected_export_product_value, 'all'); ?>>
-                                    <?php echo $selected_export_category_id > 0 ? esc_html__('All products in selected category', 'bw') : esc_html__('All products', 'bw'); ?>
-                                </option>
-                                <?php foreach ($export_product_options as $product_id => $product_label): ?>
-                                    <option value="<?php echo esc_attr($product_id); ?>" <?php selected((string) $selected_export_product_value, (string) $product_id); ?>>
-                                        <?php echo esc_html($product_label); ?>
+            <form method="post" style="max-width: 760px;">
+                <?php wp_nonce_field('bw_export_products', 'bw_export_products_nonce'); ?>
+                <input type="hidden" name="product_flow" value="export" />
+                <input type="hidden" name="bw_export_category" value="<?php echo esc_attr($selected_export_category_id); ?>" />
+                <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="bw_export_product"><?php esc_html_e('Product', 'bw'); ?></label></th>
+                            <td>
+                                <select id="bw_export_product" name="bw_export_product" style="min-width: 420px;">
+                                    <option value="all" <?php selected($selected_export_product_value, 'all'); ?>>
+                                        <?php echo $selected_export_category_id > 0 ? esc_html__('All products in selected category', 'bw') : esc_html__('All products', 'bw'); ?>
                                     </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p class="description">
-                                <?php
-                                if ($selected_export_category_id > 0) {
-                                    esc_html_e('You can export one product from this category or all matching products.', 'bw');
-                                } else {
-                                    esc_html_e('Select a category first if you want a shorter product list, otherwise export the whole catalog.', 'bw');
-                                }
-                                ?>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e('Options', 'bw'); ?></th>
-                        <td>
-                            <label style="display:inline-flex; gap:8px; align-items:center;">
-                                <input type="checkbox" name="bw_export_include_variations" value="1" <?php checked(bw_export_get_include_variations()); ?> />
-                                <span><?php esc_html_e('Include variation rows for variable products', 'bw'); ?></span>
-                            </label>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <?php submit_button(__('Export CSV', 'bw'), 'primary', 'bw_export_products_submit', false); ?>
-        </form>
+                                    <?php foreach ($export_product_options as $product_id => $product_label): ?>
+                                        <option value="<?php echo esc_attr($product_id); ?>" <?php selected((string) $selected_export_product_value, (string) $product_id); ?>>
+                                            <?php echo esc_html($product_label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="description">
+                                    <?php
+                                    if ($selected_export_category_id > 0) {
+                                        esc_html_e('Export one product from the selected category, or keep "All products in selected category" to export the full category set.', 'bw');
+                                    } else {
+                                        esc_html_e('Without a category filter, this will export the whole product catalog or one manually selected product if available.', 'bw');
+                                    }
+                                    ?>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Options', 'bw'); ?></th>
+                            <td>
+                                <label style="display:inline-flex; gap:8px; align-items:center;">
+                                    <input type="checkbox" name="bw_export_include_variations" value="1" <?php checked(bw_export_get_include_variations()); ?> />
+                                    <span><?php esc_html_e('Include variation rows for variable products', 'bw'); ?></span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <?php submit_button(__('Export CSV', 'bw'), 'primary', 'bw_export_products_submit', false); ?>
+            </form>
+        </section>
+    <?php endif; ?>
+
+    <?php if ($active_mode === 'import') : ?>
+        <section class="bw-admin-card">
+            <h3 class="bw-admin-card-title"><?php esc_html_e('Import Product', 'bw'); ?></h3>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?></p>
 
         <h3><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="product_flow" value="import" />
             <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
             <input type="file" name="bw_import_csv" accept=".csv" />
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
@@ -6595,6 +6636,7 @@ function bw_site_render_import_product_tab()
             <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field.', 'bw'); ?></p>
 
             <form method="post">
+                <input type="hidden" name="product_flow" value="import" />
                 <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
                 <?php
                 $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
@@ -6705,11 +6747,13 @@ function bw_site_render_import_product_tab()
                 ?>
             </p>
             <form method="post">
+                <input type="hidden" name="product_flow" value="import" />
                 <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
                 <?php submit_button(__('Continue Import (next chunk)', 'bw'), 'secondary', 'bw_import_run', false); ?>
             </form>
         <?php endif; ?>
-    </div>
+        </section>
+    <?php endif; ?>
     <?php
 }
 
