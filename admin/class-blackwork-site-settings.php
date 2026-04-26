@@ -287,6 +287,50 @@ function bw_site_settings_admin_assets($hook)
         );
     }
 
+    if ($is_site_settings_page && 'import-product' === $current_site_settings_tab) {
+        $papaparse_path = BW_MEW_PATH . 'assets/lib/papaparse/papaparse.min.js';
+        $import_admin_js_path = BW_MEW_PATH . 'admin/js/bw-product-import-admin.js';
+
+        wp_enqueue_script(
+            'bw-papaparse-admin',
+            BW_MEW_URL . 'assets/lib/papaparse/papaparse.min.js',
+            [],
+            file_exists($papaparse_path) ? filemtime($papaparse_path) : '1.0.0',
+            true
+        );
+
+        wp_enqueue_script(
+            'bw-product-import-admin',
+            BW_MEW_URL . 'admin/js/bw-product-import-admin.js',
+            ['jquery', 'bw-papaparse-admin'],
+            file_exists($import_admin_js_path) ? filemtime($import_admin_js_path) : '1.0.0',
+            true
+        );
+
+        wp_localize_script(
+            'bw-product-import-admin',
+            'bwProductImportAdmin',
+            [
+                'strings' => [
+                    'modalTitle' => esc_html__('CSV analysis', 'bw'),
+                    'modalIntro' => esc_html__('We checked the uploaded CSV before import. Valid rows will continue, malformed rows will be skipped.', 'bw'),
+                    'totalRows' => esc_html__('Total rows', 'bw'),
+                    'validRows' => esc_html__('Valid rows', 'bw'),
+                    'invalidRows' => esc_html__('Invalid rows', 'bw'),
+                    'parserWarnings' => esc_html__('Parser warnings', 'bw'),
+                    'continueImport' => esc_html__('Continue import', 'bw'),
+                    'close' => esc_html__('Close', 'bw'),
+                    'allRowsInvalid' => esc_html__('No valid product rows were found in this CSV. Please check the file and try again.', 'bw'),
+                    'invalidRowsWarning' => esc_html__('Some rows are malformed and will be skipped. The import will continue with the valid rows only.', 'bw'),
+                    'parseFailure' => esc_html__('The CSV could not be analyzed safely in the browser. The original file will be submitted unchanged.', 'bw'),
+                    'preflightFailure' => esc_html__('CSV analysis failed unexpectedly. The original file will be submitted unchanged.', 'bw'),
+                    'invalidPreviewLabel' => esc_html__('Example skipped rows', 'bw'),
+                    'missingSkuAndName' => esc_html__('Missing SKU and name', 'bw'),
+                ],
+            ]
+        );
+    }
+
     // Enqueue Brevo test script only on Mail Marketing > General.
     if ($is_mail_marketing_page && 'general' === $current_mail_marketing_tab) {
         $subscribe_script_path = BW_MEW_PATH . 'admin/js/bw-checkout-subscribe.js';
@@ -6683,10 +6727,10 @@ function bw_site_render_import_product_tab()
             <p class="bw-admin-card-helper"><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?></p>
 
         <h3><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="bw-import-upload-form">
             <input type="hidden" name="product_flow" value="import" />
             <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
-            <input type="file" name="bw_import_csv" accept=".csv" />
+            <input type="file" name="bw_import_csv" id="bw_import_csv" accept=".csv,.txt,text/csv" />
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
                 <strong><?php esc_html_e('Update existing products', 'bw'); ?></strong>
                 <label style="display: flex; gap: 8px; align-items: flex-start;">
@@ -6694,8 +6738,29 @@ function bw_site_render_import_product_tab()
                     <span><?php esc_html_e('Existing products that match by ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
                 </label>
             </div>
-            <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false); ?>
+            <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false, ['id' => 'bw_import_upload_submit']); ?>
         </form>
+        <div id="bw-import-preflight-modal" style="display:none; position:fixed; inset:0; z-index:100000; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:24px;">
+            <div role="dialog" aria-modal="true" aria-labelledby="bw-import-preflight-title" style="width:min(680px, 100%); background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden;">
+                <div style="padding:24px 24px 18px; border-bottom:1px solid #e7e7e7;">
+                    <h3 id="bw-import-preflight-title" style="margin:0 0 8px; font-size:24px; line-height:1.2;"><?php esc_html_e('CSV analysis', 'bw'); ?></h3>
+                    <p id="bw-import-preflight-intro" style="margin:0; color:#5b6470;"><?php esc_html_e('We checked the uploaded CSV before import. Valid rows will continue, malformed rows will be skipped.', 'bw'); ?></p>
+                </div>
+                <div style="padding:20px 24px; display:grid; gap:16px;">
+                    <div id="bw-import-preflight-stats" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;"></div>
+                    <div id="bw-import-preflight-warning" class="notice notice-warning inline" style="display:none; margin:0;"></div>
+                    <div id="bw-import-preflight-error" class="notice notice-error inline" style="display:none; margin:0;"></div>
+                    <div id="bw-import-preflight-invalid" style="display:none;">
+                        <strong style="display:block; margin-bottom:8px;"><?php esc_html_e('Example skipped rows', 'bw'); ?></strong>
+                        <ul id="bw-import-preflight-invalid-list" style="margin:0; padding-left:18px; max-height:180px; overflow:auto;"></ul>
+                    </div>
+                </div>
+                <div style="padding:18px 24px 24px; display:flex; gap:12px; justify-content:flex-end; border-top:1px solid #e7e7e7;">
+                    <button type="button" class="button" id="bw-import-preflight-close"><?php esc_html_e('Close', 'bw'); ?></button>
+                    <button type="button" class="button button-primary" id="bw-import-preflight-continue"><?php esc_html_e('Continue import', 'bw'); ?></button>
+                </div>
+            </div>
+        </div>
 
         <?php if (!empty($state['upload_summary'])): ?>
             <hr />
@@ -7730,6 +7795,10 @@ function bw_import_parse_csv_file($file_path, $max_rows = 0)
     $rows = [];
     $row_count = 0;
     while (($data = fgetcsv($handle)) !== false) {
+        if (bw_import_is_empty_csv_row($data)) {
+            continue;
+        }
+
         $rows[] = $data;
         $row_count++;
         if ($max_rows > 0 && $row_count >= $max_rows) {
@@ -7799,12 +7868,19 @@ function bw_import_read_chunk($handle, $start_row, $limit)
 
     $current_row = 0;
     while ($current_row < $start_row && ($data = fgetcsv($handle)) !== false) {
+        if (bw_import_is_empty_csv_row($data)) {
+            continue;
+        }
         $current_row++;
     }
 
     $rows = [];
     $read_count = 0;
     while ($read_count < $limit && ($data = fgetcsv($handle)) !== false) {
+        if (bw_import_is_empty_csv_row($data)) {
+            continue;
+        }
+
         $rows[] = $data;
         $read_count++;
         $current_row++;
@@ -7815,6 +7891,21 @@ function bw_import_read_chunk($handle, $start_row, $limit)
         'next_row' => $current_row,
         'eof' => feof($handle),
     ];
+}
+
+function bw_import_is_empty_csv_row($row)
+{
+    if (!is_array($row) || empty($row)) {
+        return true;
+    }
+
+    foreach ($row as $value) {
+        if (trim((string) $value) !== '') {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
