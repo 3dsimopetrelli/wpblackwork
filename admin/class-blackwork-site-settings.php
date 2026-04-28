@@ -5641,6 +5641,24 @@ function bw_export_get_include_variations()
     return true;
 }
 
+function bw_export_get_profile()
+{
+    $raw_value = 'master_csv';
+
+    if (isset($_POST['bw_export_profile'])) {
+        $raw_value = sanitize_key(wp_unslash($_POST['bw_export_profile']));
+    } elseif (isset($_GET['bw_export_profile'])) {
+        $raw_value = sanitize_key(wp_unslash($_GET['bw_export_profile']));
+    }
+
+    $allowed = ['master_csv', 'woo_native_csv'];
+    if (!in_array($raw_value, $allowed, true)) {
+        return 'master_csv';
+    }
+
+    return $raw_value;
+}
+
 function bw_export_get_category_options()
 {
     $terms = get_terms([
@@ -5724,7 +5742,7 @@ function bw_export_get_products_for_category($category_id)
     return $options;
 }
 
-function bw_export_get_template_columns()
+function bw_export_get_master_template_columns()
 {
     return [
         'row_type',
@@ -5848,6 +5866,55 @@ function bw_export_get_template_columns()
     ];
 }
 
+function bw_export_get_woo_native_columns()
+{
+    return [
+        'ID',
+        'Type',
+        'SKU',
+        'Name',
+        'Published',
+        'Is featured?',
+        'Visibility in catalog',
+        'Short description',
+        'Description',
+        'Date sale price starts',
+        'Date sale price ends',
+        'Tax status',
+        'Tax class',
+        'In stock?',
+        'Stock',
+        'Backorders allowed?',
+        'Sold individually?',
+        'Weight (kg)',
+        'Length (cm)',
+        'Width (cm)',
+        'Height (cm)',
+        'Allow customer reviews?',
+        'Purchase note',
+        'Sale price',
+        'Regular price',
+        'Categories',
+        'Tags',
+        'Shipping class',
+        'Images',
+        'Download limit',
+        'Download expiry days',
+        'Parent',
+        'Grouped products',
+        'Upsells',
+        'Cross-sells',
+        'External URL',
+        'Button text',
+        'Position',
+        'Attribute 1 name',
+        'Attribute 1 value(s)',
+        'Attribute 1 visible',
+        'Attribute 1 global',
+        'Attribute 1 default',
+    ];
+}
+
 function bw_export_handle_request()
 {
     if (!current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
@@ -5861,13 +5928,14 @@ function bw_export_handle_request()
     $category_id = bw_export_get_selected_category_id();
     $product_value = bw_export_get_selected_product_value();
     $include_variations = bw_export_get_include_variations();
+    $profile = bw_export_get_profile();
 
     $product_ids = bw_export_resolve_product_ids($category_id, $product_value);
     if (empty($product_ids)) {
         return new WP_Error('bw_export_empty', __('No matching products were found for this export.', 'bw'));
     }
 
-    bw_export_stream_csv($product_ids, $include_variations, $category_id, $product_value);
+    bw_export_stream_csv($product_ids, $include_variations, $category_id, $product_value, $profile);
     exit;
 }
 
@@ -5940,10 +6008,17 @@ function bw_export_resolve_product_ids($category_id, $product_value)
     return $product_ids;
 }
 
-function bw_export_stream_csv($product_ids, $include_variations, $category_id, $product_value)
+function bw_export_stream_csv($product_ids, $include_variations, $category_id, $product_value, $profile)
 {
-    $columns = bw_export_get_request_columns($product_ids, $include_variations);
+    $columns = bw_export_get_request_columns($product_ids, $include_variations, $profile);
     $filename = bw_export_build_filename($category_id, $product_value);
+    $header_count = count($columns);
+    $malformed_rows = 0;
+
+    if ($header_count < 1) {
+        bw_export_log_issue('export_error', 'Exporter aborted: empty header set.', ['profile' => $profile]);
+        wp_die(esc_html__('Exporter header is empty. Please check configuration.', 'bw'));
+    }
 
     nocache_headers();
     header('Content-Type: text/csv; charset=utf-8');
@@ -5963,8 +6038,12 @@ function bw_export_stream_csv($product_ids, $include_variations, $category_id, $
             continue;
         }
 
-        $row = bw_export_build_product_csv_row($product);
-        fputcsv($output, bw_export_order_row_for_csv($row, $columns));
+        $row = $profile === 'woo_native_csv'
+            ? bw_export_build_woo_native_product_row($product)
+            : bw_export_build_product_csv_row($product);
+        if (!bw_export_write_row($output, $columns, $row, $profile)) {
+            $malformed_rows++;
+        }
 
         if ($include_variations && $product->is_type('variable')) {
             foreach ((array) $product->get_children() as $variation_id) {
@@ -5973,18 +6052,34 @@ function bw_export_stream_csv($product_ids, $include_variations, $category_id, $
                     continue;
                 }
 
-                $variation_row = bw_export_build_variation_csv_row($variation, $product);
-                fputcsv($output, bw_export_order_row_for_csv($variation_row, $columns));
+                $variation_row = $profile === 'woo_native_csv'
+                    ? bw_export_build_woo_native_variation_row($variation, $product)
+                    : bw_export_build_variation_csv_row($variation, $product);
+                if (!bw_export_write_row($output, $columns, $variation_row, $profile)) {
+                    $malformed_rows++;
+                }
             }
         }
+    }
+
+    if ($malformed_rows > 0) {
+        bw_export_log_issue('export_warning', 'Exporter skipped malformed rows due to validation failures.', [
+            'profile' => $profile,
+            'malformed_rows' => $malformed_rows,
+            'header_count' => $header_count,
+        ]);
     }
 
     fclose($output);
 }
 
-function bw_export_get_request_columns($product_ids, $include_variations)
+function bw_export_get_request_columns($product_ids, $include_variations, $profile)
 {
-    $columns = bw_export_get_template_columns();
+    if ($profile === 'woo_native_csv') {
+        return bw_export_get_woo_native_columns();
+    }
+
+    $columns = bw_export_get_master_template_columns();
     $dynamic_meta_columns = bw_export_get_dynamic_meta_columns($product_ids, $include_variations);
 
     foreach ($dynamic_meta_columns as $meta_key) {
@@ -6053,9 +6148,138 @@ function bw_export_order_row_for_csv($row, $columns)
     return $ordered;
 }
 
+function bw_export_write_row($output, $headers, $row_data, $profile)
+{
+    $row = [];
+    foreach ($headers as $column_key) {
+        $value = isset($row_data[$column_key]) ? $row_data[$column_key] : '';
+        if (is_array($value) || is_object($value)) {
+            $value = bw_export_json($value);
+        }
+        $row[] = $value;
+    }
+
+    $validation = bw_export_validate_row_payload($headers, $row, $row_data, $profile);
+    if (!$validation['ok']) {
+        bw_export_log_issue('row_validation', $validation['message'], [
+            'profile' => $profile,
+            'row_type' => isset($row_data['row_type']) ? $row_data['row_type'] : '',
+            'post_id' => isset($row_data['post_id']) ? $row_data['post_id'] : '',
+            'sku' => isset($row_data['sku']) ? $row_data['sku'] : '',
+        ]);
+        return false;
+    }
+
+    fputcsv($output, $row);
+    return true;
+}
+
+function bw_export_validate_row_payload($headers, $row, $row_data, $profile)
+{
+    if (count($row) !== count($headers)) {
+        return [
+            'ok' => false,
+            'message' => sprintf(
+                'CSV column mismatch: row has %d columns but header has %d.',
+                (int) count($row),
+                (int) count($headers)
+            ),
+        ];
+    }
+
+    $row_type = isset($row_data['row_type']) ? (string) $row_data['row_type'] : '';
+    if ($row_type === '') {
+        return ['ok' => false, 'message' => 'Missing required field: row_type'];
+    }
+
+    $post_id = isset($row_data['post_id']) ? trim((string) $row_data['post_id']) : '';
+    $sku = isset($row_data['sku']) ? trim((string) $row_data['sku']) : '';
+    if ($post_id === '' && $sku === '') {
+        bw_export_log_issue('row_warning', 'Missing both post_id and sku in exported row.', [
+            'profile' => $profile,
+            'row_type' => $row_type,
+        ]);
+    }
+
+    if ($row_type === 'product') {
+        $post_title = isset($row_data['post_title']) ? trim((string) $row_data['post_title']) : '';
+        $post_name = isset($row_data['post_name']) ? trim((string) $row_data['post_name']) : '';
+        if ($post_title === '' && $post_name === '') {
+            bw_export_log_issue('row_warning', 'Product row missing both post_title and post_name.', [
+                'profile' => $profile,
+                'post_id' => $post_id,
+                'sku' => $sku,
+            ]);
+        }
+    }
+
+    if ($row_type === 'variation') {
+        $parent_sku = isset($row_data['parent_sku']) ? trim((string) $row_data['parent_sku']) : '';
+        if ($parent_sku === '') {
+            bw_export_log_issue('row_warning', 'Variation row missing parent_sku.', [
+                'profile' => $profile,
+                'post_id' => $post_id,
+                'sku' => $sku,
+            ]);
+        }
+    }
+
+    foreach (bw_export_get_json_columns_for_profile($profile) as $json_column) {
+        if (!array_key_exists($json_column, $row_data)) {
+            continue;
+        }
+        $value = trim((string) $row_data[$json_column]);
+        if ($value === '') {
+            continue;
+        }
+        json_decode($value, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            bw_export_log_issue('json_warning', sprintf('Invalid JSON in column %s: %s', $json_column, json_last_error_msg()), [
+                'profile' => $profile,
+                'row_type' => $row_type,
+                'post_id' => $post_id,
+                'sku' => $sku,
+            ]);
+        }
+    }
+
+    return ['ok' => true, 'message' => ''];
+}
+
+function bw_export_get_json_columns_for_profile($profile)
+{
+    if ($profile !== 'master_csv') {
+        return [];
+    }
+
+    return [
+        'downloadable_files_json',
+        'attributes_json',
+        'default_attributes_json',
+        'variation_attributes_json',
+        '_bw_variation_license_col1_json',
+        '_bw_variation_license_col2_json',
+    ];
+}
+
+function bw_export_log_issue($type, $message, $context = [])
+{
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
+    }
+
+    $payload = [
+        'type' => (string) $type,
+        'message' => (string) $message,
+        'context' => (array) $context,
+    ];
+
+    error_log('[BW Export] ' . wp_json_encode($payload));
+}
+
 function bw_export_blank_csv_row()
 {
-    return array_fill_keys(bw_export_get_template_columns(), '');
+    return array_fill_keys(bw_export_get_master_template_columns(), '');
 }
 
 function bw_export_get_dynamic_meta_columns($product_ids, $include_variations)
@@ -6148,7 +6372,23 @@ function bw_export_should_skip_dynamic_meta_key($meta_key)
         return true;
     }
 
-    return strpos($meta_key, '_oembed_') === 0;
+    if (strpos($meta_key, '_oembed_') === 0) {
+        return true;
+    }
+
+    if (strpos($meta_key, '_wp_') === 0) {
+        return true;
+    }
+
+    if (strpos($meta_key, '_transient_') === 0) {
+        return true;
+    }
+
+    if (strpos($meta_key, '_elementor_') === 0) {
+        return true;
+    }
+
+    return false;
 }
 
 function bw_export_apply_dynamic_meta_to_row(&$row, $all_meta)
@@ -6353,6 +6593,133 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     return $row;
 }
 
+function bw_export_build_woo_native_product_row($product)
+{
+    $post_id = $product->get_id();
+    $post = get_post($post_id);
+    $row = array_fill_keys(bw_export_get_woo_native_columns(), '');
+
+    $attribute_payload = bw_export_build_attributes_payload($product);
+    $first_attribute = !empty($attribute_payload) ? $attribute_payload[0] : [];
+    $attribute_values = isset($first_attribute['options']) && is_array($first_attribute['options'])
+        ? implode(', ', array_map('strval', $first_attribute['options']))
+        : '';
+
+    $row['ID'] = (string) $post_id;
+    $row['Type'] = (string) $product->get_type();
+    $row['SKU'] = (string) $product->get_sku();
+    $row['Name'] = $post ? (string) $post->post_title : '';
+    $row['Published'] = ($post && $post->post_status === 'publish') ? '1' : '0';
+    $row['Is featured?'] = $product->is_featured() ? '1' : '0';
+    $row['Visibility in catalog'] = method_exists($product, 'get_catalog_visibility') ? (string) $product->get_catalog_visibility() : '';
+    $row['Short description'] = $post ? (string) $post->post_excerpt : '';
+    $row['Description'] = $post ? (string) $post->post_content : '';
+    $row['Date sale price starts'] = bw_export_format_wc_date($product->get_date_on_sale_from());
+    $row['Date sale price ends'] = bw_export_format_wc_date($product->get_date_on_sale_to());
+    $row['Tax status'] = (string) $product->get_tax_status();
+    $row['Tax class'] = (string) $product->get_tax_class();
+    $row['In stock?'] = $product->is_in_stock() ? '1' : '0';
+    $row['Stock'] = bw_export_scalar_or_empty($product->get_stock_quantity());
+    $row['Backorders allowed?'] = $product->get_backorders() === 'no' ? '0' : '1';
+    $row['Sold individually?'] = $product->get_sold_individually() ? '1' : '0';
+    $row['Weight (kg)'] = (string) $product->get_weight();
+    $row['Length (cm)'] = (string) $product->get_length();
+    $row['Width (cm)'] = (string) $product->get_width();
+    $row['Height (cm)'] = (string) $product->get_height();
+    $row['Allow customer reviews?'] = comments_open($post_id) ? '1' : '0';
+    $row['Purchase note'] = (string) $product->get_purchase_note();
+    $row['Sale price'] = (string) $product->get_sale_price();
+    $row['Regular price'] = (string) $product->get_regular_price();
+    $row['Categories'] = implode(', ', bw_export_get_product_term_slugs($post_id, 'product_cat'));
+    $row['Tags'] = implode(', ', bw_export_get_product_term_slugs($post_id, 'product_tag'));
+    $row['Shipping class'] = (string) $product->get_shipping_class();
+    $row['Images'] = implode(', ', bw_export_attachment_urls(array_merge([$product->get_image_id()], $product->get_gallery_image_ids())));
+    $row['Download limit'] = bw_export_scalar_or_empty($product->get_download_limit());
+    $row['Download expiry days'] = bw_export_scalar_or_empty($product->get_download_expiry());
+    $row['Parent'] = '';
+    $row['Grouped products'] = implode(', ', bw_export_resolve_product_skus($product->is_type('grouped') ? $product->get_children() : []));
+    $row['Upsells'] = implode(', ', bw_export_resolve_product_skus($product->get_upsell_ids()));
+    $row['Cross-sells'] = implode(', ', bw_export_resolve_product_skus($product->get_cross_sell_ids()));
+    $row['External URL'] = $product->is_type('external') ? (string) $product->get_product_url() : '';
+    $row['Button text'] = $product->is_type('external') ? (string) $product->get_button_text() : '';
+    $row['Position'] = $post ? (string) $post->menu_order : '';
+    $row['Attribute 1 name'] = isset($first_attribute['name']) ? (string) $first_attribute['name'] : '';
+    $row['Attribute 1 value(s)'] = $attribute_values;
+    $row['Attribute 1 visible'] = !empty($first_attribute['visible']) ? '1' : '0';
+    $row['Attribute 1 global'] = !empty($first_attribute['name']) && strpos((string) $first_attribute['name'], 'pa_') === 0 ? '1' : '0';
+    $row['Attribute 1 default'] = '';
+
+    if ($product->is_type('variable')) {
+        $defaults = $product->get_default_attributes();
+        if (!empty($defaults) && isset($first_attribute['name'])) {
+            $attr_name = (string) $first_attribute['name'];
+            if (isset($defaults[$attr_name])) {
+                $row['Attribute 1 default'] = (string) $defaults[$attr_name];
+            } elseif (strpos($attr_name, 'pa_') === 0 && isset($defaults[str_replace('pa_', '', $attr_name)])) {
+                $row['Attribute 1 default'] = (string) $defaults[str_replace('pa_', '', $attr_name)];
+            }
+        }
+    }
+
+    $row['row_type'] = 'product';
+    $row['post_id'] = (string) $post_id;
+    $row['post_title'] = $row['Name'];
+    $row['post_name'] = $post ? (string) $post->post_name : '';
+    $row['sku'] = $row['SKU'];
+
+    return $row;
+}
+
+function bw_export_build_woo_native_variation_row($variation, $parent_product)
+{
+    $post = get_post($variation->get_id());
+    $row = array_fill_keys(bw_export_get_woo_native_columns(), '');
+
+    $variation_attributes = $variation->get_variation_attributes();
+    $first_attr_name = '';
+    $first_attr_value = '';
+    if (!empty($variation_attributes)) {
+        $first_key = array_key_first($variation_attributes);
+        $first_attr_name = is_string($first_key) ? $first_key : '';
+        $first_attr_value = isset($variation_attributes[$first_key]) ? (string) $variation_attributes[$first_key] : '';
+    }
+
+    $row['ID'] = (string) $variation->get_id();
+    $row['Type'] = 'variation';
+    $row['SKU'] = (string) $variation->get_sku();
+    $row['Name'] = $post ? (string) $post->post_title : '';
+    $row['Published'] = ($post && $post->post_status === 'publish') ? '1' : '0';
+    $row['Tax status'] = (string) $variation->get_tax_status();
+    $row['Tax class'] = (string) $variation->get_tax_class();
+    $row['In stock?'] = $variation->is_in_stock() ? '1' : '0';
+    $row['Stock'] = bw_export_scalar_or_empty($variation->get_stock_quantity());
+    $row['Backorders allowed?'] = $variation->get_backorders() === 'no' ? '0' : '1';
+    $row['Weight (kg)'] = (string) $variation->get_weight();
+    $row['Length (cm)'] = (string) $variation->get_length();
+    $row['Width (cm)'] = (string) $variation->get_width();
+    $row['Height (cm)'] = (string) $variation->get_height();
+    $row['Sale price'] = (string) $variation->get_sale_price();
+    $row['Regular price'] = (string) $variation->get_regular_price();
+    $row['Images'] = implode(', ', bw_export_attachment_urls([$variation->get_image_id()]));
+    $row['Download limit'] = bw_export_scalar_or_empty($variation->get_download_limit());
+    $row['Download expiry days'] = bw_export_scalar_or_empty($variation->get_download_expiry());
+    $row['Parent'] = (string) $parent_product->get_sku();
+    $row['Position'] = $post ? (string) $post->menu_order : '';
+    $row['Attribute 1 name'] = $first_attr_name;
+    $row['Attribute 1 value(s)'] = $first_attr_value;
+    $row['Attribute 1 visible'] = '1';
+    $row['Attribute 1 global'] = strpos($first_attr_name, 'attribute_pa_') === 0 ? '1' : '0';
+
+    $row['row_type'] = 'variation';
+    $row['parent_sku'] = (string) $parent_product->get_sku();
+    $row['post_id'] = (string) $variation->get_id();
+    $row['post_title'] = $row['Name'];
+    $row['post_name'] = $post ? (string) $post->post_name : '';
+    $row['sku'] = $row['SKU'];
+
+    return $row;
+}
+
 function bw_export_bool_flag($value)
 {
     return !empty($value) ? 'yes' : 'no';
@@ -6542,7 +6909,7 @@ function bw_export_json($value)
         return '';
     }
 
-    $encoded = wp_json_encode($value);
+    $encoded = wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return is_string($encoded) ? $encoded : '';
 }
 
@@ -6578,6 +6945,7 @@ function bw_site_render_import_product_tab()
     $active_mode = bw_product_transfer_get_active_mode();
     $selected_export_category_id = bw_export_get_selected_category_id();
     $selected_export_product_value = bw_export_get_selected_product_value();
+    $selected_export_profile = bw_export_get_profile();
 
     if (isset($GLOBALS['bw_export_request_result'])) {
         $export_result = $GLOBALS['bw_export_request_result'];
@@ -6652,6 +7020,7 @@ function bw_site_render_import_product_tab()
                 <input type="hidden" name="page" value="<?php echo isset($_GET['page']) ? esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) : 'blackwork-site-settings'; ?>" />
                 <input type="hidden" name="tab" value="import-product" />
                 <input type="hidden" name="product_flow" value="export" />
+                <input type="hidden" name="bw_export_profile" value="<?php echo esc_attr($selected_export_profile); ?>" />
                 <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                     <tbody>
                         <tr>
@@ -6681,6 +7050,16 @@ function bw_site_render_import_product_tab()
                 <input type="hidden" name="bw_export_category" value="<?php echo esc_attr($selected_export_category_id); ?>" />
                 <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
                     <tbody>
+                        <tr>
+                            <th scope="row"><label for="bw_export_profile"><?php esc_html_e('Export profile', 'bw'); ?></label></th>
+                            <td>
+                                <select id="bw_export_profile" name="bw_export_profile" style="min-width: 320px;">
+                                    <option value="master_csv" <?php selected($selected_export_profile, 'master_csv'); ?>><?php esc_html_e('Master CSV (Blackwork full)', 'bw'); ?></option>
+                                    <option value="woo_native_csv" <?php selected($selected_export_profile, 'woo_native_csv'); ?>><?php esc_html_e('Woo Native CSV (clean)', 'bw'); ?></option>
+                                </select>
+                                <p class="description"><?php esc_html_e('Master CSV includes dynamic meta and JSON fields. Woo Native CSV focuses on WooCommerce importer-friendly columns.', 'bw'); ?></p>
+                            </td>
+                        </tr>
                         <tr>
                             <th scope="row"><label for="bw_export_product"><?php esc_html_e('Product', 'bw'); ?></label></th>
                             <td>
