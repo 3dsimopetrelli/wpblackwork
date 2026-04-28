@@ -6151,11 +6151,18 @@ function bw_export_order_row_for_csv($row, $columns)
 
 function bw_export_write_row($output, $headers, $row_data, $profile)
 {
+    $json_columns_lookup = [];
+    if ($profile === 'master_csv') {
+        $json_columns_lookup = array_flip(bw_export_get_json_columns_for_profile($profile));
+    }
+
     $normalized_row = [];
     foreach ($headers as $column_key) {
         $value = array_key_exists($column_key, $row_data) ? $row_data[$column_key] : '';
         if (is_array($value) || is_object($value)) {
             $value = bw_export_json($value);
+        } elseif (isset($json_columns_lookup[$column_key])) {
+            $value = bw_export_force_json_string($value);
         }
         $normalized_row[] = $value;
     }
@@ -6400,14 +6407,48 @@ function bw_export_apply_dynamic_meta_to_row(&$row, $all_meta)
             continue;
         }
 
-        $normalized_values = array_map('maybe_unserialize', (array) $values);
-        if (count($normalized_values) === 1) {
-            $row[$meta_key] = bw_export_meta_scalar($normalized_values[0]);
+        // Keep curated/exported canonical columns authoritative.
+        if (array_key_exists($meta_key, $row)) {
             continue;
         }
 
-        $row[$meta_key] = bw_export_meta_scalar($normalized_values);
+        $normalized_values = array_map('maybe_unserialize', (array) $values);
+        if (count($normalized_values) === 1) {
+            $row[$meta_key] = bw_export_dynamic_meta_scalar($meta_key, $normalized_values[0]);
+            continue;
+        }
+
+        $row[$meta_key] = bw_export_dynamic_meta_scalar($meta_key, $normalized_values);
     }
+}
+
+function bw_export_dynamic_meta_scalar($meta_key, $value)
+{
+    $meta_key = (string) $meta_key;
+    if (substr($meta_key, -5) === '_json') {
+        return bw_export_force_json_string($value);
+    }
+
+    return bw_export_meta_scalar($value);
+}
+
+function bw_export_force_json_string($value)
+{
+    if (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        json_decode($trimmed, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $encoded = wp_json_encode(json_decode($trimmed, true), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            return is_string($encoded) ? $encoded : '';
+        }
+    }
+
+    $encoded = wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($encoded) ? $encoded : '';
 }
 
 function bw_export_build_product_csv_row($product)
@@ -6546,7 +6587,7 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
 
     $row = bw_export_blank_csv_row();
     $parent_product_id = (int) $parent_product->get_id();
-    $parent_sku = (string) $parent_product->get_sku();
+    $parent_sku = bw_export_get_product_or_fallback_sku($parent_product);
     $row['row_type'] = 'variation';
     $row['parent_sku'] = $parent_sku;
     $row['parent_post_id'] = $parent_product_id > 0 ? (string) $parent_product_id : '';
@@ -6557,7 +6598,7 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     $row['post_content'] = $post ? $post->post_content : '';
     $row['post_excerpt'] = $post ? $post->post_excerpt : '';
     $row['menu_order'] = $post ? (string) $post->menu_order : '';
-    $row['sku'] = (string) $variation->get_sku();
+    $row['sku'] = bw_export_get_variation_or_fallback_sku($variation, $parent_product_id);
     $row['woo_product_type'] = 'variation';
     $row['virtual'] = bw_export_bool_flag($variation->is_virtual());
     $row['downloadable'] = bw_export_bool_flag($variation->is_downloadable());
