@@ -6174,11 +6174,18 @@ function bw_export_write_row($output, $headers, $row_data, $profile)
 
     $validation = bw_export_validate_row_payload($headers, $normalized_row, $row_data, $profile);
     if (!$validation['ok']) {
+        $row_type = isset($row_data['row_type']) ? (string) $row_data['row_type'] : '';
+        $post_id = isset($row_data['post_id']) ? $row_data['post_id'] : '';
+        $source_variation_id = isset($row_data['source_variation_id']) ? $row_data['source_variation_id'] : '';
         bw_export_log_issue('row_validation', $validation['message'], [
             'profile' => $profile,
-            'row_type' => isset($row_data['row_type']) ? $row_data['row_type'] : '',
-            'post_id' => isset($row_data['post_id']) ? $row_data['post_id'] : '',
+            'row_type' => $row_type,
+            'post_id' => $post_id,
+            'source_variation_id' => $source_variation_id,
             'sku' => isset($row_data['sku']) ? $row_data['sku'] : '',
+            'header_count' => count($headers),
+            'normalized_row_count' => count($normalized_row),
+            'row_data_count' => is_array($row_data) ? count($row_data) : 0,
         ]);
         return false;
     }
