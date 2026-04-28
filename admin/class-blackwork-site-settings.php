@@ -6156,6 +6156,18 @@ function bw_export_order_row_for_csv($row, $columns)
 
 function bw_export_write_row($output, $headers, $row_data, $profile)
 {
+    if (is_array($row_data)) {
+        $row_data = array_filter(
+            $row_data,
+            static function ($key) {
+                return is_string($key);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+    } else {
+        $row_data = [];
+    }
+
     $json_columns_lookup = [];
     if ($profile === 'master_csv') {
         $json_columns_lookup = array_flip(bw_export_get_json_columns_for_profile($profile));
@@ -6188,6 +6200,25 @@ function bw_export_write_row($output, $headers, $row_data, $profile)
             'row_data_count' => is_array($row_data) ? count($row_data) : 0,
         ]);
         return false;
+    }
+
+    if (
+        defined('WP_DEBUG') &&
+        WP_DEBUG &&
+        isset($row_data['row_type']) &&
+        $row_data['row_type'] === 'variation'
+    ) {
+        $first_five = array_slice($normalized_row, 0, 5);
+        $last_five = array_slice($normalized_row, -5);
+        bw_export_log_issue('writer_trace', 'WRITER_USED_FOR_VARIATION', [
+            'profile' => $profile,
+            'header_count' => count($headers),
+            'normalized_row_count' => count($normalized_row),
+            'first_five_values' => $first_five,
+            'last_five_values' => $last_five,
+            'post_id' => isset($row_data['post_id']) ? $row_data['post_id'] : '',
+            'source_variation_id' => isset($row_data['source_variation_id']) ? $row_data['source_variation_id'] : '',
+        ]);
     }
 
     fputcsv($output, $normalized_row);
