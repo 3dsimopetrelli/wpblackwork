@@ -5747,6 +5747,7 @@ function bw_export_get_master_template_columns()
     return [
         'row_type',
         'parent_sku',
+        'parent_post_id',
         'post_id',
         'post_status',
         'post_title',
@@ -6150,16 +6151,16 @@ function bw_export_order_row_for_csv($row, $columns)
 
 function bw_export_write_row($output, $headers, $row_data, $profile)
 {
-    $row = [];
+    $normalized_row = [];
     foreach ($headers as $column_key) {
-        $value = isset($row_data[$column_key]) ? $row_data[$column_key] : '';
+        $value = array_key_exists($column_key, $row_data) ? $row_data[$column_key] : '';
         if (is_array($value) || is_object($value)) {
             $value = bw_export_json($value);
         }
-        $row[] = $value;
+        $normalized_row[] = $value;
     }
 
-    $validation = bw_export_validate_row_payload($headers, $row, $row_data, $profile);
+    $validation = bw_export_validate_row_payload($headers, $normalized_row, $row_data, $profile);
     if (!$validation['ok']) {
         bw_export_log_issue('row_validation', $validation['message'], [
             'profile' => $profile,
@@ -6170,7 +6171,7 @@ function bw_export_write_row($output, $headers, $row_data, $profile)
         return false;
     }
 
-    fputcsv($output, $row);
+    fputcsv($output, $normalized_row);
     return true;
 }
 
@@ -6215,8 +6216,9 @@ function bw_export_validate_row_payload($headers, $row, $row_data, $profile)
 
     if ($row_type === 'variation') {
         $parent_sku = isset($row_data['parent_sku']) ? trim((string) $row_data['parent_sku']) : '';
-        if ($parent_sku === '') {
-            bw_export_log_issue('row_warning', 'Variation row missing parent_sku.', [
+        $parent_post_id = isset($row_data['parent_post_id']) ? trim((string) $row_data['parent_post_id']) : '';
+        if ($parent_sku === '' && $parent_post_id === '') {
+            bw_export_log_issue('row_warning', 'Variation row missing both parent_sku and parent_post_id.', [
                 'profile' => $profile,
                 'post_id' => $post_id,
                 'sku' => $sku,
@@ -6419,6 +6421,7 @@ function bw_export_build_product_csv_row($product)
 
     $row = bw_export_blank_csv_row();
     $row['row_type'] = 'product';
+    $row['parent_post_id'] = '';
     $row['post_id'] = $post_id;
     $row['post_status'] = $post ? $post->post_status : '';
     $row['post_title'] = $post ? $post->post_title : '';
@@ -6542,8 +6545,11 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     };
 
     $row = bw_export_blank_csv_row();
+    $parent_product_id = (int) $parent_product->get_id();
+    $parent_sku = (string) $parent_product->get_sku();
     $row['row_type'] = 'variation';
-    $row['parent_sku'] = (string) $parent_product->get_sku();
+    $row['parent_sku'] = $parent_sku;
+    $row['parent_post_id'] = $parent_product_id > 0 ? (string) $parent_product_id : '';
     $row['post_id'] = $variation_id;
     $row['post_status'] = $post ? $post->post_status : '';
     $row['post_title'] = $post ? $post->post_title : '';
@@ -6598,16 +6604,12 @@ function bw_export_build_woo_native_product_row($product)
     $post_id = $product->get_id();
     $post = get_post($post_id);
     $row = array_fill_keys(bw_export_get_woo_native_columns(), '');
-
-    $attribute_payload = bw_export_build_attributes_payload($product);
-    $first_attribute = !empty($attribute_payload) ? $attribute_payload[0] : [];
-    $attribute_values = isset($first_attribute['options']) && is_array($first_attribute['options'])
-        ? implode(', ', array_map('strval', $first_attribute['options']))
-        : '';
+    $primary_attribute = bw_export_get_woo_native_primary_attribute($product);
+    $product_sku = bw_export_get_product_or_fallback_sku($product);
 
     $row['ID'] = (string) $post_id;
     $row['Type'] = (string) $product->get_type();
-    $row['SKU'] = (string) $product->get_sku();
+    $row['SKU'] = $product_sku;
     $row['Name'] = $post ? (string) $post->post_title : '';
     $row['Published'] = ($post && $post->post_status === 'publish') ? '1' : '0';
     $row['Is featured?'] = $product->is_featured() ? '1' : '0';
@@ -6630,8 +6632,8 @@ function bw_export_build_woo_native_product_row($product)
     $row['Purchase note'] = (string) $product->get_purchase_note();
     $row['Sale price'] = (string) $product->get_sale_price();
     $row['Regular price'] = (string) $product->get_regular_price();
-    $row['Categories'] = implode(', ', bw_export_get_product_term_slugs($post_id, 'product_cat'));
-    $row['Tags'] = implode(', ', bw_export_get_product_term_slugs($post_id, 'product_tag'));
+    $row['Categories'] = implode(', ', bw_export_get_product_category_paths($post_id));
+    $row['Tags'] = implode(', ', bw_export_get_product_term_names($post_id, 'product_tag'));
     $row['Shipping class'] = (string) $product->get_shipping_class();
     $row['Images'] = implode(', ', bw_export_attachment_urls(array_merge([$product->get_image_id()], $product->get_gallery_image_ids())));
     $row['Download limit'] = bw_export_scalar_or_empty($product->get_download_limit());
@@ -6643,29 +6645,18 @@ function bw_export_build_woo_native_product_row($product)
     $row['External URL'] = $product->is_type('external') ? (string) $product->get_product_url() : '';
     $row['Button text'] = $product->is_type('external') ? (string) $product->get_button_text() : '';
     $row['Position'] = $post ? (string) $post->menu_order : '';
-    $row['Attribute 1 name'] = isset($first_attribute['name']) ? (string) $first_attribute['name'] : '';
-    $row['Attribute 1 value(s)'] = $attribute_values;
-    $row['Attribute 1 visible'] = !empty($first_attribute['visible']) ? '1' : '0';
-    $row['Attribute 1 global'] = !empty($first_attribute['name']) && strpos((string) $first_attribute['name'], 'pa_') === 0 ? '1' : '0';
-    $row['Attribute 1 default'] = '';
-
-    if ($product->is_type('variable')) {
-        $defaults = $product->get_default_attributes();
-        if (!empty($defaults) && isset($first_attribute['name'])) {
-            $attr_name = (string) $first_attribute['name'];
-            if (isset($defaults[$attr_name])) {
-                $row['Attribute 1 default'] = (string) $defaults[$attr_name];
-            } elseif (strpos($attr_name, 'pa_') === 0 && isset($defaults[str_replace('pa_', '', $attr_name)])) {
-                $row['Attribute 1 default'] = (string) $defaults[str_replace('pa_', '', $attr_name)];
-            }
-        }
-    }
+    $row['Attribute 1 name'] = $primary_attribute['name'];
+    $row['Attribute 1 value(s)'] = $primary_attribute['values'];
+    $row['Attribute 1 visible'] = $primary_attribute['visible'];
+    $row['Attribute 1 global'] = $primary_attribute['global'];
+    $row['Attribute 1 default'] = $primary_attribute['default'];
 
     $row['row_type'] = 'product';
+    $row['parent_post_id'] = '';
     $row['post_id'] = (string) $post_id;
     $row['post_title'] = $row['Name'];
     $row['post_name'] = $post ? (string) $post->post_name : '';
-    $row['sku'] = $row['SKU'];
+    $row['sku'] = $product_sku;
 
     return $row;
 }
@@ -6674,19 +6665,16 @@ function bw_export_build_woo_native_variation_row($variation, $parent_product)
 {
     $post = get_post($variation->get_id());
     $row = array_fill_keys(bw_export_get_woo_native_columns(), '');
-
-    $variation_attributes = $variation->get_variation_attributes();
-    $first_attr_name = '';
-    $first_attr_value = '';
-    if (!empty($variation_attributes)) {
-        $first_key = array_key_first($variation_attributes);
-        $first_attr_name = is_string($first_key) ? $first_key : '';
-        $first_attr_value = isset($variation_attributes[$first_key]) ? (string) $variation_attributes[$first_key] : '';
-    }
+    $parent_product_id = (int) $parent_product->get_id();
+    $parent_sku = bw_export_get_product_or_fallback_sku($parent_product);
+    $variation_sku = bw_export_get_variation_or_fallback_sku($variation, $parent_product_id);
+    $parent_reference = $parent_sku !== '' ? $parent_sku : ($parent_product_id > 0 ? 'id:' . $parent_product_id : '');
+    $primary_attribute = bw_export_get_woo_native_primary_attribute($parent_product);
+    $variation_attribute_value = bw_export_get_variation_primary_attribute_value($variation, $primary_attribute);
 
     $row['ID'] = (string) $variation->get_id();
     $row['Type'] = 'variation';
-    $row['SKU'] = (string) $variation->get_sku();
+    $row['SKU'] = $variation_sku;
     $row['Name'] = $post ? (string) $post->post_title : '';
     $row['Published'] = ($post && $post->post_status === 'publish') ? '1' : '0';
     $row['Tax status'] = (string) $variation->get_tax_status();
@@ -6703,21 +6691,190 @@ function bw_export_build_woo_native_variation_row($variation, $parent_product)
     $row['Images'] = implode(', ', bw_export_attachment_urls([$variation->get_image_id()]));
     $row['Download limit'] = bw_export_scalar_or_empty($variation->get_download_limit());
     $row['Download expiry days'] = bw_export_scalar_or_empty($variation->get_download_expiry());
-    $row['Parent'] = (string) $parent_product->get_sku();
+    $row['Parent'] = $parent_reference;
     $row['Position'] = $post ? (string) $post->menu_order : '';
-    $row['Attribute 1 name'] = $first_attr_name;
-    $row['Attribute 1 value(s)'] = $first_attr_value;
+    $row['Attribute 1 name'] = $primary_attribute['name'];
+    $row['Attribute 1 value(s)'] = $variation_attribute_value;
     $row['Attribute 1 visible'] = '1';
-    $row['Attribute 1 global'] = strpos($first_attr_name, 'attribute_pa_') === 0 ? '1' : '0';
+    $row['Attribute 1 global'] = $primary_attribute['global'];
 
     $row['row_type'] = 'variation';
-    $row['parent_sku'] = (string) $parent_product->get_sku();
+    $row['parent_sku'] = $parent_sku;
+    $row['parent_post_id'] = $parent_product_id > 0 ? (string) $parent_product_id : '';
     $row['post_id'] = (string) $variation->get_id();
     $row['post_title'] = $row['Name'];
     $row['post_name'] = $post ? (string) $post->post_name : '';
-    $row['sku'] = $row['SKU'];
+    $row['sku'] = $variation_sku;
 
     return $row;
+}
+
+function bw_export_get_product_or_fallback_sku($product)
+{
+    $product_id = (int) $product->get_id();
+    $sku = trim((string) $product->get_sku());
+    if ($sku !== '') {
+        return $sku;
+    }
+
+    return $product_id > 0 ? 'bw-' . $product_id : '';
+}
+
+function bw_export_get_variation_or_fallback_sku($variation, $parent_product_id)
+{
+    $variation_id = (int) $variation->get_id();
+    $sku = trim((string) $variation->get_sku());
+    if ($sku !== '') {
+        return $sku;
+    }
+
+    if ($parent_product_id > 0 && $variation_id > 0) {
+        return 'bw-' . $parent_product_id . '-' . $variation_id;
+    }
+
+    return $variation_id > 0 ? 'bw-var-' . $variation_id : '';
+}
+
+function bw_export_get_product_term_names($product_id, $taxonomy)
+{
+    $terms = wp_get_post_terms($product_id, $taxonomy);
+    if (is_wp_error($terms) || empty($terms)) {
+        return [];
+    }
+
+    $names = [];
+    foreach ($terms as $term) {
+        if (!empty($term->name)) {
+            $names[] = (string) $term->name;
+        }
+    }
+
+    $names = array_values(array_unique($names));
+    natcasesort($names);
+    return array_values($names);
+}
+
+function bw_export_get_product_category_paths($product_id)
+{
+    $terms = wp_get_post_terms($product_id, 'product_cat');
+    if (is_wp_error($terms) || empty($terms)) {
+        return [];
+    }
+
+    $paths = [];
+    foreach ($terms as $term) {
+        if (!$term || is_wp_error($term)) {
+            continue;
+        }
+
+        $ancestors = array_reverse(get_ancestors((int) $term->term_id, 'product_cat'));
+        $names = [];
+
+        foreach ($ancestors as $ancestor_id) {
+            $ancestor = get_term((int) $ancestor_id, 'product_cat');
+            if ($ancestor && !is_wp_error($ancestor) && $ancestor->name !== '') {
+                $names[] = (string) $ancestor->name;
+            }
+        }
+
+        if ($term->name !== '') {
+            $names[] = (string) $term->name;
+        }
+
+        if (!empty($names)) {
+            $paths[] = implode(' > ', $names);
+        }
+    }
+
+    $paths = array_values(array_unique($paths));
+    natcasesort($paths);
+    return array_values($paths);
+}
+
+function bw_export_normalize_woo_attribute_label($attribute_name)
+{
+    $attribute_name = (string) $attribute_name;
+    if ($attribute_name === '') {
+        return '';
+    }
+
+    if (strpos($attribute_name, 'attribute_pa_') === 0) {
+        return (string) wc_attribute_label(str_replace('attribute_', '', $attribute_name));
+    }
+
+    if (strpos($attribute_name, 'pa_') === 0) {
+        return (string) wc_attribute_label($attribute_name);
+    }
+
+    if (strpos($attribute_name, 'attribute_') === 0) {
+        $attribute_name = str_replace('attribute_', '', $attribute_name);
+    }
+
+    $attribute_name = str_replace(['_', '-'], ' ', $attribute_name);
+    return ucwords(trim($attribute_name));
+}
+
+function bw_export_get_woo_native_primary_attribute($product)
+{
+    $payload = bw_export_build_attributes_payload($product);
+    $first_attribute = !empty($payload) ? $payload[0] : [];
+    $raw_name = isset($first_attribute['name']) ? (string) $first_attribute['name'] : '';
+    $values = isset($first_attribute['options']) && is_array($first_attribute['options'])
+        ? implode(', ', array_map('strval', $first_attribute['options']))
+        : '';
+    $is_global = ($raw_name !== '' && strpos($raw_name, 'pa_') === 0) ? '1' : '0';
+    $default_value = '';
+    $source_key = '';
+
+    if ($raw_name !== '') {
+        $source_key = $is_global === '1'
+            ? 'attribute_' . $raw_name
+            : 'attribute_' . sanitize_title($raw_name);
+    }
+
+    if ($product->is_type('variable')) {
+        $defaults = $product->get_default_attributes();
+        if (!empty($defaults) && $raw_name !== '') {
+            if (isset($defaults[$raw_name])) {
+                $default_value = (string) $defaults[$raw_name];
+            } else {
+                $short_name = str_replace('pa_', '', $raw_name);
+                if (isset($defaults[$short_name])) {
+                    $default_value = (string) $defaults[$short_name];
+                }
+            }
+        }
+    }
+
+    return [
+        'name' => bw_export_normalize_woo_attribute_label($raw_name),
+        'raw_name' => $raw_name,
+        'values' => $values,
+        'visible' => !empty($first_attribute['visible']) ? '1' : '0',
+        'global' => $is_global,
+        'default' => $default_value,
+        'source_key' => $source_key,
+    ];
+}
+
+function bw_export_get_variation_primary_attribute_value($variation, $primary_attribute)
+{
+    $variation_attributes = $variation->get_variation_attributes();
+    if (empty($variation_attributes) || !is_array($variation_attributes)) {
+        return '';
+    }
+
+    $source_key = isset($primary_attribute['source_key']) ? (string) $primary_attribute['source_key'] : '';
+    if ($source_key !== '' && array_key_exists($source_key, $variation_attributes)) {
+        return (string) $variation_attributes[$source_key];
+    }
+
+    $first_key = array_key_first($variation_attributes);
+    if ($first_key === null) {
+        return '';
+    }
+
+    return isset($variation_attributes[$first_key]) ? (string) $variation_attributes[$first_key] : '';
 }
 
 function bw_export_bool_flag($value)
