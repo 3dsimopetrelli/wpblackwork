@@ -5749,7 +5749,9 @@ function bw_export_get_master_template_columns()
         'parent_sku',
         'parent_post_id',
         'post_id',
+        'source_variation_id',
         'post_status',
+        'status',
         'post_title',
         'post_name',
         'post_content',
@@ -5764,6 +5766,7 @@ function bw_export_get_master_template_columns()
         'regular_price',
         'sale_price',
         'current_price',
+        'price',
         'date_on_sale_from',
         'date_on_sale_to',
         'tax_status',
@@ -5781,6 +5784,7 @@ function bw_export_get_master_template_columns()
         'purchase_note',
         'reviews_allowed',
         'featured_image',
+        'image_url',
         'product_gallery',
         'product_cat',
         'product_subcategories',
@@ -5793,6 +5797,7 @@ function bw_export_get_master_template_columns()
         'download_limit',
         'download_expiry',
         'downloadable_files_json',
+        'variation_downloadable_files_json',
         'attributes_json',
         'default_attributes_json',
         'variation_attributes_json',
@@ -6263,6 +6268,7 @@ function bw_export_get_json_columns_for_profile($profile)
 
     return [
         'downloadable_files_json',
+        'variation_downloadable_files_json',
         'attributes_json',
         'default_attributes_json',
         'variation_attributes_json',
@@ -6464,7 +6470,9 @@ function bw_export_build_product_csv_row($product)
     $row['row_type'] = 'product';
     $row['parent_post_id'] = '';
     $row['post_id'] = $post_id;
+    $row['source_variation_id'] = '';
     $row['post_status'] = $post ? $post->post_status : '';
+    $row['status'] = method_exists($product, 'get_status') ? (string) $product->get_status() : '';
     $row['post_title'] = $post ? $post->post_title : '';
     $row['post_name'] = $post ? $post->post_name : '';
     $row['post_content'] = $post ? $post->post_content : '';
@@ -6479,6 +6487,7 @@ function bw_export_build_product_csv_row($product)
     $row['regular_price'] = (string) $product->get_regular_price();
     $row['sale_price'] = (string) $product->get_sale_price();
     $row['current_price'] = (string) $product->get_price();
+    $row['price'] = (string) $product->get_price();
     $row['date_on_sale_from'] = bw_export_format_wc_date($product->get_date_on_sale_from());
     $row['date_on_sale_to'] = bw_export_format_wc_date($product->get_date_on_sale_to());
     $row['tax_status'] = (string) $product->get_tax_status();
@@ -6496,6 +6505,7 @@ function bw_export_build_product_csv_row($product)
     $row['purchase_note'] = (string) $product->get_purchase_note();
     $row['reviews_allowed'] = bw_export_bool_flag(comments_open($post_id));
     $row['featured_image'] = bw_export_attachment_url($product->get_image_id());
+    $row['image_url'] = $row['featured_image'];
     $row['product_gallery'] = implode(',', bw_export_attachment_urls($product->get_gallery_image_ids()));
     $row['product_cat'] = implode(',', bw_export_get_product_term_slugs($post_id, 'product_cat'));
     $row['product_subcategories'] = implode(',', bw_export_get_product_subcategory_slugs($post_id));
@@ -6507,7 +6517,8 @@ function bw_export_build_product_csv_row($product)
     $row['external_button_text'] = $product->is_type('external') ? (string) $product->get_button_text() : '';
     $row['download_limit'] = bw_export_scalar_or_empty($product->get_download_limit());
     $row['download_expiry'] = bw_export_scalar_or_empty($product->get_download_expiry());
-    $row['downloadable_files_json'] = bw_export_json(bw_export_get_downloads_payload($product));
+    $row['downloadable_files_json'] = bw_export_json_array(bw_export_get_downloads_payload($product));
+    $row['variation_downloadable_files_json'] = bw_export_json_array([]);
     $row['attributes_json'] = bw_export_json(bw_export_build_attributes_payload($product));
     $row['default_attributes_json'] = bw_export_json($product->is_type('variable') ? $product->get_default_attributes() : []);
 
@@ -6592,7 +6603,9 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     $row['parent_sku'] = $parent_sku;
     $row['parent_post_id'] = $parent_product_id > 0 ? (string) $parent_product_id : '';
     $row['post_id'] = $variation_id;
+    $row['source_variation_id'] = (string) $variation_id;
     $row['post_status'] = $post ? $post->post_status : '';
+    $row['status'] = (string) $variation->get_status();
     $row['post_title'] = $post ? $post->post_title : '';
     $row['post_name'] = $post ? $post->post_name : '';
     $row['post_content'] = $post ? $post->post_content : '';
@@ -6605,6 +6618,7 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     $row['regular_price'] = (string) $variation->get_regular_price();
     $row['sale_price'] = (string) $variation->get_sale_price();
     $row['current_price'] = (string) $variation->get_price();
+    $row['price'] = (string) $variation->get_price();
     $row['date_on_sale_from'] = bw_export_format_wc_date($variation->get_date_on_sale_from());
     $row['date_on_sale_to'] = bw_export_format_wc_date($variation->get_date_on_sale_to());
     $row['tax_status'] = (string) $variation->get_tax_status();
@@ -6618,10 +6632,13 @@ function bw_export_build_variation_csv_row($variation, $parent_product)
     $row['width'] = (string) $variation->get_width();
     $row['height'] = (string) $variation->get_height();
     $row['featured_image'] = bw_export_attachment_url($variation->get_image_id());
+    $row['image_url'] = $row['featured_image'];
     $row['download_limit'] = bw_export_scalar_or_empty($variation->get_download_limit());
     $row['download_expiry'] = bw_export_scalar_or_empty($variation->get_download_expiry());
-    $row['downloadable_files_json'] = bw_export_json(bw_export_get_downloads_payload($variation));
-    $row['variation_attributes_json'] = bw_export_json($variation->get_variation_attributes());
+    $variation_downloads = bw_export_get_downloads_payload($variation);
+    $row['downloadable_files_json'] = bw_export_json_array($variation_downloads);
+    $row['variation_downloadable_files_json'] = bw_export_json_array($variation_downloads);
+    $row['variation_attributes_json'] = bw_export_json_array(bw_export_normalize_variation_attributes($variation));
     $row['variation_regular_price'] = (string) $variation->get_regular_price();
     $row['variation_sale_price'] = (string) $variation->get_sale_price();
     $row['variation_stock_quantity'] = bw_export_scalar_or_empty($variation->get_stock_quantity());
@@ -7052,11 +7069,89 @@ function bw_export_get_downloads_payload($product)
         $payload[] = [
             'id' => (string) $download_id,
             'name' => method_exists($download, 'get_name') ? (string) $download->get_name() : '',
-            'file' => method_exists($download, 'get_file') ? (string) $download->get_file() : '',
+            'file_url' => method_exists($download, 'get_file') ? (string) $download->get_file() : '',
+            'file_type' => bw_export_detect_download_file_type(method_exists($download, 'get_file') ? (string) $download->get_file() : ''),
+            'file_size' => null,
         ];
     }
 
     return $payload;
+}
+
+function bw_export_detect_download_file_type($file_url)
+{
+    $file_url = trim((string) $file_url);
+    if ($file_url === '') {
+        return '';
+    }
+
+    $path = wp_parse_url($file_url, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return '';
+    }
+
+    $extension = pathinfo($path, PATHINFO_EXTENSION);
+    return is_string($extension) ? strtolower($extension) : '';
+}
+
+function bw_export_normalize_variation_attributes($variation)
+{
+    $raw_attributes = method_exists($variation, 'get_attributes') ? (array) $variation->get_attributes() : [];
+    if (empty($raw_attributes)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($raw_attributes as $attribute_key => $attribute_value) {
+        if (!is_scalar($attribute_value)) {
+            continue;
+        }
+
+        $value = trim((string) $attribute_value);
+        if ($value === '') {
+            continue;
+        }
+
+        $key = bw_export_normalize_variation_attribute_key($attribute_key);
+        if ($key === '') {
+            continue;
+        }
+
+        $resolved = bw_export_resolve_variation_attribute_value($attribute_key, $value);
+        $normalized[$key] = $resolved;
+    }
+
+    return $normalized;
+}
+
+function bw_export_normalize_variation_attribute_key($attribute_key)
+{
+    $key = (string) $attribute_key;
+    if (strpos($key, 'attribute_') === 0) {
+        $key = substr($key, 10);
+    }
+    if (strpos($key, 'pa_') === 0) {
+        $key = substr($key, 3);
+    }
+
+    return sanitize_title($key);
+}
+
+function bw_export_resolve_variation_attribute_value($attribute_key, $value)
+{
+    $taxonomy = (string) $attribute_key;
+    if (strpos($taxonomy, 'attribute_') === 0) {
+        $taxonomy = substr($taxonomy, 10);
+    }
+
+    if (taxonomy_exists($taxonomy)) {
+        $term = get_term_by('slug', $value, $taxonomy);
+        if ($term && !is_wp_error($term) && !empty($term->name)) {
+            return (string) $term->name;
+        }
+    }
+
+    return (string) $value;
 }
 
 function bw_export_build_attributes_payload($product)
@@ -7109,6 +7204,16 @@ function bw_export_json($value)
 
     $encoded = wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return is_string($encoded) ? $encoded : '';
+}
+
+function bw_export_json_array($value)
+{
+    if (!is_array($value)) {
+        $value = [];
+    }
+
+    $encoded = wp_json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($encoded) ? $encoded : '[]';
 }
 
 function bw_export_meta_scalar($value)
