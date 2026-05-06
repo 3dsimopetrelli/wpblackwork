@@ -14,8 +14,10 @@
 
         if (navigator.sendBeacon) {
             var blob = new Blob([body], { type: 'application/x-www-form-urlencoded; charset=UTF-8' });
-            navigator.sendBeacon(endpoint, blob);
-            return;
+            var queued = navigator.sendBeacon(endpoint, blob);
+            if (queued) {
+                return;
+            }
         }
 
         fetch(endpoint, {

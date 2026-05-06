@@ -179,6 +179,23 @@ function bw_link_page_sanitize_link_id($raw_link_id)
     return substr($link_id, 0, 80);
 }
 
+function bw_link_page_debug_log($message, $context = [])
+{
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
+    }
+
+    $line = '[BW Link Page] ' . (string) $message;
+    if (!empty($context)) {
+        $encoded = wp_json_encode($context);
+        if (is_string($encoded)) {
+            $line .= ' ' . $encoded;
+        }
+    }
+
+    error_log($line);
+}
+
 function bw_link_page_track_click_ajax()
 {
     bw_link_page_maybe_install_clicks_table();
@@ -195,11 +212,27 @@ function bw_link_page_track_click_ajax()
     $link_label = isset($_POST['link_label']) ? sanitize_text_field(wp_unslash($_POST['link_label'])) : '';
     $target_url = isset($_POST['target_url']) ? esc_url_raw(wp_unslash($_POST['target_url'])) : '';
 
+    bw_link_page_debug_log('track_click_payload', [
+        'configured_page_id' => $configured_page_id,
+        'page_id' => $page_id,
+        'link_id' => $link_id,
+        'link_label' => $link_label,
+        'target_url' => $target_url,
+    ]);
+
     if ($configured_page_id <= 0 || $page_id <= 0 || $configured_page_id !== $page_id) {
+        bw_link_page_debug_log('track_click_invalid_page', [
+            'configured_page_id' => $configured_page_id,
+            'page_id' => $page_id,
+        ]);
         wp_send_json_error(['message' => 'invalid_page'], 400);
     }
 
     if ('' === $link_id || '' === $link_label) {
+        bw_link_page_debug_log('track_click_invalid_payload', [
+            'link_id' => $link_id,
+            'link_label' => $link_label,
+        ]);
         wp_send_json_error(['message' => 'invalid_payload'], 400);
     }
 
@@ -218,8 +251,17 @@ function bw_link_page_track_click_ajax()
     );
 
     if (false === $inserted) {
+        bw_link_page_debug_log('track_click_insert_failed', [
+            'last_error' => $wpdb->last_error,
+        ]);
         wp_send_json_error(['message' => 'insert_failed'], 500);
     }
+
+    bw_link_page_debug_log('track_click_insert_ok', [
+        'insert_id' => (int) $wpdb->insert_id,
+        'page_id' => $page_id,
+        'link_id' => $link_id,
+    ]);
 
     wp_send_json_success(['ok' => true]);
 }
