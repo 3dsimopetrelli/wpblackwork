@@ -545,10 +545,14 @@ function bw_link_page_render_analytics_tab($page_id)
         <div style="display:grid;grid-template-columns:repeat(30,minmax(0,1fr));gap:6px;align-items:end;min-height:150px;padding:14px;border:1px solid #d9d9d9;border-radius:10px;background:#fff;">
             <?php foreach ($daily_series as $point) :
                 $count = (int) $point['count'];
-                $height_pct = $max_daily > 0 ? max(3, (int) floor(($count / $max_daily) * 100)) : 3;
+                $bar_max_height = 120;
+                $bar_min_height = 6;
+                $height_px = $max_daily > 0
+                    ? max($bar_min_height, (int) floor(($count / $max_daily) * $bar_max_height))
+                    : $bar_min_height;
                 ?>
                 <div title="<?php echo esc_attr($point['label'] . ': ' . $count); ?>" style="display:flex;align-items:flex-end;justify-content:center;min-height:120px;">
-                    <span style="display:block;width:100%;max-width:16px;border-radius:5px 5px 0 0;background:#80FD03;height:<?php echo esc_attr((string) $height_pct); ?>%;"></span>
+                    <span style="display:block;width:100%;max-width:16px;border-radius:5px 5px 0 0;background:#80FD03;height:<?php echo esc_attr((string) $height_px); ?>px;"></span>
                 </div>
             <?php endforeach; ?>
         </div>
