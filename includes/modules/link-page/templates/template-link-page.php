@@ -9,6 +9,7 @@ $title = isset($settings['title']) ? (string) $settings['title'] : '';
 $description = isset($settings['description']) ? (string) $settings['description'] : '';
 $logo_id = isset($settings['logo_id']) ? (int) $settings['logo_id'] : 0;
 $logo_url = $logo_id > 0 ? wp_get_attachment_image_url($logo_id, 'full') : '';
+$page_id = isset($settings['page_id']) ? (int) $settings['page_id'] : 0;
 
 $socials = isset($settings['socials']) && is_array($settings['socials']) ? $settings['socials'] : [];
 $social_map = [
@@ -29,6 +30,13 @@ $css_path = plugin_dir_path(__FILE__) . '../assets/link-page.css';
 $css_url = plugin_dir_url(__FILE__) . '../assets/link-page.css';
 $js_path = plugin_dir_path(__FILE__) . '../assets/link-page.js';
 $js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
+
+$analytics_config = [
+    'endpoint' => admin_url('admin-ajax.php'),
+    'action' => 'bw_link_page_track_click',
+    'nonce' => wp_create_nonce('bw_link_page_track_click'),
+    'pageId' => $page_id,
+];
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -40,7 +48,7 @@ $js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
 </head>
 <body>
 <div class="wrapper">
-    <div class="container">
+    <div class="container" data-bw-page-id="<?php echo esc_attr((string) $page_id); ?>">
         <?php if (!empty($logo_url)) : ?>
             <div class="logo">
                 <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>">
@@ -56,7 +64,7 @@ $js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
         <?php endif; ?>
 
         <div class="links">
-            <?php foreach ($links as $link) :
+            <?php foreach ($links as $index => $link) :
                 $label = isset($link['label']) ? (string) $link['label'] : '';
                 $url = isset($link['url']) ? (string) $link['url'] : '';
                 if ('' === $label || '' === $url) {
@@ -64,8 +72,14 @@ $js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
                 }
                 $target = !empty($link['target']) ? '_blank' : '_self';
                 $rel = '_blank' === $target ? 'noopener noreferrer' : '';
+                $link_id = function_exists('bw_link_page_build_link_id') ? bw_link_page_build_link_id($link, $index) : ('link-' . (string) $index);
                 ?>
-                <a class="link-item" href="<?php echo esc_url($url); ?>" target="<?php echo esc_attr($target); ?>"<?php echo '' !== $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>>
+                <a class="link-item"
+                    href="<?php echo esc_url($url); ?>"
+                    target="<?php echo esc_attr($target); ?>"
+                    data-bw-link-id="<?php echo esc_attr($link_id); ?>"
+                    data-bw-link-label="<?php echo esc_attr($label); ?>"
+                    <?php echo '' !== $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>>
                     <?php echo esc_html($label); ?>
                 </a>
             <?php endforeach; ?>
@@ -88,6 +102,7 @@ $js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
     </div>
 </div>
 <?php if (file_exists($js_path)) : ?>
+    <script>window.bwLinkPageAnalytics = <?php echo wp_json_encode($analytics_config); ?>;</script>
     <script src="<?php echo esc_url($js_url); ?>?ver=<?php echo esc_attr((string) filemtime($js_path)); ?>" defer></script>
 <?php endif; ?>
 </body>
