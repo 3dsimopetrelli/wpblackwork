@@ -1,0 +1,138 @@
+:root {
+    --bw-link-bg: #0f0f0f;
+    --bw-link-text: #f2f2f2;
+    --bw-link-muted: #bcbcbc;
+    --bw-link-border: #2e2e2e;
+    --bw-link-accent: #80fd03;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--bw-link-bg);
+    color: var(--bw-link-text);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.logo {
+    margin-bottom: 24px;
+}
+
+.logo img {
+    display: block;
+    width: auto;
+    max-width: 180px;
+    max-height: 120px;
+    margin: 0 auto;
+}
+
+.title {
+    margin: 0 0 14px;
+    font-size: 30px;
+    line-height: 1.12;
+    letter-spacing: 0.01em;
+}
+
+.description {
+    margin: 0 0 28px;
+    color: var(--bw-link-muted);
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+.links {
+    display: grid;
+    gap: 12px;
+}
+
+.link-item {
+    display: block;
+    width: 100%;
+    padding: 15px 20px;
+    border: 1px solid var(--bw-link-border);
+    border-radius: 18px;
+    color: var(--bw-link-text);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+    transition: opacity 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.link-item:hover {
+    opacity: 0.9;
+}
+
+.link-item:focus-visible {
+    outline: 2px solid var(--bw-link-accent);
+    outline-offset: 2px;
+    border-color: var(--bw-link-accent);
+}
+
+.link-item:active {
+    opacity: 0.84;
+}
+
+.socials {
+    margin-top: 30px;
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.socials a {
+    color: var(--bw-link-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.socials a:hover,
+.socials a:focus-visible {
+    color: var(--bw-link-accent);
+    opacity: 1;
+}
+
+.socials a:active {
+    opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+    .wrapper {
+        align-items: flex-start;
+        padding-top: 28px;
+        padding-bottom: 28px;
+    }
+
+    .title {
+        font-size: 27px;
+    }
+}

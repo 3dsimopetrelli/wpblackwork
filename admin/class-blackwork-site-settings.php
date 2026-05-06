@@ -1202,6 +1202,9 @@ function bw_site_settings_page()
     ];
     $active_submit_name = isset($save_button_map[$active_tab]) ? $save_button_map[$active_tab] : '';
     ?>
+    <?php if (current_user_can('manage_options') && isset($_GET['bw_runtime_debug']) && '1' === (string) sanitize_text_field(wp_unslash($_GET['bw_runtime_debug']))) : ?>
+        <div style="padding:12px;background:#80FD03;color:#000;font-weight:700;">BW RUNTIME MARKER — Site Settings render file: <?php echo esc_html(__FILE__); ?></div>
+    <?php endif; ?>
     <div class="wrap bw-admin-root bw-admin-page bw-admin-page-site-settings">
         <div class="bw-admin-header">
             <h1 class="bw-admin-title"><?php esc_html_e('Site Settings', 'bw'); ?></h1>
@@ -1221,6 +1224,7 @@ function bw_site_settings_page()
             </div>
         </div>
 
+        <?php echo '<div style="padding:16px;background:#80FD03;color:#000;font-size:18px;font-weight:700;margin:20px 0;">BW HARD RUNTIME TEST</div>'; ?>
         <section class="bw-admin-card bw-admin-card-site-settings">
             <h2 class="bw-admin-card-title"><?php esc_html_e('Panels', 'bw'); ?></h2>
             <p class="bw-admin-card-helper"><?php esc_html_e('Switch between configuration domains without leaving Site Settings.', 'bw'); ?></p>
