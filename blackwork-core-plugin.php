@@ -18,49 +18,9 @@ if (!defined('BW_MEW_PATH')) {
     define('BW_MEW_PATH', plugin_dir_path(__FILE__));
 }
 
-if (!defined('BW_CORE_PLUGIN_FILE')) {
-    define('BW_CORE_PLUGIN_FILE', __FILE__);
-}
-
 if (!defined('BLACKWORK_PLUGIN_VERSION')) {
     define('BLACKWORK_PLUGIN_VERSION', '2.1.0');
 }
-
-function bw_runtime_debug_notice()
-{
-    if (!is_admin()) {
-        return;
-    }
-
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-
-    if (!isset($_GET['bw_runtime_debug'])) {
-        return;
-    }
-
-    $debug_flag = sanitize_text_field(wp_unslash($_GET['bw_runtime_debug']));
-    if ('1' !== (string) $debug_flag) {
-        return;
-    }
-
-    $link_page_relative_path = 'includes/modules/link-page/link-page-module.php';
-    $link_page_absolute_path = plugin_dir_path(__FILE__) . $link_page_relative_path;
-
-    $data = [
-        '__FILE__' => __FILE__,
-        'plugin_dir_path' => plugin_dir_path(__FILE__),
-        'plugin_basename' => plugin_basename(__FILE__),
-        'link_page_module_exists' => file_exists($link_page_absolute_path),
-        'link_page_module_path' => $link_page_absolute_path,
-        'bw_link_page_add_admin_menu_exists' => function_exists('bw_link_page_add_admin_menu'),
-        'bw_link_page_module_loaded_marker' => defined('BW_LINK_PAGE_MODULE_LOADED'),
-    ];
-
-    echo '<div class="notice notice-info"><p><strong>BW Runtime Debug</strong></p><pre style="white-space:pre-wrap;">' . esc_html(wp_json_encode($data, JSON_PRETTY_PRINT)) . '</pre></div>';
-}
-add_action('admin_notices', 'bw_runtime_debug_notice');
 
 /**
  * Enable safe SVG uploads for administrators/editors and prevent raster metadata processing.

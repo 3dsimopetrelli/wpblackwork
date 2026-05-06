@@ -3,10 +3,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!defined('BW_LINK_PAGE_MODULE_LOADED')) {
-    define('BW_LINK_PAGE_MODULE_LOADED', true);
-}
-
 if (!defined('BW_LINK_PAGE_OPTION')) {
     define('BW_LINK_PAGE_OPTION', 'bw_link_page_settings_v1');
 }
@@ -106,8 +102,6 @@ add_action('admin_init', 'bw_link_page_register_settings');
 
 function bw_link_page_add_admin_menu()
 {
-    $GLOBALS['bw_link_page_admin_menu_callback_ran'] = true;
-
     add_submenu_page(
         'blackwork-site-settings',
         __('Link Page', 'bw'),
@@ -119,74 +113,16 @@ function bw_link_page_add_admin_menu()
 }
 add_action('admin_menu', 'bw_link_page_add_admin_menu', 62);
 
-function bw_link_page_runtime_debug_should_show()
-{
-    if (!is_admin()) {
-        return false;
-    }
-
-    if (!current_user_can('manage_options')) {
-        return false;
-    }
-
-    if (!isset($_GET['bw_link_page_debug'])) {
-        return false;
-    }
-
-    return '1' === (string) sanitize_text_field(wp_unslash($_GET['bw_link_page_debug']));
-}
-
-function bw_link_page_runtime_debug_collect()
-{
-    global $submenu;
-
-    $submenu_entries = isset($submenu['blackwork-site-settings']) && is_array($submenu['blackwork-site-settings'])
-        ? $submenu['blackwork-site-settings']
-        : [];
-
-    $link_page_submenu_found = false;
-    foreach ($submenu_entries as $entry) {
-        if (isset($entry[2]) && 'bw-link-page-settings' === (string) $entry[2]) {
-            $link_page_submenu_found = true;
-            break;
-        }
-    }
-
-    $GLOBALS['bw_link_page_runtime_debug'] = [
-        'module_file' => __FILE__,
-        'core_plugin_file' => defined('BW_CORE_PLUGIN_FILE') ? (string) BW_CORE_PLUGIN_FILE : '',
-        'module_loaded_marker' => defined('BW_LINK_PAGE_MODULE_LOADED'),
-        'admin_menu_callback_exists' => function_exists('bw_link_page_add_admin_menu'),
-        'admin_menu_callback_ran' => !empty($GLOBALS['bw_link_page_admin_menu_callback_ran']),
-        'user_can_manage_options' => current_user_can('manage_options'),
-        'parent_slug_exists' => isset($submenu['blackwork-site-settings']) && is_array($submenu['blackwork-site-settings']),
-        'submenu_registered' => $link_page_submenu_found,
-        'submenu_count' => count($submenu_entries),
-    ];
-}
-add_action('admin_menu', 'bw_link_page_runtime_debug_collect', 1000);
-
-function bw_link_page_runtime_debug_notice()
-{
-    if (!bw_link_page_runtime_debug_should_show()) {
-        return;
-    }
-
-    $data = isset($GLOBALS['bw_link_page_runtime_debug']) && is_array($GLOBALS['bw_link_page_runtime_debug'])
-        ? $GLOBALS['bw_link_page_runtime_debug']
-        : [];
-
-    if (empty($data)) {
-        $data = ['status' => 'debug_data_unavailable'];
-    }
-
-    echo '<div class="notice notice-info"><p><strong>BW Link Page runtime debug</strong></p><pre style="white-space:pre-wrap;">' . esc_html(wp_json_encode($data, JSON_PRETTY_PRINT)) . '</pre></div>';
-}
-add_action('admin_notices', 'bw_link_page_runtime_debug_notice');
-
 function bw_link_page_enqueue_admin_assets($hook)
 {
-    if ('blackwork-site-settings_page_bw-link-page-settings' !== $hook) {
+    $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    $is_link_page_screen = (
+        'bw-link-page-settings' === $current_page
+        || 'blackwork-site-settings_page_bw-link-page-settings' === $hook
+        || 'blackwork-site_page_bw-link-page-settings' === $hook
+    );
+
+    if (!$is_link_page_screen) {
         return;
     }
 
@@ -196,7 +132,7 @@ function bw_link_page_enqueue_admin_assets($hook)
     wp_enqueue_script(
         'bw-link-page-admin',
         BW_MEW_URL . 'includes/modules/link-page/admin/link-page-admin.js',
-        [],
+        ['jquery', 'media-editor', 'media-views', 'wp-util'],
         file_exists($admin_js_path) ? filemtime($admin_js_path) : BLACKWORK_PLUGIN_VERSION,
         true
     );
