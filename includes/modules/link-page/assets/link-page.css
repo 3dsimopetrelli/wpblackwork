@@ -4,6 +4,8 @@
     --bw-link-muted: #bcbcbc;
     --bw-link-border: #2e2e2e;
     --bw-link-accent: #80fd03;
+    --bw-link-logo-width: 180px;
+    --bw-link-logo-rotate-duration: 18s;
 }
 
 * {
@@ -46,17 +48,23 @@ body {
 
 .logo img {
     display: block;
-    width: auto;
-    max-width: 180px;
+    width: min(100%, var(--bw-link-logo-width));
+    max-width: 100%;
     max-height: 120px;
     margin: 0 auto;
 }
 
+.bw-link-page-logo-rotate .logo img {
+    animation: bw-link-logo-spin var(--bw-link-logo-rotate-duration) linear infinite;
+    transform-origin: center;
+}
+
 .title {
     margin: 0 0 14px;
-    font-size: 30px;
+    font-size: 24px;
     line-height: 1.12;
     letter-spacing: 0.01em;
+    font-weight: 700;
 }
 
 .description {
@@ -76,13 +84,22 @@ body {
     width: 100%;
     padding: 15px 20px;
     border: 1px solid var(--bw-link-border);
-    border-radius: 18px;
+    border-radius: 50px;
     color: var(--bw-link-text);
     text-decoration: none;
     font-size: 16px;
     font-weight: 600;
     line-height: 1.2;
     transition: opacity 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+}
+
+@keyframes bw-link-logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .link-item:hover {
@@ -133,6 +150,6 @@ body {
     }
 
     .title {
-        font-size: 27px;
+        font-size: 22px;
     }
 }

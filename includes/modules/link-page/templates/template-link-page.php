@@ -10,6 +10,13 @@ $description = isset($settings['description']) ? (string) $settings['description
 $logo_id = isset($settings['logo_id']) ? (int) $settings['logo_id'] : 0;
 $logo_url = $logo_id > 0 ? wp_get_attachment_image_url($logo_id, 'full') : '';
 $page_id = isset($settings['page_id']) ? (int) $settings['page_id'] : 0;
+$background_color = isset($settings['background_color']) ? sanitize_hex_color((string) $settings['background_color']) : '#0f0f0f';
+$background_color = $background_color ? $background_color : '#0f0f0f';
+$logo_width = isset($settings['logo_width']) ? absint($settings['logo_width']) : 180;
+$logo_width = max(40, min(600, $logo_width));
+$logo_rotate_enabled = !empty($settings['logo_rotate']);
+$logo_rotate_speed = isset($settings['logo_rotate_speed']) && is_numeric($settings['logo_rotate_speed']) ? (float) $settings['logo_rotate_speed'] : 18.0;
+$logo_rotate_speed = max(2.0, min(120.0, $logo_rotate_speed));
 
 $socials = isset($settings['socials']) && is_array($settings['socials']) ? $settings['socials'] : [];
 $social_map = [
@@ -37,6 +44,18 @@ $analytics_config = [
     'nonce' => wp_create_nonce('bw_link_page_track_click'),
     'pageId' => $page_id,
 ];
+
+$body_classes = [];
+if ($logo_rotate_enabled) {
+    $body_classes[] = 'bw-link-page-logo-rotate';
+}
+
+$body_style = sprintf(
+    '--bw-link-bg:%1$s;--bw-link-logo-width:%2$spx;--bw-link-logo-rotate-duration:%3$ss;',
+    $background_color,
+    (string) $logo_width,
+    rtrim(rtrim(number_format($logo_rotate_speed, 1, '.', ''), '0'), '.')
+);
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -46,7 +65,7 @@ $analytics_config = [
     <title><?php echo esc_html(get_the_title()); ?></title>
     <link rel="stylesheet" href="<?php echo esc_url($css_url); ?>?ver=<?php echo esc_attr((string) (file_exists($css_path) ? filemtime($css_path) : '1.0.0')); ?>">
 </head>
-<body>
+<body class="<?php echo esc_attr(implode(' ', $body_classes)); ?>" style="<?php echo esc_attr($body_style); ?>">
 <div class="wrapper">
     <div class="container" data-bw-page-id="<?php echo esc_attr((string) $page_id); ?>">
         <?php if (!empty($logo_url)) : ?>

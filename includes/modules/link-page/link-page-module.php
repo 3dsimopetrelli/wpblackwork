@@ -23,6 +23,10 @@ function bw_link_page_get_settings()
         'logo_id' => 0,
         'title' => '',
         'description' => '',
+        'background_color' => '#0f0f0f',
+        'logo_width' => 180,
+        'logo_rotate' => 0,
+        'logo_rotate_speed' => 18,
         'links' => [],
         'socials' => [
             'instagram' => ['enabled' => 0, 'url' => ''],
@@ -46,12 +50,26 @@ function bw_link_page_get_settings()
 function bw_link_page_sanitize_settings($raw)
 {
     $raw = is_array($raw) ? $raw : [];
+    $background_color = isset($raw['background_color']) ? sanitize_hex_color((string) $raw['background_color']) : '';
+    if ('' === $background_color || null === $background_color) {
+        $background_color = '#0f0f0f';
+    }
+
+    $logo_width = isset($raw['logo_width']) ? absint($raw['logo_width']) : 180;
+    $logo_width = max(40, min(600, $logo_width));
+
+    $logo_rotate_speed = isset($raw['logo_rotate_speed']) && is_numeric($raw['logo_rotate_speed']) ? (float) $raw['logo_rotate_speed'] : 18.0;
+    $logo_rotate_speed = max(2.0, min(120.0, $logo_rotate_speed));
 
     $settings = [
         'page_id' => isset($raw['page_id']) ? absint($raw['page_id']) : 0,
         'logo_id' => isset($raw['logo_id']) ? absint($raw['logo_id']) : 0,
         'title' => isset($raw['title']) ? sanitize_text_field($raw['title']) : '',
         'description' => isset($raw['description']) ? sanitize_textarea_field($raw['description']) : '',
+        'background_color' => $background_color,
+        'logo_width' => $logo_width,
+        'logo_rotate' => !empty($raw['logo_rotate']) ? 1 : 0,
+        'logo_rotate_speed' => $logo_rotate_speed,
         'links' => [],
         'socials' => [
             'instagram' => ['enabled' => 0, 'url' => ''],
@@ -441,6 +459,35 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                 <th scope="row"><label for="bw-link-page-description"><?php esc_html_e('Description (optional)', 'bw'); ?></label></th>
                 <td>
                     <textarea id="bw-link-page-description" class="large-text" rows="4" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[description]"><?php echo esc_textarea($settings['description']); ?></textarea>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2><?php esc_html_e('Design', 'bw'); ?></h2>
+        <table class="form-table" role="presentation">
+            <tbody>
+            <tr>
+                <th scope="row"><label for="bw-link-page-background-color"><?php esc_html_e('Background color', 'bw'); ?></label></th>
+                <td>
+                    <input type="color" id="bw-link-page-background-color" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_color]" value="<?php echo esc_attr((string) $settings['background_color']); ?>">
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="bw-link-page-logo-width"><?php esc_html_e('Logo width (px)', 'bw'); ?></label></th>
+                <td>
+                    <input type="number" min="40" max="600" step="1" id="bw-link-page-logo-width" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_width]" value="<?php echo esc_attr((string) $settings['logo_width']); ?>">
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e('Logo rotation animation', 'bw'); ?></th>
+                <td>
+                    <label style="display:block;margin-bottom:8px;">
+                        <input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate]" value="1" <?php checked(!empty($settings['logo_rotate'])); ?>>
+                        <?php esc_html_e('Enable continuous rotation', 'bw'); ?>
+                    </label>
+                    <label for="bw-link-page-logo-rotate-speed"><?php esc_html_e('Rotation speed (seconds)', 'bw'); ?></label><br>
+                    <input type="number" min="2" max="120" step="0.1" id="bw-link-page-logo-rotate-speed" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate_speed]" value="<?php echo esc_attr((string) $settings['logo_rotate_speed']); ?>">
                 </td>
             </tr>
             </tbody>
