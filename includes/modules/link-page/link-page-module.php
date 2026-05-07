@@ -24,21 +24,45 @@ function bw_link_page_get_settings()
         'title' => '',
         'description' => '',
         'background_color' => '#0f0f0f',
+        'background_image_id' => 0,
         'logo_width' => 180,
         'logo_rotate' => 0,
         'logo_rotate_speed' => 18,
         'links' => [],
-        'socials' => [
-            'instagram' => ['enabled' => 0, 'url' => ''],
-            'youtube' => ['enabled' => 0, 'url' => ''],
-            'pinterest' => ['enabled' => 0, 'url' => ''],
-        ],
+        'social_links' => [],
     ];
 
-    $settings = get_option(BW_LINK_PAGE_OPTION, []);
-    $settings = is_array($settings) ? $settings : [];
+    $raw_settings = get_option(BW_LINK_PAGE_OPTION, []);
+    $raw_settings = is_array($raw_settings) ? $raw_settings : [];
 
-    return wp_parse_args($settings, $defaults);
+    $settings = wp_parse_args($raw_settings, $defaults);
+
+    if (!isset($raw_settings['social_links'])) {
+        $migrated_social_links = [];
+        $legacy_socials = isset($raw_settings['socials']) && is_array($raw_settings['socials']) ? $raw_settings['socials'] : [];
+        foreach (['instagram', 'youtube', 'pinterest'] as $platform) {
+            $legacy_item = isset($legacy_socials[$platform]) && is_array($legacy_socials[$platform]) ? $legacy_socials[$platform] : [];
+            if (!empty($legacy_item['enabled']) && !empty($legacy_item['url'])) {
+                $migrated_social_links[] = [
+                    'label' => ucfirst($platform),
+                    'url' => esc_url_raw((string) $legacy_item['url']),
+                    'target' => 1,
+                ];
+            }
+        }
+
+        if (empty($migrated_social_links)) {
+            $migrated_social_links[] = [
+                'label' => 'Instagram',
+                'url' => '',
+                'target' => 1,
+            ];
+        }
+
+        $settings['social_links'] = $migrated_social_links;
+    }
+
+    return $settings;
 }
 
 /**
@@ -67,15 +91,12 @@ function bw_link_page_sanitize_settings($raw)
         'title' => isset($raw['title']) ? sanitize_text_field($raw['title']) : '',
         'description' => isset($raw['description']) ? sanitize_textarea_field($raw['description']) : '',
         'background_color' => $background_color,
+        'background_image_id' => isset($raw['background_image_id']) ? absint($raw['background_image_id']) : 0,
         'logo_width' => $logo_width,
         'logo_rotate' => !empty($raw['logo_rotate']) ? 1 : 0,
         'logo_rotate_speed' => $logo_rotate_speed,
         'links' => [],
-        'socials' => [
-            'instagram' => ['enabled' => 0, 'url' => ''],
-            'youtube' => ['enabled' => 0, 'url' => ''],
-            'pinterest' => ['enabled' => 0, 'url' => ''],
-        ],
+        'social_links' => [],
     ];
 
     if (!empty($raw['links']) && is_array($raw['links'])) {
@@ -100,13 +121,26 @@ function bw_link_page_sanitize_settings($raw)
         }
     }
 
-    $social_keys = ['instagram', 'youtube', 'pinterest'];
-    foreach ($social_keys as $key) {
-        $social = isset($raw['socials'][$key]) && is_array($raw['socials'][$key]) ? $raw['socials'][$key] : [];
-        $settings['socials'][$key] = [
-            'enabled' => !empty($social['enabled']) ? 1 : 0,
-            'url' => isset($social['url']) ? esc_url_raw($social['url']) : '',
-        ];
+    if (!empty($raw['social_links']) && is_array($raw['social_links'])) {
+        foreach ($raw['social_links'] as $social_link) {
+            if (!is_array($social_link)) {
+                continue;
+            }
+
+            $label = isset($social_link['label']) ? sanitize_text_field($social_link['label']) : '';
+            $url = isset($social_link['url']) ? esc_url_raw($social_link['url']) : '';
+            $target = !empty($social_link['target']) ? 1 : 0;
+
+            if ('' === $label || '' === $url) {
+                continue;
+            }
+
+            $settings['social_links'][] = [
+                'label' => $label,
+                'url' => $url,
+                'target' => $target,
+            ];
+        }
     }
 
     return $settings;
@@ -416,10 +450,14 @@ function bw_link_page_get_analytics_link_rows($page_id)
 
 function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
 {
+    $background_image_id = isset($settings['background_image_id']) ? (int) $settings['background_image_id'] : 0;
+    $background_image_url = $background_image_id > 0 ? wp_get_attachment_image_url($background_image_id, 'large') : '';
+    $social_links = isset($settings['social_links']) && is_array($settings['social_links']) ? $settings['social_links'] : [];
     ?>
     <form method="post" action="options.php" class="bw-site-settings-form" style="max-width: 980px;">
         <?php settings_fields('bw_link_page_settings_group'); ?>
 
+        <h2><?php esc_html_e('Page', 'bw'); ?></h2>
         <table class="form-table" role="presentation">
             <tbody>
             <tr>
@@ -435,7 +473,12 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                     </select>
                 </td>
             </tr>
+            </tbody>
+        </table>
 
+        <h2><?php esc_html_e('Logo', 'bw'); ?></h2>
+        <table class="form-table" role="presentation">
+            <tbody>
             <tr>
                 <th scope="row"><?php esc_html_e('Logo', 'bw'); ?></th>
                 <td>
@@ -447,32 +490,6 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                             <img src="<?php echo esc_url($logo_url); ?>" alt="" style="max-width:140px;height:auto;display:block;">
                         <?php endif; ?>
                     </div>
-                </td>
-            </tr>
-
-            <tr>
-                <th scope="row"><label for="bw-link-page-title"><?php esc_html_e('Title (optional)', 'bw'); ?></label></th>
-                <td>
-                    <input type="text" class="regular-text" id="bw-link-page-title" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[title]" value="<?php echo esc_attr($settings['title']); ?>">
-                </td>
-            </tr>
-
-            <tr>
-                <th scope="row"><label for="bw-link-page-description"><?php esc_html_e('Description (optional)', 'bw'); ?></label></th>
-                <td>
-                    <textarea id="bw-link-page-description" class="large-text" rows="4" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[description]"><?php echo esc_textarea($settings['description']); ?></textarea>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <h2><?php esc_html_e('Design', 'bw'); ?></h2>
-        <table class="form-table" role="presentation">
-            <tbody>
-            <tr>
-                <th scope="row"><label for="bw-link-page-background-color"><?php esc_html_e('Background color', 'bw'); ?></label></th>
-                <td>
-                    <input type="color" id="bw-link-page-background-color" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_color]" value="<?php echo esc_attr((string) $settings['background_color']); ?>">
                 </td>
             </tr>
             <tr>
@@ -490,6 +507,49 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                     </label>
                     <label for="bw-link-page-logo-rotate-speed"><?php esc_html_e('Rotation speed (seconds)', 'bw'); ?></label><br>
                     <input type="number" min="2" max="120" step="0.1" id="bw-link-page-logo-rotate-speed" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate_speed]" value="<?php echo esc_attr((string) $settings['logo_rotate_speed']); ?>">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2><?php esc_html_e('Background', 'bw'); ?></h2>
+        <table class="form-table" role="presentation">
+            <tbody>
+            <tr>
+                <th scope="row"><label for="bw-link-page-background-color"><?php esc_html_e('Background color', 'bw'); ?></label></th>
+                <td>
+                    <input type="color" id="bw-link-page-background-color" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_color]" value="<?php echo esc_attr((string) $settings['background_color']); ?>">
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><?php esc_html_e('Background image', 'bw'); ?></th>
+                <td>
+                    <input type="hidden" id="bw-link-page-background-image-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_image_id]" value="<?php echo esc_attr((string) $background_image_id); ?>">
+                    <button type="button" class="button" id="bw-link-page-background-upload"><?php esc_html_e('Select background image', 'bw'); ?></button>
+                    <button type="button" class="button" id="bw-link-page-background-remove"><?php esc_html_e('Remove', 'bw'); ?></button>
+                    <div id="bw-link-page-background-preview" style="margin-top:12px;">
+                        <?php if (!empty($background_image_url)) : ?>
+                            <img src="<?php echo esc_url($background_image_url); ?>" alt="" style="max-width:200px;height:auto;display:block;">
+                        <?php endif; ?>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h2><?php esc_html_e('Content', 'bw'); ?></h2>
+        <table class="form-table" role="presentation">
+            <tbody>
+            <tr>
+                <th scope="row"><label for="bw-link-page-title"><?php esc_html_e('Title (optional)', 'bw'); ?></label></th>
+                <td>
+                    <input type="text" class="regular-text" id="bw-link-page-title" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[title]" value="<?php echo esc_attr($settings['title']); ?>">
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="bw-link-page-description"><?php esc_html_e('Description (optional)', 'bw'); ?></label></th>
+                <td>
+                    <textarea id="bw-link-page-description" class="large-text" rows="4" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[description]"><?php echo esc_textarea($settings['description']); ?></textarea>
                 </td>
             </tr>
             </tbody>
@@ -524,31 +584,34 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
         </table>
         <p><button type="button" class="button" id="bw-link-page-add-link"><?php esc_html_e('Add link', 'bw'); ?></button></p>
 
-        <h2><?php esc_html_e('Socials', 'bw'); ?></h2>
-        <table class="form-table" role="presentation">
+        <h2><?php esc_html_e('Social Links', 'bw'); ?></h2>
+        <table class="widefat striped" id="bw-link-page-social-links-table" style="max-width:980px;">
+            <thead>
+            <tr>
+                <th style="width:44px;"></th>
+                <th><?php esc_html_e('Platform/Name', 'bw'); ?></th>
+                <th><?php esc_html_e('URL', 'bw'); ?></th>
+                <th><?php esc_html_e('Open in new tab', 'bw'); ?></th>
+                <th><?php esc_html_e('Action', 'bw'); ?></th>
+            </tr>
+            </thead>
             <tbody>
-            <?php
-            $social_labels = [
-                'instagram' => 'Instagram',
-                'youtube' => 'YouTube',
-                'pinterest' => 'Pinterest',
-            ];
-            foreach ($social_labels as $key => $label) :
-                $social = isset($settings['socials'][$key]) && is_array($settings['socials'][$key]) ? $settings['socials'][$key] : ['enabled' => 0, 'url' => ''];
-                ?>
-                <tr>
-                    <th scope="row"><?php echo esc_html($label); ?></th>
-                    <td>
-                        <label style="display:block;margin-bottom:8px;">
-                            <input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[socials][<?php echo esc_attr($key); ?>][enabled]" value="1" <?php checked(!empty($social['enabled'])); ?>>
-                            <?php esc_html_e('Enabled', 'bw'); ?>
-                        </label>
-                        <input type="url" class="regular-text" placeholder="https://" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[socials][<?php echo esc_attr($key); ?>][url]" value="<?php echo esc_attr((string) $social['url']); ?>">
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+            <?php if (!empty($social_links)) : ?>
+                <?php foreach ($social_links as $index => $social_link) : ?>
+                    <tr>
+                        <td style="text-align:center;vertical-align:middle;">
+                            <span class="bw-link-page-social-drag-handle" aria-label="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" title="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" style="cursor:move;display:inline-block;font-size:18px;line-height:1;color:#2271b1;">&#8801;</span>
+                        </td>
+                        <td><input type="text" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[social_links][<?php echo esc_attr((string) $index); ?>][label]" value="<?php echo esc_attr(isset($social_link['label']) ? (string) $social_link['label'] : ''); ?>"></td>
+                        <td><input type="url" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[social_links][<?php echo esc_attr((string) $index); ?>][url]" value="<?php echo esc_attr(isset($social_link['url']) ? (string) $social_link['url'] : ''); ?>"></td>
+                        <td><label><input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[social_links][<?php echo esc_attr((string) $index); ?>][target]" value="1" <?php checked(!empty($social_link['target'])); ?>> _blank</label></td>
+                        <td><button type="button" class="button bw-link-page-remove-social-link"><?php esc_html_e('Remove', 'bw'); ?></button></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </tbody>
         </table>
+        <p><button type="button" class="button" id="bw-link-page-add-social-link"><?php esc_html_e('Add social link', 'bw'); ?></button></p>
 
         <?php submit_button(__('Save Link Page Settings', 'bw')); ?>
     </form>

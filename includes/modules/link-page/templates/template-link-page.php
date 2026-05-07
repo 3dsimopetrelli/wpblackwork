@@ -12,22 +12,19 @@ $logo_url = $logo_id > 0 ? wp_get_attachment_image_url($logo_id, 'full') : '';
 $page_id = isset($settings['page_id']) ? (int) $settings['page_id'] : 0;
 $background_color = isset($settings['background_color']) ? sanitize_hex_color((string) $settings['background_color']) : '#0f0f0f';
 $background_color = $background_color ? $background_color : '#0f0f0f';
+$background_image_id = isset($settings['background_image_id']) ? (int) $settings['background_image_id'] : 0;
+$background_image_url = $background_image_id > 0 ? wp_get_attachment_image_url($background_image_id, 'full') : '';
 $logo_width = isset($settings['logo_width']) ? absint($settings['logo_width']) : 180;
 $logo_width = max(40, min(600, $logo_width));
 $logo_rotate_enabled = !empty($settings['logo_rotate']);
 $logo_rotate_speed = isset($settings['logo_rotate_speed']) && is_numeric($settings['logo_rotate_speed']) ? (float) $settings['logo_rotate_speed'] : 18.0;
 $logo_rotate_speed = max(2.0, min(120.0, $logo_rotate_speed));
 
-$socials = isset($settings['socials']) && is_array($settings['socials']) ? $settings['socials'] : [];
-$social_map = [
-    'instagram' => 'Instagram',
-    'youtube' => 'YouTube',
-    'pinterest' => 'Pinterest',
-];
+$social_links = isset($settings['social_links']) && is_array($settings['social_links']) ? $settings['social_links'] : [];
 
 $has_socials = false;
-foreach ($social_map as $key => $_label) {
-    if (!empty($socials[$key]['enabled']) && !empty($socials[$key]['url'])) {
+foreach ($social_links as $social_link) {
+    if (!empty($social_link['label']) && !empty($social_link['url'])) {
         $has_socials = true;
         break;
     }
@@ -56,6 +53,10 @@ $body_style = sprintf(
     (string) $logo_width,
     rtrim(rtrim(number_format($logo_rotate_speed, 1, '.', ''), '0'), '.')
 );
+
+if (!empty($background_image_url)) {
+    $body_style .= '--bw-link-bg-image:url(' . esc_url_raw($background_image_url) . ');';
+}
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -106,15 +107,16 @@ $body_style = sprintf(
 
         <?php if ($has_socials) : ?>
             <div class="socials">
-                <?php foreach ($social_map as $key => $label) :
-                    $item = isset($socials[$key]) && is_array($socials[$key]) ? $socials[$key] : [];
-                    $enabled = !empty($item['enabled']);
-                    $url = isset($item['url']) ? (string) $item['url'] : '';
-                    if (!$enabled || '' === $url) {
+                <?php foreach ($social_links as $social_link) :
+                    $label = isset($social_link['label']) ? (string) $social_link['label'] : '';
+                    $url = isset($social_link['url']) ? (string) $social_link['url'] : '';
+                    if ('' === $label || '' === $url) {
                         continue;
                     }
+                    $target = !empty($social_link['target']) ? '_blank' : '_self';
+                    $rel = '_blank' === $target ? 'noopener noreferrer' : '';
                     ?>
-                    <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($label); ?></a>
+                    <a href="<?php echo esc_url($url); ?>" target="<?php echo esc_attr($target); ?>"<?php echo '' !== $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>><?php echo esc_html($label); ?></a>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

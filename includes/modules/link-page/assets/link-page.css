@@ -6,6 +6,7 @@
     --bw-link-accent: #80fd03;
     --bw-link-logo-width: 180px;
     --bw-link-logo-rotate-duration: 18s;
+    --bw-link-bg-image: none;
 }
 
 * {
@@ -21,6 +22,10 @@ body {
 body {
     min-height: 100vh;
     background: var(--bw-link-bg);
+    background-image: var(--bw-link-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: var(--bw-link-text);
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
