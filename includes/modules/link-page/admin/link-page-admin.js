@@ -22,7 +22,7 @@
         function createLinkRow(index) {
             var row = document.createElement('tr');
             row.innerHTML = '' +
-                '<td style="text-align:center;vertical-align:middle;"><button type="button" class="button-link bw-link-page-drag-handle" aria-label="Drag to reorder" title="Drag to reorder" style="cursor:move;text-decoration:none;font-size:18px;line-height:1;">&#8801;</button></td>' +
+                '<td style="text-align:center;vertical-align:middle;"><span class="bw-link-page-drag-handle" aria-label="Drag to reorder" title="Drag to reorder" style="cursor:move;display:inline-block;font-size:18px;line-height:1;color:#2271b1;">&#8801;</span></td>' +
                 '<td><input type="text" class="regular-text" name="' + optionKey + '[links][' + index + '][label]" value=""></td>' +
                 '<td><input type="url" class="regular-text" name="' + optionKey + '[links][' + index + '][url]" value=""></td>' +
                 '<td><label><input type="checkbox" name="' + optionKey + '[links][' + index + '][target]" value="1"> _blank</label></td>' +

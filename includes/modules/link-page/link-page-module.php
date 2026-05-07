@@ -511,7 +511,7 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                 <?php foreach ($settings['links'] as $index => $link) : ?>
                     <tr>
                         <td style="text-align:center;vertical-align:middle;">
-                            <button type="button" class="button-link bw-link-page-drag-handle" aria-label="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" title="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" style="cursor:move;text-decoration:none;font-size:18px;line-height:1;">&#8801;</button>
+                            <span class="bw-link-page-drag-handle" aria-label="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" title="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" style="cursor:move;display:inline-block;font-size:18px;line-height:1;color:#2271b1;">&#8801;</span>
                         </td>
                         <td><input type="text" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][label]" value="<?php echo esc_attr($link['label']); ?>"></td>
                         <td><input type="url" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][url]" value="<?php echo esc_attr($link['url']); ?>"></td>
