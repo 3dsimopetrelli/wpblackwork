@@ -108,7 +108,7 @@ body {
     background: rgba(255, 255, 255, 0.04);
     color: var(--bw-link-text);
     border-radius: 999px;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.2;
     padding: 12px 16px;
     outline: none;
@@ -124,6 +124,12 @@ body {
     background: transparent;
     border-radius: 999px;
     padding: 13px 18px;
+}
+
+.newsletter-form input,
+.newsletter-form select,
+.newsletter-form textarea {
+    font-size: 16px;
 }
 
 .newsletter-field input::placeholder {
