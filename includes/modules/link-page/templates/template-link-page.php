@@ -175,7 +175,7 @@ if (!empty($background_image_url)) {
                         </div>
                     <?php endif; ?>
 
-                    <div class="newsletter-inline">
+                    <div class="newsletter-email-combo">
                         <div class="newsletter-field newsletter-field-email">
                             <input
                                 type="email"
