@@ -108,6 +108,8 @@ function bw_link_page_sanitize_settings($raw)
             $label = isset($link['label']) ? sanitize_text_field($link['label']) : '';
             $url = isset($link['url']) ? esc_url_raw($link['url']) : '';
             $target = !empty($link['target']) ? 1 : 0;
+            $button_color = isset($link['button_color']) ? sanitize_hex_color((string) $link['button_color']) : '';
+            $border_color = isset($link['border_color']) ? sanitize_hex_color((string) $link['border_color']) : '';
 
             if ('' === $label || '' === $url) {
                 continue;
@@ -117,6 +119,8 @@ function bw_link_page_sanitize_settings($raw)
                 'label' => $label,
                 'url' => $url,
                 'target' => $target,
+                'button_color' => is_string($button_color) ? $button_color : '',
+                'border_color' => is_string($border_color) ? $border_color : '',
             ];
         }
     }
@@ -352,12 +356,13 @@ function bw_link_page_enqueue_admin_assets($hook)
     wp_enqueue_script(
         'bw-link-page-admin',
         BW_MEW_URL . 'includes/modules/link-page/admin/link-page-admin.js',
-        ['jquery', 'media-editor', 'media-views', 'wp-util'],
+        ['jquery', 'media-editor', 'media-views', 'wp-util', 'wp-color-picker'],
         file_exists($admin_js_path) ? filemtime($admin_js_path) : BLACKWORK_PLUGIN_VERSION,
         true
     );
 
     wp_enqueue_script('jquery-ui-sortable');
+    wp_enqueue_style('wp-color-picker');
 }
 add_action('admin_enqueue_scripts', 'bw_link_page_enqueue_admin_assets', 20);
 
@@ -577,6 +582,8 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                 <th style="width:44px;"></th>
                 <th><?php esc_html_e('Label', 'bw'); ?></th>
                 <th><?php esc_html_e('URL', 'bw'); ?></th>
+                <th><?php esc_html_e('Button color', 'bw'); ?></th>
+                <th><?php esc_html_e('Border color', 'bw'); ?></th>
                 <th><?php esc_html_e('Open in new tab', 'bw'); ?></th>
                 <th><?php esc_html_e('Action', 'bw'); ?></th>
             </tr>
@@ -590,6 +597,8 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                         </td>
                         <td><input type="text" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][label]" value="<?php echo esc_attr($link['label']); ?>"></td>
                         <td><input type="url" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][url]" value="<?php echo esc_attr($link['url']); ?>"></td>
+                        <td><input type="text" class="bw-link-page-color-field" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][button_color]" value="<?php echo esc_attr(isset($link['button_color']) ? (string) $link['button_color'] : ''); ?>" placeholder="<?php esc_attr_e('Default', 'bw'); ?>"></td>
+                        <td><input type="text" class="bw-link-page-color-field" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][border_color]" value="<?php echo esc_attr(isset($link['border_color']) ? (string) $link['border_color'] : ''); ?>" placeholder="<?php esc_attr_e('Default', 'bw'); ?>"></td>
                         <td><label><input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][target]" value="1" <?php checked(!empty($link['target'])); ?>> _blank</label></td>
                         <td><button type="button" class="button bw-link-page-remove-link"><?php esc_html_e('Remove', 'bw'); ?></button></td>
                     </tr>

@@ -31,10 +31,31 @@
                 '<td style="text-align:center;vertical-align:middle;"><span class="bw-link-page-drag-handle" aria-label="Drag to reorder" title="Drag to reorder" style="cursor:move;display:inline-block;font-size:18px;line-height:1;color:#2271b1;">&#8801;</span></td>' +
                 '<td><input type="text" class="regular-text" name="' + optionKey + '[links][' + index + '][label]" value=""></td>' +
                 '<td><input type="url" class="regular-text" name="' + optionKey + '[links][' + index + '][url]" value=""></td>' +
+                '<td><input type="text" class="bw-link-page-color-field" name="' + optionKey + '[links][' + index + '][button_color]" value="" placeholder="Default"></td>' +
+                '<td><input type="text" class="bw-link-page-color-field" name="' + optionKey + '[links][' + index + '][border_color]" value="" placeholder="Default"></td>' +
                 '<td><label><input type="checkbox" name="' + optionKey + '[links][' + index + '][target]" value="1"> _blank</label></td>' +
                 '<td><button type="button" class="button bw-link-page-remove-link">Remove</button></td>';
 
             return row;
+        }
+
+        function initColorPickers(scope) {
+            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.wpColorPicker) {
+                return;
+            }
+
+            var $scope = scope ? window.jQuery(scope) : window.jQuery(document);
+            $scope.find('.bw-link-page-color-field').each(function () {
+                var $field = window.jQuery(this);
+                if ($field.data('wpWpColorPicker')) {
+                    return;
+                }
+                $field.wpColorPicker({
+                    clear: function () {
+                        $field.val('');
+                    }
+                });
+            });
         }
 
         function createSocialLinkRow(index) {
@@ -67,7 +88,9 @@
 
         if (addLinkButton && linksTableBody) {
             addLinkButton.addEventListener('click', function () {
-                linksTableBody.appendChild(createLinkRow(nextIndex(linksTableBody)));
+                var newRow = createLinkRow(nextIndex(linksTableBody));
+                linksTableBody.appendChild(newRow);
+                initColorPickers(newRow);
                 reindexRows(linksTableBody, 'links');
             });
 
@@ -217,6 +240,8 @@
                 backgroundPreview.innerHTML = '';
             });
         }
+
+        initColorPickers(document);
     }
 
     if (document.readyState === 'loading') {

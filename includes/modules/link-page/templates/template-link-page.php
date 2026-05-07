@@ -93,12 +93,23 @@ if (!empty($background_image_url)) {
                 $target = !empty($link['target']) ? '_blank' : '_self';
                 $rel = '_blank' === $target ? 'noopener noreferrer' : '';
                 $link_id = function_exists('bw_link_page_build_link_id') ? bw_link_page_build_link_id($link, $index) : ('link-' . (string) $index);
+                $button_color = isset($link['button_color']) ? sanitize_hex_color((string) $link['button_color']) : '';
+                $border_color = isset($link['border_color']) ? sanitize_hex_color((string) $link['border_color']) : '';
+                $link_style_parts = [];
+                if (!empty($button_color)) {
+                    $link_style_parts[] = '--bw-link-button-bg:' . $button_color;
+                }
+                if (!empty($border_color)) {
+                    $link_style_parts[] = '--bw-link-button-border:' . $border_color;
+                }
+                $link_style = implode(';', $link_style_parts);
                 ?>
                 <a class="link-item"
                     href="<?php echo esc_url($url); ?>"
                     target="<?php echo esc_attr($target); ?>"
                     data-bw-link-id="<?php echo esc_attr($link_id); ?>"
                     data-bw-link-label="<?php echo esc_attr($label); ?>"
+                    <?php echo '' !== $link_style ? ' style="' . esc_attr($link_style) . '"' : ''; ?>
                     <?php echo '' !== $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>>
                     <?php echo esc_html($label); ?>
                 </a>
