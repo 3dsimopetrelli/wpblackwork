@@ -322,6 +322,8 @@ function bw_link_page_enqueue_admin_assets($hook)
         file_exists($admin_js_path) ? filemtime($admin_js_path) : BLACKWORK_PLUGIN_VERSION,
         true
     );
+
+    wp_enqueue_script('jquery-ui-sortable');
 }
 add_action('admin_enqueue_scripts', 'bw_link_page_enqueue_admin_assets', 20);
 
@@ -497,6 +499,7 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
         <table class="widefat striped" id="bw-link-page-links-table" style="max-width:980px;">
             <thead>
             <tr>
+                <th style="width:44px;"></th>
                 <th><?php esc_html_e('Label', 'bw'); ?></th>
                 <th><?php esc_html_e('URL', 'bw'); ?></th>
                 <th><?php esc_html_e('Open in new tab', 'bw'); ?></th>
@@ -507,6 +510,9 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
             <?php if (!empty($settings['links'])) : ?>
                 <?php foreach ($settings['links'] as $index => $link) : ?>
                     <tr>
+                        <td style="text-align:center;vertical-align:middle;">
+                            <button type="button" class="button-link bw-link-page-drag-handle" aria-label="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" title="<?php esc_attr_e('Drag to reorder', 'bw'); ?>" style="cursor:move;text-decoration:none;font-size:18px;line-height:1;">&#8801;</button>
+                        </td>
                         <td><input type="text" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][label]" value="<?php echo esc_attr($link['label']); ?>"></td>
                         <td><input type="url" class="regular-text" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][url]" value="<?php echo esc_attr($link['url']); ?>"></td>
                         <td><label><input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[links][<?php echo esc_attr((string) $index); ?>][target]" value="1" <?php checked(!empty($link['target'])); ?>> _blank</label></td>

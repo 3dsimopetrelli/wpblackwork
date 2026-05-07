@@ -5,6 +5,7 @@
         var optionKey = 'bw_link_page_settings_v1';
         var linksTableBody = document.querySelector('#bw-link-page-links-table tbody');
         var addLinkButton = document.getElementById('bw-link-page-add-link');
+        var settingsForm = document.querySelector('form.bw-site-settings-form');
         var uploadButton = document.getElementById('bw-link-page-logo-upload');
         var removeButton = document.getElementById('bw-link-page-logo-remove');
         var logoInput = document.getElementById('bw-link-page-logo-id');
@@ -21,6 +22,7 @@
         function createLinkRow(index) {
             var row = document.createElement('tr');
             row.innerHTML = '' +
+                '<td style="text-align:center;vertical-align:middle;"><button type="button" class="button-link bw-link-page-drag-handle" aria-label="Drag to reorder" title="Drag to reorder" style="cursor:move;text-decoration:none;font-size:18px;line-height:1;">&#8801;</button></td>' +
                 '<td><input type="text" class="regular-text" name="' + optionKey + '[links][' + index + '][label]" value=""></td>' +
                 '<td><input type="url" class="regular-text" name="' + optionKey + '[links][' + index + '][url]" value=""></td>' +
                 '<td><label><input type="checkbox" name="' + optionKey + '[links][' + index + '][target]" value="1"> _blank</label></td>' +
@@ -29,9 +31,26 @@
             return row;
         }
 
+        function reindexRows() {
+            if (!linksTableBody) {
+                return;
+            }
+
+            var rows = linksTableBody.querySelectorAll('tr');
+            rows.forEach(function (row, index) {
+                var inputs = row.querySelectorAll('input[name]');
+                inputs.forEach(function (input) {
+                    var currentName = String(input.getAttribute('name') || '');
+                    var updatedName = currentName.replace(/\[links\]\[\d+\]/, '[links][' + index + ']');
+                    input.setAttribute('name', updatedName);
+                });
+            });
+        }
+
         if (addLinkButton && linksTableBody) {
             addLinkButton.addEventListener('click', function () {
                 linksTableBody.appendChild(createLinkRow(nextIndex()));
+                reindexRows();
             });
 
             linksTableBody.addEventListener('click', function (event) {
@@ -48,7 +67,30 @@
                 var row = removeLinkButton.closest('tr');
                 if (row) {
                     row.remove();
+                    reindexRows();
                 }
+            });
+        }
+
+        if (linksTableBody && window.jQuery && window.jQuery.fn && window.jQuery.fn.sortable) {
+            window.jQuery(linksTableBody).sortable({
+                axis: 'y',
+                handle: '.bw-link-page-drag-handle',
+                helper: function (event, ui) {
+                    ui.children().each(function () {
+                        window.jQuery(this).width(window.jQuery(this).width());
+                    });
+                    return ui;
+                },
+                update: function () {
+                    reindexRows();
+                }
+            });
+        }
+
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', function () {
+                reindexRows();
             });
         }
 
