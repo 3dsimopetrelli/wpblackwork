@@ -457,106 +457,121 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
     <form method="post" action="options.php" class="bw-site-settings-form" style="max-width: 980px;">
         <?php settings_fields('bw_link_page_settings_group'); ?>
 
-        <h2><?php esc_html_e('Page', 'bw'); ?></h2>
-        <table class="form-table" role="presentation">
-            <tbody>
-            <tr>
-                <th scope="row"><label for="bw-link-page-id"><?php esc_html_e('Page', 'bw'); ?></label></th>
-                <td>
-                    <select id="bw-link-page-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[page_id]" required>
-                        <option value="0"><?php esc_html_e('Select a page', 'bw'); ?></option>
-                        <?php foreach ($pages as $page) : ?>
-                            <option value="<?php echo esc_attr((string) $page->ID); ?>" <?php selected((int) $settings['page_id'], (int) $page->ID); ?>>
-                                <?php echo esc_html($page->post_title); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Page', 'bw'); ?></h2>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Choose which page should use the Link Page template.', 'bw'); ?></p>
+            <table class="form-table bw-admin-form-grid" role="presentation">
+                <tbody>
+                <tr>
+                    <th scope="row"><label for="bw-link-page-id"><?php esc_html_e('Page', 'bw'); ?></label></th>
+                    <td>
+                        <select id="bw-link-page-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[page_id]" required>
+                            <option value="0"><?php esc_html_e('Select a page', 'bw'); ?></option>
+                            <?php foreach ($pages as $page) : ?>
+                                <option value="<?php echo esc_attr((string) $page->ID); ?>" <?php selected((int) $settings['page_id'], (int) $page->ID); ?>>
+                                    <?php echo esc_html($page->post_title); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
 
-        <h2><?php esc_html_e('Logo', 'bw'); ?></h2>
-        <table class="form-table" role="presentation">
-            <tbody>
-            <tr>
-                <th scope="row"><?php esc_html_e('Logo', 'bw'); ?></th>
-                <td>
-                    <input type="hidden" id="bw-link-page-logo-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_id]" value="<?php echo esc_attr((string) $settings['logo_id']); ?>">
-                    <button type="button" class="button" id="bw-link-page-logo-upload"><?php esc_html_e('Select logo', 'bw'); ?></button>
-                    <button type="button" class="button" id="bw-link-page-logo-remove"><?php esc_html_e('Remove', 'bw'); ?></button>
-                    <div id="bw-link-page-logo-preview" style="margin-top:12px;">
-                        <?php if (!empty($logo_url)) : ?>
-                            <img src="<?php echo esc_url($logo_url); ?>" alt="" style="max-width:140px;height:auto;display:block;">
-                        <?php endif; ?>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><label for="bw-link-page-logo-width"><?php esc_html_e('Logo width (px)', 'bw'); ?></label></th>
-                <td>
-                    <input type="number" min="40" max="600" step="1" id="bw-link-page-logo-width" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_width]" value="<?php echo esc_attr((string) $settings['logo_width']); ?>">
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php esc_html_e('Logo rotation animation', 'bw'); ?></th>
-                <td>
-                    <label style="display:block;margin-bottom:8px;">
-                        <input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate]" value="1" <?php checked(!empty($settings['logo_rotate'])); ?>>
-                        <?php esc_html_e('Enable continuous rotation', 'bw'); ?>
-                    </label>
-                    <label for="bw-link-page-logo-rotate-speed"><?php esc_html_e('Rotation speed (seconds)', 'bw'); ?></label><br>
-                    <input type="number" min="2" max="120" step="0.1" id="bw-link-page-logo-rotate-speed" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate_speed]" value="<?php echo esc_attr((string) $settings['logo_rotate_speed']); ?>">
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Logo', 'bw'); ?></h2>
+            <table class="form-table bw-admin-form-grid" role="presentation">
+                <tbody>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Logo preview', 'bw'); ?></th>
+                    <td>
+                        <input type="hidden" id="bw-link-page-logo-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_id]" value="<?php echo esc_attr((string) $settings['logo_id']); ?>">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" class="button" id="bw-link-page-logo-upload"><?php esc_html_e('Select logo', 'bw'); ?></button>
+                            <button type="button" class="button" id="bw-link-page-logo-remove"><?php esc_html_e('Remove', 'bw'); ?></button>
+                        </div>
+                        <div id="bw-link-page-logo-preview" style="margin-top:12px;">
+                            <?php if (!empty($logo_url)) : ?>
+                                <img src="<?php echo esc_url($logo_url); ?>" alt="" style="max-width:140px;height:auto;display:block;">
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-link-page-logo-width"><?php esc_html_e('Logo width (px)', 'bw'); ?></label></th>
+                    <td>
+                        <input type="number" min="40" max="600" step="1" id="bw-link-page-logo-width" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_width]" value="<?php echo esc_attr((string) $settings['logo_width']); ?>">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Rotation', 'bw'); ?></th>
+                    <td>
+                        <label style="display:block;margin-bottom:8px;">
+                            <input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate]" value="1" <?php checked(!empty($settings['logo_rotate'])); ?>>
+                            <?php esc_html_e('Enable continuous rotation', 'bw'); ?>
+                        </label>
+                        <label for="bw-link-page-logo-rotate-speed"><?php esc_html_e('Rotation speed (seconds)', 'bw'); ?></label><br>
+                        <input type="number" min="2" max="120" step="0.1" id="bw-link-page-logo-rotate-speed" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[logo_rotate_speed]" value="<?php echo esc_attr((string) $settings['logo_rotate_speed']); ?>">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
 
-        <h2><?php esc_html_e('Background', 'bw'); ?></h2>
-        <table class="form-table" role="presentation">
-            <tbody>
-            <tr>
-                <th scope="row"><label for="bw-link-page-background-color"><?php esc_html_e('Background color', 'bw'); ?></label></th>
-                <td>
-                    <input type="color" id="bw-link-page-background-color" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_color]" value="<?php echo esc_attr((string) $settings['background_color']); ?>">
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><?php esc_html_e('Background image', 'bw'); ?></th>
-                <td>
-                    <input type="hidden" id="bw-link-page-background-image-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_image_id]" value="<?php echo esc_attr((string) $background_image_id); ?>">
-                    <button type="button" class="button" id="bw-link-page-background-upload"><?php esc_html_e('Select background image', 'bw'); ?></button>
-                    <button type="button" class="button" id="bw-link-page-background-remove"><?php esc_html_e('Remove', 'bw'); ?></button>
-                    <div id="bw-link-page-background-preview" style="margin-top:12px;">
-                        <?php if (!empty($background_image_url)) : ?>
-                            <img src="<?php echo esc_url($background_image_url); ?>" alt="" style="max-width:200px;height:auto;display:block;">
-                        <?php endif; ?>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Background', 'bw'); ?></h2>
+            <table class="form-table bw-admin-form-grid" role="presentation">
+                <tbody>
+                <tr>
+                    <th scope="row"><label for="bw-link-page-background-color"><?php esc_html_e('Background color', 'bw'); ?></label></th>
+                    <td>
+                        <input type="color" id="bw-link-page-background-color" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_color]" value="<?php echo esc_attr((string) $settings['background_color']); ?>">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Background image', 'bw'); ?></th>
+                    <td>
+                        <input type="hidden" id="bw-link-page-background-image-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[background_image_id]" value="<?php echo esc_attr((string) $background_image_id); ?>">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" class="button" id="bw-link-page-background-upload"><?php esc_html_e('Select background image', 'bw'); ?></button>
+                            <button type="button" class="button" id="bw-link-page-background-remove"><?php esc_html_e('Remove', 'bw'); ?></button>
+                        </div>
+                        <div id="bw-link-page-background-preview" style="margin-top:12px;">
+                            <?php if (!empty($background_image_url)) : ?>
+                                <img src="<?php echo esc_url($background_image_url); ?>" alt="" style="max-width:200px;height:auto;display:block;">
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
 
-        <h2><?php esc_html_e('Content', 'bw'); ?></h2>
-        <table class="form-table" role="presentation">
-            <tbody>
-            <tr>
-                <th scope="row"><label for="bw-link-page-title"><?php esc_html_e('Title (optional)', 'bw'); ?></label></th>
-                <td>
-                    <input type="text" class="regular-text" id="bw-link-page-title" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[title]" value="<?php echo esc_attr($settings['title']); ?>">
-                </td>
-            </tr>
-            <tr>
-                <th scope="row"><label for="bw-link-page-description"><?php esc_html_e('Description (optional)', 'bw'); ?></label></th>
-                <td>
-                    <textarea id="bw-link-page-description" class="large-text" rows="4" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[description]"><?php echo esc_textarea($settings['description']); ?></textarea>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Content', 'bw'); ?></h2>
+            <table class="form-table bw-admin-form-grid" role="presentation">
+                <tbody>
+                <tr>
+                    <th scope="row"><label for="bw-link-page-title"><?php esc_html_e('Title (optional)', 'bw'); ?></label></th>
+                    <td>
+                        <input type="text" class="regular-text" id="bw-link-page-title" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[title]" value="<?php echo esc_attr($settings['title']); ?>">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bw-link-page-description"><?php esc_html_e('Description (optional)', 'bw'); ?></label></th>
+                    <td>
+                        <textarea id="bw-link-page-description" class="large-text" rows="4" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[description]"><?php echo esc_textarea($settings['description']); ?></textarea>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
 
-        <h2><?php esc_html_e('Links', 'bw'); ?></h2>
-        <table class="widefat striped" id="bw-link-page-links-table" style="max-width:980px;">
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Links', 'bw'); ?></h2>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Drag rows to reorder how buttons appear on the frontend.', 'bw'); ?></p>
+            <table class="bw-admin-table bw-admin-table--wide-middle" id="bw-link-page-links-table" style="max-width:980px;">
             <thead>
             <tr>
                 <th style="width:44px;"></th>
@@ -581,11 +596,14 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                 <?php endforeach; ?>
             <?php endif; ?>
             </tbody>
-        </table>
-        <p><button type="button" class="button" id="bw-link-page-add-link"><?php esc_html_e('Add link', 'bw'); ?></button></p>
+            </table>
+            <p><button type="button" class="button" id="bw-link-page-add-link"><?php esc_html_e('Add link', 'bw'); ?></button></p>
+        </section>
 
-        <h2><?php esc_html_e('Social Links', 'bw'); ?></h2>
-        <table class="widefat striped" id="bw-link-page-social-links-table" style="max-width:980px;">
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Social Links', 'bw'); ?></h2>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Use sortable social links; remove all rows to hide social links on the frontend.', 'bw'); ?></p>
+            <table class="bw-admin-table bw-admin-table--wide-middle" id="bw-link-page-social-links-table" style="max-width:980px;">
             <thead>
             <tr>
                 <th style="width:44px;"></th>
@@ -610,8 +628,9 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                 <?php endforeach; ?>
             <?php endif; ?>
             </tbody>
-        </table>
-        <p><button type="button" class="button" id="bw-link-page-add-social-link"><?php esc_html_e('Add social link', 'bw'); ?></button></p>
+            </table>
+            <p><button type="button" class="button" id="bw-link-page-add-social-link"><?php esc_html_e('Add social link', 'bw'); ?></button></p>
+        </section>
 
         <?php submit_button(__('Save Link Page Settings', 'bw')); ?>
     </form>
@@ -742,7 +761,7 @@ function bw_link_page_render_admin_page()
     }
 
     ?>
-    <div class="wrap bw-site-settings-wrap">
+    <div class="wrap bw-site-settings-wrap bw-admin-root bw-admin-page">
         <h1><?php esc_html_e('Link Page', 'bw'); ?></h1>
 
         <nav class="nav-tab-wrapper" style="margin-bottom:16px;">
