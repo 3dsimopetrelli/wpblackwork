@@ -102,6 +102,55 @@
         message.textContent = text || '';
     }
 
+    function setConsentErrorState(form, hasError) {
+        var consentWrapper = form.querySelector('.newsletter-consent');
+        if (!consentWrapper) {
+            return;
+        }
+
+        consentWrapper.classList.toggle('has-error', !!hasError);
+    }
+
+    function setEmailInvalidState(form, isInvalid) {
+        var combo = form.querySelector('.newsletter-email-combo');
+        var emailInput = form.querySelector('input[name="email"]');
+
+        if (combo) {
+            combo.classList.toggle('is-invalid', !!isInvalid);
+        }
+
+        if (emailInput) {
+            emailInput.setAttribute('aria-invalid', isInvalid ? 'true' : 'false');
+        }
+    }
+
+    function getNewsletterReadiness(form, consentRequired) {
+        var emailInput = form.querySelector('input[name="email"]');
+        var privacyInput = form.querySelector('input[name="privacy"]');
+        var email = normalizeEmail(emailInput ? emailInput.value : '');
+        var emailValid = !!emailInput && email !== '' && isValidEmail(email);
+        var consentValid = !consentRequired || !privacyInput || !!privacyInput.checked;
+
+        return {
+            emailValid: emailValid,
+            consentValid: consentValid,
+            ready: emailValid && consentValid
+        };
+    }
+
+    function updateNewsletterUIState(form, consentRequired) {
+        var state = getNewsletterReadiness(form, consentRequired);
+        form.classList.toggle('is-ready', state.ready);
+
+        if (state.emailValid) {
+            setEmailInvalidState(form, false);
+        }
+
+        if (state.consentValid) {
+            setConsentErrorState(form, false);
+        }
+    }
+
     function setNewsletterBusy(form, busy) {
         var submit = form.querySelector('.newsletter-submit');
         if (submit) {
@@ -124,6 +173,37 @@
             return;
         }
 
+        updateNewsletterUIState(form, consentRequired);
+
+        form.addEventListener('input', function (event) {
+            var target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            if (target.matches('input[name="email"]')) {
+                var email = normalizeEmail(target.value || '');
+                if (email === '' || isValidEmail(email)) {
+                    setEmailInvalidState(form, false);
+                }
+            }
+
+            updateNewsletterUIState(form, consentRequired);
+        });
+
+        form.addEventListener('change', function (event) {
+            var target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            if (target.matches('input[name="privacy"]')) {
+                setConsentErrorState(form, !target.checked && consentRequired);
+            }
+
+            updateNewsletterUIState(form, consentRequired);
+        });
+
         form.addEventListener('submit', function (event) {
             var emailInput = form.querySelector('input[name="email"]');
             var nameInput = form.querySelector('input[name="name"]');
@@ -134,19 +214,25 @@
             event.preventDefault();
 
             if (!emailInput || email === '') {
+                setEmailInvalidState(form, true);
                 setNewsletterMessage(form, 'is-error', 'Please enter your email address.');
                 return;
             }
 
             if (!isValidEmail(email)) {
+                setEmailInvalidState(form, true);
                 setNewsletterMessage(form, 'is-error', 'Please enter a valid email address.');
                 return;
             }
 
             if (consentRequired && privacyInput && !privacyInput.checked) {
+                setConsentErrorState(form, true);
                 setNewsletterMessage(form, 'is-error', 'Please confirm the privacy consent to subscribe.');
                 return;
             }
+
+            setEmailInvalidState(form, false);
+            setConsentErrorState(form, false);
 
             payload = {
                 action: action,
@@ -182,6 +268,7 @@
                     if (data && data.success) {
                         setNewsletterMessage(form, 'is-success', (data.data && data.data.message) ? data.data.message : 'Thanks for subscribing!');
                         form.reset();
+                        updateNewsletterUIState(form, consentRequired);
                         return;
                     }
 
@@ -192,6 +279,7 @@
                 })
                 .finally(function () {
                     setNewsletterBusy(form, false);
+                    updateNewsletterUIState(form, consentRequired);
                 });
         });
     }
