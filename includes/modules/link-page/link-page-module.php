@@ -525,8 +525,22 @@ function bw_link_page_render_analytics_tab($page_id)
         __('Last 30 days', 'bw') => (int) $summary['last_30_days'],
     ];
 
+    $refresh_url = admin_url('admin.php?page=bw-link-page-settings&tab=analytics');
+
     ?>
     <div style="max-width:980px;">
+        <style>
+            @keyframes bw-link-page-bar-rise {
+                from {
+                    transform: scaleY(0);
+                    opacity: 0.25;
+                }
+                to {
+                    transform: scaleY(1);
+                    opacity: 1;
+                }
+            }
+        </style>
         <div style="display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:16px 0 22px;">
             <?php foreach ($cards as $label => $value) : ?>
                 <div style="border:1px solid #d9d9d9;border-radius:10px;padding:12px;background:#fff;">
@@ -536,23 +550,36 @@ function bw_link_page_render_analytics_tab($page_id)
             <?php endforeach; ?>
         </div>
 
+        <p style="margin:0 0 14px;color:#444;">
+            <?php esc_html_e('Clicks are stored internally in the WordPress database. No Google Analytics or external tracking is used.', 'bw'); ?>
+        </p>
+
         <?php if ((int) $summary['total'] <= 0) : ?>
             <p><?php esc_html_e('No link clicks yet.', 'bw'); ?></p>
             <?php return; ?>
         <?php endif; ?>
 
-        <h2 style="margin:18px 0 10px;"><?php esc_html_e('Daily Clicks (Last 30 Days)', 'bw'); ?></h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 10px;">
+            <h2 style="margin:0;"><?php esc_html_e('Daily Clicks (Last 30 Days)', 'bw'); ?></h2>
+            <a class="button" href="<?php echo esc_url($refresh_url); ?>"><?php esc_html_e('Refresh analytics', 'bw'); ?></a>
+        </div>
         <div style="display:grid;grid-template-columns:repeat(30,minmax(0,1fr));gap:6px;align-items:end;min-height:150px;padding:14px;border:1px solid #d9d9d9;border-radius:10px;background:#fff;">
             <?php foreach ($daily_series as $point) :
                 $count = (int) $point['count'];
                 $bar_max_height = 120;
-                $bar_min_height = 6;
+                $bar_min_height = 3;
                 $height_px = $max_daily > 0
                     ? max($bar_min_height, (int) floor(($count / $max_daily) * $bar_max_height))
                     : $bar_min_height;
+                $bar_color = $count > 0 ? '#80FD03' : '#dfe5d9';
                 ?>
-                <div title="<?php echo esc_attr($point['label'] . ': ' . $count); ?>" style="display:flex;align-items:flex-end;justify-content:center;min-height:120px;">
-                    <span style="display:block;width:100%;max-width:16px;border-radius:5px 5px 0 0;background:#80FD03;height:<?php echo esc_attr((string) $height_px); ?>px;"></span>
+                <div title="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks'); ?>" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:120px;">
+                    <?php if ($count > 0) : ?>
+                        <span style="font-size:11px;line-height:1;margin-bottom:4px;color:#222;"><?php echo esc_html((string) $count); ?></span>
+                    <?php else : ?>
+                        <span aria-hidden="true" style="display:block;height:15px;"></span>
+                    <?php endif; ?>
+                    <span style="display:block;width:100%;max-width:16px;border-radius:5px 5px 0 0;background:<?php echo esc_attr($bar_color); ?>;height:<?php echo esc_attr((string) $height_px); ?>px;transform-origin:bottom center;animation:bw-link-page-bar-rise 320ms ease-out both;"></span>
                 </div>
             <?php endforeach; ?>
         </div>
