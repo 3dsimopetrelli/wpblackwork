@@ -38,6 +38,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 40px 16px;
+    animation: bw-link-page-fade-in 220ms ease-out both;
 }
 
 .container {
@@ -108,6 +109,17 @@ body {
     }
 }
 
+@keyframes bw-link-page-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .link-item:hover {
     opacity: 0.9;
 }
@@ -157,5 +169,15 @@ body {
 
     .title {
         font-size: 22px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wrapper {
+        animation: none;
+    }
+
+    .bw-link-page-logo-rotate .logo img {
+        animation: none;
     }
 }

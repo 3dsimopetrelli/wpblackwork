@@ -35,6 +35,39 @@ $css_url = plugin_dir_url(__FILE__) . '../assets/link-page.css';
 $js_path = plugin_dir_path(__FILE__) . '../assets/link-page.js';
 $js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
 
+$render_links = [];
+foreach ($links as $index => $link) {
+    $label = isset($link['label']) ? (string) $link['label'] : '';
+    $url = isset($link['url']) ? (string) $link['url'] : '';
+    if ('' === $label || '' === $url) {
+        continue;
+    }
+
+    $target = !empty($link['target']) ? '_blank' : '_self';
+    $rel = '_blank' === $target ? 'noopener noreferrer' : '';
+    $link_id = function_exists('bw_link_page_build_link_id') ? bw_link_page_build_link_id($link, $index) : ('link-' . (string) $index);
+    $button_color = isset($link['button_color']) ? sanitize_hex_color((string) $link['button_color']) : '';
+    $border_color = isset($link['border_color']) ? sanitize_hex_color((string) $link['border_color']) : '';
+    $link_style_parts = [];
+    if (!empty($button_color)) {
+        $link_style_parts[] = '--bw-link-button-bg:' . $button_color;
+    }
+    if (!empty($border_color)) {
+        $link_style_parts[] = '--bw-link-button-border:' . $border_color;
+    }
+
+    $render_links[] = [
+        'label' => $label,
+        'url' => $url,
+        'target' => $target,
+        'rel' => $rel,
+        'link_id' => $link_id,
+        'link_style' => implode(';', $link_style_parts),
+    ];
+}
+
+$should_load_tracking_js = ($page_id > 0 && !empty($render_links));
+
 $analytics_config = [
     'endpoint' => admin_url('admin-ajax.php'),
     'action' => 'bw_link_page_track_click',
@@ -84,34 +117,15 @@ if (!empty($background_image_url)) {
         <?php endif; ?>
 
         <div class="links">
-            <?php foreach ($links as $index => $link) :
-                $label = isset($link['label']) ? (string) $link['label'] : '';
-                $url = isset($link['url']) ? (string) $link['url'] : '';
-                if ('' === $label || '' === $url) {
-                    continue;
-                }
-                $target = !empty($link['target']) ? '_blank' : '_self';
-                $rel = '_blank' === $target ? 'noopener noreferrer' : '';
-                $link_id = function_exists('bw_link_page_build_link_id') ? bw_link_page_build_link_id($link, $index) : ('link-' . (string) $index);
-                $button_color = isset($link['button_color']) ? sanitize_hex_color((string) $link['button_color']) : '';
-                $border_color = isset($link['border_color']) ? sanitize_hex_color((string) $link['border_color']) : '';
-                $link_style_parts = [];
-                if (!empty($button_color)) {
-                    $link_style_parts[] = '--bw-link-button-bg:' . $button_color;
-                }
-                if (!empty($border_color)) {
-                    $link_style_parts[] = '--bw-link-button-border:' . $border_color;
-                }
-                $link_style = implode(';', $link_style_parts);
-                ?>
+            <?php foreach ($render_links as $render_link) : ?>
                 <a class="link-item"
-                    href="<?php echo esc_url($url); ?>"
-                    target="<?php echo esc_attr($target); ?>"
-                    data-bw-link-id="<?php echo esc_attr($link_id); ?>"
-                    data-bw-link-label="<?php echo esc_attr($label); ?>"
-                    <?php echo '' !== $link_style ? ' style="' . esc_attr($link_style) . '"' : ''; ?>
-                    <?php echo '' !== $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>>
-                    <?php echo esc_html($label); ?>
+                    href="<?php echo esc_url($render_link['url']); ?>"
+                    target="<?php echo esc_attr($render_link['target']); ?>"
+                    data-bw-link-id="<?php echo esc_attr($render_link['link_id']); ?>"
+                    data-bw-link-label="<?php echo esc_attr($render_link['label']); ?>"
+                    <?php echo '' !== $render_link['link_style'] ? ' style="' . esc_attr($render_link['link_style']) . '"' : ''; ?>
+                    <?php echo '' !== $render_link['rel'] ? ' rel="' . esc_attr($render_link['rel']) . '"' : ''; ?>>
+                    <?php echo esc_html($render_link['label']); ?>
                 </a>
             <?php endforeach; ?>
         </div>
@@ -133,7 +147,7 @@ if (!empty($background_image_url)) {
         <?php endif; ?>
     </div>
 </div>
-<?php if (file_exists($js_path)) : ?>
+<?php if ($should_load_tracking_js && file_exists($js_path)) : ?>
     <script>window.bwLinkPageAnalytics = <?php echo wp_json_encode($analytics_config); ?>;</script>
     <script src="<?php echo esc_url($js_url); ?>?ver=<?php echo esc_attr((string) filemtime($js_path)); ?>" defer></script>
 <?php endif; ?>
