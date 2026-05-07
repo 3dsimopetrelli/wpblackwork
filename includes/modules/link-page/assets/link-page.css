@@ -165,7 +165,7 @@ body {
 .newsletter-consent {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     color: var(--bw-link-muted);
     font-size: 17px;
     line-height: 1.3;
@@ -173,39 +173,31 @@ body {
 }
 
 .newsletter-consent input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
     border: 1px solid rgba(255, 255, 255, 0.55);
-    border-radius: 6px;
+    border-radius: 4px;
     background: rgba(0, 0, 0, 0.28);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin: 0;
     cursor: pointer;
+    position: relative;
     transition: border-color 0.16s ease, background-color 0.16s ease;
-}
-
-.newsletter-consent input[type="checkbox"]::after {
-    content: "";
-    width: 6px;
-    height: 12px;
-    border: solid #0b0b0b;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg) scale(0);
-    transition: transform 0.12s ease;
 }
 
 .newsletter-consent input[type="checkbox"]:checked {
     background: var(--bw-link-accent);
     border-color: var(--bw-link-accent);
-}
-
-.newsletter-consent input[type="checkbox"]:checked::after {
-    transform: rotate(45deg) scale(1);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 5.2 4.1 7.2 8 3.2' fill='none' stroke='%230b0b0b' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 10px 10px;
 }
 
 .newsletter-consent input[type="checkbox"]:focus-visible {
@@ -354,13 +346,13 @@ body {
 
     .newsletter-consent {
         font-size: 14px;
-        gap: 10px;
+        gap: 8px;
     }
 
     .newsletter-consent input[type="checkbox"] {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
+        width: 14px;
+        height: 14px;
+        min-width: 14px;
     }
 }
 
