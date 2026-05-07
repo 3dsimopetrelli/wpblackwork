@@ -441,6 +441,53 @@ function bw_link_page_get_analytics_daily_clicks($page_id)
     return $series;
 }
 
+function bw_link_page_get_analytics_daily_breakdown($page_id)
+{
+    global $wpdb;
+
+    $table = bw_link_page_get_clicks_table_name();
+    $start = wp_date('Y-m-d 00:00:00', strtotime('-29 days', current_time('timestamp')));
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT DATE(clicked_at) AS click_day, link_label, COUNT(*) AS clicks
+            FROM {$table}
+            WHERE page_id = %d AND clicked_at >= %s
+            GROUP BY DATE(clicked_at), link_label
+            ORDER BY click_day ASC, clicks DESC, link_label ASC",
+            $page_id,
+            $start
+        ),
+        ARRAY_A
+    );
+
+    $breakdown = [];
+    if (!is_array($rows)) {
+        return $breakdown;
+    }
+
+    foreach ($rows as $row) {
+        $day = isset($row['click_day']) ? (string) $row['click_day'] : '';
+        $label = isset($row['link_label']) ? (string) $row['link_label'] : '';
+        $count = isset($row['clicks']) ? (int) $row['clicks'] : 0;
+
+        if ('' === $day || '' === $label || $count <= 0) {
+            continue;
+        }
+
+        if (!isset($breakdown[$day])) {
+            $breakdown[$day] = [];
+        }
+
+        $breakdown[$day][] = [
+            'label' => $label,
+            'count' => $count,
+        ];
+    }
+
+    return $breakdown;
+}
+
 function bw_link_page_get_analytics_link_rows($page_id)
 {
     global $wpdb;
@@ -743,6 +790,7 @@ function bw_link_page_render_analytics_tab($page_id)
 
     $summary = bw_link_page_get_analytics_summary($page_id);
     $daily_series = bw_link_page_get_analytics_daily_clicks($page_id);
+    $daily_breakdown = bw_link_page_get_analytics_daily_breakdown($page_id);
     $link_rows = bw_link_page_get_analytics_link_rows($page_id);
 
     $max_daily = 0;
@@ -771,6 +819,71 @@ function bw_link_page_render_analytics_tab($page_id)
                     transform: scaleY(1);
                     opacity: 1;
                 }
+            }
+
+            .bw-link-page-chart-day {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-end;
+                min-height: 120px;
+            }
+
+            .bw-link-page-chart-tooltip {
+                position: absolute;
+                left: 50%;
+                bottom: calc(100% + 8px);
+                transform: translateX(-50%);
+                min-width: 190px;
+                max-width: 280px;
+                padding: 9px 10px;
+                border-radius: 8px;
+                border: 1px solid #d9d9d9;
+                background: #111;
+                color: #fff;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+                text-align: left;
+                z-index: 5;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity 0.14s ease, visibility 0.14s ease;
+            }
+
+            .bw-link-page-chart-day:hover .bw-link-page-chart-tooltip,
+            .bw-link-page-chart-day:focus-within .bw-link-page-chart-tooltip {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .bw-link-page-chart-tooltip__date {
+                font-size: 12px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+
+            .bw-link-page-chart-tooltip__total {
+                font-size: 12px;
+                margin-bottom: 7px;
+                color: #d7d7d7;
+            }
+
+            .bw-link-page-chart-tooltip ul {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .bw-link-page-chart-tooltip li {
+                margin: 0 0 3px;
+                font-size: 12px;
+                line-height: 1.35;
+                color: #f1f1f1;
+            }
+
+            .bw-link-page-chart-tooltip li:last-child {
+                margin-bottom: 0;
             }
         </style>
         <div style="display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:16px 0 22px;">
@@ -804,8 +917,28 @@ function bw_link_page_render_analytics_tab($page_id)
                     ? max($bar_min_height, (int) floor(($count / $max_daily) * $bar_max_height))
                     : $bar_min_height;
                 $bar_color = $count > 0 ? '#80FD03' : '#dfe5d9';
+                $point_date = isset($point['date']) ? (string) $point['date'] : '';
+                $day_links = isset($daily_breakdown[$point_date]) && is_array($daily_breakdown[$point_date]) ? $daily_breakdown[$point_date] : [];
                 ?>
-                <div title="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks'); ?>" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:120px;">
+                <div class="bw-link-page-chart-day" title="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks'); ?>" aria-label="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks'); ?>">
+                    <?php if ($count > 0) : ?>
+                        <div class="bw-link-page-chart-tooltip" role="tooltip">
+                            <div class="bw-link-page-chart-tooltip__date"><?php echo esc_html($point_date); ?></div>
+                            <div class="bw-link-page-chart-tooltip__total">
+                                <?php
+                                /* translators: %d: total clicks */
+                                printf(esc_html__('Total: %d clicks', 'bw'), $count);
+                                ?>
+                            </div>
+                            <?php if (!empty($day_links)) : ?>
+                                <ul>
+                                    <?php foreach ($day_links as $day_link) : ?>
+                                        <li><?php echo esc_html((string) $day_link['label'] . ' — ' . (int) $day_link['count']); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                     <?php if ($count > 0) : ?>
                         <span style="font-size:11px;line-height:1;margin-bottom:4px;color:#222;"><?php echo esc_html((string) $count); ?></span>
                     <?php else : ?>
