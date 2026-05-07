@@ -7,6 +7,20 @@ $settings = function_exists('bw_link_page_get_settings') ? bw_link_page_get_sett
 $links = isset($settings['links']) && is_array($settings['links']) ? $settings['links'] : [];
 $title = isset($settings['title']) ? (string) $settings['title'] : '';
 $description = isset($settings['description']) ? (string) $settings['description'] : '';
+$newsletter_enabled = !empty($settings['newsletter_enabled']);
+$newsletter_show_name = !empty($settings['newsletter_show_name']);
+$newsletter_email_placeholder = isset($settings['newsletter_email_placeholder']) && '' !== trim((string) $settings['newsletter_email_placeholder'])
+    ? (string) $settings['newsletter_email_placeholder']
+    : 'Your email';
+$newsletter_name_placeholder = isset($settings['newsletter_name_placeholder']) && '' !== trim((string) $settings['newsletter_name_placeholder'])
+    ? (string) $settings['newsletter_name_placeholder']
+    : 'Your name';
+$newsletter_button_label = isset($settings['newsletter_button_label']) && '' !== trim((string) $settings['newsletter_button_label'])
+    ? (string) $settings['newsletter_button_label']
+    : 'Subscribe';
+$newsletter_helper_text = isset($settings['newsletter_helper_text']) ? (string) $settings['newsletter_helper_text'] : '';
+$newsletter_image_id = isset($settings['newsletter_image_id']) ? (int) $settings['newsletter_image_id'] : 0;
+$newsletter_image_url = $newsletter_image_id > 0 ? wp_get_attachment_image_url($newsletter_image_id, 'large') : '';
 $logo_id = isset($settings['logo_id']) ? (int) $settings['logo_id'] : 0;
 $logo_url = $logo_id > 0 ? wp_get_attachment_image_url($logo_id, 'full') : '';
 $page_id = isset($settings['page_id']) ? (int) $settings['page_id'] : 0;
@@ -67,12 +81,42 @@ foreach ($links as $index => $link) {
 }
 
 $should_load_tracking_js = ($page_id > 0 && !empty($render_links));
+$should_load_newsletter_js = $newsletter_enabled;
 
-$analytics_config = [
-    'endpoint' => admin_url('admin-ajax.php'),
-    'action' => 'bw_link_page_track_click',
-    'nonce' => wp_create_nonce('bw_link_page_track_click'),
-    'pageId' => $page_id,
+$newsletter_consent_required = true;
+$newsletter_consent_prefix = __('I agree to the', 'bw');
+$newsletter_privacy_link_label = __('Privacy Policy', 'bw');
+$newsletter_privacy_url = function_exists('get_privacy_policy_url') ? get_privacy_policy_url() : '';
+
+if (class_exists('BW_Mail_Marketing_Settings')) {
+    $subscription_settings = BW_Mail_Marketing_Settings::get_subscription_settings();
+    $newsletter_consent_required = !isset($subscription_settings['consent_required']) || !empty($subscription_settings['consent_required']);
+    if (!empty($subscription_settings['consent_prefix'])) {
+        $newsletter_consent_prefix = (string) $subscription_settings['consent_prefix'];
+    }
+    if (!empty($subscription_settings['privacy_link_label'])) {
+        $newsletter_privacy_link_label = (string) $subscription_settings['privacy_link_label'];
+    }
+    if (!empty($subscription_settings['privacy_url'])) {
+        $newsletter_privacy_url = (string) $subscription_settings['privacy_url'];
+    }
+}
+
+$frontend_config = [
+    'analytics' => [
+        'enabled' => $should_load_tracking_js,
+        'endpoint' => admin_url('admin-ajax.php'),
+        'action' => 'bw_link_page_track_click',
+        'nonce' => wp_create_nonce('bw_link_page_track_click'),
+        'pageId' => $page_id,
+    ],
+    'newsletter' => [
+        'enabled' => $should_load_newsletter_js,
+        'endpoint' => admin_url('admin-ajax.php'),
+        'action' => 'bw_mail_marketing_subscribe',
+        'nonce' => wp_create_nonce('bw_mail_marketing_subscription_submit'),
+        'consentRequired' => $newsletter_consent_required ? 1 : 0,
+    ],
 ];
 
 $body_classes = [];
@@ -116,6 +160,64 @@ if (!empty($background_image_url)) {
             <p class="description"><?php echo esc_html($description); ?></p>
         <?php endif; ?>
 
+        <?php if ($newsletter_enabled) : ?>
+            <div class="newsletter-block">
+                <form class="newsletter-form" method="post" novalidate data-consent-required="<?php echo $newsletter_consent_required ? '1' : '0'; ?>">
+                    <?php if ($newsletter_show_name) : ?>
+                        <div class="newsletter-field">
+                            <input
+                                type="text"
+                                name="name"
+                                autocomplete="name"
+                                placeholder="<?php echo esc_attr($newsletter_name_placeholder); ?>"
+                                aria-label="<?php echo esc_attr($newsletter_name_placeholder); ?>"
+                            >
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="newsletter-inline">
+                        <div class="newsletter-field newsletter-field-email">
+                            <input
+                                type="email"
+                                name="email"
+                                autocomplete="email"
+                                required
+                                placeholder="<?php echo esc_attr($newsletter_email_placeholder); ?>"
+                                aria-label="<?php echo esc_attr($newsletter_email_placeholder); ?>"
+                            >
+                        </div>
+                        <button class="newsletter-submit" type="submit"><?php echo esc_html($newsletter_button_label); ?></button>
+                    </div>
+
+                    <?php if ($newsletter_consent_required) : ?>
+                        <label class="newsletter-consent">
+                            <input type="checkbox" name="privacy" value="1" required>
+                            <span>
+                                <?php echo esc_html($newsletter_consent_prefix); ?>
+                                <?php if (!empty($newsletter_privacy_url)) : ?>
+                                    <a href="<?php echo esc_url($newsletter_privacy_url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($newsletter_privacy_link_label); ?></a>
+                                <?php else : ?>
+                                    <?php echo ' ' . esc_html($newsletter_privacy_link_label); ?>
+                                <?php endif; ?>
+                            </span>
+                        </label>
+                    <?php endif; ?>
+
+                    <div class="newsletter-message" role="status" aria-live="polite"></div>
+                </form>
+
+                <?php if ('' !== $newsletter_helper_text) : ?>
+                    <p class="newsletter-helper"><?php echo esc_html($newsletter_helper_text); ?></p>
+                <?php endif; ?>
+
+                <?php if (!empty($newsletter_image_url)) : ?>
+                    <div class="newsletter-image">
+                        <img src="<?php echo esc_url($newsletter_image_url); ?>" alt="">
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
         <div class="links">
             <?php foreach ($render_links as $render_link) : ?>
                 <a class="link-item"
@@ -147,8 +249,8 @@ if (!empty($background_image_url)) {
         <?php endif; ?>
     </div>
 </div>
-<?php if ($should_load_tracking_js && file_exists($js_path)) : ?>
-    <script>window.bwLinkPageAnalytics = <?php echo wp_json_encode($analytics_config); ?>;</script>
+<?php if (($should_load_tracking_js || $should_load_newsletter_js) && file_exists($js_path)) : ?>
+    <script>window.bwLinkPageConfig = <?php echo wp_json_encode($frontend_config); ?>;</script>
     <script src="<?php echo esc_url($js_url); ?>?ver=<?php echo esc_attr((string) filemtime($js_path)); ?>" defer></script>
 <?php endif; ?>
 </body>

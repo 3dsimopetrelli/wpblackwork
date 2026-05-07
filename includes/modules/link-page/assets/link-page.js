@@ -1,6 +1,18 @@
 (function () {
     'use strict';
 
+    function normalizeEmail(value) {
+        if (typeof value !== 'string') {
+            return '';
+        }
+
+        return value.trim().replace(/\s+/g, '').toLowerCase();
+    }
+
+    function isValidEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
     function toFormBody(payload) {
         return new URLSearchParams(payload).toString();
     }
@@ -34,13 +46,15 @@
     }
 
     function initAnalyticsTracking() {
-        var config = window.bwLinkPageAnalytics || {};
+        var appConfig = window.bwLinkPageConfig || {};
+        var config = appConfig.analytics || {};
         var endpoint = typeof config.endpoint === 'string' ? config.endpoint : '';
         var action = typeof config.action === 'string' ? config.action : 'bw_link_page_track_click';
         var nonce = typeof config.nonce === 'string' ? config.nonce : '';
         var pageId = Number(config.pageId || 0);
+        var enabled = !!config.enabled;
 
-        if (!endpoint || !pageId) {
+        if (!enabled || !endpoint || !pageId) {
             return;
         }
 
@@ -74,9 +88,121 @@
         }, { capture: true });
     }
 
+    function setNewsletterMessage(form, type, text) {
+        var message = form.querySelector('.newsletter-message');
+        if (!message) {
+            return;
+        }
+
+        message.classList.remove('is-success', 'is-error', 'is-loading');
+        if (type) {
+            message.classList.add(type);
+        }
+
+        message.textContent = text || '';
+    }
+
+    function setNewsletterBusy(form, busy) {
+        var submit = form.querySelector('.newsletter-submit');
+        if (submit) {
+            submit.disabled = !!busy;
+            submit.setAttribute('aria-disabled', busy ? 'true' : 'false');
+        }
+    }
+
+    function initNewsletterForm() {
+        var appConfig = window.bwLinkPageConfig || {};
+        var config = appConfig.newsletter || {};
+        var enabled = !!config.enabled;
+        var endpoint = typeof config.endpoint === 'string' ? config.endpoint : '';
+        var action = typeof config.action === 'string' ? config.action : 'bw_mail_marketing_subscribe';
+        var nonce = typeof config.nonce === 'string' ? config.nonce : '';
+        var consentRequired = Number(config.consentRequired || 0) === 1;
+        var form = document.querySelector('.newsletter-form');
+
+        if (!enabled || !form || !endpoint || !nonce) {
+            return;
+        }
+
+        form.addEventListener('submit', function (event) {
+            var emailInput = form.querySelector('input[name="email"]');
+            var nameInput = form.querySelector('input[name="name"]');
+            var privacyInput = form.querySelector('input[name="privacy"]');
+            var email = normalizeEmail(emailInput ? emailInput.value : '');
+            var payload;
+
+            event.preventDefault();
+
+            if (!emailInput || email === '') {
+                setNewsletterMessage(form, 'is-error', 'Please enter your email address.');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                setNewsletterMessage(form, 'is-error', 'Please enter a valid email address.');
+                return;
+            }
+
+            if (consentRequired && privacyInput && !privacyInput.checked) {
+                setNewsletterMessage(form, 'is-error', 'Please confirm the privacy consent to subscribe.');
+                return;
+            }
+
+            payload = {
+                action: action,
+                nonce: nonce,
+                email: email
+            };
+
+            if (nameInput && String(nameInput.value || '').trim() !== '') {
+                payload.name = String(nameInput.value || '').trim();
+            }
+
+            if (privacyInput && privacyInput.checked) {
+                payload.privacy = '1';
+            }
+
+            setNewsletterBusy(form, true);
+            setNewsletterMessage(form, 'is-loading', 'Submitting...');
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: toFormBody(payload),
+                credentials: 'same-origin'
+            })
+                .then(function (response) {
+                    return response.json().catch(function () {
+                        return null;
+                    });
+                })
+                .then(function (data) {
+                    if (data && data.success) {
+                        setNewsletterMessage(form, 'is-success', (data.data && data.data.message) ? data.data.message : 'Thanks for subscribing!');
+                        form.reset();
+                        return;
+                    }
+
+                    setNewsletterMessage(form, 'is-error', (data && data.data && data.data.message) ? data.data.message : 'Something went wrong. Please try again.');
+                })
+                .catch(function () {
+                    setNewsletterMessage(form, 'is-error', 'Something went wrong. Please try again.');
+                })
+                .finally(function () {
+                    setNewsletterBusy(form, false);
+                });
+        });
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAnalyticsTracking);
+        document.addEventListener('DOMContentLoaded', function () {
+            initAnalyticsTracking();
+            initNewsletterForm();
+        });
     } else {
         initAnalyticsTracking();
+        initNewsletterForm();
     }
 }());

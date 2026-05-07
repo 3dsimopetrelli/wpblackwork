@@ -16,6 +16,12 @@
         var backgroundRemoveButton = document.getElementById('bw-link-page-background-remove');
         var backgroundInput = document.getElementById('bw-link-page-background-image-id');
         var backgroundPreview = document.getElementById('bw-link-page-background-preview');
+        var newsletterEnabledInput = document.getElementById('bw-link-page-newsletter-enabled');
+        var newsletterFields = document.getElementById('bw-link-page-newsletter-fields');
+        var newsletterImageUploadButton = document.getElementById('bw-link-page-newsletter-image-upload');
+        var newsletterImageRemoveButton = document.getElementById('bw-link-page-newsletter-image-remove');
+        var newsletterImageInput = document.getElementById('bw-link-page-newsletter-image-id');
+        var newsletterImagePreview = document.getElementById('bw-link-page-newsletter-image-preview');
 
         function nextIndex(tableBody) {
             if (!tableBody) {
@@ -238,6 +244,44 @@
             backgroundRemoveButton.addEventListener('click', function () {
                 backgroundInput.value = '';
                 backgroundPreview.innerHTML = '';
+            });
+        }
+
+        if (newsletterEnabledInput && newsletterFields) {
+            newsletterEnabledInput.addEventListener('change', function () {
+                newsletterFields.style.display = newsletterEnabledInput.checked ? '' : 'none';
+            });
+        }
+
+        if (newsletterImageUploadButton && newsletterImageInput && newsletterImagePreview) {
+            newsletterImageUploadButton.addEventListener('click', function () {
+                if (typeof wp === 'undefined' || !wp.media) {
+                    return;
+                }
+
+                var frame = wp.media({
+                    title: 'Select newsletter image',
+                    button: { text: 'Use image' },
+                    multiple: false,
+                    library: { type: 'image' }
+                });
+
+                frame.on('select', function () {
+                    var attachment = frame.state().get('selection').first().toJSON();
+                    newsletterImageInput.value = String(attachment.id || '');
+                    newsletterImagePreview.innerHTML = attachment.url
+                        ? '<img src="' + attachment.url + '" alt="" style="max-width:200px;height:auto;display:block;">'
+                        : '';
+                });
+
+                frame.open();
+            });
+        }
+
+        if (newsletterImageRemoveButton && newsletterImageInput && newsletterImagePreview) {
+            newsletterImageRemoveButton.addEventListener('click', function () {
+                newsletterImageInput.value = '';
+                newsletterImagePreview.innerHTML = '';
             });
         }
 

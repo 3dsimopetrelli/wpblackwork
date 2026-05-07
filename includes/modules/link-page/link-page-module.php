@@ -23,6 +23,13 @@ function bw_link_page_get_settings()
         'logo_id' => 0,
         'title' => '',
         'description' => '',
+        'newsletter_enabled' => 0,
+        'newsletter_show_name' => 0,
+        'newsletter_email_placeholder' => 'Your email',
+        'newsletter_name_placeholder' => 'Your name',
+        'newsletter_button_label' => 'Subscribe',
+        'newsletter_helper_text' => '',
+        'newsletter_image_id' => 0,
         'background_color' => '#0f0f0f',
         'background_image_id' => 0,
         'logo_width' => 180,
@@ -90,6 +97,13 @@ function bw_link_page_sanitize_settings($raw)
         'logo_id' => isset($raw['logo_id']) ? absint($raw['logo_id']) : 0,
         'title' => isset($raw['title']) ? sanitize_text_field($raw['title']) : '',
         'description' => isset($raw['description']) ? sanitize_textarea_field($raw['description']) : '',
+        'newsletter_enabled' => !empty($raw['newsletter_enabled']) ? 1 : 0,
+        'newsletter_show_name' => !empty($raw['newsletter_show_name']) ? 1 : 0,
+        'newsletter_email_placeholder' => isset($raw['newsletter_email_placeholder']) ? sanitize_text_field($raw['newsletter_email_placeholder']) : 'Your email',
+        'newsletter_name_placeholder' => isset($raw['newsletter_name_placeholder']) ? sanitize_text_field($raw['newsletter_name_placeholder']) : 'Your name',
+        'newsletter_button_label' => isset($raw['newsletter_button_label']) ? sanitize_text_field($raw['newsletter_button_label']) : 'Subscribe',
+        'newsletter_helper_text' => isset($raw['newsletter_helper_text']) ? sanitize_textarea_field($raw['newsletter_helper_text']) : '',
+        'newsletter_image_id' => isset($raw['newsletter_image_id']) ? absint($raw['newsletter_image_id']) : 0,
         'background_color' => $background_color,
         'background_image_id' => isset($raw['background_image_id']) ? absint($raw['background_image_id']) : 0,
         'logo_width' => $logo_width,
@@ -457,6 +471,8 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
 {
     $background_image_id = isset($settings['background_image_id']) ? (int) $settings['background_image_id'] : 0;
     $background_image_url = $background_image_id > 0 ? wp_get_attachment_image_url($background_image_id, 'large') : '';
+    $newsletter_image_id = isset($settings['newsletter_image_id']) ? (int) $settings['newsletter_image_id'] : 0;
+    $newsletter_image_url = $newsletter_image_id > 0 ? wp_get_attachment_image_url($newsletter_image_id, 'large') : '';
     $social_links = isset($settings['social_links']) && is_array($settings['social_links']) ? $settings['social_links'] : [];
     ?>
     <form method="post" action="options.php" class="bw-site-settings-form" style="max-width: 980px;">
@@ -571,6 +587,78 @@ function bw_link_page_render_settings_tab($settings, $pages, $logo_url)
                 </tr>
                 </tbody>
             </table>
+        </section>
+
+        <section class="bw-admin-card">
+            <h2 class="bw-admin-card-title"><?php esc_html_e('Newsletter Subscribe', 'bw'); ?></h2>
+            <table class="form-table bw-admin-form-grid" role="presentation">
+                <tbody>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Enable newsletter subscribe', 'bw'); ?></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" id="bw-link-page-newsletter-enabled" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_enabled]" value="1" <?php checked(!empty($settings['newsletter_enabled'])); ?>>
+                            <?php esc_html_e('Show newsletter form on Link Page', 'bw'); ?>
+                        </label>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div id="bw-link-page-newsletter-fields" style="<?php echo !empty($settings['newsletter_enabled']) ? '' : 'display:none;'; ?>">
+                <table class="form-table bw-admin-form-grid" role="presentation">
+                    <tbody>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Show name field', 'bw'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_show_name]" value="1" <?php checked(!empty($settings['newsletter_show_name'])); ?>>
+                                <?php esc_html_e('Enable optional name field', 'bw'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="bw-link-page-newsletter-email-placeholder"><?php esc_html_e('Email placeholder', 'bw'); ?></label></th>
+                        <td>
+                            <input type="text" class="regular-text" id="bw-link-page-newsletter-email-placeholder" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_email_placeholder]" value="<?php echo esc_attr(isset($settings['newsletter_email_placeholder']) ? (string) $settings['newsletter_email_placeholder'] : 'Your email'); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="bw-link-page-newsletter-name-placeholder"><?php esc_html_e('Name placeholder', 'bw'); ?></label></th>
+                        <td>
+                            <input type="text" class="regular-text" id="bw-link-page-newsletter-name-placeholder" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_name_placeholder]" value="<?php echo esc_attr(isset($settings['newsletter_name_placeholder']) ? (string) $settings['newsletter_name_placeholder'] : 'Your name'); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="bw-link-page-newsletter-button-label"><?php esc_html_e('Submit button label', 'bw'); ?></label></th>
+                        <td>
+                            <input type="text" class="regular-text" id="bw-link-page-newsletter-button-label" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_button_label]" value="<?php echo esc_attr(isset($settings['newsletter_button_label']) ? (string) $settings['newsletter_button_label'] : 'Subscribe'); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="bw-link-page-newsletter-helper-text"><?php esc_html_e('Helper text below form', 'bw'); ?></label></th>
+                        <td>
+                            <textarea id="bw-link-page-newsletter-helper-text" class="large-text" rows="3" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_helper_text]"><?php echo esc_textarea(isset($settings['newsletter_helper_text']) ? (string) $settings['newsletter_helper_text'] : ''); ?></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e('Optional image below form', 'bw'); ?></th>
+                        <td>
+                            <input type="hidden" id="bw-link-page-newsletter-image-id" name="<?php echo esc_attr(BW_LINK_PAGE_OPTION); ?>[newsletter_image_id]" value="<?php echo esc_attr((string) $newsletter_image_id); ?>">
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button type="button" class="button" id="bw-link-page-newsletter-image-upload"><?php esc_html_e('Select image', 'bw'); ?></button>
+                                <button type="button" class="button" id="bw-link-page-newsletter-image-remove"><?php esc_html_e('Remove', 'bw'); ?></button>
+                            </div>
+                            <div id="bw-link-page-newsletter-image-preview" style="margin-top:12px;">
+                                <?php if (!empty($newsletter_image_url)) : ?>
+                                    <img src="<?php echo esc_url($newsletter_image_url); ?>" alt="" style="max-width:200px;height:auto;display:block;">
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section class="bw-admin-card">
