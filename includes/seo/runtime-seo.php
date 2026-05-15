@@ -238,6 +238,75 @@ function bw_seo_get_attachment_social_image($attachment_id)
 }
 
 /**
+ * Resolve a local raster organization logo URL for schema/social usage.
+ */
+function bw_seo_get_local_organization_logo_url()
+{
+    $candidate_ids = [];
+    $logo_id = (int) get_theme_mod('custom_logo');
+    if ($logo_id > 0) {
+        $candidate_ids[] = $logo_id;
+    }
+
+    $site_icon_id = (int) get_option('site_icon');
+    if ($site_icon_id > 0) {
+        $candidate_ids[] = $site_icon_id;
+    }
+
+    foreach (array_values(array_unique($candidate_ids)) as $attachment_id) {
+        $url = bw_seo_get_attachment_social_image($attachment_id);
+        if ('' !== $url) {
+            return $url;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Detect whether an URL is local to current host.
+ */
+function bw_seo_is_local_site_url($url)
+{
+    $url_host = wp_parse_url((string) $url, PHP_URL_HOST);
+    $site_host = wp_parse_url((string) home_url('/'), PHP_URL_HOST);
+    if (!is_string($url_host) || '' === $url_host || !is_string($site_host) || '' === $site_host) {
+        return false;
+    }
+
+    return strtolower($url_host) === strtolower($site_host);
+}
+
+/**
+ * Get local attachment dimensions by URL when available.
+ *
+ * @return array<string,int>
+ */
+function bw_seo_get_local_attachment_dimensions($url)
+{
+    $attachment_id = attachment_url_to_postid((string) $url);
+    if ($attachment_id <= 0) {
+        return [];
+    }
+
+    $meta = wp_get_attachment_metadata($attachment_id);
+    if (!is_array($meta)) {
+        return [];
+    }
+
+    $width = isset($meta['width']) ? (int) $meta['width'] : 0;
+    $height = isset($meta['height']) ? (int) $meta['height'] : 0;
+    if ($width <= 0 || $height <= 0) {
+        return [];
+    }
+
+    return [
+        'width' => $width,
+        'height' => $height,
+    ];
+}
+
+/**
  * Resolve current object social image fallback.
  */
 function bw_seo_resolve_social_image_url()
@@ -495,6 +564,104 @@ function bw_seo_filter_rank_math_json_ld($data, $jsonld)
         return $data;
     }
 
+    $fallback_image = bw_seo_resolve_social_image_url();
+    $logo_image = bw_seo_get_local_organization_logo_url();
+    $fallback_image_id = '' !== $fallback_image ? $fallback_image : '';
+
+    if (!empty($data['ImageObject']) && is_array($data['ImageObject']) && '' !== $fallback_image) {
+        foreach ($data['ImageObject'] as $key => $entity) {
+            if (!is_array($entity)) {
+                continue;
+            }
+
+            $entity_url = isset($entity['url']) ? esc_url_raw((string) $entity['url']) : '';
+            $entity_width = isset($entity['width']) ? (int) $entity['width'] : 0;
+            $entity_height = isset($entity['height']) ? (int) $entity['height'] : 0;
+            $should_replace = (
+                '' === $entity_url
+                || !bw_seo_is_usable_social_image($entity_url, 0)
+                || !bw_seo_is_local_site_url($entity_url)
+                || ($entity_width > 0 && $entity_height > 0 && ($entity_width < 600 || $entity_height < 315))
+            );
+
+            if (!$should_replace) {
+                continue;
+            }
+
+            $data['ImageObject'][$key]['url'] = $fallback_image;
+            $data['ImageObject'][$key]['@id'] = $fallback_image_id;
+            $dims = bw_seo_get_local_attachment_dimensions($fallback_image);
+            if (!empty($dims['width']) && !empty($dims['height'])) {
+                $data['ImageObject'][$key]['width'] = (int) $dims['width'];
+                $data['ImageObject'][$key]['height'] = (int) $dims['height'];
+            }
+        }
+    }
+
+    if (!empty($data['Organization']) && is_array($data['Organization'])) {
+        foreach ($data['Organization'] as $key => $entity) {
+            if (!is_array($entity)) {
+                continue;
+            }
+
+            if ('' !== $logo_image) {
+                $data['Organization'][$key]['logo'] = $logo_image;
+            }
+        }
+    }
+
+    if (is_singular() && '' !== $fallback_image_id) {
+        foreach (['WebPage', 'ItemPage'] as $type_key) {
+            if (empty($data[$type_key]) || !is_array($data[$type_key])) {
+                continue;
+            }
+            foreach ($data[$type_key] as $k => $entity) {
+                if (!is_array($entity)) {
+                    continue;
+                }
+                if (!is_singular('product')) {
+                    $data[$type_key][$k]['primaryImageOfPage'] = ['@id' => $fallback_image_id];
+                }
+            }
+        }
+
+        if (!empty($data['Article']) && is_array($data['Article']) && !is_singular('product')) {
+            foreach ($data['Article'] as $k => $entity) {
+                if (!is_array($entity)) {
+                    continue;
+                }
+                $data['Article'][$k]['image'] = ['@id' => $fallback_image_id];
+            }
+        }
+    }
+
+    if (is_singular('product') && !empty($data['Product']) && is_array($data['Product'])) {
+        $product_id = get_queried_object_id();
+        $sku = $product_id > 0 ? get_post_meta($product_id, '_sku', true) : '';
+        $sku = is_string($sku) ? trim($sku) : '';
+
+        foreach ($data['Product'] as $k => $entity) {
+            if (!is_array($entity)) {
+                continue;
+            }
+
+            if ('' !== $sku && empty($data['Product'][$k]['sku'])) {
+                $data['Product'][$k]['sku'] = $sku;
+            }
+
+            if (!empty($data['Product'][$k]['offers']) && is_array($data['Product'][$k]['offers'])) {
+                $offers = $data['Product'][$k]['offers'];
+                if ('' !== $logo_image && (!isset($offers['seller']) || !is_array($offers['seller']))) {
+                    $offers['seller'] = [];
+                }
+                if ('' !== $logo_image && is_array($offers['seller'])) {
+                    $offers['seller']['logo'] = $logo_image;
+                }
+                $data['Product'][$k]['offers'] = $offers;
+            }
+        }
+    }
+
     $is_search_route = function_exists('bw_ss_is_search_results_request') && bw_ss_is_search_results_request();
     if (!$is_search_route) {
         return $data;
@@ -513,12 +680,7 @@ function bw_seo_filter_rank_math_json_ld($data, $jsonld)
             }
             $data['CollectionPage'][$key]['url'] = $canonical;
             $data['CollectionPage'][$key]['@id'] = $webpage_id;
-            if (!isset($data['CollectionPage'][$key]['isPartOf']) || !is_array($data['CollectionPage'][$key]['isPartOf'])) {
-                $data['CollectionPage'][$key]['isPartOf'] = [];
-            }
-            if (empty($data['CollectionPage'][$key]['isPartOf']['@id'])) {
-                $data['CollectionPage'][$key]['isPartOf']['@id'] = home_url('/#website');
-            }
+            $data['CollectionPage'][$key]['isPartOf'] = ['@id' => home_url('/#website')];
         }
     }
 
