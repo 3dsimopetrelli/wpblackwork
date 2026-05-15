@@ -134,19 +134,17 @@ add_filter('rank_math/frontend/canonical', 'bw_seo_filter_rank_math_canonical', 
  */
 function bw_seo_filter_wp_robots($robots)
 {
-    if (!is_array($robots)) {
-        $robots = [];
-    }
-
     if (!bw_seo_is_indexable_context()) {
         return $robots;
     }
 
-    unset($robots['noindex'], $robots['nofollow'], $robots['noarchive'], $robots['nosnippet'], $robots['noimageindex']);
-    $robots['index'] = true;
-    $robots['follow'] = true;
-
-    return $robots;
+    return [
+        'index' => true,
+        'follow' => true,
+        'max-snippet' => -1,
+        'max-video-preview' => -1,
+        'max-image-preview' => 'large',
+    ];
 }
 add_filter('wp_robots', 'bw_seo_filter_wp_robots', 99);
 
@@ -162,105 +160,177 @@ function bw_seo_filter_rank_math_robots($robots)
         return $robots;
     }
 
-    if (!is_array($robots)) {
-        return ['index', 'follow'];
-    }
-
-    $blocked = ['noindex', 'nofollow', 'noarchive', 'nosnippet', 'noimageindex'];
-    $normalized = [];
-
-    foreach ($robots as $key => $value) {
-        if (is_int($key)) {
-            $token = strtolower(trim((string) $value));
-            if ('' !== $token && !in_array($token, $blocked, true)) {
-                $normalized[] = $token;
-            }
-            continue;
-        }
-
-        $token = strtolower(trim((string) $key));
-        if (!in_array($token, $blocked, true)) {
-            $normalized[$token] = $value;
-        }
-    }
-
-    $tokens = array_values(array_unique(array_filter(array_map('strval', $normalized))));
-    if (!in_array('index', $tokens, true)) {
-        $tokens[] = 'index';
-    }
-    if (!in_array('follow', $tokens, true)) {
-        $tokens[] = 'follow';
-    }
-
-    return $tokens;
+    // Hard normalize (replace) to avoid contradictory directives such as
+    // "noindex, nofollow, index, follow".
+    return [
+        'index',
+        'follow',
+        'max-snippet:-1',
+        'max-video-preview:-1',
+        'max-image-preview:large',
+    ];
 }
 add_filter('rank_math/frontend/robots', 'bw_seo_filter_rank_math_robots', 99);
+
+/**
+ * Validate social image quality and mime suitability.
+ */
+function bw_seo_is_usable_social_image($url, $attachment_id = 0)
+{
+    $url = is_string($url) ? trim($url) : '';
+    if ('' === $url) {
+        return false;
+    }
+
+    if (!preg_match('#^https?://#i', $url)) {
+        return false;
+    }
+
+    $extension = strtolower((string) pathinfo((string) wp_parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+    if ('svg' === $extension || 'svgz' === $extension) {
+        return false;
+    }
+
+    if ($attachment_id > 0) {
+        $mime = get_post_mime_type($attachment_id);
+        if (is_string($mime) && '' !== $mime && !in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return false;
+        }
+
+        $meta = wp_get_attachment_metadata($attachment_id);
+        if (is_array($meta)) {
+            $width = isset($meta['width']) ? (int) $meta['width'] : 0;
+            $height = isset($meta['height']) ? (int) $meta['height'] : 0;
+            if ($width > 0 && $height > 0 && ($width < 600 || $height < 315)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Resolve attachment image URL ensuring usable social dimensions/mime.
+ */
+function bw_seo_get_attachment_social_image($attachment_id)
+{
+    $attachment_id = (int) $attachment_id;
+    if ($attachment_id <= 0) {
+        return '';
+    }
+
+    foreach (['full', 'large', 'medium_large'] as $size) {
+        $candidate = wp_get_attachment_image_url($attachment_id, $size);
+        if (is_string($candidate) && bw_seo_is_usable_social_image($candidate, $attachment_id)) {
+            return esc_url_raw($candidate);
+        }
+    }
+
+    return '';
+}
 
 /**
  * Resolve current object social image fallback.
  */
 function bw_seo_resolve_social_image_url()
 {
-    $attachment_id = 0;
+    $candidate_ids = [];
+    $candidate_urls = [];
 
     // Product/category/page primary coverage.
     if (is_singular()) {
-        $attachment_id = (int) get_post_thumbnail_id(get_queried_object_id());
+        $thumb_id = (int) get_post_thumbnail_id(get_queried_object_id());
+        if ($thumb_id > 0) {
+            $candidate_ids[] = $thumb_id;
+        }
     } elseif (is_tax('product_cat') || (function_exists('is_product_taxonomy') && is_product_taxonomy())) {
         $term = get_queried_object();
         if ($term instanceof WP_Term) {
-            $attachment_id = (int) get_term_meta($term->term_id, 'thumbnail_id', true);
+            $term_thumb = (int) get_term_meta($term->term_id, 'thumbnail_id', true);
+            if ($term_thumb > 0) {
+                $candidate_ids[] = $term_thumb;
+            }
         }
     } elseif (function_exists('is_shop') && is_shop()) {
         $shop_id = (int) wc_get_page_id('shop');
         if ($shop_id > 0) {
-            $attachment_id = (int) get_post_thumbnail_id($shop_id);
+            $shop_thumb = (int) get_post_thumbnail_id($shop_id);
+            if ($shop_thumb > 0) {
+                $candidate_ids[] = $shop_thumb;
+            }
         }
     }
 
-    // Link page dedicated fallback chain (if module is active).
-    if ($attachment_id <= 0 && function_exists('bw_link_page_get_settings')) {
+    // Front page featured image fallback.
+    if (is_front_page()) {
+        $front_id = (int) get_option('page_on_front');
+        if ($front_id > 0) {
+            $front_thumb = (int) get_post_thumbnail_id($front_id);
+            if ($front_thumb > 0) {
+                $candidate_ids[] = $front_thumb;
+            }
+        }
+    }
+
+    // Link page dedicated fallback chain (if module is active and current route is link page).
+    if (function_exists('bw_link_page_get_settings')) {
         $settings = bw_link_page_get_settings();
         if (is_array($settings) && !empty($settings['page_id']) && is_page((int) $settings['page_id'])) {
             if (!empty($settings['social_image_id'])) {
-                $attachment_id = (int) $settings['social_image_id'];
+                $candidate_ids[] = (int) $settings['social_image_id'];
             }
-            if ($attachment_id <= 0 && !empty($settings['logo_id'])) {
-                $attachment_id = (int) $settings['logo_id'];
+            if (!empty($settings['background_image_id'])) {
+                $candidate_ids[] = (int) $settings['background_image_id'];
             }
-            if ($attachment_id <= 0 && !empty($settings['background_image_id'])) {
-                $attachment_id = (int) $settings['background_image_id'];
+            if (!empty($settings['logo_id'])) {
+                $candidate_ids[] = (int) $settings['logo_id'];
             }
         }
     }
 
-    if ($attachment_id <= 0 && is_front_page()) {
-        $front_id = (int) get_option('page_on_front');
-        if ($front_id > 0) {
-            $attachment_id = (int) get_post_thumbnail_id($front_id);
+    // Global plugin fallback image option.
+    $global_fallback_id = (int) get_option('bw_seo_default_social_image_id', 0);
+    if ($global_fallback_id > 0) {
+        $candidate_ids[] = $global_fallback_id;
+    }
+    $global_fallback_url = trim((string) get_option('bw_seo_default_social_image_url', ''));
+    if ('' !== $global_fallback_url) {
+        $candidate_urls[] = esc_url_raw($global_fallback_url);
+    }
+
+    // Allow programmatic override for environment-specific fallback.
+    $filtered_global_url = apply_filters('bw_seo_default_social_image_url', '');
+    if (is_string($filtered_global_url) && '' !== trim($filtered_global_url)) {
+        $candidate_urls[] = esc_url_raw($filtered_global_url);
+    }
+
+    // Last-resort logo/icon fallback.
+    $logo_id = (int) get_theme_mod('custom_logo');
+    if ($logo_id > 0) {
+        $candidate_ids[] = $logo_id;
+    }
+
+    $site_icon_id = (int) get_option('site_icon');
+    if ($site_icon_id > 0) {
+        $candidate_ids[] = $site_icon_id;
+    }
+
+    $candidate_ids = array_values(array_unique(array_filter(array_map('intval', $candidate_ids))));
+    foreach ($candidate_ids as $attachment_id) {
+        $resolved = bw_seo_get_attachment_social_image($attachment_id);
+        if ('' !== $resolved) {
+            return $resolved;
         }
     }
 
-    if ($attachment_id <= 0) {
-        $logo_id = (int) get_theme_mod('custom_logo');
-        if ($logo_id > 0) {
-            $attachment_id = $logo_id;
+    foreach ($candidate_urls as $candidate_url) {
+        if (bw_seo_is_usable_social_image($candidate_url, 0)) {
+            return $candidate_url;
         }
     }
 
-    if ($attachment_id <= 0) {
-        $site_icon_id = (int) get_option('site_icon');
-        if ($site_icon_id > 0) {
-            $attachment_id = $site_icon_id;
-        }
-    }
-
-    if ($attachment_id <= 0) {
-        return '';
-    }
-
-    $image_url = wp_get_attachment_image_url($attachment_id, 'full');
-    return is_string($image_url) ? esc_url_raw($image_url) : '';
+    return '';
 }
 
 /**
