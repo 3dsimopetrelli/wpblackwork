@@ -70,10 +70,7 @@
             }
 
             var linkId = String(link.getAttribute('data-bw-link-id') || '');
-            var linkLabel = String(link.getAttribute('data-bw-link-label') || '').trim();
-            var targetUrl = String(link.getAttribute('href') || '');
-
-            if (!linkId || !linkLabel) {
+            if (!linkId) {
                 return;
             }
 
@@ -81,9 +78,7 @@
                 action: action,
                 nonce: nonce,
                 page_id: String(pageId),
-                link_id: linkId,
-                link_label: linkLabel,
-                target_url: targetUrl
+                link_id: linkId
             }, endpoint);
         }, { capture: true });
     }

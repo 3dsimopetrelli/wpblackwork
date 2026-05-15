@@ -44,11 +44,6 @@ foreach ($social_links as $social_link) {
     }
 }
 
-$css_path = plugin_dir_path(__FILE__) . '../assets/link-page.css';
-$css_url = plugin_dir_url(__FILE__) . '../assets/link-page.css';
-$js_path = plugin_dir_path(__FILE__) . '../assets/link-page.js';
-$js_url = plugin_dir_url(__FILE__) . '../assets/link-page.js';
-
 $render_links = [];
 foreach ($links as $index => $link) {
     $label = isset($link['label']) ? (string) $link['label'] : '';
@@ -80,9 +75,6 @@ foreach ($links as $index => $link) {
     ];
 }
 
-$should_load_tracking_js = ($page_id > 0 && !empty($render_links));
-$should_load_newsletter_js = $newsletter_enabled;
-
 $newsletter_consent_required = true;
 $newsletter_consent_prefix = __('I agree to the', 'bw');
 $newsletter_privacy_link_label = __('Privacy Policy', 'bw');
@@ -101,23 +93,6 @@ if (class_exists('BW_Mail_Marketing_Settings')) {
         $newsletter_privacy_url = (string) $subscription_settings['privacy_url'];
     }
 }
-
-$frontend_config = [
-    'analytics' => [
-        'enabled' => $should_load_tracking_js,
-        'endpoint' => admin_url('admin-ajax.php'),
-        'action' => 'bw_link_page_track_click',
-        'nonce' => wp_create_nonce('bw_link_page_track_click'),
-        'pageId' => $page_id,
-    ],
-    'newsletter' => [
-        'enabled' => $should_load_newsletter_js,
-        'endpoint' => admin_url('admin-ajax.php'),
-        'action' => 'bw_mail_marketing_subscribe',
-        'nonce' => wp_create_nonce('bw_mail_marketing_subscription_submit'),
-        'consentRequired' => $newsletter_consent_required ? 1 : 0,
-    ],
-];
 
 $body_classes = [];
 if ($logo_rotate_enabled) {
@@ -141,7 +116,7 @@ if (!empty($background_image_url)) {
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo esc_html(get_the_title()); ?></title>
-    <link rel="stylesheet" href="<?php echo esc_url($css_url); ?>?ver=<?php echo esc_attr((string) (file_exists($css_path) ? filemtime($css_path) : '1.0.0')); ?>">
+    <?php wp_head(); ?>
 </head>
 <body class="<?php echo esc_attr(implode(' ', $body_classes)); ?>" style="<?php echo esc_attr($body_style); ?>">
 <div class="wrapper">
@@ -249,9 +224,6 @@ if (!empty($background_image_url)) {
         <?php endif; ?>
     </div>
 </div>
-<?php if (($should_load_tracking_js || $should_load_newsletter_js) && file_exists($js_path)) : ?>
-    <script>window.bwLinkPageConfig = <?php echo wp_json_encode($frontend_config); ?>;</script>
-    <script src="<?php echo esc_url($js_url); ?>?ver=<?php echo esc_attr((string) filemtime($js_path)); ?>" defer></script>
-<?php endif; ?>
+<?php wp_footer(); ?>
 </body>
 </html>

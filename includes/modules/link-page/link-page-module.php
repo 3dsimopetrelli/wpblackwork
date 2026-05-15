@@ -249,6 +249,47 @@ function bw_link_page_sanitize_link_id($raw_link_id)
     return substr($link_id, 0, 80);
 }
 
+/**
+ * Return trusted link payload for a given link_id from current settings.
+ *
+ * @param array<string,mixed> $settings Link page settings.
+ * @param string              $link_id  Sanitized link id.
+ * @return array<string,string>|null
+ */
+function bw_link_page_get_trusted_link_by_id($settings, $link_id)
+{
+    $link_id = bw_link_page_sanitize_link_id($link_id);
+    if ('' === $link_id || !is_array($settings)) {
+        return null;
+    }
+
+    $links = isset($settings['links']) && is_array($settings['links']) ? $settings['links'] : [];
+    foreach ($links as $index => $link) {
+        if (!is_array($link)) {
+            continue;
+        }
+
+        $label = isset($link['label']) ? sanitize_text_field((string) $link['label']) : '';
+        $url = isset($link['url']) ? esc_url_raw((string) $link['url']) : '';
+        if ('' === $label || '' === $url) {
+            continue;
+        }
+
+        $candidate_id = bw_link_page_build_link_id($link, $index);
+        if ($candidate_id !== $link_id) {
+            continue;
+        }
+
+        return [
+            'link_id' => $candidate_id,
+            'link_label' => $label,
+            'target_url' => $url,
+        ];
+    }
+
+    return null;
+}
+
 function bw_link_page_debug_log($message, $context = [])
 {
     if (!defined('WP_DEBUG') || !WP_DEBUG) {
@@ -279,15 +320,12 @@ function bw_link_page_track_click_ajax()
 
     $page_id = isset($_POST['page_id']) ? absint(wp_unslash($_POST['page_id'])) : 0;
     $link_id = isset($_POST['link_id']) ? bw_link_page_sanitize_link_id(wp_unslash($_POST['link_id'])) : '';
-    $link_label = isset($_POST['link_label']) ? sanitize_text_field(wp_unslash($_POST['link_label'])) : '';
-    $target_url = isset($_POST['target_url']) ? esc_url_raw(wp_unslash($_POST['target_url'])) : '';
+    $trusted_link = bw_link_page_get_trusted_link_by_id($settings, $link_id);
 
     bw_link_page_debug_log('track_click_payload', [
         'configured_page_id' => $configured_page_id,
         'page_id' => $page_id,
         'link_id' => $link_id,
-        'link_label' => $link_label,
-        'target_url' => $target_url,
     ]);
 
     if ($configured_page_id <= 0 || $page_id <= 0 || $configured_page_id !== $page_id) {
@@ -298,12 +336,19 @@ function bw_link_page_track_click_ajax()
         wp_send_json_error(['message' => 'invalid_page'], 400);
     }
 
-    if ('' === $link_id || '' === $link_label) {
+    if ('' === $link_id) {
         bw_link_page_debug_log('track_click_invalid_payload', [
             'link_id' => $link_id,
-            'link_label' => $link_label,
         ]);
         wp_send_json_error(['message' => 'invalid_payload'], 400);
+    }
+
+    if (!is_array($trusted_link)) {
+        bw_link_page_debug_log('track_click_invalid_link_id', [
+            'page_id' => $page_id,
+            'link_id' => $link_id,
+        ]);
+        wp_send_json_error(['message' => 'invalid_link_id'], 400);
     }
 
     global $wpdb;
@@ -312,9 +357,9 @@ function bw_link_page_track_click_ajax()
         bw_link_page_get_clicks_table_name(),
         [
             'page_id' => $page_id,
-            'link_id' => $link_id,
-            'link_label' => $link_label,
-            'target_url' => $target_url,
+            'link_id' => $trusted_link['link_id'],
+            'link_label' => $trusted_link['link_label'],
+            'target_url' => $trusted_link['target_url'],
             'clicked_at' => current_time('mysql'),
         ],
         ['%d', '%s', '%s', '%s', '%s']
@@ -330,7 +375,7 @@ function bw_link_page_track_click_ajax()
     bw_link_page_debug_log('track_click_insert_ok', [
         'insert_id' => (int) $wpdb->insert_id,
         'page_id' => $page_id,
-        'link_id' => $link_id,
+        'link_id' => $trusted_link['link_id'],
     ]);
 
     wp_send_json_success(['ok' => true]);
@@ -379,6 +424,171 @@ function bw_link_page_enqueue_admin_assets($hook)
     wp_enqueue_style('wp-color-picker');
 }
 add_action('admin_enqueue_scripts', 'bw_link_page_enqueue_admin_assets', 20);
+
+/**
+ * Resolve configured Link Page ID.
+ *
+ * @return int
+ */
+function bw_link_page_get_active_page_id()
+{
+    $settings = bw_link_page_get_settings();
+    return !empty($settings['page_id']) ? (int) $settings['page_id'] : 0;
+}
+
+/**
+ * Determine whether current frontend request is the active Link Page route.
+ *
+ * @return bool
+ */
+function bw_link_page_is_active_page()
+{
+    if (is_admin() || !is_singular('page')) {
+        return false;
+    }
+
+    $page_id = bw_link_page_get_active_page_id();
+    if ($page_id <= 0) {
+        return false;
+    }
+
+    return is_page($page_id);
+}
+
+/**
+ * Build frontend runtime config for Link Page JS.
+ *
+ * @param array<string,mixed> $settings Link page settings.
+ * @param bool                $has_links Whether there are valid link rows.
+ * @return array<string,mixed>
+ */
+function bw_link_page_get_frontend_runtime_config($settings, $has_links)
+{
+    $newsletter_enabled = !empty($settings['newsletter_enabled']);
+    $page_id = !empty($settings['page_id']) ? (int) $settings['page_id'] : 0;
+
+    $newsletter_consent_required = true;
+    if (class_exists('BW_Mail_Marketing_Settings')) {
+        $subscription_settings = BW_Mail_Marketing_Settings::get_subscription_settings();
+        $newsletter_consent_required = !isset($subscription_settings['consent_required']) || !empty($subscription_settings['consent_required']);
+    }
+
+    return [
+        'analytics' => [
+            'enabled' => ($page_id > 0 && $has_links),
+            'endpoint' => admin_url('admin-ajax.php'),
+            'action' => 'bw_link_page_track_click',
+            'nonce' => wp_create_nonce('bw_link_page_track_click'),
+            'pageId' => $page_id,
+        ],
+        'newsletter' => [
+            'enabled' => $newsletter_enabled,
+            'endpoint' => admin_url('admin-ajax.php'),
+            'action' => 'bw_mail_marketing_subscribe',
+            'nonce' => wp_create_nonce('bw_mail_marketing_subscription_submit'),
+            'consentRequired' => $newsletter_consent_required ? 1 : 0,
+        ],
+    ];
+}
+
+/**
+ * Enqueue Link Page frontend assets only on selected Link Page route.
+ */
+function bw_link_page_enqueue_frontend_assets()
+{
+    if (!bw_link_page_is_active_page()) {
+        return;
+    }
+
+    $settings = bw_link_page_get_settings();
+    $links = isset($settings['links']) && is_array($settings['links']) ? $settings['links'] : [];
+
+    $has_valid_links = false;
+    foreach ($links as $link) {
+        if (!is_array($link)) {
+            continue;
+        }
+        $label = isset($link['label']) ? trim((string) $link['label']) : '';
+        $url = isset($link['url']) ? trim((string) $link['url']) : '';
+        if ('' !== $label && '' !== $url) {
+            $has_valid_links = true;
+            break;
+        }
+    }
+
+    $css_path = BW_MEW_PATH . 'includes/modules/link-page/assets/link-page.css';
+    $js_path = BW_MEW_PATH . 'includes/modules/link-page/assets/link-page.js';
+
+    wp_enqueue_style(
+        'bw-link-page-style',
+        BW_MEW_URL . 'includes/modules/link-page/assets/link-page.css',
+        [],
+        file_exists($css_path) ? filemtime($css_path) : BLACKWORK_PLUGIN_VERSION
+    );
+
+    $runtime_config = bw_link_page_get_frontend_runtime_config($settings, $has_valid_links);
+    $should_load_js = !empty($runtime_config['analytics']['enabled']) || !empty($runtime_config['newsletter']['enabled']);
+
+    if ($should_load_js) {
+        wp_enqueue_script(
+            'bw-link-page-script',
+            BW_MEW_URL . 'includes/modules/link-page/assets/link-page.js',
+            [],
+            file_exists($js_path) ? filemtime($js_path) : BLACKWORK_PLUGIN_VERSION,
+            true
+        );
+
+        wp_add_inline_script(
+            'bw-link-page-script',
+            'window.bwLinkPageConfig = ' . wp_json_encode($runtime_config) . ';',
+            'before'
+        );
+    }
+}
+add_action('wp_enqueue_scripts', 'bw_link_page_enqueue_frontend_assets', 999);
+
+/**
+ * Dequeue known heavy/global assets on Link Page route only.
+ *
+ * Keep SEO/meta integrations intact; this runs only on selected Link Page page.
+ */
+function bw_link_page_dequeue_unneeded_assets()
+{
+    if (!bw_link_page_is_active_page()) {
+        return;
+    }
+
+    $style_handles = [
+        'elementor-frontend',
+        'elementor-pro',
+        'woocommerce-general',
+        'woocommerce-layout',
+        'woocommerce-smallscreen',
+        'wc-block-style',
+        'wc-blocks-style',
+    ];
+
+    $script_handles = [
+        'elementor-frontend',
+        'elementor-pro-frontend',
+        'wc-cart-fragments',
+        'woocommerce',
+        'js-cookie',
+    ];
+
+    foreach ($style_handles as $handle) {
+        if (wp_style_is($handle, 'enqueued')) {
+            wp_dequeue_style($handle);
+        }
+    }
+
+    foreach ($script_handles as $handle) {
+        if (wp_script_is($handle, 'enqueued')) {
+            wp_dequeue_script($handle);
+        }
+    }
+}
+add_action('wp_enqueue_scripts', 'bw_link_page_dequeue_unneeded_assets', 1000);
 
 function bw_link_page_get_analytics_summary($page_id)
 {
@@ -1020,10 +1230,7 @@ function bw_link_page_template_include($template)
         return $template;
     }
 
-    $settings = bw_link_page_get_settings();
-    $page_id = !empty($settings['page_id']) ? (int) $settings['page_id'] : 0;
-
-    if ($page_id > 0 && is_page($page_id)) {
+    if (bw_link_page_is_active_page()) {
         $link_page_template = __DIR__ . '/templates/template-link-page.php';
         if (file_exists($link_page_template)) {
             return $link_page_template;
