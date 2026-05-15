@@ -54,6 +54,11 @@ class BW_Duplicate_Page
             return $actions;
         }
 
+        // WooCommerce already provides its own duplicate action for products.
+        if ('product' === $post->post_type) {
+            return $actions;
+        }
+
         $url = $this->build_action_url($post->ID);
         $actions['bw_duplicate'] = sprintf(
             '<a href="%s">%s</a>',
