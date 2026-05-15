@@ -441,6 +441,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings
     require_once plugin_dir_path(__FILE__) . 'admin/class-blackwork-site-settings.php';
 }
 
+// SEO runtime compatibility layer (Rank Math + fallback metadata guards)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/seo/runtime-seo.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/seo/runtime-seo.php';
+}
+
 // Custom Header module (server-rendered, no Elementor dependency)
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/header/header-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/header/header-module.php';
