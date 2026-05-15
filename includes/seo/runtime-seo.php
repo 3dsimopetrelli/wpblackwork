@@ -138,6 +138,17 @@ function bw_seo_filter_wp_robots($robots)
         return $robots;
     }
 
+    return bw_seo_get_normalized_wp_robots();
+}
+add_filter('wp_robots', 'bw_seo_filter_wp_robots', 99);
+
+/**
+ * Canonical robots directives for public indexable contexts.
+ *
+ * @return array<string,mixed>
+ */
+function bw_seo_get_normalized_wp_robots()
+{
     return [
         'index' => true,
         'follow' => true,
@@ -146,7 +157,6 @@ function bw_seo_filter_wp_robots($robots)
         'max-image-preview' => 'large',
     ];
 }
-add_filter('wp_robots', 'bw_seo_filter_wp_robots', 99);
 
 /**
  * Normalize Rank Math robots directives for indexable contexts.
@@ -160,14 +170,11 @@ function bw_seo_filter_rank_math_robots($robots)
         return $robots;
     }
 
-    // Hard normalize (replace) to avoid contradictory directives such as
-    // "noindex, nofollow, index, follow".
+    // Keep only index/follow here because Rank Math may combine these with
+    // wp_robots max-* directives in a single robots tag.
     return [
         'index',
         'follow',
-        'max-snippet:-1',
-        'max-video-preview:-1',
-        'max-image-preview:large',
     ];
 }
 add_filter('rank_math/frontend/robots', 'bw_seo_filter_rank_math_robots', 99);
@@ -341,15 +348,122 @@ function bw_seo_resolve_social_image_url()
  */
 function bw_seo_filter_rank_math_social_image($image_url)
 {
+    if (!isset($GLOBALS['bw_seo_social_meta_state']) || !is_array($GLOBALS['bw_seo_social_meta_state'])) {
+        $GLOBALS['bw_seo_social_meta_state'] = [];
+    }
+
     if (is_string($image_url) && '' !== trim($image_url)) {
+        $GLOBALS['bw_seo_social_meta_state']['rank_math_image_seen'] = true;
         return $image_url;
     }
 
     $fallback = bw_seo_resolve_social_image_url();
-    return '' !== $fallback ? $fallback : $image_url;
+    if ('' !== $fallback) {
+        $GLOBALS['bw_seo_social_meta_state']['rank_math_image_seen'] = true;
+        $GLOBALS['bw_seo_social_meta_state']['resolved_fallback_image'] = $fallback;
+        return $fallback;
+    }
+
+    return $image_url;
 }
 add_filter('rank_math/opengraph/facebook/image', 'bw_seo_filter_rank_math_social_image', 20);
 add_filter('rank_math/opengraph/twitter/image', 'bw_seo_filter_rank_math_social_image', 20);
+
+/**
+ * Capture social image tags emitted by Rank Math to prevent duplicates.
+ *
+ * @param mixed $content Meta tag content value.
+ * @return mixed
+ */
+function bw_seo_capture_rank_math_facebook_image_tag($content)
+{
+    if (is_string($content) && '' !== trim($content)) {
+        if (!isset($GLOBALS['bw_seo_social_meta_state']) || !is_array($GLOBALS['bw_seo_social_meta_state'])) {
+            $GLOBALS['bw_seo_social_meta_state'] = [];
+        }
+        $GLOBALS['bw_seo_social_meta_state']['og_image_tag_present'] = true;
+    }
+    return $content;
+}
+add_filter('rank_math/opengraph/facebook/image', 'bw_seo_capture_rank_math_facebook_image_tag', 999);
+
+/**
+ * Capture social image tags emitted by Rank Math to prevent duplicates.
+ *
+ * @param mixed $content Meta tag content value.
+ * @return mixed
+ */
+function bw_seo_capture_rank_math_twitter_image_tag($content)
+{
+    if (is_string($content) && '' !== trim($content)) {
+        if (!isset($GLOBALS['bw_seo_social_meta_state']) || !is_array($GLOBALS['bw_seo_social_meta_state'])) {
+            $GLOBALS['bw_seo_social_meta_state'] = [];
+        }
+        $GLOBALS['bw_seo_social_meta_state']['twitter_image_tag_present'] = true;
+    }
+    return $content;
+}
+add_filter('rank_math/opengraph/twitter/image', 'bw_seo_capture_rank_math_twitter_image_tag', 999);
+
+/**
+ * Determine whether fallback image tags should be rendered.
+ */
+function bw_seo_should_render_social_image_fallback()
+{
+    if (is_admin()) {
+        return false;
+    }
+
+    if (is_singular('product')) {
+        return false;
+    }
+
+    return bw_seo_is_indexable_context();
+}
+
+/**
+ * Render OG/Twitter image tags only when they are missing.
+ */
+function bw_seo_render_missing_social_image_meta()
+{
+    if (!bw_seo_should_render_social_image_fallback()) {
+        return;
+    }
+
+    $state = isset($GLOBALS['bw_seo_social_meta_state']) && is_array($GLOBALS['bw_seo_social_meta_state'])
+        ? $GLOBALS['bw_seo_social_meta_state']
+        : [];
+
+    $has_og_image = !empty($state['og_image_tag_present']);
+    $has_twitter_image = !empty($state['twitter_image_tag_present']);
+    if ($has_og_image && $has_twitter_image) {
+        return;
+    }
+
+    $fallback = bw_seo_resolve_social_image_url();
+    if ('' === $fallback) {
+        return;
+    }
+
+    $fallback = esc_url($fallback);
+    if ('' === $fallback) {
+        return;
+    }
+
+    if (!$has_og_image) {
+        echo "\n<meta property=\"og:image\" content=\"" . esc_attr($fallback) . "\" />\n";
+    }
+
+    if (!$has_twitter_image) {
+        echo "<meta name=\"twitter:image\" content=\"" . esc_attr($fallback) . "\" />\n";
+    }
+
+    if (!isset($GLOBALS['bw_seo_social_meta_state']) || !is_array($GLOBALS['bw_seo_social_meta_state'])) {
+        $GLOBALS['bw_seo_social_meta_state'] = [];
+    }
+    $GLOBALS['bw_seo_social_meta_state']['resolved_fallback_image'] = $fallback;
+}
+add_action('wp_head', 'bw_seo_render_missing_social_image_meta', 999);
 
 /**
  * Keep OG URL aligned with canonical URL.
@@ -484,6 +598,19 @@ function bw_seo_runtime_debug_frontend_marker()
         return;
     }
 
+    $resolved_fallback = bw_seo_resolve_social_image_url();
+    $is_product = is_singular('product');
+    $is_indexable = bw_seo_is_indexable_context();
+    $state = isset($GLOBALS['bw_seo_social_meta_state']) && is_array($GLOBALS['bw_seo_social_meta_state'])
+        ? $GLOBALS['bw_seo_social_meta_state']
+        : [];
+
     echo "\n<!-- BW SEO RUNTIME LOADED -->\n";
+    echo "<!-- BW SEO DEBUG: indexable=" . ($is_indexable ? 'yes' : 'no')
+        . " product=" . ($is_product ? 'yes' : 'no')
+        . " fallback_image=" . esc_html($resolved_fallback)
+        . " og_present=" . (!empty($state['og_image_tag_present']) ? 'yes' : 'no')
+        . " tw_present=" . (!empty($state['twitter_image_tag_present']) ? 'yes' : 'no')
+        . " -->\n";
 }
 add_action('wp_head', 'bw_seo_runtime_debug_frontend_marker', 1);
