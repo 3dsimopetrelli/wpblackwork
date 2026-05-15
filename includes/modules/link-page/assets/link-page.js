@@ -49,12 +49,39 @@
         var appConfig = window.bwLinkPageConfig || {};
         var config = appConfig.analytics || {};
         var endpoint = typeof config.endpoint === 'string' ? config.endpoint : '';
-        var action = typeof config.action === 'string' ? config.action : 'bw_link_page_track_click';
-        var nonce = typeof config.nonce === 'string' ? config.nonce : '';
+        var clickAction = typeof config.clickAction === 'string' ? config.clickAction : 'bw_link_page_track_click';
+        var clickNonce = typeof config.clickNonce === 'string' ? config.clickNonce : '';
+        var viewAction = typeof config.viewAction === 'string' ? config.viewAction : 'bw_link_page_track_view';
+        var viewNonce = typeof config.viewNonce === 'string' ? config.viewNonce : '';
         var pageId = Number(config.pageId || 0);
         var enabled = !!config.enabled;
 
-        if (!enabled || !endpoint || !pageId) {
+        if (!endpoint || !pageId) {
+            return;
+        }
+
+        var viewStorageKey = 'bw_link_page_view_tracked_' + String(pageId);
+        var viewAlreadyTracked = false;
+        try {
+            viewAlreadyTracked = window.sessionStorage.getItem(viewStorageKey) === '1';
+        } catch (error) {
+            viewAlreadyTracked = false;
+        }
+
+        if (!viewAlreadyTracked && viewNonce) {
+            sendClick({
+                action: viewAction,
+                nonce: viewNonce,
+                page_id: String(pageId)
+            }, endpoint);
+            try {
+                window.sessionStorage.setItem(viewStorageKey, '1');
+            } catch (error) {
+                // Ignore storage errors in private mode/blocked storage.
+            }
+        }
+
+        if (!enabled || !clickNonce) {
             return;
         }
 
@@ -75,8 +102,8 @@
             }
 
             sendClick({
-                action: action,
-                nonce: nonce,
+                action: clickAction,
+                nonce: clickNonce,
                 page_id: String(pageId),
                 link_id: linkId
             }, endpoint);
@@ -157,11 +184,16 @@
     function initNewsletterForm() {
         var appConfig = window.bwLinkPageConfig || {};
         var config = appConfig.newsletter || {};
+        var analyticsConfig = appConfig.analytics || {};
         var enabled = !!config.enabled;
         var endpoint = typeof config.endpoint === 'string' ? config.endpoint : '';
         var action = typeof config.action === 'string' ? config.action : 'bw_mail_marketing_subscribe';
         var nonce = typeof config.nonce === 'string' ? config.nonce : '';
         var consentRequired = Number(config.consentRequired || 0) === 1;
+        var analyticsEndpoint = typeof analyticsConfig.endpoint === 'string' ? analyticsConfig.endpoint : '';
+        var subscriptionAction = typeof analyticsConfig.subscriptionAction === 'string' ? analyticsConfig.subscriptionAction : 'bw_link_page_track_subscription';
+        var subscriptionNonce = typeof analyticsConfig.subscriptionNonce === 'string' ? analyticsConfig.subscriptionNonce : '';
+        var pageId = Number(analyticsConfig.pageId || 0);
         var form = document.querySelector('.newsletter-form');
 
         if (!enabled || !form || !endpoint || !nonce) {
@@ -261,8 +293,20 @@
                 })
                 .then(function (data) {
                     if (data && data.success) {
+                        var responseCode = data && data.data && typeof data.data.code === 'string' ? String(data.data.code) : '';
+                        if (analyticsEndpoint && subscriptionNonce && pageId && (responseCode === 'success' || responseCode === 'pending')) {
+                            sendClick({
+                                action: subscriptionAction,
+                                nonce: subscriptionNonce,
+                                page_id: String(pageId),
+                                result_code: responseCode
+                            }, analyticsEndpoint);
+                        }
+
                         setNewsletterMessage(form, 'is-success', (data.data && data.data.message) ? data.data.message : 'Thanks for subscribing!');
-                        form.reset();
+                        if (responseCode !== 'already_subscribed') {
+                            form.reset();
+                        }
                         updateNewsletterUIState(form, consentRequired);
                         return;
                     }

@@ -8,7 +8,7 @@ if (!defined('BW_LINK_PAGE_OPTION')) {
 }
 
 if (!defined('BW_LINK_PAGE_DB_VERSION')) {
-    define('BW_LINK_PAGE_DB_VERSION', '1');
+    define('BW_LINK_PAGE_DB_VERSION', '2');
 }
 
 /**
@@ -181,16 +181,32 @@ function bw_link_page_get_clicks_table_name()
     return $wpdb->prefix . 'bw_link_page_clicks';
 }
 
-function bw_link_page_install_clicks_table()
+function bw_link_page_get_views_table_name()
+{
+    global $wpdb;
+
+    return $wpdb->prefix . 'bw_link_page_views';
+}
+
+function bw_link_page_get_subscriptions_table_name()
+{
+    global $wpdb;
+
+    return $wpdb->prefix . 'bw_link_page_subscriptions';
+}
+
+function bw_link_page_install_analytics_tables()
 {
     global $wpdb;
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-    $table_name = bw_link_page_get_clicks_table_name();
+    $clicks_table = bw_link_page_get_clicks_table_name();
+    $views_table = bw_link_page_get_views_table_name();
+    $subscriptions_table = bw_link_page_get_subscriptions_table_name();
     $charset_collate = $wpdb->get_charset_collate();
 
-    $sql = "CREATE TABLE {$table_name} (
+    $clicks_sql = "CREATE TABLE {$clicks_table} (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         page_id BIGINT UNSIGNED NOT NULL,
         link_id VARCHAR(80) NOT NULL,
@@ -204,11 +220,34 @@ function bw_link_page_install_clicks_table()
         KEY page_clicked_at (page_id, clicked_at)
     ) {$charset_collate};";
 
-    dbDelta($sql);
+    $views_sql = "CREATE TABLE {$views_table} (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        page_id BIGINT UNSIGNED NOT NULL,
+        viewed_at DATETIME NOT NULL,
+        PRIMARY KEY  (id),
+        KEY page_id (page_id),
+        KEY viewed_at (viewed_at),
+        KEY page_viewed_at (page_id, viewed_at)
+    ) {$charset_collate};";
+
+    $subscriptions_sql = "CREATE TABLE {$subscriptions_table} (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        page_id BIGINT UNSIGNED NOT NULL,
+        subscribed_at DATETIME NOT NULL,
+        source VARCHAR(40) NOT NULL DEFAULT 'link_page',
+        PRIMARY KEY  (id),
+        KEY page_id (page_id),
+        KEY subscribed_at (subscribed_at),
+        KEY page_subscribed_at (page_id, subscribed_at)
+    ) {$charset_collate};";
+
+    dbDelta($clicks_sql);
+    dbDelta($views_sql);
+    dbDelta($subscriptions_sql);
     update_option('bw_link_page_db_version', BW_LINK_PAGE_DB_VERSION, false);
 }
 
-function bw_link_page_maybe_install_clicks_table()
+function bw_link_page_maybe_install_analytics_tables()
 {
     $current_version = (string) get_option('bw_link_page_db_version', '');
 
@@ -216,9 +255,9 @@ function bw_link_page_maybe_install_clicks_table()
         return;
     }
 
-    bw_link_page_install_clicks_table();
+    bw_link_page_install_analytics_tables();
 }
-add_action('admin_init', 'bw_link_page_maybe_install_clicks_table', 5);
+add_action('admin_init', 'bw_link_page_maybe_install_analytics_tables', 5);
 
 function bw_link_page_build_link_id($link, $index)
 {
@@ -309,7 +348,7 @@ function bw_link_page_debug_log($message, $context = [])
 
 function bw_link_page_track_click_ajax()
 {
-    bw_link_page_maybe_install_clicks_table();
+    bw_link_page_maybe_install_analytics_tables();
 
     if (!check_ajax_referer('bw_link_page_track_click', 'nonce', false)) {
         wp_send_json_error(['message' => 'invalid_nonce'], 400);
@@ -382,6 +421,82 @@ function bw_link_page_track_click_ajax()
 }
 add_action('wp_ajax_bw_link_page_track_click', 'bw_link_page_track_click_ajax');
 add_action('wp_ajax_nopriv_bw_link_page_track_click', 'bw_link_page_track_click_ajax');
+
+function bw_link_page_track_view_ajax()
+{
+    bw_link_page_maybe_install_analytics_tables();
+
+    if (!check_ajax_referer('bw_link_page_track_view', 'nonce', false)) {
+        wp_send_json_error(['message' => 'invalid_nonce'], 400);
+    }
+
+    $settings = bw_link_page_get_settings();
+    $configured_page_id = !empty($settings['page_id']) ? (int) $settings['page_id'] : 0;
+    $page_id = isset($_POST['page_id']) ? absint(wp_unslash($_POST['page_id'])) : 0;
+
+    if ($configured_page_id <= 0 || $page_id <= 0 || $configured_page_id !== $page_id) {
+        wp_send_json_error(['message' => 'invalid_page'], 400);
+    }
+
+    global $wpdb;
+    $inserted = $wpdb->insert(
+        bw_link_page_get_views_table_name(),
+        [
+            'page_id' => $page_id,
+            'viewed_at' => current_time('mysql'),
+        ],
+        ['%d', '%s']
+    );
+
+    if (false === $inserted) {
+        wp_send_json_error(['message' => 'insert_failed'], 500);
+    }
+
+    wp_send_json_success(['ok' => true]);
+}
+add_action('wp_ajax_bw_link_page_track_view', 'bw_link_page_track_view_ajax');
+add_action('wp_ajax_nopriv_bw_link_page_track_view', 'bw_link_page_track_view_ajax');
+
+function bw_link_page_track_subscription_ajax()
+{
+    bw_link_page_maybe_install_analytics_tables();
+
+    if (!check_ajax_referer('bw_link_page_track_subscription', 'nonce', false)) {
+        wp_send_json_error(['message' => 'invalid_nonce'], 400);
+    }
+
+    $settings = bw_link_page_get_settings();
+    $configured_page_id = !empty($settings['page_id']) ? (int) $settings['page_id'] : 0;
+    $page_id = isset($_POST['page_id']) ? absint(wp_unslash($_POST['page_id'])) : 0;
+    $result_code = isset($_POST['result_code']) ? sanitize_key(wp_unslash($_POST['result_code'])) : '';
+
+    if ($configured_page_id <= 0 || $page_id <= 0 || $configured_page_id !== $page_id) {
+        wp_send_json_error(['message' => 'invalid_page'], 400);
+    }
+
+    if (!in_array($result_code, ['success', 'pending'], true)) {
+        wp_send_json_error(['message' => 'not_countable'], 400);
+    }
+
+    global $wpdb;
+    $inserted = $wpdb->insert(
+        bw_link_page_get_subscriptions_table_name(),
+        [
+            'page_id' => $page_id,
+            'subscribed_at' => current_time('mysql'),
+            'source' => 'link_page',
+        ],
+        ['%d', '%s', '%s']
+    );
+
+    if (false === $inserted) {
+        wp_send_json_error(['message' => 'insert_failed'], 500);
+    }
+
+    wp_send_json_success(['ok' => true]);
+}
+add_action('wp_ajax_bw_link_page_track_subscription', 'bw_link_page_track_subscription_ajax');
+add_action('wp_ajax_nopriv_bw_link_page_track_subscription', 'bw_link_page_track_subscription_ajax');
 
 function bw_link_page_add_admin_menu()
 {
@@ -477,8 +592,12 @@ function bw_link_page_get_frontend_runtime_config($settings, $has_links)
         'analytics' => [
             'enabled' => ($page_id > 0 && $has_links),
             'endpoint' => admin_url('admin-ajax.php'),
-            'action' => 'bw_link_page_track_click',
-            'nonce' => wp_create_nonce('bw_link_page_track_click'),
+            'clickAction' => 'bw_link_page_track_click',
+            'clickNonce' => wp_create_nonce('bw_link_page_track_click'),
+            'viewAction' => 'bw_link_page_track_view',
+            'viewNonce' => wp_create_nonce('bw_link_page_track_view'),
+            'subscriptionAction' => 'bw_link_page_track_subscription',
+            'subscriptionNonce' => wp_create_nonce('bw_link_page_track_subscription'),
             'pageId' => $page_id,
         ],
         'newsletter' => [
@@ -527,7 +646,7 @@ function bw_link_page_enqueue_frontend_assets()
     );
 
     $runtime_config = bw_link_page_get_frontend_runtime_config($settings, $has_valid_links);
-    $should_load_js = !empty($runtime_config['analytics']['enabled']) || !empty($runtime_config['newsletter']['enabled']);
+    $should_load_js = !empty($runtime_config['analytics']['pageId']) || !empty($runtime_config['newsletter']['enabled']);
 
     if ($should_load_js) {
         wp_enqueue_script(
@@ -590,38 +709,41 @@ function bw_link_page_dequeue_unneeded_assets()
 }
 add_action('wp_enqueue_scripts', 'bw_link_page_dequeue_unneeded_assets', 1000);
 
-function bw_link_page_get_analytics_summary($page_id)
+function bw_link_page_get_analytics_summary($page_id, $table_name, $timestamp_column)
 {
     global $wpdb;
-
-    $table = bw_link_page_get_clicks_table_name();
 
     $today_start = wp_date('Y-m-d 00:00:00', current_time('timestamp'));
     $seven_days_start = wp_date('Y-m-d H:i:s', strtotime('-7 days', current_time('timestamp')));
     $thirty_days_start = wp_date('Y-m-d H:i:s', strtotime('-30 days', current_time('timestamp')));
+    $timestamp_column = preg_replace('/[^a-z_]/', '', (string) $timestamp_column);
 
     return [
-        'total' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE page_id = %d", $page_id)),
-        'today' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE page_id = %d AND clicked_at >= %s", $page_id, $today_start)),
-        'last_7_days' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE page_id = %d AND clicked_at >= %s", $page_id, $seven_days_start)),
-        'last_30_days' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE page_id = %d AND clicked_at >= %s", $page_id, $thirty_days_start)),
+        'total' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_name} WHERE page_id = %d", $page_id)),
+        'today' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_name} WHERE page_id = %d AND {$timestamp_column} >= %s", $page_id, $today_start)),
+        'last_7_days' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_name} WHERE page_id = %d AND {$timestamp_column} >= %s", $page_id, $seven_days_start)),
+        'last_30_days' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_name} WHERE page_id = %d AND {$timestamp_column} >= %s", $page_id, $thirty_days_start)),
     ];
 }
 
-function bw_link_page_get_analytics_daily_clicks($page_id)
+function bw_link_page_get_analytics_daily_series($page_id, $table_name, $timestamp_column, $value_key)
 {
     global $wpdb;
 
-    $table = bw_link_page_get_clicks_table_name();
     $start = wp_date('Y-m-d 00:00:00', strtotime('-29 days', current_time('timestamp')));
+    $timestamp_column = preg_replace('/[^a-z_]/', '', (string) $timestamp_column);
+    $value_key = sanitize_key((string) $value_key);
+    if ('' === $value_key) {
+        $value_key = 'count';
+    }
 
     $rows = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT DATE(clicked_at) AS click_day, COUNT(*) AS clicks
-            FROM {$table}
-            WHERE page_id = %d AND clicked_at >= %s
-            GROUP BY DATE(clicked_at)
-            ORDER BY click_day ASC",
+            "SELECT DATE({$timestamp_column}) AS metric_day, COUNT(*) AS metric_count
+            FROM {$table_name}
+            WHERE page_id = %d AND {$timestamp_column} >= %s
+            GROUP BY DATE({$timestamp_column})
+            ORDER BY metric_day ASC",
             $page_id,
             $start
         ),
@@ -631,10 +753,10 @@ function bw_link_page_get_analytics_daily_clicks($page_id)
     $mapped = [];
     if (is_array($rows)) {
         foreach ($rows as $row) {
-            if (empty($row['click_day'])) {
+            if (empty($row['metric_day'])) {
                 continue;
             }
-            $mapped[(string) $row['click_day']] = (int) $row['clicks'];
+            $mapped[(string) $row['metric_day']] = (int) $row['metric_count'];
         }
     }
 
@@ -644,7 +766,7 @@ function bw_link_page_get_analytics_daily_clicks($page_id)
         $series[] = [
             'date' => $day,
             'label' => wp_date('M j', strtotime($day)),
-            'count' => isset($mapped[$day]) ? (int) $mapped[$day] : 0,
+            $value_key => isset($mapped[$day]) ? (int) $mapped[$day] : 0,
         ];
     }
 
@@ -696,6 +818,26 @@ function bw_link_page_get_analytics_daily_breakdown($page_id)
     }
 
     return $breakdown;
+}
+
+function bw_link_page_get_analytics_daily_views_map($page_id)
+{
+    $series = bw_link_page_get_analytics_daily_series(
+        $page_id,
+        bw_link_page_get_views_table_name(),
+        'viewed_at',
+        'views'
+    );
+
+    $map = [];
+    foreach ($series as $point) {
+        if (empty($point['date'])) {
+            continue;
+        }
+        $map[(string) $point['date']] = isset($point['views']) ? (int) $point['views'] : 0;
+    }
+
+    return $map;
 }
 
 function bw_link_page_get_analytics_link_rows($page_id)
@@ -998,22 +1140,24 @@ function bw_link_page_render_analytics_tab($page_id)
         return;
     }
 
-    $summary = bw_link_page_get_analytics_summary($page_id);
-    $daily_series = bw_link_page_get_analytics_daily_clicks($page_id);
+    $click_summary = bw_link_page_get_analytics_summary($page_id, bw_link_page_get_clicks_table_name(), 'clicked_at');
+    $view_summary = bw_link_page_get_analytics_summary($page_id, bw_link_page_get_views_table_name(), 'viewed_at');
+    $subscription_summary = bw_link_page_get_analytics_summary($page_id, bw_link_page_get_subscriptions_table_name(), 'subscribed_at');
+    $daily_click_series = bw_link_page_get_analytics_daily_series($page_id, bw_link_page_get_clicks_table_name(), 'clicked_at', 'clicks');
+    $daily_views_map = bw_link_page_get_analytics_daily_views_map($page_id);
     $daily_breakdown = bw_link_page_get_analytics_daily_breakdown($page_id);
     $link_rows = bw_link_page_get_analytics_link_rows($page_id);
 
     $max_daily = 0;
-    foreach ($daily_series as $point) {
-        $max_daily = max($max_daily, (int) $point['count']);
+    foreach ($daily_click_series as $point) {
+        $clicks = isset($point['clicks']) ? (int) $point['clicks'] : 0;
+        $views = isset($daily_views_map[$point['date']]) ? (int) $daily_views_map[$point['date']] : 0;
+        $max_daily = max($max_daily, $clicks, $views);
     }
 
-    $cards = [
-        __('Total clicks', 'bw') => (int) $summary['total'],
-        __('Today', 'bw') => (int) $summary['today'],
-        __('Last 7 days', 'bw') => (int) $summary['last_7_days'],
-        __('Last 30 days', 'bw') => (int) $summary['last_30_days'],
-    ];
+    $conversion = ((int) $view_summary['total'] > 0)
+        ? round((((int) $click_summary['total']) / (int) $view_summary['total']) * 100, 2)
+        : 0.0;
 
     $refresh_url = admin_url('admin.php?page=bw-link-page-settings&tab=analytics');
 
@@ -1038,6 +1182,14 @@ function bw_link_page_render_analytics_tab($page_id)
                 align-items: center;
                 justify-content: flex-end;
                 min-height: 120px;
+            }
+
+            .bw-link-page-chart-bars {
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                gap: 3px;
+                width: 100%;
             }
 
             .bw-link-page-chart-tooltip {
@@ -1096,51 +1248,79 @@ function bw_link_page_render_analytics_tab($page_id)
                 margin-bottom: 0;
             }
         </style>
-        <div style="display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:16px 0 22px;">
-            <?php foreach ($cards as $label => $value) : ?>
-                <div style="border:1px solid #d9d9d9;border-radius:10px;padding:12px;background:#fff;">
-                    <div style="font-size:12px;color:#666;margin-bottom:6px;"><?php echo esc_html($label); ?></div>
-                    <div style="font-size:24px;line-height:1.1;font-weight:700;color:#111;"><?php echo esc_html((string) $value); ?></div>
-                </div>
-            <?php endforeach; ?>
+
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:16px 0 10px;">
+            <div style="border:1px solid #d9d9d9;border-radius:10px;padding:12px;background:#fff;">
+                <div style="font-size:12px;color:#666;margin-bottom:6px;"><?php esc_html_e('Total clicks', 'bw'); ?></div>
+                <div style="font-size:24px;line-height:1.1;font-weight:700;color:#111;"><?php echo esc_html((string) ((int) $click_summary['total'])); ?></div>
+            </div>
+            <div style="border:1px solid #d9d9d9;border-radius:10px;padding:12px;background:#fff;">
+                <div style="font-size:12px;color:#666;margin-bottom:6px;"><?php esc_html_e('Total views', 'bw'); ?></div>
+                <div style="font-size:24px;line-height:1.1;font-weight:700;color:#111;"><?php echo esc_html((string) ((int) $view_summary['total'])); ?></div>
+            </div>
+            <div style="border:1px solid #d9d9d9;border-radius:10px;padding:12px;background:#fff;">
+                <div style="font-size:12px;color:#666;margin-bottom:6px;"><?php esc_html_e('Click conversion', 'bw'); ?></div>
+                <div style="font-size:24px;line-height:1.1;font-weight:700;color:#111;"><?php echo esc_html((string) $conversion . '%'); ?></div>
+            </div>
+            <div style="border:1px solid #111;border-radius:10px;padding:12px;background:#111;color:#fff;">
+                <div style="font-size:12px;color:#fff;margin-bottom:6px;"><?php esc_html_e('Total subscriptions', 'bw'); ?></div>
+                <div style="font-size:24px;line-height:1.1;font-weight:700;color:#fff;"><?php echo esc_html((string) ((int) $subscription_summary['total'])); ?></div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:0 0 22px;">
+            <div style="border:1px solid #d9d9d9;border-radius:10px;padding:10px;background:#fff;">
+                <div style="font-size:12px;color:#666;"><?php esc_html_e('Clicks today / 7d / 30d', 'bw'); ?></div>
+                <div style="font-size:14px;font-weight:600;color:#111;"><?php echo esc_html((int) $click_summary['today'] . ' / ' . (int) $click_summary['last_7_days'] . ' / ' . (int) $click_summary['last_30_days']); ?></div>
+            </div>
+            <div style="border:1px solid #d9d9d9;border-radius:10px;padding:10px;background:#fff;">
+                <div style="font-size:12px;color:#666;"><?php esc_html_e('Views today / 7d / 30d', 'bw'); ?></div>
+                <div style="font-size:14px;font-weight:600;color:#111;"><?php echo esc_html((int) $view_summary['today'] . ' / ' . (int) $view_summary['last_7_days'] . ' / ' . (int) $view_summary['last_30_days']); ?></div>
+            </div>
+            <div style="border:1px solid #111;border-radius:10px;padding:10px;background:#111;color:#fff;grid-column:span 2;">
+                <div style="font-size:12px;color:#fff;"><?php esc_html_e('Subscriptions today / 7d / 30d', 'bw'); ?></div>
+                <div style="font-size:14px;font-weight:600;color:#fff;"><?php echo esc_html((int) $subscription_summary['today'] . ' / ' . (int) $subscription_summary['last_7_days'] . ' / ' . (int) $subscription_summary['last_30_days']); ?></div>
+            </div>
         </div>
 
         <p style="margin:0 0 14px;color:#444;">
-            <?php esc_html_e('Clicks are stored internally in the WordPress database. No Google Analytics or external tracking is used.', 'bw'); ?>
+            <?php esc_html_e('Clicks, page views, and subscription events are stored internally in the WordPress database. No external analytics is used.', 'bw'); ?>
         </p>
 
-        <?php if ((int) $summary['total'] <= 0) : ?>
-            <p><?php esc_html_e('No link clicks yet.', 'bw'); ?></p>
+        <?php if ((int) $click_summary['total'] <= 0 && (int) $view_summary['total'] <= 0) : ?>
+            <p><?php esc_html_e('No Link Page analytics events yet.', 'bw'); ?></p>
             <?php return; ?>
         <?php endif; ?>
 
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 10px;">
-            <h2 style="margin:0;"><?php esc_html_e('Daily Clicks (Last 30 Days)', 'bw'); ?></h2>
+            <h2 style="margin:0;"><?php esc_html_e('Daily Clicks + Views (Last 30 Days)', 'bw'); ?></h2>
             <a class="button" href="<?php echo esc_url($refresh_url); ?>"><?php esc_html_e('Refresh analytics', 'bw'); ?></a>
         </div>
         <div style="display:grid;grid-template-columns:repeat(30,minmax(0,1fr));gap:6px;align-items:end;min-height:150px;padding:14px;border:1px solid #d9d9d9;border-radius:10px;background:#fff;">
-            <?php foreach ($daily_series as $point) :
-                $count = (int) $point['count'];
+            <?php foreach ($daily_click_series as $point) :
+                $count = isset($point['clicks']) ? (int) $point['clicks'] : 0;
+                $views = isset($daily_views_map[$point['date']]) ? (int) $daily_views_map[$point['date']] : 0;
                 $bar_max_height = 120;
                 $bar_min_height = 3;
-                $height_px = $max_daily > 0
+                $click_height_px = $max_daily > 0
                     ? max($bar_min_height, (int) floor(($count / $max_daily) * $bar_max_height))
                     : $bar_min_height;
-                $bar_color = $count > 0 ? '#80FD03' : '#dfe5d9';
+                $view_height_px = $max_daily > 0
+                    ? max($bar_min_height, (int) floor(($views / $max_daily) * $bar_max_height))
+                    : $bar_min_height;
                 $point_date = isset($point['date']) ? (string) $point['date'] : '';
                 $day_links = isset($daily_breakdown[$point_date]) && is_array($daily_breakdown[$point_date]) ? $daily_breakdown[$point_date] : [];
                 ?>
-                <div class="bw-link-page-chart-day" title="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks'); ?>" aria-label="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks'); ?>">
-                    <?php if ($count > 0) : ?>
+                <div class="bw-link-page-chart-day" title="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks, ' . $views . ' views'); ?>" aria-label="<?php echo esc_attr($point['date'] . ': ' . $count . ' clicks, ' . $views . ' views'); ?>">
+                    <?php if ($count > 0 || $views > 0) : ?>
                         <div class="bw-link-page-chart-tooltip" role="tooltip">
                             <div class="bw-link-page-chart-tooltip__date"><?php echo esc_html($point_date); ?></div>
                             <div class="bw-link-page-chart-tooltip__total">
-                                <?php
-                                /* translators: %d: total clicks */
-                                printf(esc_html__('Total: %d clicks', 'bw'), $count);
-                                ?>
+                                <?php echo esc_html__('Link clicks:', 'bw') . ' ' . esc_html((string) $count); ?><br>
+                                <?php echo esc_html__('Page views:', 'bw') . ' ' . esc_html((string) $views); ?>
                             </div>
                             <?php if (!empty($day_links)) : ?>
+                                <div class="bw-link-page-chart-tooltip__total"><?php esc_html_e('Links:', 'bw'); ?></div>
                                 <ul>
                                     <?php foreach ($day_links as $day_link) : ?>
                                         <li><?php echo esc_html((string) $day_link['label'] . ' — ' . (int) $day_link['count']); ?></li>
@@ -1154,7 +1334,10 @@ function bw_link_page_render_analytics_tab($page_id)
                     <?php else : ?>
                         <span aria-hidden="true" style="display:block;height:15px;"></span>
                     <?php endif; ?>
-                    <span style="display:block;width:100%;max-width:16px;border-radius:5px 5px 0 0;background:<?php echo esc_attr($bar_color); ?>;height:<?php echo esc_attr((string) $height_px); ?>px;transform-origin:bottom center;animation:bw-link-page-bar-rise 320ms ease-out both;"></span>
+                    <span class="bw-link-page-chart-bars">
+                        <span style="display:block;width:7px;border-radius:5px 5px 0 0;background:<?php echo esc_attr($count > 0 ? '#80FD03' : '#dfe5d9'); ?>;height:<?php echo esc_attr((string) $click_height_px); ?>px;transform-origin:bottom center;animation:bw-link-page-bar-rise 320ms ease-out both;"></span>
+                        <span style="display:block;width:7px;border-radius:5px 5px 0 0;background:<?php echo esc_attr($views > 0 ? '#ff5f5f' : '#f3d6d6'); ?>;height:<?php echo esc_attr((string) $view_height_px); ?>px;transform-origin:bottom center;animation:bw-link-page-bar-rise 320ms ease-out both;"></span>
+                    </span>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -1188,7 +1371,7 @@ function bw_link_page_render_admin_page()
         return;
     }
 
-    bw_link_page_maybe_install_clicks_table();
+    bw_link_page_maybe_install_analytics_tables();
 
     $settings = bw_link_page_get_settings();
     $pages = get_pages(['sort_column' => 'post_title', 'sort_order' => 'ASC']);
