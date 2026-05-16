@@ -139,10 +139,21 @@ if (function_exists('bw_mew_render_checkout_header')) {
 
                 <div class="bw-checkout-payment">
                     <?php
+                    // Core WooCommerce passes $available_gateways via woocommerce_checkout_payment(),
+                    // which bw_mew_prepare_checkout_layout() unhooks so the payment section renders
+                    // only in this left column. Replicate that data setup here.
+                    if (WC()->cart && WC()->cart->needs_payment()) {
+                        $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+                        WC()->payment_gateways()->set_current_gateway($available_gateways);
+                    } else {
+                        $available_gateways = array();
+                    }
+
                     wc_get_template(
                         'checkout/payment.php',
                         array(
                             'checkout' => $checkout,
+                            'available_gateways' => $available_gateways,
                             'order_button_text' => $order_button_text,
                         )
                     );
