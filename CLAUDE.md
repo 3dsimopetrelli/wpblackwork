@@ -17,7 +17,34 @@ The plugin requires:
 - WordPress
 - Elementor page builder
 - WooCommerce (for e-commerce features)
-- Slick Carousel (loaded via CDN)
+
+## Commands
+
+### Mandatory checks after PHP changes (from `AGENTS.md`)
+
+- After every PHP code change, run `php -l <file>` on each modified PHP file.
+- After every task that modifies PHP, run `composer run lint:main`.
+- Report check results in the final response. If a check cannot run, state why.
+
+### Composer scripts
+
+- `composer run lint:main` — phpcs against the project ruleset (`phpcs.xml.dist`). Default lint. `blackwork-core-plugin.php` is excluded here (tracked separately via `lint:legacy`).
+- `composer run lint:changed` — phpcs only on PHP files changed vs `HEAD` (uses `git diff --name-only`).
+- `composer run lint:strict` — full WordPress standard against `admin includes metabox templates woocommerce cart-popup BW_coming_soon` (no exclusions).
+- `composer run lint:legacy` — phpcs WordPress standard against `blackwork-core-plugin.php` (legacy baseline).
+- `composer run lint:fix:legacy` — phpcbf auto-fix for the legacy bootstrap file.
+
+See `docs/20-development/linting-and-phpcs-baseline.md` for the baseline strategy.
+
+## Documentation
+
+`docs/` is the primary source of feature-level documentation. Check it before grepping the codebase:
+
+- `docs/00-overview/` — project overview
+- `docs/10-architecture/` — high-level architecture (Elementor widget architecture, checkout runtime, theme-builder-lite)
+- `docs/20-development/` — dev workflow, linting, admin-UI guidelines, woocommerce template overrides
+- `docs/30-features/` — per-feature docs: cart-popup, checkout, duplicate-page, elementor-widgets, header, import-products, media-folders, my-account, navigation, presentation-slide, product-grid, product-slide, product-types, redirect, reviews, search, smart-header, system-status, theme-builder-lite
+- `docs/40-integrations/`, `docs/50-ops/`, `docs/60-adr/`, `docs/99-archive/`
 
 ## Git Conventions
 
@@ -46,11 +73,27 @@ The plugin requires:
    - `includes/helpers.php` - Global helper functions
    - `includes/woocommerce-overrides/class-bw-product-card-renderer.php` - Centralized product card rendering
 
-3. **Submodules**
+3. **Top-level submodules**
    - **Cart Popup** (`cart-popup/`) - Side-sliding cart with AJAX updates
    - **Coming Soon** (`BW_coming_soon/`) - Coming soon page with video background and newsletter integration
    - **Site Settings** (`admin/class-blackwork-site-settings.php`) - Unified settings page
-   - **Custom Header Module** (`includes/modules/header/`) - Server-rendered header (no Elementor dependency for header rendering)
+
+4. **Modules under `includes/modules/`** (server-rendered features, no Elementor dependency)
+   - `header/` - Custom header module (replaces old `bw-search`, `bw-navshop`, `bw-navigation` Elementor widgets)
+   - `link-page/` - Link page module (actively maintained — see recent commits)
+   - `search-engine/` and `search-surface/` - Search backend + frontend surface
+   - `elementor-sticky-sidebar/` - Sticky sidebar behaviour for Elementor
+   - `media-folders/` - Media library folder organization
+   - `reviews/` - Reviews module
+   - `system-status/` - System status / diagnostics
+   - `theme-builder-lite/` - Lightweight theme builder
+
+5. **Other `includes/` entry points**
+   - `class-bw-duplicate-page.php` - Page/post duplication
+   - `class-bw-redirects.php` - Redirect management
+   - `category-url-field.php` - Custom URL field on categories
+   - `components/product-card/` - Reusable product card component
+   - `integrations/`, `Gateways/`, `Stripe/`, `Utils/`, `admin/` - Integrations, payment plumbing, utilities, and admin glue
 
 ### Widget System
 
@@ -59,14 +102,12 @@ All widgets are located in `includes/widgets/` and follow this pattern:
 - Class name: `Widget_Bw_{Name}` or `BW_{Name}_Widget`
 - Auto-discovered and registered by the widget loader
 
-**Key Widgets (current):**
-- `class-bw-slick-slider-widget.php` - Slick carousel for posts/products
-- `class-bw-product-grid-widget.php` - Filterable masonry/CSS-grid with category/tag filters (see `docs/30-features/product-grid/`)
-- `class-bw-wallpost-widget.php` - Masonry layout using WordPress native masonry
-- `class-bw-product-slide-widget.php` - Product slider with variations
-- `class-bw-related-products-widget.php` - Related products display
-- `class-bw-static-showcase-widget.php` - Static image showcase
-- `class-bw-animated-banner-widget.php` - Animated banner widget
+**Current widgets** (in `includes/widgets/`, grouped by purpose):
+
+- *Product display*: `product-grid` (filterable grid — see `docs/30-features/product-grid/`), `product-slider`, `product-details`, `product-description`, `product-breadcrumbs`, `price-variation`, `title-product`, `related-products`, `related-post`, `tags`, `reviews`
+- *Sliders / showcases*: `basic-slide`, `hero-slide`, `presentation-slide`, `showcase-slide`, `mosaic-slider`, `static-showcase`
+- *Banners / decoration*: `animated-banner`, `psychadelic-banner`, `big-text`, `divider`, `trust-box`
+- *Navigation / CTAs*: `about-menu`, `button`, `go-to-app`, `newsletter-subscription`
 
 Note: header Elementor widgets (`bw-search`, `bw-navshop`, `bw-navigation`) were removed after migration to the custom header module.
 
@@ -94,7 +135,7 @@ add_action('elementor/frontend/after_enqueue_scripts', 'bw_enqueue_{name}_widget
 
 ### Custom Product Types
 
-Located in `includes/product-types/`. See `PRODUCT_TYPES_IMPLEMENTATION.md` for detailed documentation.
+Located in `includes/product-types/`. See `docs/30-features/product-types/` for detailed documentation.
 
 **Standard WooCommerce types (unmodified):**
 - Simple, Grouped, External/Affiliate, Variable
@@ -172,56 +213,12 @@ Located in `includes/dynamic-tags/`:
 
 ## BW Static Showcase Widget
 
-### Overview
+`class-bw-static-showcase-widget.php` — Two-column product showcase driven by a dedicated metabox (`metabox/digital-products-metabox.php`). Two notable points worth knowing when touching it:
 
-`class-bw-static-showcase-widget.php` — Two-column product showcase: large main image on the left (75%), up to two gallery thumbnails on the right (25%). Product data comes from a dedicated metabox (`metabox/digital-products-metabox.php`).
+- **Product resolution** has two modes: manual (`product_id` Elementor control) and metabox (`use_metabox_product = on` → reads `_bw_showcase_linked_product` from the current post, falling back to the current post).
+- **Meta read is a single batched `get_post_meta($product_id)` call** wrapped in a `$get_meta($key)` closure, with legacy meta keys (e.g. `_product_showcase_image`, `_product_color`, `_product_size_mb`) read as fallbacks. Don't add per-key `get_post_meta` calls in `render()`.
 
-### Data Flow
-
-1. Editor fills in product data in **Metabox Slide Showcase** (admin, on the product edit page)
-2. Data is saved to post meta by `bw_save_digital_products()`
-3. Widget `render()` resolves the product ID, then fetches all meta in **one** batch call: `get_post_meta($product_id)` → closure `$get_meta($key)`
-4. Legacy meta keys are read as fallback for each field
-
-### Meta Keys
-
-| Meta key | Description | Legacy fallback |
-|---|---|---|
-| `_bw_showcase_image` | Main image (attachment ID or URL) | `_product_showcase_image` |
-| `_bw_showcase_title` | Headline text | — |
-| `_bw_showcase_description` | Subtitle text | — |
-| `_bw_texts_color` | CSS color for text/badges | `_product_color` |
-| `_bw_product_type` | `digital` or `physical` | — |
-| `_bw_file_size` | File size string (digital) | `_product_size_mb` |
-| `_bw_assets_count` | Number of assets (digital) | `_product_assets_count` |
-| `_bw_formats` | Comma-separated formats (digital) | `_product_formats` |
-| `_bw_info_1` | Info line 1 (physical) | — |
-| `_bw_info_2` | Info line 2 (physical) | — |
-| `_product_button_text` | CTA button label | — |
-| `_product_button_link` | CTA button URL | — |
-| `_bw_showcase_linked_product` | Product ID to show when "use metabox product" is on | — |
-
-### Product Resolution
-
-- **Manual mode** (`use_metabox_product = off`): uses `product_id` from the Elementor control
-- **Metabox mode** (`use_metabox_product = on`): resolves current post ID → reads `_bw_showcase_linked_product` → falls back to current post if no linked product is set
-
-### Showcase Label
-
-The label text displayed above the widget comes exclusively from the Elementor control `showcase_label_text` (supports Elementor dynamic tags). There is no separate metabox field for this — the widget reads it only from Elementor settings.
-
-### Metabox Admin Assets
-
-`bw_enqueue_digital_products_metabox_assets()` loads:
-- `assets/css/bw-metabox-admin.css` — metabox layout styles
-- `assets/js/bw-metabox-admin.js` — product type toggle, Select2 product search, media uploader
-- Uses `wp_localize_script('bw-metabox-admin-script', 'bwMetaboxData', [...])` to pass nonce and i18n strings
-
-Product search AJAX endpoint: `wp_ajax_bw_search_products` → `bw_search_products_ajax()` — accepts **POST** requests, requires `edit_products` capability + nonce.
-
-### Text Color
-
-The `text_color` Elementor control sets both `--bw-slide-showcase-text-color` and `--bw-slide-showcase-badge-border-color` CSS custom properties on the container in a single `selectors` declaration. Additionally, the metabox `_bw_texts_color` value is applied as the container's inline style, overriding the Elementor default while allowing the Elementor control to take precedence.
+Full meta-key reference and admin/asset wiring details live in the widget file itself and the metabox file.
 
 ## Asset File Conventions
 
@@ -296,7 +293,7 @@ Use `bw_register_widget_assets($slug)` helper from `includes/helpers.php` for st
 
 ## Testing
 
-When adding or modifying product types, refer to the testing checklist in `PRODUCT_TYPES_IMPLEMENTATION.md`.
+When adding or modifying product types, refer to the testing checklist under `docs/30-features/product-types/`.
 
 ## Plugin Submodules
 
