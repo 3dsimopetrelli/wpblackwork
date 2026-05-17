@@ -7,6 +7,10 @@ if (!defined('BW_SEO_RUNTIME_LOADED')) {
     define('BW_SEO_RUNTIME_LOADED', true);
 }
 
+if (!defined('BW_SEO_SCHEMA_FIX_VERSION')) {
+    define('BW_SEO_SCHEMA_FIX_VERSION', 2);
+}
+
 /**
  * Remove Hello Elementor fallback meta description to avoid duplicates
  * when Rank Math is active.
@@ -734,13 +738,20 @@ function bw_seo_runtime_debug_admin_notice()
     }
 
     $runtime_file = BW_MEW_PATH . 'includes/seo/runtime-seo.php';
+    $runtime_mtime = file_exists($runtime_file) ? (int) filemtime($runtime_file) : 0;
+    $schema_fix_version = defined('BW_SEO_SCHEMA_FIX_VERSION') ? (int) BW_SEO_SCHEMA_FIX_VERSION : 0;
     $rank_math_active = defined('RANK_MATH_VERSION') || class_exists('RankMath');
     $data = [
         'plugin_main_file' => BW_MEW_PATH . 'blackwork-core-plugin.php',
         'runtime_file' => $runtime_file,
         'runtime_file_exists' => file_exists($runtime_file) ? 'yes' : 'no',
+        'runtime_file_mtime_unix' => $runtime_mtime,
+        'runtime_file_mtime_gmt' => $runtime_mtime > 0 ? gmdate('c', $runtime_mtime) : '',
+        'schema_fix_version' => $schema_fix_version,
         'runtime_loaded_constant' => defined('BW_SEO_RUNTIME_LOADED') ? 'yes' : 'no',
         'runtime_loaded_function' => function_exists('bw_seo_filter_rank_math_canonical') ? 'yes' : 'no',
+        'schema_quality_function_image_local_logo' => function_exists('bw_seo_get_local_organization_logo_url') ? 'yes' : 'no',
+        'schema_quality_function_jsonld_filter' => function_exists('bw_seo_filter_rank_math_json_ld') ? 'yes' : 'no',
         'rank_math_active' => $rank_math_active ? 'yes' : 'no',
         'filter_rank_math_canonical' => (string) has_filter('rank_math/frontend/canonical', 'bw_seo_filter_rank_math_canonical'),
         'filter_rank_math_robots' => (string) has_filter('rank_math/frontend/robots', 'bw_seo_filter_rank_math_robots'),
@@ -763,13 +774,24 @@ function bw_seo_runtime_debug_frontend_marker()
     $resolved_fallback = bw_seo_resolve_social_image_url();
     $is_product = is_singular('product');
     $is_indexable = bw_seo_is_indexable_context();
+    $runtime_file = BW_MEW_PATH . 'includes/seo/runtime-seo.php';
+    $runtime_mtime = file_exists($runtime_file) ? (int) filemtime($runtime_file) : 0;
+    $schema_fix_version = defined('BW_SEO_SCHEMA_FIX_VERSION') ? (int) BW_SEO_SCHEMA_FIX_VERSION : 0;
     $state = isset($GLOBALS['bw_seo_social_meta_state']) && is_array($GLOBALS['bw_seo_social_meta_state'])
         ? $GLOBALS['bw_seo_social_meta_state']
         : [];
 
     echo "\n<!-- BW SEO RUNTIME LOADED -->\n";
+    echo "<!-- BW SEO SCHEMA FIX VERSION: " . esc_html((string) $schema_fix_version) . " -->\n";
     echo "<!-- BW SEO DEBUG: indexable=" . ($is_indexable ? 'yes' : 'no')
         . " product=" . ($is_product ? 'yes' : 'no')
+        . " runtime_file=" . esc_html($runtime_file)
+        . " runtime_mtime_unix=" . esc_html((string) $runtime_mtime)
+        . " runtime_mtime_gmt=" . esc_html($runtime_mtime > 0 ? gmdate('c', $runtime_mtime) : '')
+        . " schema_fix_version=" . esc_html((string) $schema_fix_version)
+        . " has_schema_quality_fn=" . (function_exists('bw_seo_get_local_organization_logo_url') ? 'yes' : 'no')
+        . " has_jsonld_filter_fn=" . (function_exists('bw_seo_filter_rank_math_json_ld') ? 'yes' : 'no')
+        . " rank_math_jsonld_filter=" . esc_html((string) has_filter('rank_math/json_ld', 'bw_seo_filter_rank_math_json_ld'))
         . " fallback_image=" . esc_html($resolved_fallback)
         . " og_present=" . (!empty($state['og_image_tag_present']) ? 'yes' : 'no')
         . " tw_present=" . (!empty($state['twitter_image_tag_present']) ? 'yes' : 'no')
