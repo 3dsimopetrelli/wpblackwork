@@ -2070,6 +2070,7 @@ function bw_site_render_account_page_tab()
         $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_signup_redirect_url']))) : '';
         $supabase_auto_login = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
+        $custom_wp_login_hide_default = isset($_POST['bw_custom_wp_login_hide_default']) ? 1 : 0;
         $custom_wp_login_slug_raw = isset($_POST['bw_custom_wp_login_slug']) ? (string) $_POST['bw_custom_wp_login_slug'] : '';
         $custom_wp_login_slug_raw = trim((string) wp_unslash($custom_wp_login_slug_raw));
         $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug($custom_wp_login_slug_raw);
@@ -2148,6 +2149,7 @@ function bw_site_render_account_page_tab()
         update_option('bw_account_show_social_buttons', $show_social_buttons);
         update_option('bw_account_passwordless_url', $passwordless_url);
         update_option('bw_custom_wp_login_slug', $custom_wp_login_slug);
+        update_option('bw_custom_wp_login_hide_default', $custom_wp_login_hide_default);
 
         if ($custom_wp_login_slug !== $previous_custom_wp_login_slug) {
             update_option('bw_custom_wp_login_slug_needs_flush', 1, false);
@@ -2278,11 +2280,13 @@ function bw_site_render_account_page_tab()
     $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
     $supabase_auto_login = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
     $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
+    $custom_wp_login_hide_default = (int) get_option('bw_custom_wp_login_hide_default', 0);
     $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug((string) get_option('bw_custom_wp_login_slug', ''));
     $custom_wp_login_url = '';
     if ('' !== $custom_wp_login_slug) {
         $custom_wp_login_url = home_url('/' . $custom_wp_login_slug . '/');
     }
+    $custom_wp_login_hide_warning = (1 === $custom_wp_login_hide_default && '' === $custom_wp_login_slug);
 
     $facebook_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('facebook') : add_query_arg('bw_social_login_callback', 'facebook', wc_get_page_permalink('myaccount'));
     $google_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('google') : add_query_arg('bw_social_login_callback', 'google', wc_get_page_permalink('myaccount'));
@@ -2310,6 +2314,11 @@ function bw_site_render_account_page_tab()
     <?php if ('' !== $custom_wp_login_slug_error): ?>
         <div class="notice notice-error is-dismissible">
             <p><?php echo esc_html($custom_wp_login_slug_error); ?></p>
+        </div>
+    <?php endif; ?>
+    <?php if ($custom_wp_login_hide_warning): ?>
+        <div class="notice notice-warning is-dismissible">
+            <p><?php esc_html_e('A valid custom login slug is required before hiding default WordPress login URLs.', 'bw'); ?></p>
         </div>
     <?php endif; ?>
     <form method="post" action="">
@@ -3219,6 +3228,24 @@ function bw_site_render_account_page_tab()
                                     <strong><?php esc_html_e('Custom login shortcut disabled.', 'bw'); ?></strong>
                                 </p>
                             <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_custom_wp_login_hide_default"><?php esc_html_e('Hide default WordPress login URLs', 'bw'); ?></label>
+                        </th>
+                        <td>
+                            <label>
+                                <input type="checkbox" id="bw_custom_wp_login_hide_default" name="bw_custom_wp_login_hide_default" value="1" <?php checked(1, $custom_wp_login_hide_default); ?> />
+                                <?php esc_html_e('Hide default WordPress login URLs', 'bw'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('When enabled, logged-out visitors opening /wp-login.php or /wp-admin/ will receive a 404. Your custom login shortcut will remain available.', 'bw'); ?>
+                            </p>
+                            <p class="description">
+                                <strong><?php esc_html_e('Warning:', 'bw'); ?></strong>
+                                <?php esc_html_e('Save and test your custom login URL before enabling this option. If you lose access, disable the option from the database or define BLACKWORK_ALLOW_DEFAULT_WP_LOGIN as true in wp-config.php.', 'bw'); ?>
+                            </p>
                         </td>
                     </tr>
                 </tbody>
