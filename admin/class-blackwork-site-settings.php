@@ -2322,6 +2322,9 @@ function bw_site_render_account_page_tab()
             <a href="#technical" class="nav-tab" role="tab" aria-selected="false" data-bw-account-tab="technical">
                 <?php esc_html_e('Provider WordPress or Supabase', 'bw'); ?>
             </a>
+            <a href="#admin-login-link" class="nav-tab" role="tab" aria-selected="false" data-bw-account-tab="admin-login-link">
+                <?php esc_html_e('Admin Login Link', 'bw'); ?>
+            </a>
         </h2>
 
         <div class="bw-account-settings-tab" data-bw-account-tab="design">
@@ -2684,27 +2687,6 @@ function bw_site_render_account_page_tab()
                             <p class="description">
                                 <?php esc_html_e('Imposta il link da usare per il login senza password o magic link.', 'bw'); ?>
                             </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bw_custom_wp_login_slug"><?php esc_html_e('Customize WordPress Login', 'bw'); ?></label>
-                        </th>
-                        <td>
-                            <input type="text" id="bw_custom_wp_login_slug" name="bw_custom_wp_login_slug"
-                                value="<?php echo esc_attr($custom_wp_login_slug); ?>" class="regular-text"
-                                placeholder="blackwork-private" />
-                            <p class="description">
-                                <?php esc_html_e('This creates a custom shortcut to the standard WordPress login page. It does not disable wp-login.php.', 'bw'); ?>
-                            </p>
-                            <?php if ('' !== $custom_wp_login_url): ?>
-                                <p class="description">
-                                    <strong><?php esc_html_e('Current custom login URL:', 'bw'); ?></strong>
-                                    <a href="<?php echo esc_url($custom_wp_login_url); ?>" target="_blank" rel="noopener">
-                                        <?php echo esc_html($custom_wp_login_url); ?>
-                                    </a>
-                                </p>
-                            <?php endif; ?>
                         </td>
                     </tr>
                 </tbody>
@@ -3195,6 +3177,48 @@ function bw_site_render_account_page_tab()
                                     <?php checked(1, $supabase_debug_log); ?> />
                                 <?php esc_html_e('Log Supabase Auth status codes (never logs credentials).', 'bw'); ?>
                             </label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bw-account-settings-tab" data-bw-account-tab="admin-login-link" style="display:none;">
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <?php esc_html_e('WordPress Admin Login Shortcut', 'bw'); ?>
+                        </th>
+                        <td>
+                            <p class="description">
+                                <?php esc_html_e('Create a custom URL that opens the standard WordPress login screen.', 'bw'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_custom_wp_login_slug"><?php esc_html_e('Customize WordPress Login', 'bw'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="bw_custom_wp_login_slug" name="bw_custom_wp_login_slug"
+                                value="<?php echo esc_attr($custom_wp_login_slug); ?>" class="regular-text"
+                                placeholder="blackwork-private" />
+                            <p class="description">
+                                <?php esc_html_e('This creates a custom shortcut to the standard WordPress login page. It does not disable wp-login.php or wp-admin.', 'bw'); ?>
+                            </p>
+                            <?php if ('' !== $custom_wp_login_url): ?>
+                                <p class="description">
+                                    <strong><?php esc_html_e('Current custom login URL:', 'bw'); ?></strong>
+                                    <a href="<?php echo esc_url($custom_wp_login_url); ?>" target="_blank" rel="noopener">
+                                        <?php echo esc_html($custom_wp_login_url); ?>
+                                    </a>
+                                </p>
+                            <?php else: ?>
+                                <p class="description">
+                                    <strong><?php esc_html_e('Custom login shortcut disabled.', 'bw'); ?></strong>
+                                </p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 </tbody>
