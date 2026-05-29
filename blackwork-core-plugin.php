@@ -465,6 +465,15 @@ if (function_exists('bw_ss_on_plugin_activation')) {
     register_activation_hook(__FILE__, 'bw_ss_on_plugin_activation');
 }
 
+// Custom WordPress Login Shortcut module
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/custom-wp-login/custom-wp-login-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/custom-wp-login/custom-wp-login-module.php';
+}
+
+if (function_exists('bw_custom_wp_login_on_activation')) {
+    register_activation_hook(__FILE__, 'bw_custom_wp_login_on_activation');
+}
+
 // Theme Builder Lite module (fonts + footer template runtime)
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/theme-builder-lite/theme-builder-lite-module.php';

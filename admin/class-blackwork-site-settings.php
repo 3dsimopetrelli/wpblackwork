@@ -1927,9 +1927,82 @@ function bw_site_render_product_labels_tab()
 /**
  * Renderizza il tab Account Page
  */
+function bw_get_custom_wp_login_reserved_slugs()
+{
+    return [
+        'wp-admin',
+        'wp-login.php',
+        'wp-json',
+        'wp-content',
+        'wp-includes',
+        'admin',
+        'login',
+        'my-account',
+        'account',
+        'cart',
+        'checkout',
+        'shop',
+        'product',
+        'product-category',
+        'category',
+        'tag',
+        'search',
+    ];
+}
+
+function bw_sanitize_custom_wp_login_slug($raw_slug)
+{
+    $raw_slug = (string) wp_unslash($raw_slug);
+    $raw_slug = trim($raw_slug);
+
+    if ('' === $raw_slug) {
+        return '';
+    }
+
+    if (false !== strpos($raw_slug, '://') || false !== strpos($raw_slug, '?') || false !== strpos($raw_slug, '&') || false !== strpos($raw_slug, '=')) {
+        return '';
+    }
+
+    $raw_slug = trim($raw_slug, "/ \t\n\r\0\x0B");
+    if ('' === $raw_slug || false !== strpos($raw_slug, '/')) {
+        return '';
+    }
+
+    $slug = sanitize_title($raw_slug);
+    if ('' === $slug) {
+        return '';
+    }
+
+    if (in_array($slug, bw_get_custom_wp_login_reserved_slugs(), true)) {
+        return '';
+    }
+
+    return $slug;
+}
+
+function bw_custom_wp_login_slug_has_conflict($slug)
+{
+    $slug = sanitize_title((string) $slug);
+    if ('' === $slug) {
+        return false;
+    }
+
+    $post_conflict = get_page_by_path($slug, OBJECT, ['page', 'post', 'product']);
+    if ($post_conflict instanceof WP_Post) {
+        return true;
+    }
+
+    if (term_exists($slug, 'product_cat') || term_exists($slug, 'category') || term_exists($slug, 'post_tag')) {
+        return true;
+    }
+
+    return false;
+}
+
 function bw_site_render_account_page_tab()
 {
     $saved = false;
+    $custom_wp_login_slug_error = '';
 
     if (isset($_POST['bw_account_page_submit'])) {
         if (!current_user_can('manage_options')) {
@@ -1997,6 +2070,20 @@ function bw_site_render_account_page_tab()
         $supabase_signup_redirect = isset($_POST['bw_supabase_signup_redirect_url']) ? esc_url_raw(trim(wp_unslash($_POST['bw_supabase_signup_redirect_url']))) : '';
         $supabase_auto_login = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
+        $custom_wp_login_slug_raw = isset($_POST['bw_custom_wp_login_slug']) ? (string) $_POST['bw_custom_wp_login_slug'] : '';
+        $custom_wp_login_slug_raw = trim((string) wp_unslash($custom_wp_login_slug_raw));
+        $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug($custom_wp_login_slug_raw);
+        $previous_custom_wp_login_slug = bw_sanitize_custom_wp_login_slug((string) get_option('bw_custom_wp_login_slug', ''));
+
+        if ('' !== $custom_wp_login_slug_raw) {
+            if ('' === $custom_wp_login_slug) {
+                $custom_wp_login_slug_error = __('Custom login slug not saved: use a valid slug (no URL, query string, slashes, or reserved values).', 'bw');
+                $custom_wp_login_slug = $previous_custom_wp_login_slug;
+            } elseif (bw_custom_wp_login_slug_has_conflict($custom_wp_login_slug)) {
+                $custom_wp_login_slug_error = __('Custom login slug not saved: this slug is already used by an existing page, post, product, or taxonomy archive.', 'bw');
+                $custom_wp_login_slug = $previous_custom_wp_login_slug;
+            }
+        }
 
         if (!in_array($login_provider, ['wordpress', 'supabase'], true)) {
             $login_provider = 'wordpress';
@@ -2060,6 +2147,11 @@ function bw_site_render_account_page_tab()
         update_option('bw_account_login_subtitle', $login_subtitle_wordpress);
         update_option('bw_account_show_social_buttons', $show_social_buttons);
         update_option('bw_account_passwordless_url', $passwordless_url);
+        update_option('bw_custom_wp_login_slug', $custom_wp_login_slug);
+
+        if ($custom_wp_login_slug !== $previous_custom_wp_login_slug) {
+            update_option('bw_custom_wp_login_slug_needs_flush', 1, false);
+        }
 
         // WordPress provider options - only save if WordPress is selected (preserve Supabase settings when switching)
         if ('wordpress' === $login_provider) {
@@ -2186,6 +2278,11 @@ function bw_site_render_account_page_tab()
     $supabase_signup_redirect = get_option('bw_supabase_signup_redirect_url', site_url('/my-account/?bw_email_confirmed=1'));
     $supabase_auto_login = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
     $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
+    $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug((string) get_option('bw_custom_wp_login_slug', ''));
+    $custom_wp_login_url = '';
+    if ('' !== $custom_wp_login_slug) {
+        $custom_wp_login_url = home_url('/' . $custom_wp_login_slug . '/');
+    }
 
     $facebook_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('facebook') : add_query_arg('bw_social_login_callback', 'facebook', wc_get_page_permalink('myaccount'));
     $google_redirect = function_exists('bw_mew_get_social_redirect_uri') ? bw_mew_get_social_redirect_uri('google') : add_query_arg('bw_social_login_callback', 'google', wc_get_page_permalink('myaccount'));
@@ -2208,6 +2305,11 @@ function bw_site_render_account_page_tab()
     <?php if ($saved): ?>
         <div class="notice notice-success is-dismissible">
             <p><strong>Impostazioni salvate con successo!</strong></p>
+        </div>
+    <?php endif; ?>
+    <?php if ('' !== $custom_wp_login_slug_error): ?>
+        <div class="notice notice-error is-dismissible">
+            <p><?php echo esc_html($custom_wp_login_slug_error); ?></p>
         </div>
     <?php endif; ?>
     <form method="post" action="">
@@ -2582,6 +2684,27 @@ function bw_site_render_account_page_tab()
                             <p class="description">
                                 <?php esc_html_e('Imposta il link da usare per il login senza password o magic link.', 'bw'); ?>
                             </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="bw_custom_wp_login_slug"><?php esc_html_e('Customize WordPress Login', 'bw'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" id="bw_custom_wp_login_slug" name="bw_custom_wp_login_slug"
+                                value="<?php echo esc_attr($custom_wp_login_slug); ?>" class="regular-text"
+                                placeholder="blackwork-private" />
+                            <p class="description">
+                                <?php esc_html_e('This creates a custom shortcut to the standard WordPress login page. It does not disable wp-login.php.', 'bw'); ?>
+                            </p>
+                            <?php if ('' !== $custom_wp_login_url): ?>
+                                <p class="description">
+                                    <strong><?php esc_html_e('Current custom login URL:', 'bw'); ?></strong>
+                                    <a href="<?php echo esc_url($custom_wp_login_url); ?>" target="_blank" rel="noopener">
+                                        <?php echo esc_html($custom_wp_login_url); ?>
+                                    </a>
+                                </p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 </tbody>
