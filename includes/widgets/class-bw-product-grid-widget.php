@@ -157,6 +157,15 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'default'      => 'yes',
         ] );
 
+        $this->add_control( 'show_hover_buttons', [
+            'label'        => __( 'Show Hover Buttons', 'bw-elementor-widgets' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ] );
+
         $this->add_control( 'disable_hover_on_touch', [
             'label'        => __( 'Disable Hover Actions on Tablet & Mobile', 'bw-elementor-widgets' ),
             'type'         => Controls_Manager::SWITCHER,
@@ -165,6 +174,9 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'return_value' => 'yes',
             'default'      => '',
             'description'  => __( 'Hide hover overlays and secondary hover media below desktop widths.', 'bw-elementor-widgets' ),
+            'condition'    => [
+                'show_hover_buttons' => 'yes',
+            ],
         ] );
 
         $this->end_controls_section();
@@ -1436,7 +1448,8 @@ class BW_Product_Grid_Widget extends Widget_Base {
         $open_cart_popup = false;
         $show_title       = 'yes' === ( $settings['show_title'] ?? 'yes' );
         $show_description = 'yes' === ( $settings['show_description'] ?? 'yes' );
-        $show_price       = 'yes' === ( $settings['show_price'] ?? 'yes' );
+        $show_price         = 'yes' === ( $settings['show_price'] ?? 'yes' );
+        $show_hover_buttons = 'yes' === ( $settings['show_hover_buttons'] ?? 'yes' );
         $show_search      = isset( $settings['show_search'] ) && 'yes' === $settings['show_search'];
         $include_ids      = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
         $show_order_by    = $this->is_runtime_sort_enabled( $settings, $include_ids );
@@ -1633,7 +1646,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                         }
                         $image_loading       = $rendered_posts < $initial_eager_items ? 'eager' : 'lazy';
                         $hover_image_loading = 'lazy';
-                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode, $show_title, $show_description, $show_price );
+                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode, $show_title, $show_description, $show_price, $show_hover_buttons );
                         $rendered_posts++;
                     endwhile;
                     ?>
@@ -1655,7 +1668,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
         wp_reset_postdata();
     }
 
-    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional', $show_title = true, $show_description = true, $show_price = true ) {
+    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional', $show_title = true, $show_description = true, $show_price = true, $show_hover_buttons = true ) {
         $post_id = get_the_ID();
 
         if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
@@ -1676,7 +1689,7 @@ class BW_Product_Grid_Widget extends Widget_Base {
                         'show_description'       => $show_description,
                         'description_mode'       => 'auto',
                         'show_price'             => $show_price,
-                        'show_buttons'           => true,
+                        'show_buttons'           => $show_hover_buttons,
                         'show_add_to_cart'       => true,
                         'open_cart_popup'        => $open_cart_popup,
                         'wrapper_classes'        => 'bw-fpw-item',
