@@ -41,6 +41,13 @@ if (!function_exists('bw_custom_wp_login_get_slug')) {
     }
 }
 
+if (!function_exists('bw_custom_wp_login_is_shortcut_request')) {
+    function bw_custom_wp_login_is_shortcut_request()
+    {
+        return defined('BW_CUSTOM_WP_LOGIN_SHORTCUT_FLOW') && BW_CUSTOM_WP_LOGIN_SHORTCUT_FLOW;
+    }
+}
+
 if (!function_exists('bw_custom_wp_login_allow_default_urls')) {
     function bw_custom_wp_login_allow_default_urls()
     {
@@ -67,6 +74,124 @@ if (!function_exists('bw_custom_wp_login_hide_default_active')) {
         }
 
         return '' !== bw_custom_wp_login_get_slug();
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_build_custom_url')) {
+    function bw_custom_wp_login_build_custom_url($query_args = [])
+    {
+        $slug = bw_custom_wp_login_get_slug();
+        if ('' === $slug) {
+            return home_url('/');
+        }
+
+        $url = home_url('/' . $slug . '/');
+        if (!empty($query_args) && is_array($query_args)) {
+            $url = add_query_arg($query_args, $url);
+        }
+
+        return $url;
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_extract_login_query_args')) {
+    function bw_custom_wp_login_extract_login_query_args($path)
+    {
+        $path = (string) $path;
+        if ('' === $path) {
+            return [];
+        }
+
+        $parts = wp_parse_url($path);
+        if (!is_array($parts)) {
+            return [];
+        }
+
+        $path_part = isset($parts['path']) ? basename((string) $parts['path']) : '';
+        if ('wp-login.php' !== $path_part) {
+            return [];
+        }
+
+        $query_args = [];
+        if (!empty($parts['query'])) {
+            wp_parse_str($parts['query'], $query_args);
+        }
+
+        return is_array($query_args) ? $query_args : [];
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_filter_site_url')) {
+    function bw_custom_wp_login_filter_site_url($url, $path, $scheme = null, $blog_id = null)
+    {
+        unset($scheme, $blog_id);
+
+        if (!bw_custom_wp_login_hide_default_active()) {
+            return $url;
+        }
+
+        $query_args = bw_custom_wp_login_extract_login_query_args($path);
+        if (empty($query_args) && 'wp-login.php' !== basename((string) wp_parse_url((string) $path, PHP_URL_PATH))) {
+            return $url;
+        }
+
+        return bw_custom_wp_login_build_custom_url($query_args);
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_filter_login_url')) {
+    function bw_custom_wp_login_filter_login_url($login_url, $redirect, $force_reauth)
+    {
+        if (!bw_custom_wp_login_hide_default_active()) {
+            return $login_url;
+        }
+
+        $query_args = [];
+        if (!empty($redirect)) {
+            $query_args['redirect_to'] = $redirect;
+        }
+        if ($force_reauth) {
+            $query_args['reauth'] = '1';
+        }
+
+        return bw_custom_wp_login_build_custom_url($query_args);
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_filter_lostpassword_url')) {
+    function bw_custom_wp_login_filter_lostpassword_url($lostpassword_url, $redirect)
+    {
+        if (!bw_custom_wp_login_hide_default_active()) {
+            return $lostpassword_url;
+        }
+
+        $query_args = ['action' => 'lostpassword'];
+        if (!empty($redirect)) {
+            $query_args['redirect_to'] = $redirect;
+        }
+
+        return bw_custom_wp_login_build_custom_url($query_args);
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_filter_logout_url')) {
+    function bw_custom_wp_login_filter_logout_url($logout_url, $redirect)
+    {
+        if (!bw_custom_wp_login_hide_default_active()) {
+            return $logout_url;
+        }
+
+        $query_args = ['action' => 'logout'];
+        if (!empty($redirect)) {
+            $query_args['redirect_to'] = $redirect;
+        }
+
+        $nonce = wp_create_nonce('log-out');
+        if (!empty($nonce)) {
+            $query_args['_wpnonce'] = $nonce;
+        }
+
+        return bw_custom_wp_login_build_custom_url($query_args);
     }
 }
 
@@ -100,7 +225,7 @@ if (!function_exists('bw_custom_wp_login_template_redirect')) {
             return;
         }
 
-        if (!defined('BW_CUSTOM_WP_LOGIN_SHORTCUT_FLOW')) {
+        if (!bw_custom_wp_login_is_shortcut_request()) {
             define('BW_CUSTOM_WP_LOGIN_SHORTCUT_FLOW', true);
         }
 
@@ -138,13 +263,22 @@ if (!function_exists('bw_custom_wp_login_block_default_login')) {
             return;
         }
 
-        if (defined('BW_CUSTOM_WP_LOGIN_SHORTCUT_FLOW') && BW_CUSTOM_WP_LOGIN_SHORTCUT_FLOW) {
+        if (bw_custom_wp_login_is_shortcut_request()) {
             return;
         }
 
         $script_name = isset($_SERVER['SCRIPT_NAME']) ? basename((string) $_SERVER['SCRIPT_NAME']) : '';
         if ('wp-login.php' !== $script_name) {
             return;
+        }
+
+        $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : 'GET';
+        if ('POST' === $request_method) {
+            $referer = isset($_SERVER['HTTP_REFERER']) ? (string) $_SERVER['HTTP_REFERER'] : '';
+            $custom_url = bw_custom_wp_login_build_custom_url();
+            if ('' !== $referer && 0 === strpos($referer, $custom_url)) {
+                return;
+            }
         }
 
         bw_custom_wp_login_render_404();
@@ -209,6 +343,11 @@ if (!function_exists('bw_custom_wp_login_maybe_flush_rewrite')) {
 add_action('init', 'bw_custom_wp_login_register_rewrite', 9);
 add_action('init', 'bw_custom_wp_login_block_default_admin', 0);
 add_filter('query_vars', 'bw_custom_wp_login_register_query_var');
+add_filter('site_url', 'bw_custom_wp_login_filter_site_url', 10, 4);
+add_filter('network_site_url', 'bw_custom_wp_login_filter_site_url', 10, 3);
+add_filter('login_url', 'bw_custom_wp_login_filter_login_url', 10, 3);
+add_filter('lostpassword_url', 'bw_custom_wp_login_filter_lostpassword_url', 10, 2);
+add_filter('logout_url', 'bw_custom_wp_login_filter_logout_url', 10, 2);
 add_action('login_init', 'bw_custom_wp_login_block_default_login', 0);
 add_action('template_redirect', 'bw_custom_wp_login_template_redirect', 5);
 add_action('admin_init', 'bw_custom_wp_login_maybe_flush_rewrite');
