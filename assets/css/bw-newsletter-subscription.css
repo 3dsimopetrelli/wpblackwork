@@ -166,6 +166,10 @@
     margin: 0 0 18px !important;
 }
 
+.bw-newsletter-subscription-widget--footer .bw-newsletter-subscription-shell { padding: 32px 40px !important; }
+.bw-newsletter-subscription-widget--footer .bw-newsletter-subscription-form { margin-top: 24px !important; }
+.bw-newsletter-subscription-widget--footer .bw-newsletter-subscription-button__label { border: 1px solid #000 !important; }
+
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-title,
 .bw-newsletter-subscription-footer-title {
     margin: 0 !important;
