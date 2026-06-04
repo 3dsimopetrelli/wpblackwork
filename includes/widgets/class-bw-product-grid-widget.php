@@ -230,6 +230,21 @@ class BW_Product_Grid_Widget extends Widget_Base {
     }
 
     private function register_style_controls() {
+        $this->start_controls_section( 'style_media_section', [
+            'label' => __( 'Image', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_control( 'product_image_background_color', [
+            'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .bw-product-card .bw-slider-image-container, {{WRAPPER}} .bw-product-card .bw-wallpost-media, {{WRAPPER}} .bw-product-card .bw-ss__media' => 'background-color: {{VALUE}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
         $this->start_controls_section( 'style_text_section', [
             'label' => __( 'Text', 'bw-elementor-widgets' ),
             'tab'   => Controls_Manager::TAB_STYLE,
@@ -341,6 +356,30 @@ class BW_Product_Grid_Widget extends Widget_Base {
             'size_units' => [ 'px', '%', 'em', 'rem' ],
             'selectors'  => [
                 '{{WRAPPER}} .bw-fpw-price' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ] );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section( 'style_labels_section', [
+            'label' => __( 'Labels', 'bw-elementor-widgets' ),
+            'tab'   => Controls_Manager::TAB_STYLE,
+        ] );
+
+        $this->add_responsive_control( 'archive_labels_padding', [
+            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => [ 'px', '%', 'em', 'rem' ],
+            'default'    => [
+                'top'      => 20,
+                'right'    => 20,
+                'bottom'   => 20,
+                'left'     => 20,
+                'unit'     => 'px',
+                'isLinked' => true,
+            ],
+            'selectors'  => [
+                '{{WRAPPER}} .bw-product-labels--archive' => 'top: 0; right: 0; left: 0; padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ] );
 
