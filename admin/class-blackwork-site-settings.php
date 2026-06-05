@@ -8295,6 +8295,14 @@ function bw_import_handle_upload_request()
             'skipped' => 0,
             'failed' => 0,
         ],
+        'detail_totals' => [
+            'products_created' => 0,
+            'products_updated' => 0,
+            'variations_created' => 0,
+            'variations_updated' => 0,
+            'variations_skipped' => 0,
+            'variations_failed' => 0,
+        ],
         'row_outcomes' => [],
         'row_outcome_order' => [],
         'processed_row_keys' => [],
@@ -8435,6 +8443,14 @@ function bw_import_handle_run_request($state)
             'skipped' => 0,
             'failed' => 0,
         ];
+        $run_state['detail_totals'] = [
+            'products_created' => 0,
+            'products_updated' => 0,
+            'variations_created' => 0,
+            'variations_updated' => 0,
+            'variations_skipped' => 0,
+            'variations_failed' => 0,
+        ];
         $run_state['row_outcomes'] = [];
         $run_state['row_outcome_order'] = [];
         $run_state['processed_row_keys'] = [];
@@ -8521,6 +8537,10 @@ function bw_import_handle_run_request($state)
         isset($run_state['last_warnings']) ? (array) $run_state['last_warnings'] : [],
         isset($result['warnings']) ? (array) $result['warnings'] : []
     );
+    $run_state['detail_totals'] = bw_import_merge_detail_totals(
+        isset($run_state['detail_totals']) && is_array($run_state['detail_totals']) ? $run_state['detail_totals'] : [],
+        isset($result['details']) && is_array($result['details']) ? $result['details'] : []
+    );
     $run_state['updated_at'] = time();
     $run_state['lock'] = bw_import_get_lock_payload();
 
@@ -8567,20 +8587,27 @@ function bw_import_handle_run_request($state)
         (int) $run_state['totals']['errors']
     );
 
-    if (!empty($result['details']) && is_array($result['details'])) {
+    if (!empty($run_state['detail_totals']) && is_array($run_state['detail_totals'])) {
         $message .= ' ' . sprintf(
             __('Products: %1$d created, %2$d updated. Variations: %3$d created, %4$d updated, %5$d skipped, %6$d failed.', 'bw'),
-            (int) $result['details']['products_created'],
-            (int) $result['details']['products_updated'],
-            (int) $result['details']['variations_created'],
-            (int) $result['details']['variations_updated'],
-            (int) $result['details']['variations_skipped'],
-            (int) $result['details']['variations_failed']
+            (int) $run_state['detail_totals']['products_created'],
+            (int) $run_state['detail_totals']['products_updated'],
+            (int) $run_state['detail_totals']['variations_created'],
+            (int) $run_state['detail_totals']['variations_updated'],
+            (int) $run_state['detail_totals']['variations_skipped'],
+            (int) $run_state['detail_totals']['variations_failed']
         );
     }
 
     if (!empty($run_state['last_errors'])) {
         $message .= ' — ' . implode(' | ', array_map('esc_html', (array) $run_state['last_errors']));
+    }
+
+    $warning_summary = bw_import_format_warning_summary(
+        isset($run_state['last_warnings']) ? (array) $run_state['last_warnings'] : []
+    );
+    if ($warning_summary !== '') {
+        $message .= ' — ' . $warning_summary;
     }
 
     bw_import_release_lock($run_id, get_current_user_id());
@@ -8987,6 +9014,52 @@ function bw_import_record_row_outcome(&$run_state, $row_identity, $outcome, $mes
 
     $run_state = bw_import_sync_totals_from_counters($run_state);
     return true;
+}
+
+function bw_import_merge_detail_totals($existing, $delta)
+{
+    $keys = [
+        'products_created',
+        'products_updated',
+        'variations_created',
+        'variations_updated',
+        'variations_skipped',
+        'variations_failed',
+    ];
+
+    $merged = [];
+    foreach ($keys as $key) {
+        $merged[$key] = (int) (isset($existing[$key]) ? $existing[$key] : 0) + (int) (isset($delta[$key]) ? $delta[$key] : 0);
+    }
+
+    return $merged;
+}
+
+function bw_import_format_warning_summary($warnings, $limit = 5)
+{
+    $warnings = array_values(array_filter(array_map('sanitize_text_field', (array) $warnings)));
+    if (empty($warnings)) {
+        return '';
+    }
+
+    $limit = max(1, (int) $limit);
+    $visible = array_slice($warnings, 0, $limit);
+    $summary = sprintf(
+        /* translators: %d: warning count */
+        __('Warnings (%d):', 'bw'),
+        count($warnings)
+    ) . ' ' . implode(' | ', array_map('esc_html', $visible));
+
+    $remaining = count($warnings) - count($visible);
+    if ($remaining > 0) {
+        $summary .= ' ' . sprintf(
+            /* translators: %d: remaining warning count */
+            __('(+%d more warnings)', 'bw'),
+            $remaining
+        );
+    }
+
+    return $summary;
 }
 
 /**
@@ -10562,7 +10635,13 @@ function bw_import_maybe_apply_parent_default_variation($parent_product, $attrib
 
     foreach ((array) $license_attribute->get_options() as $option) {
         if (sanitize_title((string) $option) === $default_variation) {
-            $parent_product->set_default_attributes([$attribute_key => (string) $option]);
+            $existing_defaults = $parent_product->get_default_attributes();
+            if (!is_array($existing_defaults)) {
+                $existing_defaults = [];
+            }
+
+            $existing_defaults[$attribute_key] = (string) $option;
+            $parent_product->set_default_attributes($existing_defaults);
             return;
         }
     }
