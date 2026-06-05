@@ -50,6 +50,7 @@ PRODUCT CONTEXT:
 Instructions:
 - Read the matching guide first and the matching CSV second.
 - Analyze the featured image and any gallery images before filling the CSV.
+- Before writing any Dropbox URL into the CSV, convert `dl=0` to `raw=1` and preserve the rest of the URL exactly.
 - Use direct image URLs only.
 - Use the featured image URL in `featured_image`.
 - Put all gallery URLs into `product_gallery` as comma-separated direct URLs in one cell.

@@ -47,6 +47,10 @@ PRODUCT CONTEXT / DOWNLOAD DETAILS:
 
 Instructions:
 - Analyze the featured image and gallery/slide images before filling the CSV.
+- Before writing any Dropbox URL into the CSV, convert `dl=0` to `raw=1`.
+- Preserve the rest of the URL exactly.
+- Apply this to featured image, gallery images, hover image, hover video, and variation images.
+- The final CSV must contain the converted `raw=1` Dropbox URLs, not `dl=0` preview links.
 - Use the featured image URL in `featured_image`.
 - Use the same featured image URL as `variation_image` for both Commercial and Extended unless separate variation images are provided.
 - Put all gallery/slide image URLs into `product_gallery` as comma-separated direct URLs in one cell.

@@ -175,6 +175,35 @@ Use this guide together with the Digital CSV template to help ChatGPT/Codex prep
 - Do not split gallery URLs across multiple columns.
 - Do not use Markdown links.
 
+## Dropbox URL conversion for media imports
+- Blackwork media links may come from Dropbox.
+- WooCommerce CSV imports require direct image/media URLs.
+- Standard Dropbox links with `dl=0` must be converted before writing them into the CSV.
+- Replace only `dl=0` with `raw=1`.
+- Preserve the full URL.
+- Preserve `rlkey`.
+- Preserve `st`.
+- Preserve the filename.
+- Preserve all other query parameters.
+- Do not rewrite the URL in any other way.
+- Do not remove query parameters.
+- Do not use Dropbox preview links unchanged.
+- Do not convert non-Dropbox URLs unless they contain the exact Dropbox-style `dl=0` parameter and need direct file access.
+
+This rule applies to all media URL fields:
+- `featured_image`
+- `product_gallery`
+- `variation_image`
+- `meta:_bw_slider_hover_image`
+- `meta:_bw_slider_hover_video`
+- any future download/media URL fields when they use Dropbox links
+
+Example:
+- Input:
+  - `https://www.dropbox.com/scl/fi/fsqw1sah01ku0s84knu9r/Ethnographic-Figures-Artifacts-_id-cover.png?rlkey=wriqcnfn7sd6wmgqs67uz7nvf&st=t4h7d2ic&dl=0`
+- Output:
+  - `https://www.dropbox.com/scl/fi/fsqw1sah01ku0s84knu9r/Ethnographic-Figures-Artifacts-_id-cover.png?rlkey=wriqcnfn7sd6wmgqs67uz7nvf&st=t4h7d2ic&raw=1`
+
 ## Meta column prefix
 Columns that start with `meta:` are importer mapping columns.
 The `meta:` prefix is not part of the real WordPress meta key.

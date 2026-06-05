@@ -43,6 +43,8 @@ Provide:
 - `product_gallery` is the gallery field to use
 - It accepts multiple direct image URLs in one cell separated by commas
 - Use `featured_image` for the main print image
+- If a Dropbox URL is provided with `dl=0`, convert only `dl=0` to `raw=1` before writing it into `featured_image` or `product_gallery`
+- Preserve the rest of the Dropbox URL exactly, including query parameters such as `rlkey` and `st`
 
 ## Column-by-column guide
 
