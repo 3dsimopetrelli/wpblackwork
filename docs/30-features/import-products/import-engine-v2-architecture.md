@@ -15,6 +15,7 @@ Important boundary note:
 - the import/export runtime has not yet been extracted into dedicated files
 - renderer, request handlers, and state/lock helpers still live inside:
   - [admin/class-blackwork-site-settings.php](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/admin/class-blackwork-site-settings.php)
+- the current runtime now includes the minimum native WooCommerce support required for the Digital parent + `Commercial` / `Extended` variation workflow
 
 ## 1) Scope and Authority Boundary
 

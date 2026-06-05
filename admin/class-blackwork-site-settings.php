@@ -340,6 +340,7 @@ function bw_site_settings_admin_assets($hook)
                     'preflightFailure' => esc_html__('CSV analysis failed unexpectedly. The original file will be submitted unchanged.', 'bw'),
                     'invalidPreviewLabel' => esc_html__('Example skipped rows', 'bw'),
                     'missingSkuAndName' => esc_html__('Missing SKU and name', 'bw'),
+                    'missingVariationIdentifiers' => esc_html__('Missing variation SKU, parent SKU, or variation name', 'bw'),
                     'defaultUploadCta' => esc_html__('Upload & Analyze', 'bw'),
                     'analyzingCsv' => esc_html__('Analyzing CSV...', 'bw'),
                     'analyzingCsvStatus' => esc_html__('Analyzing CSV in your browser. A preflight check will open before upload.', 'bw'),
@@ -8528,6 +8529,18 @@ function bw_import_handle_run_request($state)
         bw_import_save_run_state($run_state);
         bw_import_save_state($run_state);
         bw_import_refresh_lock($run_id, get_current_user_id());
+        $detail_message = '';
+        if (!empty($result['details']) && is_array($result['details'])) {
+            $detail_message = sprintf(
+                __(' Products: %1$d created, %2$d updated. Variations: %3$d created, %4$d updated, %5$d skipped, %6$d failed.', 'bw'),
+                (int) $result['details']['products_created'],
+                (int) $result['details']['products_updated'],
+                (int) $result['details']['variations_created'],
+                (int) $result['details']['variations_updated'],
+                (int) $result['details']['variations_skipped'],
+                (int) $result['details']['variations_failed']
+            );
+        }
         return [
             'message' => sprintf(
                 /* translators: 1: processed rows, 2: created count, 3: updated count, 4: skipped count */
@@ -8536,7 +8549,7 @@ function bw_import_handle_run_request($state)
                 (int) $run_state['totals']['created'],
                 (int) $run_state['totals']['updated'],
                 (int) $run_state['totals']['skipped']
-            ),
+            ) . $detail_message,
         ];
     }
 
@@ -8553,6 +8566,18 @@ function bw_import_handle_run_request($state)
         (int) $run_state['totals']['skipped'],
         (int) $run_state['totals']['errors']
     );
+
+    if (!empty($result['details']) && is_array($result['details'])) {
+        $message .= ' ' . sprintf(
+            __('Products: %1$d created, %2$d updated. Variations: %3$d created, %4$d updated, %5$d skipped, %6$d failed.', 'bw'),
+            (int) $result['details']['products_created'],
+            (int) $result['details']['products_updated'],
+            (int) $result['details']['variations_created'],
+            (int) $result['details']['variations_updated'],
+            (int) $result['details']['variations_skipped'],
+            (int) $result['details']['variations_failed']
+        );
+    }
 
     if (!empty($run_state['last_errors'])) {
         $message .= ' — ' . implode(' | ', array_map('esc_html', (array) $run_state['last_errors']));
@@ -9255,12 +9280,15 @@ function bw_import_get_mapping_options()
 {
     $options = [
         __('Product Core', 'bw') => [
+            'row_type' => __('Row Type (product/variation)', 'bw'),
+            'parent_sku' => __('Parent SKU', 'bw'),
             'product_id' => __('Product ID', 'bw'),
             'sku' => __('Product SKU', 'bw'),
             'post_title' => __('Product Title (post_title)', 'bw'),
             'post_name' => __('Product Slug (post_name)', 'bw'),
             'post_status' => __('Product Status', 'bw'),
             'product_type' => __('Product Type', 'bw'),
+            'default_variation' => __('Default Variation', 'bw'),
             'post_content' => __('Product Description (post_content)', 'bw'),
             'post_excerpt' => __('Product Short Description (post_excerpt)', 'bw'),
         ],
@@ -9300,6 +9328,18 @@ function bw_import_get_mapping_options()
         __('Links', 'bw') => [
             'upsells' => __('Upsells (comma-separated IDs or SKUs)', 'bw'),
             'cross_sells' => __('Cross-sells (comma-separated IDs or SKUs)', 'bw'),
+        ],
+        __('Variations', 'bw') => [
+            'variation_name' => __('Variation Name', 'bw'),
+            'variation_regular_price' => __('Variation Regular Price', 'bw'),
+            'variation_sale_price' => __('Variation Sale Price', 'bw'),
+            'variation_image' => __('Variation Image URL', 'bw'),
+            'variation_enabled' => __('Variation Enabled (yes/no)', 'bw'),
+            'variation_virtual' => __('Variation Virtual (yes/no)', 'bw'),
+            'variation_downloadable' => __('Variation Downloadable (yes/no)', 'bw'),
+            'variation_download_name' => __('Variation Download Name', 'bw'),
+            'variation_download_url' => __('Variation Download URL', 'bw'),
+            'variation_attributes_json' => __('Variation Attributes JSON', 'bw'),
         ],
     ];
 
@@ -9413,6 +9453,10 @@ function bw_import_normalize_mapping_key($key)
 function bw_import_get_mapping_aliases()
 {
     $aliases = [
+        'row_type' => 'row_type',
+        'rowtype' => 'row_type',
+        'parent_sku' => 'parent_sku',
+        'parentsku' => 'parent_sku',
         'title' => 'post_title',
         'product_title' => 'post_title',
         'producttitle' => 'post_title',
@@ -9436,6 +9480,8 @@ function bw_import_get_mapping_aliases()
         'gallery' => 'product_gallery',
         'product_gallery' => 'product_gallery',
         'gallery_images' => 'product_gallery',
+        'default_variation' => 'default_variation',
+        'defaultvariation' => 'default_variation',
         'category' => 'categories',
         'categories' => 'categories',
         'tag' => 'tags',
@@ -9444,6 +9490,26 @@ function bw_import_get_mapping_aliases()
         'upsells' => 'upsells',
         'crosssell' => 'cross_sells',
         'cross_sells' => 'cross_sells',
+        'variation_name' => 'variation_name',
+        'variationname' => 'variation_name',
+        'variation_regular_price' => 'variation_regular_price',
+        'variationregularprice' => 'variation_regular_price',
+        'variation_sale_price' => 'variation_sale_price',
+        'variationsaleprice' => 'variation_sale_price',
+        'variation_image' => 'variation_image',
+        'variationimage' => 'variation_image',
+        'variation_enabled' => 'variation_enabled',
+        'variationenabled' => 'variation_enabled',
+        'variation_virtual' => 'variation_virtual',
+        'variationvirtual' => 'variation_virtual',
+        'variation_downloadable' => 'variation_downloadable',
+        'variationdownloadable' => 'variation_downloadable',
+        'variation_download_name' => 'variation_download_name',
+        'variationdownloadname' => 'variation_download_name',
+        'variation_download_url' => 'variation_download_url',
+        'variationdownloadurl' => 'variation_download_url',
+        'variation_attributes_json' => 'variation_attributes_json',
+        'variationattributesjson' => 'variation_attributes_json',
     ];
 
     $normalized_aliases = [];
@@ -9587,6 +9653,28 @@ function bw_import_has_identifier($mapping)
     return in_array('sku', $values, true);
 }
 
+function bw_import_determine_row_type($row_data, $mapping)
+{
+    foreach ((array) $row_data as $header => $value) {
+        if (!isset($mapping[$header]) || $mapping[$header] !== 'row_type') {
+            continue;
+        }
+
+        $row_type = sanitize_key(trim((string) $value));
+        if ($row_type === 'variation') {
+            return 'variation';
+        }
+
+        if ($row_type === 'product' || $row_type === '') {
+            return 'product';
+        }
+
+        return 'unknown';
+    }
+
+    return 'product';
+}
+
 /**
  * Elabora le righe del CSV in base al mapping.
  *
@@ -9605,6 +9693,14 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         'errors_count' => 0,
         'errors' => [],
         'warnings' => [],
+        'details' => [
+            'products_created' => 0,
+            'products_updated' => 0,
+            'variations_created' => 0,
+            'variations_updated' => 0,
+            'variations_skipped' => 0,
+            'variations_failed' => 0,
+        ],
     ];
 
     $checkpoint_callback = (isset($options['checkpoint_callback']) && is_callable($options['checkpoint_callback']))
@@ -9627,20 +9723,43 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         }
     };
 
+    $prepared_entries = [];
+
     foreach ($rows as $row_index => $row) {
         $row_data = [];
         foreach ($headers as $i => $header) {
             $row_data[$header] = isset($row[$i]) ? $row[$i] : '';
         }
 
+        $row_type = bw_import_determine_row_type($row_data, $mapping);
         $prepared = bw_import_prepare_row_data($row_data, $mapping);
         if (is_wp_error($prepared)) {
             $row_identity = bw_import_make_row_identity($row_offset, $row_index, '');
-            $recorded = bw_import_record_row_outcome($run_state, $row_identity, 'failed', $prepared->get_error_message());
+            $error_code = $prepared->get_error_code();
+            $skip_codes = ['bw_import_missing_parent_match', 'bw_import_invalid_variation_row', 'bw_import_unknown_row_type'];
+            if ($row_type === 'variation') {
+                $skip_codes[] = 'bw_import_missing_identifiers';
+            }
+            $outcome = in_array($error_code, $skip_codes, true) ? 'skipped' : 'failed';
+            $recorded = bw_import_record_row_outcome($run_state, $row_identity, $outcome, $prepared->get_error_message());
             if ($recorded) {
                 $result['skipped']++;
-                $result['errors_count']++;
-                $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
+                if ($outcome === 'failed') {
+                    $result['errors_count']++;
+                    if ($row_type === 'variation') {
+                        $result['details']['variations_failed']++;
+                    }
+                } else {
+                    if ($row_type === 'variation') {
+                        $result['details']['variations_skipped']++;
+                    }
+                }
+                $message = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $prepared->get_error_message());
+                if ($outcome === 'failed') {
+                    $result['errors'][] = $message;
+                } else {
+                    $result['warnings'][] = $message;
+                }
             }
             $maybe_checkpoint($row_offset + $row_index + 1);
             continue;
@@ -9659,24 +9778,79 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
             continue;
         }
 
-        $save_result = bw_import_save_product_from_row($prepared, $update_existing, $options);
+        $prepared_entries[] = [
+            'row_index' => $row_index,
+            'absolute_row' => $row_offset + $row_index + 1,
+            'prepared' => $prepared,
+            'row_identity' => $row_identity,
+            'row_type' => !empty($prepared['row_type']) ? $prepared['row_type'] : 'product',
+        ];
+    }
+
+    $parent_default_variations = [];
+    foreach ($prepared_entries as $entry) {
+        if ($entry['row_type'] !== 'variation' && !empty($entry['prepared']['product']['sku']) && !empty($entry['prepared']['product']['default_variation'])) {
+            $parent_default_variations[(string) $entry['prepared']['product']['sku']] = (string) $entry['prepared']['product']['default_variation'];
+        }
+    }
+
+    usort($prepared_entries, static function ($left, $right) {
+        $left_weight = $left['row_type'] === 'variation' ? 1 : 0;
+        $right_weight = $right['row_type'] === 'variation' ? 1 : 0;
+        if ($left_weight === $right_weight) {
+            return $left['row_index'] <=> $right['row_index'];
+        }
+
+        return $left_weight <=> $right_weight;
+    });
+
+    foreach ($prepared_entries as $entry) {
+        $prepared = $entry['prepared'];
+        $row_identity = $entry['row_identity'];
+        $row_index = (int) $entry['row_index'];
+        $row_type = $entry['row_type'];
+
+        if (
+            $row_type === 'variation'
+            && empty($prepared['product']['default_variation'])
+            && !empty($prepared['parent_sku'])
+            && isset($parent_default_variations[(string) $prepared['parent_sku']])
+        ) {
+            $prepared['product']['default_variation'] = $parent_default_variations[(string) $prepared['parent_sku']];
+        }
+
+        $save_result = $row_type === 'variation'
+            ? bw_import_save_variation_from_row($prepared, $update_existing, $options)
+            : bw_import_save_product_from_row($prepared, $update_existing, $options);
         if (is_wp_error($save_result)) {
             $error_code = $save_result->get_error_code();
             $row_recorded = false;
-            if ('bw_import_missing_product_match' === $error_code) {
+            $skip_codes = ['bw_import_missing_product_match', 'bw_import_missing_parent_match', 'bw_import_invalid_variation_row', 'bw_import_unknown_row_type'];
+            if (in_array($error_code, $skip_codes, true)) {
                 $row_recorded = bw_import_record_row_outcome($run_state, $row_identity, 'skipped', $save_result->get_error_message());
                 if ($row_recorded) {
                     $result['skipped']++;
+                    if ($row_type === 'variation') {
+                        $result['details']['variations_skipped']++;
+                    }
                 }
             } else {
                 $row_recorded = bw_import_record_row_outcome($run_state, $row_identity, 'failed', $save_result->get_error_message());
                 if ($row_recorded) {
                     $result['skipped']++;
                     $result['errors_count']++;
+                    if ($row_type === 'variation') {
+                        $result['details']['variations_failed']++;
+                    }
                 }
             }
             if ($row_recorded) {
-                $result['errors'][] = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
+                $message = sprintf(__('Row %1$d: %2$s', 'bw'), $row_offset + $row_index + 2, $save_result->get_error_message());
+                if (in_array($error_code, $skip_codes, true)) {
+                    $result['warnings'][] = $message;
+                } else {
+                    $result['errors'][] = $message;
+                }
             }
             $maybe_checkpoint($row_offset + $row_index + 1);
             continue;
@@ -9688,13 +9862,24 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
             }
         }
 
+        $entity_type = isset($save_result['entity_type']) ? (string) $save_result['entity_type'] : ($row_type === 'variation' ? 'variation' : 'product');
         if (!empty($save_result['status']) && $save_result['status'] === 'updated') {
             if (bw_import_record_row_outcome($run_state, $row_identity, 'updated')) {
                 $result['updated']++;
+                if ($entity_type === 'variation') {
+                    $result['details']['variations_updated']++;
+                } else {
+                    $result['details']['products_updated']++;
+                }
             }
         } else {
             if (bw_import_record_row_outcome($run_state, $row_identity, 'created')) {
                 $result['created']++;
+                if ($entity_type === 'variation') {
+                    $result['details']['variations_created']++;
+                } else {
+                    $result['details']['products_created']++;
+                }
             }
         }
 
@@ -9719,7 +9904,10 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
 function bw_import_prepare_row_data($row_data, $mapping)
 {
     $data = [
+        'row_type' => 'product',
+        'parent_sku' => '',
         'product' => [],
+        'variation' => [],
         'meta' => [],
         'categories' => [],
         'tags' => [],
@@ -9750,6 +9938,19 @@ function bw_import_prepare_row_data($row_data, $mapping)
         }
 
         switch ($target) {
+            case 'row_type':
+                $row_type = sanitize_key($clean_value);
+                if ($row_type === '') {
+                    $data['row_type'] = 'product';
+                } elseif (in_array($row_type, ['product', 'variation'], true)) {
+                    $data['row_type'] = $row_type;
+                } else {
+                    return new WP_Error('bw_import_unknown_row_type', sprintf(__('Unknown row_type "%s".', 'bw'), $row_type));
+                }
+                break;
+            case 'parent_sku':
+                $data['parent_sku'] = sanitize_text_field($clean_value);
+                break;
             case 'product_id':
                 $data['product']['id'] = absint($clean_value);
                 break;
@@ -9789,6 +9990,9 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 } else {
                     $data['product']['type'] = $product_type;
                 }
+                break;
+            case 'default_variation':
+                $data['product']['default_variation'] = sanitize_title($clean_value);
                 break;
             case 'post_content':
                 $data['product']['description'] = wp_kses_post($clean_value);
@@ -9890,11 +10094,51 @@ function bw_import_prepare_row_data($row_data, $mapping)
             case 'cross_sells':
                 $data['cross_sells'] = bw_import_explode_list($clean_value);
                 break;
+            case 'variation_name':
+                $data['variation']['name'] = sanitize_text_field($clean_value);
+                break;
+            case 'variation_regular_price':
+                $data['variation']['regular_price'] = wc_format_decimal($clean_value);
+                break;
+            case 'variation_sale_price':
+                $data['variation']['sale_price'] = wc_format_decimal($clean_value);
+                break;
+            case 'variation_image':
+                $data['variation']['image'] = esc_url_raw($clean_value);
+                break;
+            case 'variation_enabled':
+                $data['variation']['enabled'] = in_array(strtolower((string) $clean_value), ['yes', '1', 'true'], true);
+                break;
+            case 'variation_virtual':
+                $data['variation']['virtual'] = in_array(strtolower((string) $clean_value), ['yes', '1', 'true'], true);
+                break;
+            case 'variation_downloadable':
+                $data['variation']['downloadable'] = in_array(strtolower((string) $clean_value), ['yes', '1', 'true'], true);
+                break;
+            case 'variation_download_name':
+                $data['variation']['download_name'] = sanitize_text_field($clean_value);
+                break;
+            case 'variation_download_url':
+                $data['variation']['download_url'] = esc_url_raw($clean_value);
+                break;
+            case 'variation_attributes_json':
+                $data['variation']['attributes_json'] = is_string($clean_value) ? trim($clean_value) : '';
+                break;
         }
     }
 
     if (empty($data['product']['sku'])) {
         return new WP_Error('bw_import_missing_identifiers', __('Missing SKU for this row.', 'bw'));
+    }
+
+    if ($data['row_type'] === 'variation') {
+        if (empty($data['parent_sku'])) {
+            return new WP_Error('bw_import_invalid_variation_row', __('Variation row is missing parent_sku.', 'bw'));
+        }
+
+        if (empty($data['variation']['name'])) {
+            return new WP_Error('bw_import_invalid_variation_row', __('Variation row is missing variation_name.', 'bw'));
+        }
     }
 
     return $data;
@@ -9949,6 +10193,15 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
             $product = wc_get_product($maybe_id);
             $product_id = $maybe_id;
         }
+    }
+
+    $requested_product_type = !empty($data['product']['type']) ? $data['product']['type'] : '';
+    if ($product && $requested_product_type !== '') {
+        $product = bw_import_maybe_convert_product_type($product, $requested_product_type);
+        if (!$product) {
+            return new WP_Error('bw_import_product_object', __('Unable to reload product after type conversion.', 'bw'));
+        }
+        $product_id = $product->get_id();
     }
 
     if ($product) {
@@ -10173,6 +10426,310 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
     }
 
     return [
+        'entity_type' => 'product',
+        'status' => $status,
+        'warnings' => $warnings,
+    ];
+}
+
+function bw_import_maybe_convert_product_type($product, $requested_product_type)
+{
+    if (!$product || !method_exists($product, 'get_id')) {
+        return $product;
+    }
+
+    $requested_product_type = sanitize_key((string) $requested_product_type);
+    if ($requested_product_type === '' || !$product->get_id() || $product->is_type($requested_product_type)) {
+        return $product;
+    }
+
+    if ($requested_product_type !== 'variable') {
+        return $product;
+    }
+
+    wp_set_object_terms($product->get_id(), $requested_product_type, 'product_type', false);
+    clean_post_cache($product->get_id());
+    wc_delete_product_transients($product->get_id());
+
+    return wc_get_product($product->get_id());
+}
+
+function bw_import_find_variation_by_sku($sku, $parent_id = 0)
+{
+    $sku = sanitize_text_field((string) $sku);
+    if ($sku === '') {
+        return 0;
+    }
+
+    $variation_id = (int) wc_get_product_id_by_sku($sku);
+    if ($variation_id < 1) {
+        return 0;
+    }
+
+    $variation = wc_get_product($variation_id);
+    if (!$variation || !$variation->is_type('variation')) {
+        return 0;
+    }
+
+    if ($parent_id > 0 && (int) $variation->get_parent_id() !== (int) $parent_id) {
+        return 0;
+    }
+
+    return $variation_id;
+}
+
+function bw_import_build_license_attribute_key()
+{
+    return sanitize_title('License');
+}
+
+function bw_import_ensure_parent_license_attribute($parent_product, $variation_name)
+{
+    if (!$parent_product || !method_exists($parent_product, 'get_attributes')) {
+        return '';
+    }
+
+    $variation_name = trim((string) $variation_name);
+    if ($variation_name === '') {
+        return '';
+    }
+
+    $attribute_key = bw_import_build_license_attribute_key();
+    $existing_attributes = $parent_product->get_attributes();
+    $license_attribute = null;
+    $license_attribute_index = null;
+
+    foreach ((array) $existing_attributes as $index => $attribute) {
+        if (!$attribute instanceof WC_Product_Attribute) {
+            continue;
+        }
+
+        if (sanitize_title((string) $attribute->get_name()) === $attribute_key) {
+            $license_attribute = $attribute;
+            $license_attribute_index = $index;
+            break;
+        }
+    }
+
+    if (!$license_attribute) {
+        $license_attribute = new WC_Product_Attribute();
+        $license_attribute->set_id(0);
+        $license_attribute->set_name('License');
+        $license_attribute->set_options([$variation_name]);
+        $license_attribute->set_position(count($existing_attributes));
+        $license_attribute->set_visible(true);
+        $license_attribute->set_variation(true);
+        $existing_attributes[$attribute_key] = $license_attribute;
+    } else {
+        $options = array_map('strval', (array) $license_attribute->get_options());
+        if (!in_array($variation_name, $options, true)) {
+            $options[] = $variation_name;
+        }
+        $license_attribute->set_options(array_values($options));
+        $license_attribute->set_visible(true);
+        $license_attribute->set_variation(true);
+        if ($license_attribute_index !== null) {
+            $existing_attributes[$license_attribute_index] = $license_attribute;
+        }
+    }
+
+    $parent_product->set_attributes($existing_attributes);
+    return $attribute_key;
+}
+
+function bw_import_maybe_apply_parent_default_variation($parent_product, $attribute_key, $default_variation)
+{
+    if (!$parent_product || $attribute_key === '') {
+        return;
+    }
+
+    $default_variation = sanitize_title((string) $default_variation);
+    if ($default_variation === '') {
+        return;
+    }
+
+    $license_attribute = null;
+    foreach ((array) $parent_product->get_attributes() as $attribute) {
+        if ($attribute instanceof WC_Product_Attribute && sanitize_title((string) $attribute->get_name()) === $attribute_key) {
+            $license_attribute = $attribute;
+            break;
+        }
+    }
+
+    if (!$license_attribute) {
+        return;
+    }
+
+    foreach ((array) $license_attribute->get_options() as $option) {
+        if (sanitize_title((string) $option) === $default_variation) {
+            $parent_product->set_default_attributes([$attribute_key => (string) $option]);
+            return;
+        }
+    }
+}
+
+function bw_import_sync_variable_parent($parent_id)
+{
+    $parent_id = absint($parent_id);
+    if ($parent_id < 1) {
+        return;
+    }
+
+    if (class_exists('WC_Product_Variable')) {
+        WC_Product_Variable::sync($parent_id);
+    }
+
+    wc_delete_product_transients($parent_id);
+}
+
+function bw_import_build_variation_downloads($download_url, $download_name)
+{
+    $download_url = esc_url_raw((string) $download_url);
+    if ($download_url === '') {
+        return [];
+    }
+
+    $download_name = sanitize_text_field((string) $download_name);
+    if ($download_name === '') {
+        $path = wp_parse_url($download_url, PHP_URL_PATH);
+        $download_name = $path ? basename((string) $path) : __('Download', 'bw');
+    }
+
+    return [
+        md5($download_url) => [
+            'name' => $download_name,
+            'file' => $download_url,
+        ],
+    ];
+}
+
+function bw_import_save_variation_from_row($data, $update_existing = false, $options = [])
+{
+    $options = wp_parse_args(
+        $options,
+        [
+            'skip_images' => true,
+        ]
+    );
+
+    $parent_sku = isset($data['parent_sku']) ? sanitize_text_field((string) $data['parent_sku']) : '';
+    $variation_sku = isset($data['product']['sku']) ? sanitize_text_field((string) $data['product']['sku']) : '';
+    $variation_name = isset($data['variation']['name']) ? sanitize_text_field((string) $data['variation']['name']) : '';
+
+    if ($parent_sku === '' || $variation_sku === '' || $variation_name === '') {
+        return new WP_Error('bw_import_invalid_variation_row', __('Variation rows require parent_sku, sku, and variation_name.', 'bw'));
+    }
+
+    $parent_id = (int) wc_get_product_id_by_sku($parent_sku);
+    if ($parent_id < 1) {
+        return new WP_Error('bw_import_missing_parent_match', sprintf(__('Variation SKU %1$s skipped because parent SKU %2$s was not found.', 'bw'), $variation_sku, $parent_sku));
+    }
+
+    $parent_product = wc_get_product($parent_id);
+    if (!$parent_product) {
+        return new WP_Error('bw_import_missing_parent_match', sprintf(__('Variation SKU %1$s skipped because parent SKU %2$s could not be loaded.', 'bw'), $variation_sku, $parent_sku));
+    }
+
+    $parent_product = bw_import_maybe_convert_product_type($parent_product, 'variable');
+    if (!$parent_product || !$parent_product->is_type('variable')) {
+        return new WP_Error('bw_import_missing_parent_match', sprintf(__('Variation SKU %1$s skipped because parent SKU %2$s is not a variable product.', 'bw'), $variation_sku, $parent_sku));
+    }
+
+    $status = 'created';
+    $warnings = [];
+    $variation_id = bw_import_find_variation_by_sku($variation_sku, $parent_product->get_id());
+    $variation = $variation_id > 0 ? wc_get_product($variation_id) : null;
+
+    if ($variation) {
+        $status = 'updated';
+    } elseif ($update_existing) {
+        return new WP_Error('bw_import_missing_parent_match', sprintf(__('Variation SKU %1$s skipped because it does not exist and update-only mode is enabled.', 'bw'), $variation_sku));
+    } else {
+        $variation = new WC_Product_Variation();
+        $variation->set_parent_id($parent_product->get_id());
+    }
+
+    if (!$variation) {
+        return new WP_Error('bw_import_product_object', __('Unable to initialize variation product object.', 'bw'));
+    }
+
+    try {
+        $variation->set_sku($variation_sku);
+    } catch (WC_Data_Exception $exception) {
+        return new WP_Error('bw_import_sku', $exception->getMessage());
+    }
+
+    $attribute_key = bw_import_ensure_parent_license_attribute($parent_product, $variation_name);
+    if ($attribute_key === '') {
+        return new WP_Error('bw_import_invalid_variation_row', __('Unable to prepare the parent License attribute for variation import.', 'bw'));
+    }
+
+    $variation->set_parent_id($parent_product->get_id());
+    $variation->set_attributes([$attribute_key => $variation_name]);
+    $variation->set_status(!empty($data['variation']['enabled']) ? 'publish' : 'private');
+    $variation->set_virtual(!empty($data['variation']['virtual']));
+    $variation->set_downloadable(!empty($data['variation']['downloadable']));
+
+    if (isset($data['variation']['regular_price'])) {
+        $variation->set_regular_price($data['variation']['regular_price']);
+    }
+
+    if (isset($data['variation']['sale_price'])) {
+        $variation->set_sale_price($data['variation']['sale_price']);
+    }
+
+    if (!empty($data['variation']['downloadable']) && !empty($data['variation']['download_url'])) {
+        $variation->set_downloads(
+            bw_import_build_variation_downloads(
+                $data['variation']['download_url'],
+                isset($data['variation']['download_name']) ? $data['variation']['download_name'] : ''
+            )
+        );
+    } else {
+        $variation->set_downloads([]);
+    }
+
+    try {
+        $variation_id = $variation->save();
+    } catch (Throwable $exception) {
+        return new WP_Error('bw_import_save', $exception->getMessage());
+    }
+
+    if (!empty($options['skip_images'])) {
+        if (!empty($data['variation']['image'])) {
+            $warnings[] = __('Variation image skipped by configuration.', 'bw');
+        }
+    } elseif (!empty($data['variation']['image'])) {
+        $image_id = bw_import_handle_image($data['variation']['image'], $variation_id);
+        if ($image_id) {
+            $variation->set_image_id($image_id);
+            try {
+                $variation->save();
+            } catch (Throwable $exception) {
+                $warnings[] = $exception->getMessage();
+            }
+        } else {
+            $warnings[] = sprintf(
+                /* translators: %s: image URL */
+                __('Variation image sideload failed: %s', 'bw'),
+                esc_url_raw($data['variation']['image'])
+            );
+        }
+    }
+
+    $default_variation = isset($data['product']['default_variation']) ? $data['product']['default_variation'] : '';
+    bw_import_maybe_apply_parent_default_variation($parent_product, $attribute_key, $default_variation);
+
+    try {
+        $parent_product->save();
+    } catch (Throwable $exception) {
+        $warnings[] = $exception->getMessage();
+    }
+
+    bw_import_sync_variable_parent($parent_product->get_id());
+
+    return [
+        'entity_type' => 'variation',
         'status' => $status,
         'warnings' => $warnings,
     ];

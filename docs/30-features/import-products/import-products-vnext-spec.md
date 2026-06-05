@@ -147,8 +147,12 @@ Normative rules:
 - Cache scope MUST be run-bounded and safe to invalidate at run end.
 
 ### Variation support stance
-- vNext scope explicitly: variation import is NOT supported unless a dedicated variation contract is formalized.
-- Variable product parent field writes MAY be supported where mapped, but child variation lifecycle is out of current vNext scope.
+- vNext now supports the dedicated Blackwork Digital variation contract:
+  - one parent variable product row
+  - child variation rows resolved by `parent_sku`
+  - variation identity by variation `sku`
+- Variable product parent writes and the Digital `Commercial` / `Extended` child variation lifecycle are in scope.
+- Broader generic variation contracts remain out of scope until formalized separately.
 
 ## 7) Error Handling & Audit
 

@@ -307,12 +307,14 @@ Recommended prompt framing:
 - `categories`
 - `featured_image`
 
-For future variation rows:
+For variation rows:
 - `row_type`
 - `parent_sku`
 - `sku`
 - `variation_name`
-- `variation_attributes_json`
+- `variation_regular_price`
+- `variation_downloadable`
+- `variation_download_url`
 
 ## Optional fields
 - `post_name`
@@ -323,7 +325,7 @@ For future variation rows:
 - `product_gallery`
 - Blackwork digital meta fields
 - hover media fields
-- future variation download fields
+- variation download fields
 
 ## Digital defaults
 - Default category: `Digital Collections`
@@ -513,23 +515,34 @@ Good tags for architectural ornament images:
 - `acanthus, column capital, frieze, ornamental border, decorative pattern, classical ornament, carved stone, architectural detail, interior ornament, pattern study`
 
 ## Variation support note
-- Variation import runtime is **not implemented yet**
-- The template includes future-ready variation rows for planning and AI preparation
-- Do not assume the current importer can create WooCommerce variations from these rows yet
-- Do not add custom license term meta fields
+- The current Digital import runtime supports:
+  - one parent variable product row
+  - one or more variation rows linked by `parent_sku`
+- The standard Blackwork Digital workflow expects:
+  - one parent row
+  - one `Commercial` variation row
+  - one `Extended` variation row
+- Variation creation/update is driven by:
+  - `row_type`
+  - `parent_sku`
+  - `sku`
+  - `variation_name`
+  - variation price / flag / download fields
+- `variation_attributes_json` remains optional and future-facing.
+- Do not add custom license term meta fields.
 
 ## Column-by-column guide
 
 | Column | Status | What to write | Example | Notes |
 |---|---|---|---|---|
 | `row_type` | Required | `product` for parent row, `variation` for child rows | `product` | Keep exact value |
-| `parent_sku` | Required for future variation rows | Parent SKU for variation rows | `DIGI-BATS-001` | Leave empty on parent row |
+| `parent_sku` | Required for variation rows | Parent SKU for variation rows | `DIGI-BATS-001` | Leave empty on parent row |
 | `sku` | Required | Stable unique SKU | `DIGI-BATS-001` | Variation rows need their own SKU |
 | `post_title` | Required on parent row | Product title | `Bats of the World Pack` | Variation rows usually leave parent content fields empty |
 | `post_name` | Optional | URL slug | `bats-of-the-world-pack` | Lowercase slug |
 | `post_status` | Required on parent row | WordPress status | `publish` | Usually `publish` or `draft` |
 | `product_type` | Required on parent row | Woo product type | `variable` | Digital parent should be `variable` |
-| `default_variation` | Optional/future-facing | Default selected variation slug/value | `commercial` | Singular field |
+| `default_variation` | Optional | Default selected variation slug/value | `commercial` | Singular field. Parent row only |
 | `regular_price` | Optional | Parent/base price | `29.00` | Parent row only |
 | `sale_price` | Optional | Parent sale price | `19.00` | Leave empty if unused |
 | `categories` | Required | Main category path/list | `Digital Collections` | Use default category unless you have a stronger reason |
@@ -557,16 +570,16 @@ Good tags for architectural ornament images:
 | `meta:_digital_formats` | Optional | Digital formats detail | `AI,PNG,EPS,SVG` | Optional mirror field |
 | `meta:_bw_slider_hover_image` | Recommended when provided / normally expected | Hover image URL | `https://example.com/images/bats-hover.jpg` | Direct URL only. Acts as fallback when no hover video is provided |
 | `meta:_bw_slider_hover_video` | Optional | Hover video URL | `https://example.com/video/bats-hover.mp4` | Direct URL only. Leave empty if not provided. Takes priority when present |
-| `variation_name` | Future-ready only | Variation display name | `Commercial` | Not runtime-importable yet |
-| `variation_regular_price` | Future-ready only | Variation regular price | `29.00` | Not runtime-importable yet |
-| `variation_sale_price` | Future-ready only | Variation sale price | `19.00` | Not runtime-importable yet |
-| `variation_image` | Future-ready only | Variation image URL | `https://example.com/images/bats-commercial.jpg` | Not runtime-importable yet |
-| `variation_enabled` | Future-ready only | Enable flag | `yes` | Not runtime-importable yet |
-| `variation_virtual` | Future-ready only | Virtual flag | `yes` | Not runtime-importable yet |
-| `variation_downloadable` | Future-ready only | Downloadable flag | `yes` | Not runtime-importable yet |
-| `variation_download_name` | Future-ready only | Download label | `Bats of the World Commercial License` | Not runtime-importable yet |
-| `variation_download_url` | Future-ready only | Direct downloadable file URL | `https://example.com/downloads/bats-commercial.zip` | Not runtime-importable yet |
-| `variation_attributes_json` | Future-ready only | Variation attributes JSON object | `{"licences":"Commercial"}` | Must stay valid JSON |
+| `variation_name` | Required on variation rows | Variation display name | `Commercial` | Used to build the WooCommerce License variation |
+| `variation_regular_price` | Optional | Variation regular price | `29.00` | Variation row |
+| `variation_sale_price` | Optional | Variation sale price | `19.00` | Variation row |
+| `variation_image` | Optional | Variation image URL | `https://example.com/images/bats-commercial.jpg` | Imported only when image sideload is enabled |
+| `variation_enabled` | Required on variation rows | Enable flag | `yes` | `yes` publishes the variation, `no` stores it disabled/private |
+| `variation_virtual` | Required on variation rows | Virtual flag | `yes` | Variation row |
+| `variation_downloadable` | Required on variation rows | Downloadable flag | `yes` | Variation row |
+| `variation_download_name` | Optional | Download label | `Bats of the World Commercial License` | Used when a downloadable file URL is present |
+| `variation_download_url` | Optional | Direct downloadable file URL | `https://example.com/downloads/bats-commercial.zip` | Saved as WooCommerce downloadable file URL |
+| `variation_attributes_json` | Optional / future-facing | Variation attributes JSON object | `{"licences":"Commercial"}` | Current runtime uses `variation_name` as the canonical License attribute |
 
 ## Common mistakes
 - Adding comments or guide rows inside the CSV
@@ -574,7 +587,7 @@ Good tags for architectural ornament images:
 - Putting multiple gallery URLs into separate columns
 - Inventing bibliographic or technical facts from the image alone
 - Using indirect or protected image URLs instead of direct URLs
-- Treating future variation rows as currently importable behavior
+- Treating variation rows as standalone products
 
 ## AI filling rules
 - Keep exact column names

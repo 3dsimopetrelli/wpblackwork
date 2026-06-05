@@ -63,7 +63,7 @@ Use the downloadable templates when you want a smaller CSV tailored to one produ
   - uses `product_gallery` as the canonical and actual gallery import column
   - the current compact Digital AI workflow no longer uses file-size columns
   - keeps `gallery_images` only as a legacy backward-compatible alias in importer mapping
-  - includes future-ready native Woo variation columns for preparation only
+  - includes native Woo variation columns supported by the current Digital import runtime
 - `blackwork-book-import-template.csv`
   - optimized for books
   - includes current importable core fields and bibliographic Blackwork meta
@@ -72,9 +72,9 @@ Use the downloadable templates when you want a smaller CSV tailored to one produ
   - includes current importable core fields and print-specific Blackwork meta
 
 Variation note:
-- current importer runtime does **not** implement full variation create/update lifecycle
-- digital template variation columns are included only as preparation for a later phase
-- they can be left unmapped safely today
+- current importer runtime supports the Digital parent + variation workflow
+- parent rows can create/update variable products
+- variation rows can create/update `Commercial` / `Extended` child variations by `parent_sku` + variation `sku`
 - custom variation license meta columns are not part of the active digital template scope
 
 Gallery note:
@@ -128,7 +128,7 @@ Digital template current variation-row emphasis:
 - the template includes two standard example variation rows:
   - `Commercial`
   - `Extended`
-- future-ready variation columns currently included are:
+- variation columns currently included are:
   - `row_type`
   - `parent_sku`
   - `sku`
@@ -142,8 +142,8 @@ Digital template current variation-row emphasis:
   - `variation_download_name`
   - `variation_download_url`
   - `variation_attributes_json`
-- these columns are **not** active variation import support yet
-- do not import real variation rows until the runtime is updated explicitly
+- these columns now support the current Digital variation workflow
+- `variation_attributes_json` remains optional and future-facing
 
 ## Group 1 — WordPress Core Content Fields
 

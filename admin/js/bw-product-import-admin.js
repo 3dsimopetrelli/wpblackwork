@@ -53,12 +53,31 @@
         const fields = Array.isArray(parsed.meta && parsed.meta.fields) ? parsed.meta.fields : [];
         const skuKey = findHeaderKey(fields, ['sku', 'productsku']);
         const nameKey = findHeaderKey(fields, ['name', 'productname', 'title', 'producttitle', 'posttitle']);
+        const rowTypeKey = findHeaderKey(fields, ['rowtype', 'row_type']);
+        const parentSkuKey = findHeaderKey(fields, ['parentsku', 'parent_sku']);
+        const variationNameKey = findHeaderKey(fields, ['variationname', 'variation_name']);
         const validRows = [];
         const invalidRows = [];
 
         (parsed.data || []).forEach(function (row, index) {
             const sku = skuKey ? String(row[skuKey] || '').trim() : '';
             const name = nameKey ? String(row[nameKey] || '').trim() : '';
+            const rowType = rowTypeKey ? String(row[rowTypeKey] || '').trim().toLowerCase() : '';
+            const parentSku = parentSkuKey ? String(row[parentSkuKey] || '').trim() : '';
+            const variationName = variationNameKey ? String(row[variationNameKey] || '').trim() : '';
+
+            if (rowType === 'variation') {
+                if (sku !== '' && parentSku !== '' && variationName !== '') {
+                    validRows.push(row);
+                    return;
+                }
+
+                invalidRows.push({
+                    rowNumber: index + 2,
+                    reason: getString('missingVariationIdentifiers', 'Missing variation SKU, parent SKU, or variation name')
+                });
+                return;
+            }
 
             if (sku !== '' || name !== '') {
                 validRows.push(row);
