@@ -41,6 +41,20 @@ Manual image upload recovery:
   - convert Dropbox URLs into direct/WordPress-compatible URLs before writing them into the CSV
   - do not write chat attachment URLs or internal upload references into the CSV
 
+Filename matching for manual uploads:
+- When Blackwork uploads images manually because Dropbox access failed, match each uploaded image to the YAML field by filename.
+- Extract filenames from the YAML media URLs.
+- Compare them with the uploaded image filenames.
+- Use exact filename matches whenever possible.
+- If exact match fails, URL-decode filenames and compare again.
+- If exact match still fails, compare case-insensitively only after safe normalization.
+- Use uploaded images only for visual analysis.
+- Keep using the converted YAML URLs in the CSV.
+- If an uploaded filename does not exactly or safely match a YAML media filename, do not guess.
+- If two uploaded files have the same filename, do not guess.
+- If any required YAML media filename is missing from the uploaded files, stop and ask Blackwork for the missing file.
+- If matching is still ambiguous because of URL encoding, spaces, `&`, or case differences, stop and ask Blackwork for confirmation.
+
 Do not rename columns.
 Do not remove `meta:` prefixes.
 Do not add comment rows.

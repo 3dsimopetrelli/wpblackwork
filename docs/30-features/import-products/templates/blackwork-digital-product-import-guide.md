@@ -149,6 +149,37 @@ PRICE EXTENDED:
 11. If image access fails, stop and request accessible image links or direct image uploads.
 12. If Blackwork uploads the required images manually into the chat/session, use those uploads only for visual analysis and continue using the YAML media URLs for CSV output.
 
+### Filename matching for manual uploads
+- When Blackwork uploads images manually because Dropbox access failed, match each uploaded image to the YAML media field by filename.
+- Extract filenames from the YAML media URLs first.
+- Compare those filenames with the filenames of the uploaded chat/session images.
+- Use exact filename matching whenever possible.
+- If exact match fails, URL-decode filenames and compare again.
+- If exact match still fails, compare case-insensitively only after safe normalization.
+- Use matched uploaded images only for visual analysis.
+- Keep using the converted YAML media URLs for the final CSV media fields.
+- Do not write chat attachment references into the CSV.
+- If an uploaded filename does not exactly or safely match a YAML media filename, do not guess.
+- If two uploaded files have the same filename, do not guess.
+- If a required YAML media filename is missing from the uploaded files, stop and ask Blackwork to upload the missing file.
+- If matching is ambiguous because of URL encoding, spaces, `&`, or case differences, stop and ask Blackwork for confirmation.
+
+Examples:
+- If YAML contains:
+  - `FEATURED IMAGE URL: .../Ethnographic-Figures-&-Artifacts-_id-cover.webp?...`
+  and Blackwork uploads:
+  - `Ethnographic-Figures-&-Artifacts-_id-cover.webp`
+  then that uploaded file is the visual-analysis source for:
+  - `featured_image`
+  - `variation_image` for Commercial and Extended
+- If YAML contains:
+  - `PRODUCT GALLERY: .../product_gallery_01.jpg?... , .../product_gallery_02.jpg?...`
+  and Blackwork uploads:
+  - `product_gallery_01.jpg`
+  - `product_gallery_02.jpg`
+  then those uploaded files are visual-analysis sources for:
+  - `product_gallery` items in the same order as the YAML URLs
+
 Mandatory image fields:
 - `FEATURED IMAGE URL`
 - `PRODUCT GALLERY`
@@ -206,6 +237,8 @@ Rules:
 - If Blackwork uploads the required images manually into the chat/session, use those uploaded images only for visual analysis.
 - Continue using the YAML media URLs for CSV media fields.
 - Do not write chat attachment URLs or internal upload references into the CSV.
+- Match manually uploaded images to YAML media fields by filename before using them for visual analysis.
+- If any required filename is missing or ambiguous, stop and ask Blackwork for the correct file or confirmation.
 - Do not rename CSV columns.
 - Do not remove `meta:` prefixes.
 - Do not add comment rows.
@@ -340,6 +373,7 @@ Visual analysis may use:
 - `FEATURED IMAGE URL`
 - `PRODUCT GALLERY`
 - or manually uploaded replacement images if those URLs fail
+- matched by filename to the YAML media URLs
 
 CSV output must use:
 - `featured_image` from the converted YAML `FEATURED IMAGE URL`
