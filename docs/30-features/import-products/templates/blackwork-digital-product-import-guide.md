@@ -1,5 +1,131 @@
 # Blackwork Digital Product Import Guide
 
+## First-read workflow for ChatGPT/Codex
+Blackwork is creating a new Digital product for the Blackwork site. This is an internal Blackwork production workflow, not an end-customer workflow.
+
+Blackwork will provide:
+1. `blackwork-digital-product-import-template.csv`
+2. `blackwork-digital-product-import-guide.md`
+3. the featured image URL
+4. the product gallery / slide image URLs
+5. the hover image URL
+6. optionally, the hover video URL
+7. optionally, source notes, year, author/artist, archive notes, formats, file size, asset count, or other product context
+
+Clarifications:
+- The featured image and gallery / slide images are always provided because ChatGPT/Codex must analyze them.
+- Source notes are optional but should be preferred over visual guessing when provided.
+- Year and author/artist may be provided by Blackwork; if provided, use them.
+- If year or author/artist are not provided, infer them only when clearly supported by the images or source notes.
+- Do not invent year, author, publisher, technique, or source.
+
+Required AI behavior:
+1. Read this MD guide first.
+2. Read the CSV template second.
+3. Preserve exact CSV headers.
+4. Keep the CSV importable.
+5. Fill the existing structural parent row and the two standard variation rows.
+6. Analyze the featured image and gallery/slide images before filling content fields.
+7. Create a clean product title.
+8. Create a lowercase URL slug in `post_name`.
+9. Generate a stable parent SKU from the product title.
+10. Generate Commercial and Extended variation SKUs from the parent SKU.
+11. Create a detailed natural SEO-oriented `post_content` description.
+12. Create a concise `post_excerpt`.
+13. Choose allowed `product_subcategories` according to the guide.
+14. Write exactly 10 internal-search tags according to the guide.
+15. Choose `meta:_digital_technique` only from the controlled technique list.
+16. Use `Unknown` for technique if uncertain.
+17. Fill year and author/artist only when provided or clearly supported.
+18. Fill media fields from the supplied direct URLs.
+19. Do not invent facts.
+20. Return completed CSV content only, unless Blackwork asks for explanation.
+
+### Media link mapping
+- Featured image URL goes into `featured_image`.
+- The same featured image URL should also go into `variation_image` for both Commercial and Extended rows unless Blackwork provides separate variation images.
+- Product gallery / slide image URLs go into `product_gallery`.
+- `product_gallery` must contain all gallery URLs in one CSV cell, comma-separated.
+- Hover image URL goes into `meta:_bw_slider_hover_image`.
+- Hover video URL goes into `meta:_bw_slider_hover_video` only if provided.
+- If hover video is not provided, leave `meta:_bw_slider_hover_video` empty.
+- Only `product_gallery` accepts multiple URLs.
+- All other media fields accept one direct URL only.
+- Do not use Markdown links.
+- Do not invent or transform media URLs.
+
+### Description and SEO requirement
+- `post_content` should be a detailed, natural, SEO-oriented product description.
+- It should use relevant subject, visual style, technique, historical, archive, and usage keywords naturally.
+- Do not keyword-stuff.
+- Do not make unsupported claims.
+- `post_excerpt` should be shorter and suitable as product summary.
+- This SEO rule applies to description copy only.
+- The `tags` column is not SEO; tags are internal Blackwork search/discovery terms and must follow the Tags rules.
+
+### Reusable Blackwork prompt template
+
+You are filling a Blackwork Digital Product CSV.
+
+First read the attached files in this order:
+1. `blackwork-digital-product-import-guide.md`
+2. `blackwork-digital-product-import-template.csv`
+
+Blackwork is creating a new Digital product for the Blackwork site. Use the guide as the source of truth for how every CSV column must be filled.
+
+Do not rename columns.
+Do not add comment rows.
+Do not add guide text inside the CSV.
+Keep the CSV importable.
+Preserve the existing parent product row and the two standard variation rows: Commercial and Extended.
+
+FEATURED IMAGE URL:
+[PASTE FEATURED IMAGE URL HERE]
+
+PRODUCT GALLERY / SLIDE IMAGE URLS:
+[PASTE GALLERY / SLIDE IMAGE URLS HERE, ONE PER LINE OR COMMA-SEPARATED]
+
+HOVER IMAGE URL:
+[PASTE HOVER IMAGE URL HERE]
+
+HOVER VIDEO URL, IF AVAILABLE:
+[PASTE HOVER VIDEO URL HERE OR LEAVE EMPTY]
+
+YEAR, IF KNOWN:
+[PASTE YEAR HERE OR LEAVE EMPTY]
+
+AUTHOR / ARTIST, IF KNOWN:
+[PASTE AUTHOR OR ARTIST HERE OR LEAVE EMPTY]
+
+SOURCE NOTES:
+[PASTE SOURCE NOTES, ARCHIVE NOTES, TITLE-PAGE NOTES, OR ANY KNOWN METADATA HERE]
+
+PRODUCT CONTEXT:
+[PASTE FORMATS, ASSET COUNT, FILE SIZE, COLLECTION NOTES, DOWNLOAD DETAILS, OR EXTRA CONTEXT HERE]
+
+Instructions:
+- Analyze the featured image and gallery/slide images before filling the CSV.
+- Use the featured image URL in `featured_image`.
+- Use the same featured image URL as `variation_image` for both Commercial and Extended unless separate variation images are provided.
+- Put all gallery/slide image URLs into `product_gallery` as comma-separated direct URLs in one cell.
+- Put the hover image URL into `meta:_bw_slider_hover_image`.
+- Put the hover video URL into `meta:_bw_slider_hover_video` only if provided; otherwise leave it empty.
+- Create a clean product title in `post_title`.
+- Create a lowercase URL slug in `post_name`.
+- Generate a stable parent SKU from the title using the guide rules.
+- Generate Commercial and Extended variation SKUs from the parent SKU.
+- Use provided year in `meta:_digital_year`; if not provided, fill only if clearly supported.
+- Use provided author/artist in `meta:_bw_artist_name`; if not provided, fill only if clearly supported.
+- Choose `product_subcategories` only from the allowed list in the guide.
+- Choose up to 5 subcategories; if 5 coherent ones are not available, choose at least 3.
+- Write exactly 10 `tags` for internal Blackwork site search/discovery, not SEO.
+- Create a detailed, natural, SEO-oriented `post_content`.
+- Create a concise `post_excerpt`.
+- Choose `meta:_digital_technique` only from the controlled technique list in the guide.
+- Use `Unknown` for technique if uncertain.
+- Do not invent facts not visible in the images or source notes.
+- Return the completed CSV content only.
+
 ## Purpose
 Use this guide together with the Digital CSV template to help ChatGPT/Codex prepare a clean importable CSV for Blackwork digital products from product images, source notes, and catalog metadata.
 
