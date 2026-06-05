@@ -49,6 +49,18 @@ Use this guide together with the Digital CSV template to help ChatGPT/Codex prep
 - Do not split gallery URLs across multiple columns.
 - Do not use Markdown links.
 
+## Meta column prefix
+Columns that start with `meta:` are importer mapping columns.
+The `meta:` prefix is not part of the real WordPress meta key.
+For example, the CSV column `meta:_digital_technique` maps to the saved product meta key `_digital_technique`.
+Keep the `meta:` prefix exactly as written in the CSV template.
+
+- Do not rename `meta:` columns.
+- Do not remove the `meta:` prefix.
+- Do not replace `meta:_digital_technique` with `_digital_technique`.
+- Preserve exact spelling of all meta columns.
+- If a value is unknown, leave the cell empty rather than changing the column name.
+
 ## How to give the files to ChatGPT/Codex
 Provide:
 - the CSV template
@@ -96,6 +108,10 @@ For future variation rows:
 - Standard example variation rows:
   - `Commercial`
   - `Extended`
+- `variation_enabled`, `variation_virtual`, and `variation_downloadable` should normally remain `yes` for standard Blackwork digital Commercial and Extended variations.
+- Do not leave these three fields empty in the final filled CSV unless explicitly instructed.
+- Use `yes` / `no`.
+- For downloadable digital products, the normal value is `yes`.
 
 ## Subcategories
 - In the broader master schema, subcategories belong in `product_subcategories`
