@@ -58,7 +58,96 @@ For future variation rows:
 ## Subcategories
 - In the broader master schema, subcategories belong in `product_subcategories`
 - `product_subcategories` accepts comma-separated child categories under `Digital Collections`
-- The compact digital template does not currently include this column, so use the main `categories` field unless a later template revision adds it
+- The parent category remains `Digital Collections`
+
+### Controlled selection rule for AI filling
+- Look at the product images and source notes.
+- Choose up to 5 subcategories from the allowed list below.
+- If 5 coherent subcategories cannot be found, choose at least 3 coherent subcategories.
+- Do not invent new subcategories.
+- Do not rename the allowed subcategories.
+- Preserve exact spelling, punctuation, ampersands, and slashes.
+- Write the selected values into the CSV column `product_subcategories`.
+- Values must be comma-separated in a single CSV cell.
+- Do not include the group names in the CSV cell.
+- Use only the subcategory names.
+- Prefer the most visually and conceptually relevant categories.
+- If the image clearly belongs to one domain, choose more specific subcategories from that domain.
+- If the image is ambiguous, choose the best 3 broad/coherent subcategories and do not force weak matches.
+
+### Allowed subcategories
+
+Natural History:
+- Botany
+- Mammals
+- Birds
+- Fish
+- Insects
+- Reptiles & Amphibians
+- Paleontology
+
+Human / Medical:
+- Skeletal Anatomy
+- Muscular Anatomy
+- Internal Anatomy
+- Surgery
+- Medical Conditions
+- Physiognomy / Phrenology
+
+Science:
+- Astronomy
+- Mathematics / Geometry
+- Physics
+- Chemistry
+- Scientific Instruments
+
+Geography / World:
+- Maps
+- Exploration / Voyages
+- Ethnography
+- Landscapes
+
+Art / Symbolic:
+- Religious Scenes
+- Mythology
+- Allegory
+- Symbolism / Iconology
+
+Built World / Design:
+- Architecture
+- Ornament / Patterns
+- Furniture
+- Interiors
+
+Objects:
+- Weapons & Armor
+- Tools & Instruments
+- Decorative Objects
+- Everyday Objects
+
+Transport / Machines:
+- Ships
+- Vehicles (Land)
+- Aviation
+- Machinery
+
+Identity / Graphics:
+- Heraldry / Coats of Arms
+- Emblems / Seals
+- Letterforms / Calligraphy
+- Ornaments / Borders
+
+### Examples
+1. Botanical plate
+   - `product_subcategories = Botany,Natural History` is not allowed because `Natural History` is a group name.
+   - Correct:
+     - `product_subcategories = Botany,Ornament / Patterns,Scientific Instruments`
+
+2. Anatomical skeleton image
+   - `product_subcategories = Skeletal Anatomy,Medical Conditions,Scientific Instruments`
+
+3. Decorative architectural plate
+   - `product_subcategories = Architecture,Ornament / Patterns,Interiors,Decorative Objects`
 
 ## Gallery and media rules
 - `product_gallery` is the canonical gallery field
@@ -68,6 +157,60 @@ For future variation rows:
 - `featured_image` is the main product image
 - `meta:_bw_slider_hover_video` should be used when a hover video is available
 - `meta:_bw_slider_hover_image` is the fallback hover media field
+
+## Tags
+- The `tags` field must contain exactly 10 tags.
+- Tags are for internal Blackwork site search and image discovery.
+- Tags are **not** SEO keywords.
+- Tags are **not** marketing keywords.
+- Tags must describe the actual images or content inside the product package.
+- Prefer specific searchable terms over generic terms.
+- Use terms that help someone find a specific kind of image inside a large archive.
+- Good tag types include:
+  - specific animals
+  - plant or flower names
+  - anatomical subjects
+  - objects
+  - tools
+  - machines
+  - symbols
+  - maps
+  - architecture details
+  - ornament types
+  - scientific subjects
+  - visual techniques only when relevant
+- Do not use generic SEO or marketplace tags such as:
+  - `digital download`
+  - `vintage illustration`
+  - `printable art`
+  - `wall art`
+  - `clipart`
+  - `instant download`
+  - `high resolution`
+  - `commercial use`
+  - `design asset`
+  - `antique print`
+- Do not repeat the same concept with small wording variations.
+- Do not invent subjects that are not visible in the images or present in the source notes.
+- If a species or object is identifiable, use the specific name.
+- If it is not identifiable, use the most accurate broader visible term.
+- Write all 10 tags in one CSV cell.
+- Tags must be comma-separated.
+- Do not write more than 10 tags.
+- Do not write fewer than 10 tags unless the source material is extremely limited; if fewer are unavoidable, explain the uncertainty outside the CSV, not inside the `tags` cell.
+
+### Tag examples
+Bad tags:
+- `digital download, vintage illustration, printable art, wall art, clipart, high resolution, instant download, commercial use, antique print, design asset`
+
+Good tags for a bat image set:
+- `bat, chiroptera, wing anatomy, nocturnal mammal, flying mammal, cave animal, mammal skeleton, zoological plate, natural history, scientific illustration`
+
+Good tags for a botanical image set:
+- `rose, petals, leaf structure, flower stem, botanical plate, plant anatomy, garden flower, herbarium, botany, floral study`
+
+Good tags for architectural ornament images:
+- `acanthus, column capital, frieze, ornamental border, decorative pattern, classical ornament, carved stone, architectural detail, interior ornament, pattern study`
 
 ## Variation support note
 - Variation import runtime is **not implemented yet**
