@@ -197,8 +197,20 @@ Identity / Graphics:
 - Example:
   - `https://example.com/image-1.jpg,https://example.com/image-2.jpg,https://example.com/image-3.jpg`
 - `featured_image` is the main product image
-- `meta:_bw_slider_hover_video` should be used when a hover video is available
-- `meta:_bw_slider_hover_image` is the fallback hover media field
+
+## Product Presentation Hover Media
+- Fill `meta:_bw_slider_hover_image` with a direct URL to the hover image.
+- The hover image will usually be provided and should normally be filled when available.
+- Fill `meta:_bw_slider_hover_video` with a direct URL to the hover video only when a hover video is provided.
+- Hover video has priority on the product presentation.
+- If no hover video is provided, leave `meta:_bw_slider_hover_video` empty.
+- When the video field is empty, the hover image acts as fallback.
+- Do not invent a video URL.
+- Do not reuse the featured image as hover image unless the source notes explicitly say to do so.
+- Use direct media URLs only.
+- Do not use Markdown links.
+- Do not put multiple URLs in either hover media field.
+- Each hover media field accepts one URL only.
 
 ## Tags
 - The `tags` field must contain exactly 10 tags.
@@ -299,8 +311,8 @@ Good tags for architectural ornament images:
 | `meta:_digital_assets_list` | Optional | Asset list | `Layered master file|Source scan|Preview JPG set` | Keep compact and factual |
 | `meta:_digital_file_size` | Optional | Digital file size detail | `320 MB` | Optional mirror field |
 | `meta:_digital_formats` | Optional | Digital formats detail | `AI,PNG,EPS,SVG` | Optional mirror field |
-| `meta:_bw_slider_hover_image` | Optional | Hover fallback image URL | `https://example.com/images/bats-hover.jpg` | Use when no video is available |
-| `meta:_bw_slider_hover_video` | Optional | Hover video URL | `https://example.com/video/bats-hover.mp4` | Preferred when available |
+| `meta:_bw_slider_hover_image` | Recommended when provided / normally expected | Hover image URL | `https://example.com/images/bats-hover.jpg` | Direct URL only. Acts as fallback when no hover video is provided |
+| `meta:_bw_slider_hover_video` | Optional | Hover video URL | `https://example.com/video/bats-hover.mp4` | Direct URL only. Leave empty if not provided. Takes priority when present |
 | `variation_name` | Future-ready only | Variation display name | `Commercial` | Not runtime-importable yet |
 | `variation_regular_price` | Future-ready only | Variation regular price | `29.00` | Not runtime-importable yet |
 | `variation_sale_price` | Future-ready only | Variation sale price | `19.00` | Not runtime-importable yet |
