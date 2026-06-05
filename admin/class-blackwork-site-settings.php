@@ -1368,6 +1368,95 @@ function bw_product_import_export_admin_url($args = [])
     return add_query_arg($base_args, admin_url('admin.php'));
 }
 
+function bw_product_import_template_registry()
+{
+    $base_dir = BW_MEW_PATH . 'docs/30-features/import-products/templates/';
+
+    return [
+        'digital' => [
+            'label' => __('Download Digital CSV', 'bw'),
+            'filename' => 'blackwork-digital-product-import-template.csv',
+            'path' => $base_dir . 'blackwork-digital-product-import-template.csv',
+        ],
+        'books' => [
+            'label' => __('Download Books CSV', 'bw'),
+            'filename' => 'blackwork-book-import-template.csv',
+            'path' => $base_dir . 'blackwork-book-import-template.csv',
+        ],
+        'prints' => [
+            'label' => __('Download Prints CSV', 'bw'),
+            'filename' => 'blackwork-print-import-template.csv',
+            'path' => $base_dir . 'blackwork-print-import-template.csv',
+        ],
+    ];
+}
+
+function bw_product_import_template_download_url($template_key)
+{
+    $template_key = sanitize_key((string) $template_key);
+    $templates = bw_product_import_template_registry();
+
+    if (!isset($templates[$template_key])) {
+        return '';
+    }
+
+    return wp_nonce_url(
+        bw_product_import_export_admin_url([
+            'product_flow' => 'import',
+            'bw_download_import_template' => $template_key,
+        ]),
+        'bw_download_import_template_' . $template_key
+    );
+}
+
+function bw_product_import_template_maybe_download()
+{
+    if (!is_admin()) {
+        return;
+    }
+
+    $template_key = isset($_GET['bw_download_import_template']) ? sanitize_key(wp_unslash($_GET['bw_download_import_template'])) : '';
+    if ($template_key === '') {
+        return;
+    }
+
+    if (!current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
+        wp_die(esc_html__('You do not have permission to download import templates.', 'bw'), 403);
+    }
+
+    $templates = bw_product_import_template_registry();
+    if (!isset($templates[$template_key])) {
+        wp_die(esc_html__('Unknown import template requested.', 'bw'), 400);
+    }
+
+    if (
+        !isset($_GET['_wpnonce']) ||
+        !wp_verify_nonce(
+            sanitize_text_field(wp_unslash($_GET['_wpnonce'])),
+            'bw_download_import_template_' . $template_key
+        )
+    ) {
+        wp_die(esc_html__('Invalid download nonce. Please retry from the admin page.', 'bw'), 403);
+    }
+
+    $template = $templates[$template_key];
+    $file_path = isset($template['path']) ? (string) $template['path'] : '';
+    $file_name = isset($template['filename']) ? (string) $template['filename'] : '';
+
+    if ($file_path === '' || $file_name === '' || !file_exists($file_path) || !is_readable($file_path)) {
+        wp_die(esc_html__('The requested import template is not available.', 'bw'), 404);
+    }
+
+    nocache_headers();
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . rawurlencode($file_name) . '"');
+    header('Content-Length: ' . (string) filesize($file_path));
+    header('X-Content-Type-Options: nosniff');
+    readfile($file_path);
+    exit;
+}
+add_action('admin_init', 'bw_product_import_template_maybe_download', 4);
+
 function bw_product_import_export_page()
 {
     if (!current_user_can('manage_options')) {
@@ -7693,6 +7782,18 @@ function bw_site_render_import_product_tab()
         <section class="bw-admin-card">
             <h3 class="bw-admin-card-title"><?php esc_html_e('Import Product', 'bw'); ?></h3>
             <p class="bw-admin-card-helper"><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?></p>
+
+        <?php $import_templates = bw_product_import_template_registry(); ?>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 22px;">
+            <?php foreach ($import_templates as $template_key => $template): ?>
+                <?php $download_url = bw_product_import_template_download_url($template_key); ?>
+                <?php if ($download_url !== ''): ?>
+                    <a class="button button-secondary" href="<?php echo esc_url($download_url); ?>">
+                        <?php echo esc_html($template['label']); ?>
+                    </a>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
 
         <h3><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
         <form method="post" enctype="multipart/form-data" id="bw-import-upload-form">

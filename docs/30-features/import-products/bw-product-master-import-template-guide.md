@@ -27,6 +27,33 @@ Use it when you want one spreadsheet/CSV that can cover:
 Template file:
 - [bw-product-master-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/bw-product-master-import-template.csv)
 
+Standalone downloadable templates available from the admin UI:
+- `Blackwork Site → Product Import / Export → Import Product`
+- [blackwork-digital-product-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-digital-product-import-template.csv)
+- [blackwork-book-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-book-import-template.csv)
+- [blackwork-print-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-print-import-template.csv)
+
+## Quick Templates
+
+Use the downloadable templates when you want a smaller CSV tailored to one product family instead of the full master schema.
+
+- `blackwork-digital-product-import-template.csv`
+  - optimized for digital/downloadable products
+  - includes current importable core fields and Blackwork digital meta
+  - intentionally omits non-mappable runtime fields such as `downloadable` and `virtual` until importer mapping supports them
+  - also includes future-ready variation/license columns for preparation only
+- `blackwork-book-import-template.csv`
+  - optimized for books
+  - includes current importable core fields and bibliographic Blackwork meta
+- `blackwork-print-import-template.csv`
+  - optimized for prints
+  - includes current importable core fields and print-specific Blackwork meta
+
+Variation note:
+- current importer runtime does **not** implement full variation create/update lifecycle
+- digital template variation/license columns are included only as preparation for a later phase
+- they can be left unmapped safely today
+
 ## Important Scope Notes
 - This schema is designed as a practical master spreadsheet for an external product-management system.
 - It mixes:
