@@ -8012,190 +8012,266 @@ function bw_site_render_import_product_tab()
             </div>
         </div>
 
-        <?php if (!empty($state['upload_summary'])): ?>
-            <hr />
-            <h3><?php esc_html_e('Upload summary', 'bw'); ?></h3>
-            <table class="widefat fixed" style="max-width:700px;">
-                <tbody>
-                    <tr>
-                        <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
-                        <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
-                    </tr>
-                    <tr>
-                        <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
-                        <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
-                    </tr>
-                    <tr>
-                        <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
-                        <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
-                    </tr>
-                    <tr>
-                        <th><?php esc_html_e('Missing field names', 'bw'); ?></th>
-                        <td>
-                            <?php if (!empty($state['upload_summary']['missing'])): ?>
-                                <ul style="margin: 0; padding-left: 20px;">
-                                    <?php foreach ($state['upload_summary']['missing'] as $missing_header): ?>
-                                        <li><?php echo esc_html($missing_header); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php else: ?>
-                                <?php esc_html_e('All fields were loaded successfully.', 'bw'); ?>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><?php esc_html_e('Replaced fields', 'bw'); ?></th>
-                        <td>
-                            <?php
-                            $replaced_count = isset($state['upload_summary']['replaced_count']) ? (int) $state['upload_summary']['replaced_count'] : 0;
-                            if ($replaced_count > 0):
-                                ?>
-                                <strong><?php echo esc_html(sprintf(__('Replaced headers: %d', 'bw'), $replaced_count)); ?></strong>
-                                <ul style="margin: 4px 0 0 20px;">
-                                    <?php foreach ((array) $state['upload_summary']['replaced'] as $replaced_header): ?>
-                                        <li><?php echo esc_html($replaced_header); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php else: ?>
-                                <?php esc_html_e('No empty headers were replaced.', 'bw'); ?>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><?php esc_html_e('Duplicate headers', 'bw'); ?></th>
-                        <td>
-                            <?php
-                            $duplicate_count = isset($state['upload_summary']['duplicate_count']) ? (int) $state['upload_summary']['duplicate_count'] : 0;
-                            $duplicates = isset($state['upload_summary']['duplicates']) ? (array) $state['upload_summary']['duplicates'] : [];
-                            if ($duplicate_count > 0):
-                                ?>
-                                <strong><?php echo esc_html(sprintf(__('Duplicated fields: %d', 'bw'), $duplicate_count)); ?></strong>
-                                <ul style="margin: 4px 0 0 20px;">
-                                    <?php foreach ($duplicates as $header => $positions): ?>
-                                        <li>
-                                            <?php
-                                            echo esc_html(
-                                                sprintf(
-                                                    /* translators: 1: header label, 2: column positions */
-                                                    __('%1$s (columns: %2$s)', 'bw'),
-                                                    $header,
-                                                    implode(', ', array_map('intval', (array) $positions))
-                                                )
-                                            );
-                                            ?>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php else: ?>
-                                <?php esc_html_e('No duplicate header names detected.', 'bw'); ?>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <?php if (!empty($state['upload_summary']) && empty($state['headers'])): ?>
+            <div class="bw-import-upload-summary">
+                <h3 class="bw-import-upload-summary__title"><?php esc_html_e('Upload summary', 'bw'); ?></h3>
+                <table class="widefat fixed bw-import-upload-summary__table">
+                    <tbody>
+                        <tr>
+                            <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
+                            <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
+                            <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
+                            <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('Missing field names', 'bw'); ?></th>
+                            <td>
+                                <?php if (!empty($state['upload_summary']['missing'])): ?>
+                                    <ul class="bw-import-upload-summary__list">
+                                        <?php foreach ($state['upload_summary']['missing'] as $missing_header): ?>
+                                            <li><?php echo esc_html($missing_header); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php else: ?>
+                                    <?php esc_html_e('All fields were loaded successfully.', 'bw'); ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('Replaced fields', 'bw'); ?></th>
+                            <td>
+                                <?php
+                                $replaced_count = isset($state['upload_summary']['replaced_count']) ? (int) $state['upload_summary']['replaced_count'] : 0;
+                                if ($replaced_count > 0):
+                                    ?>
+                                    <strong><?php echo esc_html(sprintf(__('Replaced headers: %d', 'bw'), $replaced_count)); ?></strong>
+                                    <ul class="bw-import-upload-summary__list bw-import-upload-summary__list--tight">
+                                        <?php foreach ((array) $state['upload_summary']['replaced'] as $replaced_header): ?>
+                                            <li><?php echo esc_html($replaced_header); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php else: ?>
+                                    <?php esc_html_e('No empty headers were replaced.', 'bw'); ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('Duplicate headers', 'bw'); ?></th>
+                            <td>
+                                <?php
+                                $duplicate_count = isset($state['upload_summary']['duplicate_count']) ? (int) $state['upload_summary']['duplicate_count'] : 0;
+                                $duplicates = isset($state['upload_summary']['duplicates']) ? (array) $state['upload_summary']['duplicates'] : [];
+                                if ($duplicate_count > 0):
+                                    ?>
+                                    <strong><?php echo esc_html(sprintf(__('Duplicated fields: %d', 'bw'), $duplicate_count)); ?></strong>
+                                    <ul class="bw-import-upload-summary__list bw-import-upload-summary__list--tight">
+                                        <?php foreach ($duplicates as $header => $positions): ?>
+                                            <li>
+                                                <?php
+                                                echo esc_html(
+                                                    sprintf(
+                                                        /* translators: 1: header label, 2: column positions */
+                                                        __('%1$s (columns: %2$s)', 'bw'),
+                                                        $header,
+                                                        implode(', ', array_map('intval', (array) $positions))
+                                                    )
+                                                );
+                                                ?>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php else: ?>
+                                    <?php esc_html_e('No duplicate header names detected.', 'bw'); ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
 
         <?php if (!empty($state['headers'])): ?>
-            <hr />
-            <div id="bw-import-mapping-section" class="bw-import-mapping-section" tabindex="-1">
-            <h3><?php esc_html_e('2. Map CSV columns', 'bw'); ?></h3>
-            <div class="notice notice-success inline bw-import-mapping-section__notice">
-                <p><?php esc_html_e('CSV uploaded and analyzed. Review the column mapping below, then run the import.', 'bw'); ?></p>
+            <?php $mapping_auto_open = empty($state['in_progress']) ? 'true' : 'false'; ?>
+            <div id="bw-import-mapping-reopen" class="bw-import-mapping-reopen" hidden>
+                <div class="notice notice-info inline bw-import-mapping-reopen__notice">
+                    <p>
+                        <strong><?php esc_html_e('Mapping is ready', 'bw'); ?></strong>
+                        <?php esc_html_e('Open the mapping step to review the detected column mapping and continue with Step 3.', 'bw'); ?>
+                    </p>
+                    <p>
+                        <button type="button" class="button button-secondary" id="bw-import-mapping-open">
+                            <?php esc_html_e('Open mapping step', 'bw'); ?>
+                        </button>
+                    </p>
+                </div>
             </div>
-            <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field.', 'bw'); ?></p>
+            <div
+                id="bw-import-mapping-modal"
+                class="bw-import-mapping-modal"
+                data-open-on-load="<?php echo esc_attr($mapping_auto_open); ?>"
+            >
+                <div class="bw-import-mapping-modal__backdrop" aria-hidden="true"></div>
+                <div
+                    class="bw-import-mapping-modal__dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="bw-import-mapping-title"
+                    aria-describedby="bw-import-mapping-helper"
+                >
+                    <div id="bw-import-mapping-section" class="bw-import-mapping-section" tabindex="-1">
+                        <div class="bw-import-mapping-modal__header">
+                            <div class="bw-import-mapping-modal__header-copy">
+                                <h3 id="bw-import-mapping-title" class="bw-import-mapping-modal__title" tabindex="-1"><?php esc_html_e('Step 2 — Map CSV columns', 'bw'); ?></h3>
+                                <p id="bw-import-mapping-helper" class="bw-import-mapping-modal__helper"><?php esc_html_e('CSV uploaded and analyzed. Review the detected column mapping, then run the import.', 'bw'); ?></p>
+                            </div>
+                            <button
+                                type="button"
+                                class="button-link bw-import-mapping-modal__close"
+                                id="bw-import-mapping-close"
+                                aria-label="<?php esc_attr_e('Close mapping step', 'bw'); ?>"
+                            >
+                                <span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+                            </button>
+                        </div>
 
-            <form method="post">
-                <input type="hidden" name="product_flow" value="import" />
-                <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
-                <?php
-                $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
-                ?>
-                <table class="widefat fixed" style="max-width:900px;">
-                    <thead>
-                        <tr>
-                            <th style="width:50%;"><?php esc_html_e('CSV Column', 'bw'); ?></th>
-                            <th><?php esc_html_e('Map To', 'bw'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $options = bw_import_get_mapping_options();
-                        $auto_mapping = bw_import_guess_mapping($state['headers'], $options);
-                        $submitted_mapping = [];
+                        <?php if (!empty($state['upload_summary'])): ?>
+                            <div class="bw-import-mapping-modal__summary">
+                                <h4 class="bw-import-mapping-modal__summary-title"><?php esc_html_e('Step 1 — Upload summary', 'bw'); ?></h4>
+                                <table class="widefat fixed bw-import-upload-summary__table">
+                                    <tbody>
+                                        <tr>
+                                            <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
+                                            <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
+                                            <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
+                                            <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
 
-                        if (!empty($_POST['bw_import_mapping'])) {
-                            foreach ((array) $_POST['bw_import_mapping'] as $submitted_header => $submitted_value) {
-                                $submitted_mapping[$submitted_header] = sanitize_text_field(wp_unslash($submitted_value));
-                            }
-                        }
+                        <div class="notice notice-success inline bw-import-mapping-section__notice">
+                            <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field, then continue to Step 3 — Run import.', 'bw'); ?></p>
+                        </div>
 
-                        foreach ($state['headers'] as $header):
-                            $current_value = isset($submitted_mapping[$header])
-                                ? $submitted_mapping[$header]
-                                : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
-                            ?>
-                            <tr>
-                                <td><strong><?php echo esc_html($header); ?></strong></td>
-                                <td>
-                                    <select name="bw_import_mapping[<?php echo esc_attr($header); ?>]" style="width:100%;">
-                                        <option value="ignore" <?php selected($current_value, 'ignore'); ?>>
-                                            <?php esc_html_e('Ignore this column', 'bw'); ?>
-                                        </option>
-                                        <?php foreach ($options as $group_label => $group_options): ?>
-                                            <optgroup label="<?php echo esc_attr($group_label); ?>">
-                                                <?php foreach ($group_options as $key => $label): ?>
-                                                    <option value="<?php echo esc_attr($key); ?>" <?php selected($current_value, $key); ?>>
-                                                        <?php echo esc_html($label); ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </td>
-                            </tr>
+                        <form method="post">
+                            <input type="hidden" name="product_flow" value="import" />
+                            <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
                             <?php
-                        endforeach;
-                        ?>
-                    </tbody>
-                </table>
+                            $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
+                            ?>
+                            <div class="bw-import-mapping-modal__body">
+                                <table class="widefat fixed bw-import-mapping-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:50%;"><?php esc_html_e('CSV Column', 'bw'); ?></th>
+                                            <th><?php esc_html_e('Map To', 'bw'); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $options = bw_import_get_mapping_options();
+                                        $auto_mapping = bw_import_guess_mapping($state['headers'], $options);
+                                        $submitted_mapping = [];
 
-                <p><strong><?php esc_html_e('Preview (first 5 rows):', 'bw'); ?></strong></p>
-                <div style="overflow:auto; max-width:900px;">
-                    <table class="widefat striped">
-                        <thead>
-                            <tr>
-                                <?php foreach ($state['headers'] as $header): ?>
-                                    <th><?php echo esc_html($header); ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($state['sample'] as $sample_row): ?>
-                                <tr>
-                                    <?php foreach ($state['headers'] as $index => $header): ?>
-                                        <td><?php echo isset($sample_row[$index]) ? esc_html($sample_row[$index]) : ''; ?></td>
-                                    <?php endforeach; ?>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                                        if (!empty($_POST['bw_import_mapping'])) {
+                                            foreach ((array) $_POST['bw_import_mapping'] as $submitted_header => $submitted_value) {
+                                                $submitted_mapping[$submitted_header] = sanitize_text_field(wp_unslash($submitted_value));
+                                            }
+                                        }
+
+                                        foreach ($state['headers'] as $header):
+                                            $current_value = isset($submitted_mapping[$header])
+                                                ? $submitted_mapping[$header]
+                                                : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
+                                            ?>
+                                            <tr>
+                                                <td><strong><?php echo esc_html($header); ?></strong></td>
+                                                <td>
+                                                    <select name="bw_import_mapping[<?php echo esc_attr($header); ?>]" style="width:100%;">
+                                                        <option value="ignore" <?php selected($current_value, 'ignore'); ?>>
+                                                            <?php esc_html_e('Ignore this column', 'bw'); ?>
+                                                        </option>
+                                                        <?php foreach ($options as $group_label => $group_options): ?>
+                                                            <optgroup label="<?php echo esc_attr($group_label); ?>">
+                                                                <?php foreach ($group_options as $key => $label): ?>
+                                                                    <option value="<?php echo esc_attr($key); ?>" <?php selected($current_value, $key); ?>>
+                                                                        <?php echo esc_html($label); ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </optgroup>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <?php
+                                        endforeach;
+                                        ?>
+                                    </tbody>
+                                </table>
+
+                                <div class="bw-import-mapping-preview">
+                                    <p><strong><?php esc_html_e('Preview (first 5 rows):', 'bw'); ?></strong></p>
+                                    <div class="bw-import-mapping-preview__table">
+                                        <table class="widefat striped">
+                                            <thead>
+                                                <tr>
+                                                    <?php foreach ($state['headers'] as $header): ?>
+                                                        <th><?php echo esc_html($header); ?></th>
+                                                    <?php endforeach; ?>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($state['sample'] as $sample_row): ?>
+                                                    <tr>
+                                                        <?php foreach ($state['headers'] as $index => $header): ?>
+                                                            <td><?php echo isset($sample_row[$index]) ? esc_html($sample_row[$index]) : ''; ?></td>
+                                                        <?php endforeach; ?>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="bw-import-mapping-images">
+                                    <strong><?php esc_html_e('Image import behavior', 'bw'); ?></strong>
+                                    <label class="bw-import-mapping-images__label">
+                                        <input type="checkbox" name="bw_import_skip_images" value="1" <?php checked($state_skip_images); ?> />
+                                        <span><?php esc_html_e('Skip image sideload for safety (recommended). Image columns are ignored and logged as skipped by configuration.', 'bw'); ?></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="bw-import-mapping-modal__footer">
+                                <p class="bw-import-mapping-modal__footer-copy"><?php esc_html_e('Step 3 — Run import using the mapping above.', 'bw'); ?></p>
+                                <div class="bw-import-mapping-modal__actions">
+                                    <button type="button" class="button" id="bw-import-mapping-close-footer">
+                                        <?php esc_html_e('Close / Review later', 'bw'); ?>
+                                    </button>
+                                    <?php
+                                    $button_label = !empty($state['in_progress'])
+                                        ? __('Continue Import (next chunk)', 'bw')
+                                        : __('Save Mapping & Run Import', 'bw');
+                                    submit_button($button_label, 'primary', 'bw_import_run', false);
+                                    ?>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-
-                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
-                    <strong><?php esc_html_e('Image import behavior', 'bw'); ?></strong>
-                    <label style="display: flex; gap: 8px; align-items: flex-start;">
-                        <input type="checkbox" name="bw_import_skip_images" value="1" <?php checked($state_skip_images); ?> />
-                        <span><?php esc_html_e('Skip image sideload for safety (recommended). Image columns are ignored and logged as skipped by configuration.', 'bw'); ?></span>
-                    </label>
-                </div>
-
-                <?php
-                $button_label = !empty($state['in_progress'])
-                    ? __('Continue Import (next chunk)', 'bw')
-                    : __('Save Mapping & Run Import', 'bw');
-                submit_button($button_label, 'primary', 'bw_import_run');
-                ?>
-            </form>
             </div>
         <?php endif; ?>
 

@@ -153,7 +153,12 @@
         const $selectedFile = $('#bw-import-upload-selected-file');
         const $uploadStatus = $('#bw-import-upload-status');
         const $uploadAction = $('#bw_import_action');
+        const $mappingModal = $('#bw-import-mapping-modal');
         const $mappingSection = $('#bw-import-mapping-section');
+        const $mappingOpen = $('#bw-import-mapping-open');
+        const $mappingClose = $('#bw-import-mapping-close');
+        const $mappingCloseFooter = $('#bw-import-mapping-close-footer');
+        const $mappingReopen = $('#bw-import-mapping-reopen');
         const $copyButtons = $('.bw-import-template-card__copy-prompt');
         const $copyStatus = $('#bw-import-template-copy-status');
 
@@ -309,11 +314,78 @@
             $form.trigger('submit');
         }
 
-        if ($mappingSection.length) {
-            window.setTimeout(function () {
-                $mappingSection.get(0).scrollIntoView({ behavior: 'smooth', block: 'start' });
-                $mappingSection.trigger('focus');
-            }, 120);
+        function openMappingModal() {
+            if (!$mappingModal.length) {
+                return;
+            }
+
+            $mappingModal.addClass('is-open');
+            $mappingReopen.prop('hidden', true);
+            $(document.body).addClass('bw-import-mapping-modal-open');
+
+            if ($mappingSection.length) {
+                window.setTimeout(function () {
+                    const heading = document.getElementById('bw-import-mapping-title');
+                    if (heading && typeof heading.focus === 'function') {
+                        heading.focus();
+                    } else {
+                        $mappingSection.trigger('focus');
+                    }
+                }, 50);
+            }
+        }
+
+        function closeMappingModal() {
+            if (!$mappingModal.length || !$mappingModal.hasClass('is-enhanced')) {
+                return;
+            }
+
+            $mappingModal.removeClass('is-open');
+            $mappingReopen.prop('hidden', false);
+            $(document.body).removeClass('bw-import-mapping-modal-open');
+            if ($mappingOpen.length) {
+                $mappingOpen.trigger('focus');
+            }
+        }
+
+        if ($mappingModal.length && $mappingSection.length) {
+            $mappingModal.addClass('is-enhanced');
+
+            if (String($mappingModal.data('openOnLoad')) === 'true') {
+                window.setTimeout(function () {
+                    openMappingModal();
+                }, 120);
+            } else {
+                $mappingReopen.prop('hidden', false);
+            }
+
+            $mappingOpen.on('click', function () {
+                openMappingModal();
+            });
+
+            $mappingClose.on('click', function () {
+                closeMappingModal();
+            });
+
+            $mappingCloseFooter.on('click', function () {
+                closeMappingModal();
+            });
+
+            $mappingModal.on('click', function (event) {
+                if (!$mappingModal.hasClass('is-open')) {
+                    return;
+                }
+
+                if ($(event.target).hasClass('bw-import-mapping-modal__backdrop')) {
+                    closeMappingModal();
+                }
+            });
+
+            $(document).on('keydown.bwImportMappingModal', function (event) {
+                if (event.key === 'Escape' && $mappingModal.hasClass('is-open')) {
+                    closeMappingModal();
+                }
+            });
         }
 
         $fileInput.on('change', function () {
