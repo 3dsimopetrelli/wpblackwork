@@ -130,6 +130,10 @@
         const $invalidList = $('#bw-import-preflight-invalid-list');
         const $continue = $('#bw-import-preflight-continue');
         const $close = $('#bw-import-preflight-close');
+        const $submitButton = $('#bw_import_upload_submit');
+        const $selectedFile = $('#bw-import-upload-selected-file');
+        const $uploadStatus = $('#bw-import-upload-status');
+        const $mappingSection = $('#bw-import-mapping-section');
         const $copyButtons = $('.bw-import-template-card__copy-prompt');
         const $copyStatus = $('#bw-import-template-copy-status');
 
@@ -181,6 +185,48 @@
         }
 
         let pendingSubmit = false;
+        const defaultSubmitLabel = String($submitButton.val() || $submitButton.data('defaultLabel') || getString('defaultUploadCta', 'Upload & Analyze'));
+
+        function setUploadStatus(message, type) {
+            if (!$uploadStatus.length) {
+                return;
+            }
+
+            $uploadStatus
+                .removeClass('is-info is-success is-error')
+                .text(message || '');
+
+            if (type) {
+                $uploadStatus.addClass('is-' + type);
+            }
+        }
+
+        function setSelectedFileMessage(file) {
+            if (!$selectedFile.length) {
+                return;
+            }
+
+            if (file && file.name) {
+                $selectedFile.text(getString('selectedFilePrefix', 'Selected file: ') + file.name).prop('hidden', false);
+                setUploadStatus(getString('fileSelectedStatus', 'File selected. Click Upload & Analyze to continue.'), 'success');
+            } else {
+                $selectedFile.text('').prop('hidden', true);
+                setUploadStatus('', '');
+            }
+        }
+
+        function setSubmitButtonState(label, disabled) {
+            if (!$submitButton.length) {
+                return;
+            }
+
+            $submitButton.val(label);
+            $submitButton.prop('disabled', !!disabled).attr('aria-disabled', disabled ? 'true' : 'false');
+        }
+
+        function resetUploadButton() {
+            setSubmitButtonState(defaultSubmitLabel, false);
+        }
 
         function closeModal() {
             $modal.hide();
@@ -189,6 +235,8 @@
             $invalidWrap.hide();
             $invalidList.empty();
             $stats.empty();
+            $continue.prop('disabled', false).text(getString('continueImport', 'Continue to mapping'));
+            $close.prop('disabled', false);
         }
 
         function openModal(summary) {
@@ -227,24 +275,44 @@
             $modal.css('display', 'flex');
         }
 
-        function submitOriginalFile() {
+        function submitOriginalFile(statusMessage) {
+            setUploadStatus(statusMessage || getString('uploadingCsv', 'Uploading CSV...'), 'info');
+            setSubmitButtonState(getString('uploadingCsvCta', 'Uploading CSV...'), true);
             pendingSubmit = true;
             $form.trigger('submit');
         }
 
+        if ($mappingSection.length) {
+            window.setTimeout(function () {
+                $mappingSection.get(0).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                $mappingSection.trigger('focus');
+            }, 120);
+        }
+
+        $fileInput.on('change', function () {
+            const file = this.files && this.files[0] ? this.files[0] : null;
+            resetUploadButton();
+            closeModal();
+            setSelectedFileMessage(file);
+        });
+
         $close.on('click', function () {
             closeModal();
+            resetUploadButton();
+            setSelectedFileMessage($fileInput.get(0).files && $fileInput.get(0).files[0] ? $fileInput.get(0).files[0] : null);
         });
 
         $continue.on('click', function () {
-            closeModal();
-            pendingSubmit = true;
-            $form.trigger('submit');
+            $continue.prop('disabled', true).text(getString('uploadingCsv', 'Uploading CSV...'));
+            $close.prop('disabled', true);
+            submitOriginalFile(getString('uploadingCsv', 'Uploading CSV...'));
         });
 
         $modal.on('click', function (event) {
             if (event.target === $modal.get(0)) {
                 closeModal();
+                resetUploadButton();
+                setSelectedFileMessage($fileInput.get(0).files && $fileInput.get(0).files[0] ? $fileInput.get(0).files[0] : null);
             }
         });
 
@@ -256,11 +324,17 @@
 
             const file = $fileInput.get(0).files && $fileInput.get(0).files[0];
             if (!file || typeof window.Papa === 'undefined' || typeof window.Papa.parse !== 'function') {
+                if (file) {
+                    submitOriginalFile(getString('uploadingCsv', 'Uploading CSV...'));
+                    return false;
+                }
                 return true;
             }
 
             event.preventDefault();
             closeModal();
+            setSubmitButtonState(getString('analyzingCsv', 'Analyzing CSV...'), true);
+            setUploadStatus(getString('analyzingCsvStatus', 'Analyzing CSV in your browser. A preflight check will open before upload.'), 'info');
 
             window.Papa.parse(file, {
                 header: true,
@@ -283,16 +357,16 @@
                             parserWarnings: Array.isArray(results.errors) ? results.errors.length : 0,
                             invalidExamples: sanitized.invalidRows.slice(0, 5)
                         });
+                        resetUploadButton();
+                        setUploadStatus(getString('preflightReadyStatus', 'Preflight complete. Review the summary, then continue to upload and open the mapping step.'), 'success');
                     } catch (parseError) {
                         console.error(parseError);
-                        pendingSubmit = true;
-                        $form.trigger('submit');
+                        submitOriginalFile(getString('uploadingCsv', 'Uploading CSV...'));
                     }
                 },
                 error: function (error) {
                     console.error(error);
-                    pendingSubmit = true;
-                    $form.trigger('submit');
+                    submitOriginalFile(getString('uploadingCsv', 'Uploading CSV...'));
                 }
             });
 

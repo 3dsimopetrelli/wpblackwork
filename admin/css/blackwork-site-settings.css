@@ -393,6 +393,33 @@
     margin: 10px 0 0;
 }
 
+.bw-import-panel .bw-import-upload-dropzone__selected-file {
+    color: #1d2327;
+    font-weight: 600;
+    margin: 12px 0 0;
+}
+
+.bw-import-panel .bw-import-upload-dropzone__status {
+    color: #50575e;
+    margin: 8px 0 0;
+}
+
+.bw-import-panel .bw-import-upload-dropzone__status.is-info {
+    color: #0a4b78;
+}
+
+.bw-import-panel .bw-import-upload-dropzone__status.is-success {
+    color: #0f6b2f;
+}
+
+.bw-import-panel .bw-import-upload-dropzone__status.is-error {
+    color: #b32d2e;
+}
+
+.bw-import-panel .bw-import-upload-inline-error {
+    margin: 12px 0 0;
+}
+
 .bw-import-panel .bw-import-update-box {
     background: #fff8e5;
     border: 1px solid #f0c36d;
@@ -417,6 +444,19 @@
     height: 18px;
     margin-top: 2px;
     width: 18px;
+}
+
+.bw-import-panel .bw-import-mapping-section {
+    scroll-margin-top: 28px;
+}
+
+.bw-import-panel .bw-import-mapping-section:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 4px;
+}
+
+.bw-import-panel .bw-import-mapping-section__notice {
+    margin: 0 0 12px;
 }
 
 @media (max-width: 1024px) {

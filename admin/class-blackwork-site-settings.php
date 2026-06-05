@@ -340,6 +340,14 @@ function bw_site_settings_admin_assets($hook)
                     'preflightFailure' => esc_html__('CSV analysis failed unexpectedly. The original file will be submitted unchanged.', 'bw'),
                     'invalidPreviewLabel' => esc_html__('Example skipped rows', 'bw'),
                     'missingSkuAndName' => esc_html__('Missing SKU and name', 'bw'),
+                    'defaultUploadCta' => esc_html__('Upload & Analyze', 'bw'),
+                    'analyzingCsv' => esc_html__('Analyzing CSV...', 'bw'),
+                    'analyzingCsvStatus' => esc_html__('Analyzing CSV in your browser. A preflight check will open before upload.', 'bw'),
+                    'preflightReadyStatus' => esc_html__('Preflight complete. Review the summary, then continue to upload and open the mapping step.', 'bw'),
+                    'uploadingCsv' => esc_html__('Uploading CSV...', 'bw'),
+                    'uploadingCsvCta' => esc_html__('Uploading...', 'bw'),
+                    'selectedFilePrefix' => esc_html__('Selected file: ', 'bw'),
+                    'fileSelectedStatus' => esc_html__('File selected. Click Upload & Analyze to continue.', 'bw'),
                     'copyPrompt' => esc_html__('Copy Prompt', 'bw'),
                     'copiedPrompt' => esc_html__('Copied', 'bw'),
                     'copyFailed' => esc_html__('Copy failed. Please try again.', 'bw'),
@@ -7693,9 +7701,12 @@ function bw_site_render_import_product_tab()
         }
     }
 
+    $inline_upload_error = '';
+
     if (isset($_POST['bw_import_upload_submit'])) {
         $upload_result = bw_import_handle_upload_request();
         if (is_wp_error($upload_result)) {
+            $inline_upload_error = $upload_result->get_error_message();
             $notices[] = ['type' => 'error', 'message' => $upload_result->get_error_message()];
         } else {
             $state = $upload_result;
@@ -7950,6 +7961,13 @@ function bw_site_render_import_product_tab()
                 <label for="bw_import_csv" class="bw-import-upload-dropzone__label"><?php esc_html_e('CSV file', 'bw'); ?></label>
                 <input type="file" name="bw_import_csv" id="bw_import_csv" class="bw-import-upload-dropzone__input" accept=".csv,.txt,text/csv" />
                 <p class="bw-import-upload-dropzone__hint"><?php esc_html_e('Select a clean CSV file. The selected filename will appear in the browser file input next to the button.', 'bw'); ?></p>
+                <p id="bw-import-upload-selected-file" class="bw-import-upload-dropzone__selected-file" hidden></p>
+                <p id="bw-import-upload-status" class="bw-import-upload-dropzone__status" aria-live="polite"></p>
+                <?php if ($inline_upload_error !== '') : ?>
+                    <div class="notice notice-error inline bw-import-upload-inline-error">
+                        <p><?php echo esc_html($inline_upload_error); ?></p>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="bw-import-update-box">
                 <strong class="bw-import-update-box__title"><?php esc_html_e('Update existing products', 'bw'); ?></strong>
@@ -7958,14 +7976,14 @@ function bw_site_render_import_product_tab()
                     <span><?php esc_html_e('When enabled, products matching an existing ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
                 </label>
             </div>
-            <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false, ['id' => 'bw_import_upload_submit']); ?>
+            <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false, ['id' => 'bw_import_upload_submit', 'data-default-label' => __('Upload & Analyze', 'bw')]); ?>
         </form>
         </div>
         <div id="bw-import-preflight-modal" style="display:none; position:fixed; inset:0; z-index:100000; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:24px;">
             <div role="dialog" aria-modal="true" aria-labelledby="bw-import-preflight-title" style="width:min(680px, 100%); background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden;">
                 <div style="padding:24px 24px 18px; border-bottom:1px solid #e7e7e7;">
-                    <h3 id="bw-import-preflight-title" style="margin:0 0 8px; font-size:24px; line-height:1.2;"><?php esc_html_e('CSV analysis', 'bw'); ?></h3>
-                    <p id="bw-import-preflight-intro" style="margin:0; color:#5b6470;"><?php esc_html_e('We checked the uploaded CSV before import. Valid rows will continue, malformed rows will be skipped.', 'bw'); ?></p>
+                    <h3 id="bw-import-preflight-title" style="margin:0 0 8px; font-size:24px; line-height:1.2;"><?php esc_html_e('CSV preflight check', 'bw'); ?></h3>
+                    <p id="bw-import-preflight-intro" style="margin:0; color:#5b6470;"><?php esc_html_e('We checked the CSV in your browser before upload. Review the summary below. The file has not been uploaded yet. Click Continue import to upload the CSV and open the mapping step.', 'bw'); ?></p>
                 </div>
                 <div style="padding:20px 24px; display:grid; gap:16px;">
                     <div id="bw-import-preflight-stats" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;"></div>
@@ -7978,7 +7996,7 @@ function bw_site_render_import_product_tab()
                 </div>
                 <div style="padding:18px 24px 24px; display:flex; gap:12px; justify-content:flex-end; border-top:1px solid #e7e7e7;">
                     <button type="button" class="button" id="bw-import-preflight-close"><?php esc_html_e('Close', 'bw'); ?></button>
-                    <button type="button" class="button button-primary" id="bw-import-preflight-continue"><?php esc_html_e('Continue import', 'bw'); ?></button>
+                    <button type="button" class="button button-primary" id="bw-import-preflight-continue"><?php esc_html_e('Continue to mapping', 'bw'); ?></button>
                 </div>
             </div>
         </div>
@@ -8068,7 +8086,11 @@ function bw_site_render_import_product_tab()
 
         <?php if (!empty($state['headers'])): ?>
             <hr />
+            <div id="bw-import-mapping-section" class="bw-import-mapping-section" tabindex="-1">
             <h3><?php esc_html_e('2. Map CSV columns', 'bw'); ?></h3>
+            <div class="notice notice-success inline bw-import-mapping-section__notice">
+                <p><?php esc_html_e('CSV uploaded and analyzed. Review the column mapping below, then run the import.', 'bw'); ?></p>
+            </div>
             <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field.', 'bw'); ?></p>
 
             <form method="post">
@@ -8163,6 +8185,7 @@ function bw_site_render_import_product_tab()
                 submit_button($button_label, 'primary', 'bw_import_run');
                 ?>
             </form>
+            </div>
         <?php endif; ?>
 
         <?php if (!empty($state['in_progress']) && !empty($state['totals']) && !empty($state['headers'])): ?>
