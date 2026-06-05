@@ -52,4 +52,14 @@ Instructions:
 - Create a detailed, natural, SEO-oriented `post_content`.
 - Create a concise `post_excerpt`.
 - Do not invent facts not present in the images, YAML, or source notes.
-- Return the completed CSV content only.
+- Create and return the completed CSV as a downloadable `.csv` file.
+- Use the filename pattern:
+  - `blackwork-digital-product-completed-{product-slug}.csv`
+- The CSV file must contain only valid CSV content.
+- Do not include Markdown.
+- Do not include explanations.
+- Do not include guide text.
+- Do not add extra rows.
+- Preserve the exact template columns.
+- Include the completed parent product row and the completed Commercial and Extended variation rows.
+- If the platform cannot create a downloadable file, return only the raw CSV content in a single CSV code block.

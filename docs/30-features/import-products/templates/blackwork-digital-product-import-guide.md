@@ -61,7 +61,7 @@ Required AI behavior:
 18. Fill year and author/artist only when provided or clearly supported by the YAML or source notes.
 19. Fill media fields from the supplied direct URLs in the YAML.
 20. Do not invent facts.
-21. Return completed CSV content only, unless Blackwork asks for explanation.
+21. Return a downloadable completed `.csv` file with the same columns as the template and no extra explanation unless Blackwork asks for it.
 
 ## External YAML input structure
 Blackwork prepares a filled YAML file for each product before starting a ChatGPT/Codex CSV production session.
@@ -182,7 +182,17 @@ Rules:
 - Create a detailed natural SEO-oriented `post_content`.
 - Create a concise `post_excerpt`.
 - Do not invent facts not present in the images, YAML, or source notes.
-- Return the completed CSV content only.
+- Create and return the completed CSV as a downloadable `.csv` file.
+- Use the filename pattern:
+  - `blackwork-digital-product-completed-{product-slug}.csv`
+- The CSV file must contain only valid CSV content.
+- Do not include Markdown.
+- Do not include explanations.
+- Do not include guide text.
+- Do not add extra rows.
+- Preserve the exact template columns.
+- Include the completed parent product row and the completed Commercial and Extended variation rows.
+- If the platform cannot create a downloadable file, return only the raw CSV content in a single CSV code block.
 
 ## Purpose
 Use this guide together with the Digital CSV template and the filled YAML product details file supplied by Blackwork for a specific product to help ChatGPT/Codex prepare a clean importable CSV for Blackwork digital products.
