@@ -36,6 +36,9 @@ Clarifications:
   - concise `post_excerpt`
   - allowed `product_subcategories`
   - exactly 10 internal-search tags
+- Image access to the featured image and product gallery is mandatory for this workflow.
+- If the featured image or product gallery images cannot be accessed and visually analyzed, ChatGPT/Codex must stop the workflow and must not generate the completed CSV.
+- ChatGPT/Codex must not continue from YAML-only data when mandatory images are inaccessible.
 - Source notes are optional but should be preferred over visual guessing when provided.
 - ChatGPT/Codex must not invent missing factual metadata.
 - If a YAML field is empty, leave the corresponding CSV field empty unless this guide defines a safe fallback.
@@ -48,20 +51,21 @@ Required AI behavior:
 5. Keep the CSV importable.
 6. Fill the existing structural parent row and the two standard variation rows.
 7. Analyze the featured image and gallery images referenced in the YAML before filling content fields.
-8. Create a clean product title.
-9. Create a lowercase URL slug in `post_name`.
-10. Generate a stable parent SKU from the product title.
-11. Generate Commercial and Extended variation SKUs from the parent SKU.
-12. Create a detailed natural SEO-oriented `post_content` description.
-13. Create a concise `post_excerpt`.
-14. Choose allowed `product_subcategories` according to the guide.
-15. Write exactly 10 internal-search tags according to the guide.
-16. Use `TECHNIQUE` from the YAML for `meta:_digital_technique`.
-17. Use `Unknown` for technique if `TECHNIQUE` is empty.
-18. Fill year and author/artist only when provided or clearly supported by the YAML or source notes.
-19. Fill media fields from the supplied direct URLs in the YAML.
-20. Do not invent facts.
-21. Return a downloadable completed `.csv` file with the same columns as the template and no extra explanation unless Blackwork asks for it.
+8. Stop the workflow and do not generate the CSV if the featured image or product gallery images cannot be accessed and visually analyzed.
+9. Create a clean product title.
+10. Create a lowercase URL slug in `post_name`.
+11. Generate a stable parent SKU from the product title.
+12. Generate Commercial and Extended variation SKUs from the parent SKU.
+13. Create a detailed natural SEO-oriented `post_content` description.
+14. Create a concise `post_excerpt`.
+15. Choose allowed `product_subcategories` according to the guide.
+16. Write exactly 10 internal-search tags according to the guide.
+17. Use `TECHNIQUE` from the YAML for `meta:_digital_technique`.
+18. Use `Unknown` for technique if `TECHNIQUE` is empty.
+19. Fill year and author/artist only when provided or clearly supported by the YAML or source notes.
+20. Fill media fields from the supplied direct URLs in the YAML.
+21. Do not invent facts.
+22. Return a downloadable completed `.csv` file with the same columns as the template and no extra explanation unless Blackwork asks for it.
 
 ## External YAML input structure
 Blackwork prepares a filled YAML file for each product before starting a ChatGPT/Codex CSV production session.
@@ -126,6 +130,28 @@ PRICE EXTENDED:
 - Do not use Markdown links.
 - Do not invent or transform media URLs.
 
+### Image access order
+1. Read the YAML.
+2. Extract all media URLs.
+3. Convert Dropbox `dl=0` URLs to `raw=1`.
+4. Test that the featured image and gallery images are accessible.
+5. Visually analyze the accessible images.
+6. Only then fill the CSV.
+7. If image access fails, stop and request accessible image links or direct image uploads.
+
+Mandatory image fields:
+- `FEATURED IMAGE URL`
+- `PRODUCT GALLERY`
+
+Optional media fields:
+- `HOVER IMAGE URL`
+- `SHOWCASE IMAGE URLS`
+- `HOVER VIDEO URL`
+
+Blocking rule:
+- The workflow must stop if the featured image or product gallery images cannot be accessed and visually analyzed.
+- Hover/showcase/video failures should be reported, but they do not block the workflow unless Blackwork explicitly makes them required for that product.
+
 ### Description and SEO requirement
 - `post_content` should be a detailed, natural, SEO-oriented product description.
 - It should use relevant subject, visual style, technique, historical, archive, and usage keywords naturally.
@@ -149,6 +175,15 @@ Use the YAML file as the source for Blackwork-provided product data and media UR
 Fill the CSV according to the guide.
 
 Rules:
+- Image access is mandatory before filling the CSV.
+- Before filling the CSV, visually access and analyze the featured image and product gallery images from the YAML.
+- If the media URLs are Dropbox links, first convert `dl=0` to `raw=1`.
+- Use the converted `raw=1` URLs for image access and analysis.
+- If you cannot access or visually analyze the featured image and product gallery images, stop the operation.
+- Do not generate the completed CSV.
+- Do not continue using only YAML text/source notes.
+- Do not invent tags, subcategories, title, description, subject matter, or visual details.
+- Return a blocking message explaining which images could not be accessed and ask Blackwork to provide accessible links or upload the images directly.
 - Do not rename CSV columns.
 - Do not remove `meta:` prefixes.
 - Do not add comment rows.
@@ -156,6 +191,7 @@ Rules:
 - Preserve the parent product row and the Commercial / Extended variation rows.
 - Analyze the featured image and gallery images referenced in the YAML before writing title, descriptions, subcategories, and tags.
 - Apply Dropbox `dl=0` to `raw=1` conversion to all Dropbox media URLs before writing them into the CSV.
+- If image analysis is not possible, stop the workflow and do not generate the CSV.
 - Use `PRODUCT TITLE` for `post_title`.
 - Generate `post_name` from `PRODUCT TITLE`.
 - Generate parent SKU from `PRODUCT TITLE`.
@@ -258,6 +294,9 @@ Use this guide together with the Digital CSV template and the filled YAML produc
 - Do not remove query parameters.
 - Do not use Dropbox preview links unchanged.
 - Do not convert non-Dropbox URLs unless they contain the exact Dropbox-style `dl=0` parameter and need direct file access.
+- Before opening, analyzing, or writing media URLs into the CSV, convert Dropbox `dl=0` links to `raw=1`.
+- The converted `raw=1` URLs must be used for media access and visual analysis, not just for final CSV output.
+- If the featured image or product gallery images still cannot be accessed after conversion, stop the workflow and do not generate the CSV.
 
 This rule applies to all media URL fields:
 - `featured_image`

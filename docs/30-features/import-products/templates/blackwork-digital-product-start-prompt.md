@@ -9,6 +9,16 @@ Use the YAML file as the source for Blackwork-provided product data and media UR
 
 Fill the CSV according to the guide.
 
+Image access is mandatory:
+- Before filling the CSV, you must visually access and analyze the featured image and product gallery images from the YAML.
+- If the media URLs are Dropbox links, first convert `dl=0` to `raw=1`.
+- Use the converted `raw=1` URLs for image access and analysis.
+- If you cannot access or visually analyze the featured image and product gallery images, stop the operation.
+- Do not generate the completed CSV.
+- Do not continue using only YAML text/source notes.
+- Do not invent tags, subcategories, title, description, subject matter, or visual details.
+- Return a blocking message explaining which images could not be accessed and ask Blackwork to provide accessible links or upload the images directly.
+
 Do not rename columns.
 Do not remove `meta:` prefixes.
 Do not add comment rows.
@@ -21,6 +31,7 @@ Instructions:
 - Preserve the rest of the URL exactly.
 - Apply this to all Dropbox media URLs before writing them into the CSV.
 - The final CSV must contain the converted `raw=1` Dropbox URLs, not `dl=0` preview links.
+- If the featured image or product gallery images cannot be accessed or visually analyzed after Dropbox conversion, stop immediately and do not generate the CSV.
 - Use `PRODUCT TITLE` for `post_title`.
 - Generate `post_name` from `PRODUCT TITLE`.
 - Generate parent SKU from `PRODUCT TITLE`.
