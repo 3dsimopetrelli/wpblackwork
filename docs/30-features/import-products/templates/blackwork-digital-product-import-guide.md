@@ -6,10 +6,10 @@ Blackwork is creating a new Digital product for the Blackwork site. This is an i
 Blackwork will provide:
 1. `blackwork-digital-product-import-guide.md`
 2. `blackwork-digital-product-import-template.csv`
-3. the filled `product-upload-details-template.yml`
+3. the filled `product-upload-details-template.yml` or `product-upload-details-template.yaml`
 
 Clarifications:
-- Blackwork prepares and fills `product-upload-details-template.yml` separately for each product production session.
+- Blackwork prepares and fills `product-upload-details-template.yml` or `product-upload-details-template.yaml` separately for each product production session.
 - The YAML file is an operational input supplied by Blackwork, not part of the downloadable template set stored in this repository.
 - It is not downloaded from the Product Import / Export dashboard.
 - The YAML file is the source for:
@@ -72,7 +72,7 @@ Blackwork prepares a filled YAML file for each product before starting a ChatGPT
 
 - The YAML is an external operational input, not a repository template.
 - The YAML should be attached to ChatGPT/Codex together with the Digital guide and the Digital CSV.
-- The filename can be `product-upload-details-template.yml` or any clear per-product filename, but the expected field labels must match this guide exactly.
+- The filename can be `product-upload-details-template.yml`, `product-upload-details-template.yaml`, or any clear per-product filename, but the expected field labels must match this guide exactly.
 
 ```yaml
 PRODUCT TITLE:
@@ -96,8 +96,9 @@ PRICE EXTENDED:
 
 ### Media link mapping
 - `PRODUCT TITLE` → `post_title`
-- Generate `post_name` from `PRODUCT TITLE`
-- Generate parent `sku` from `PRODUCT TITLE`
+- If `PRODUCT TITLE` is empty, generate a clear `post_title` from the visual subject and source context
+- Generate `post_name` from the final `post_title`
+- Generate parent `sku` from the final `post_title`
 - Generate Commercial and Extended variation SKUs from the parent SKU
 - `FEATURED IMAGE URL` → `featured_image`
 - `FEATURED IMAGE URL` → `variation_image` for both Commercial and Extended, unless separate variation images are added in the future
@@ -134,10 +135,11 @@ PRICE EXTENDED:
 1. Read the YAML.
 2. Extract all media URLs.
 3. Convert Dropbox `dl=0` URLs to `raw=1`.
-4. Test that the featured image and gallery images are accessible.
-5. Visually analyze the accessible images.
-6. Only then fill the CSV.
-7. If image access fails, stop and request accessible image links or direct image uploads.
+4. Before opening, analyzing, previewing, or writing any Dropbox URL, use the converted `raw=1` version and preserve the rest of the URL exactly.
+5. Test that the featured image and gallery images are accessible.
+6. Visually analyze the accessible images.
+7. Only then fill the CSV.
+8. If image access fails, stop and request accessible image links or direct image uploads.
 
 Mandatory image fields:
 - `FEATURED IMAGE URL`
@@ -168,7 +170,7 @@ You are filling a Blackwork Digital Product CSV.
 Read the attached files in this order:
 1. `blackwork-digital-product-import-guide.md`
 2. `blackwork-digital-product-import-template.csv`
-3. the filled `product-upload-details-template.yml` attached by Blackwork
+3. the filled `product-upload-details-template.yml` or `product-upload-details-template.yaml` attached by Blackwork
 
 Use the YAML file as the source for Blackwork-provided product data and media URLs.
 
@@ -179,6 +181,10 @@ Rules:
 - Before filling the CSV, visually access and analyze the featured image and product gallery images from the YAML.
 - If the media URLs are Dropbox links, first convert `dl=0` to `raw=1`.
 - Use the converted `raw=1` URLs for image access and analysis.
+- Before opening, analyzing, previewing, or writing any Dropbox URL, convert `dl=0` to `raw=1`.
+- Preserve the rest of the URL exactly.
+- Do not attempt to analyze Dropbox `dl=0` preview URLs.
+- Do not write Dropbox `dl=0` links into the CSV.
 - If you cannot access or visually analyze the featured image and product gallery images, stop the operation.
 - Do not generate the completed CSV.
 - Do not continue using only YAML text/source notes.
@@ -190,11 +196,11 @@ Rules:
 - Keep the CSV importable.
 - Preserve the parent product row and the Commercial / Extended variation rows.
 - Analyze the featured image and gallery images referenced in the YAML before writing title, descriptions, subcategories, and tags.
-- Apply Dropbox `dl=0` to `raw=1` conversion to all Dropbox media URLs before writing them into the CSV.
+- Apply Dropbox `dl=0` to `raw=1` conversion to all Dropbox media URLs before opening, analyzing, previewing, or writing them into the CSV.
 - If image analysis is not possible, stop the workflow and do not generate the CSV.
-- Use `PRODUCT TITLE` for `post_title`.
-- Generate `post_name` from `PRODUCT TITLE`.
-- Generate parent SKU from `PRODUCT TITLE`.
+- Use `PRODUCT TITLE` for `post_title`; if empty, generate a clear title from the visual subject and source context.
+- Generate `post_name` from the final `post_title`.
+- Generate parent SKU from the final `post_title`.
 - Generate Commercial and Extended variation SKUs from the parent SKU.
 - Use `FEATURED IMAGE URL` in `featured_image`.
 - Use `FEATURED IMAGE URL` as `variation_image` for both Commercial and Extended unless separate variation images are provided in the future.
@@ -221,12 +227,14 @@ Rules:
 - Create and return the completed CSV as a downloadable `.csv` file.
 - Use the filename pattern:
   - `blackwork-digital-product-completed-{product-slug}.csv`
+- Keep the same delimiter, quoting style, and column order as the template.
 - The CSV file must contain only valid CSV content.
+- Preserve the exact template columns.
+- Do not add extra columns.
 - Do not include Markdown.
 - Do not include explanations.
 - Do not include guide text.
 - Do not add extra rows.
-- Preserve the exact template columns.
 - Include the completed parent product row and the completed Commercial and Extended variation rows.
 - If the platform cannot create a downloadable file, return only the raw CSV content in a single CSV code block.
 
@@ -236,7 +244,7 @@ Use this guide together with the Digital CSV template and the filled YAML produc
 ## Files to use
 - `blackwork-digital-product-import-template.csv`
 - this guide: `blackwork-digital-product-import-guide.md`
-- the filled `product-upload-details-template.yml` attached by Blackwork for the current product
+- the filled `product-upload-details-template.yml` or `product-upload-details-template.yaml` attached by Blackwork for the current product
 
 ## Template row usage
 - The CSV contains structural rows, not final example content.
@@ -270,8 +278,9 @@ Use this guide together with the Digital CSV template and the filled YAML produc
 - Keep SKUs uppercase, ASCII, hyphen-separated.
 
 ## Title and slug rules
-- `post_title` should be a clean product title based on the image package.
-- `post_name` should be a lowercase URL slug derived from `post_title`.
+- `post_title` should use `PRODUCT TITLE` from the YAML when it is provided.
+- If `PRODUCT TITLE` is empty, generate a clean title from the visual subject and source context.
+- `post_name` should be a lowercase URL slug derived from the final `post_title`.
 - Do not include placeholder words from the template.
 
 ## Media rules
@@ -295,7 +304,9 @@ Use this guide together with the Digital CSV template and the filled YAML produc
 - Do not use Dropbox preview links unchanged.
 - Do not convert non-Dropbox URLs unless they contain the exact Dropbox-style `dl=0` parameter and need direct file access.
 - Before opening, analyzing, or writing media URLs into the CSV, convert Dropbox `dl=0` links to `raw=1`.
+- Before previewing any Dropbox media, convert `dl=0` to `raw=1`.
 - The converted `raw=1` URLs must be used for media access and visual analysis, not just for final CSV output.
+- The converted `raw=1` URLs must also be used in the final CSV output.
 - If the featured image or product gallery images still cannot be accessed after conversion, stop the workflow and do not generate the CSV.
 
 This rule applies to all media URL fields:
@@ -328,7 +339,7 @@ Keep the `meta:` prefix exactly as written in the CSV template.
 Provide:
 - the CSV template
 - this Markdown guide
-- the filled `product-upload-details-template.yml` attached by Blackwork for the current product
+- the filled `product-upload-details-template.yml` or `product-upload-details-template.yaml` attached by Blackwork for the current product
 
 Recommended prompt framing:
 - fill the CSV using the exact column names

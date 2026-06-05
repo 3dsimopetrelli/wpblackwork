@@ -3,7 +3,7 @@ You are filling a Blackwork Digital Product CSV.
 Read the attached files in this order:
 1. `blackwork-digital-product-import-guide.md`
 2. `blackwork-digital-product-import-template.csv`
-3. the filled `product-upload-details-template.yml` attached by Blackwork
+3. the filled `product-upload-details-template.yml` or `product-upload-details-template.yaml` attached by Blackwork
 
 Use the YAML file as the source for Blackwork-provided product data and media URLs.
 
@@ -13,6 +13,10 @@ Image access is mandatory:
 - Before filling the CSV, you must visually access and analyze the featured image and product gallery images from the YAML.
 - If the media URLs are Dropbox links, first convert `dl=0` to `raw=1`.
 - Use the converted `raw=1` URLs for image access and analysis.
+- Before opening, analyzing, previewing, or writing any Dropbox URL, convert `dl=0` to `raw=1`.
+- Preserve the rest of the URL exactly.
+- Do not attempt to analyze Dropbox `dl=0` preview URLs.
+- Do not write Dropbox `dl=0` links into the CSV.
 - If you cannot access or visually analyze the featured image and product gallery images, stop the operation.
 - Do not generate the completed CSV.
 - Do not continue using only YAML text/source notes.
@@ -27,14 +31,17 @@ Preserve the existing parent product row and the two standard variation rows: Co
 
 Instructions:
 - Analyze the featured image and gallery images referenced in the YAML before writing title, descriptions, subcategories, and tags.
-- Before writing any Dropbox URL into the CSV, convert `dl=0` to `raw=1`.
+- Before opening, analyzing, previewing, or writing any Dropbox URL, convert `dl=0` to `raw=1`.
 - Preserve the rest of the URL exactly.
+- Use the converted `raw=1` URLs for image analysis and for final CSV output.
+- Do not attempt to analyze Dropbox `dl=0` preview URLs.
+- Do not write Dropbox `dl=0` links into the CSV.
 - Apply this to all Dropbox media URLs before writing them into the CSV.
 - The final CSV must contain the converted `raw=1` Dropbox URLs, not `dl=0` preview links.
 - If the featured image or product gallery images cannot be accessed or visually analyzed after Dropbox conversion, stop immediately and do not generate the CSV.
-- Use `PRODUCT TITLE` for `post_title`.
-- Generate `post_name` from `PRODUCT TITLE`.
-- Generate parent SKU from `PRODUCT TITLE`.
+- Use `PRODUCT TITLE` for `post_title`; if empty, generate a clear title from the visual subject and source context.
+- Generate `post_name` from the final `post_title`.
+- Generate parent SKU from the final `post_title`.
 - Generate Commercial and Extended variation SKUs from the parent SKU.
 - Use `FEATURED IMAGE URL` in `featured_image`.
 - Use `FEATURED IMAGE URL` as `variation_image` for both Commercial and Extended unless separate variation images are provided in the future.
@@ -66,11 +73,13 @@ Instructions:
 - Create and return the completed CSV as a downloadable `.csv` file.
 - Use the filename pattern:
   - `blackwork-digital-product-completed-{product-slug}.csv`
+- Keep the same delimiter, quoting style, and column order as the template.
 - The CSV file must contain only valid CSV content.
+- Preserve the exact template columns.
+- Do not add extra columns.
 - Do not include Markdown.
 - Do not include explanations.
 - Do not include guide text.
 - Do not add extra rows.
-- Preserve the exact template columns.
 - Include the completed parent product row and the completed Commercial and Extended variation rows.
 - If the platform cannot create a downloadable file, return only the raw CSV content in a single CSV code block.
