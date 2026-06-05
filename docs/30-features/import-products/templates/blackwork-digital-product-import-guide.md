@@ -134,12 +134,15 @@ PRICE EXTENDED:
 ### Image access order
 1. Read the YAML.
 2. Extract all media URLs.
-3. Convert Dropbox `dl=0` URLs to `raw=1`.
-4. Before opening, analyzing, previewing, or writing any Dropbox URL, use the converted `raw=1` version and preserve the rest of the URL exactly.
-5. Test that the featured image and gallery images are accessible.
-6. Visually analyze the accessible images.
-7. Only then fill the CSV.
-8. If image access fails, stop and request accessible image links or direct image uploads.
+3. Never attempt to analyze the original Dropbox `dl=0` preview URL.
+4. For Dropbox URLs, first convert `dl=0` to `raw=1`.
+5. If the `raw=1` version is inaccessible for visual analysis, try `dl=1`.
+6. If that is still inaccessible, switch the host from `www.dropbox.com` to `dl.dropboxusercontent.com` and remove preview/download flags like `dl=0`, `dl=1`, or `raw=1`.
+7. Preserve the `/scl/fi/...` path, filename, `rlkey`, `st`, and all other non-preview query parameters exactly.
+8. Test that the featured image and gallery images are accessible.
+9. Visually analyze the accessible images.
+10. Only then fill the CSV.
+11. If image access fails, stop and request accessible image links or direct image uploads.
 
 Mandatory image fields:
 - `FEATURED IMAGE URL`
@@ -153,6 +156,7 @@ Optional media fields:
 Blocking rule:
 - The workflow must stop if the featured image or product gallery images cannot be accessed and visually analyzed.
 - Hover/showcase/video failures should be reported, but they do not block the workflow unless Blackwork explicitly makes them required for that product.
+- Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
 
 ### Description and SEO requirement
 - `post_content` should be a detailed, natural, SEO-oriented product description.
@@ -179,12 +183,14 @@ Fill the CSV according to the guide.
 Rules:
 - Image access is mandatory before filling the CSV.
 - Before filling the CSV, visually access and analyze the featured image and product gallery images from the YAML.
-- If the media URLs are Dropbox links, first convert `dl=0` to `raw=1`.
-- Use the converted `raw=1` URLs for image access and analysis.
-- Before opening, analyzing, previewing, or writing any Dropbox URL, convert `dl=0` to `raw=1`.
-- Preserve the rest of the URL exactly.
-- Do not attempt to analyze Dropbox `dl=0` preview URLs.
-- Do not write Dropbox `dl=0` links into the CSV.
+- Never attempt to analyze the original Dropbox `dl=0` preview URL.
+- Use the Dropbox direct URL access sequence before opening, analyzing, previewing, or writing any Dropbox URL:
+  - Step 1: convert `dl=0` to `raw=1`
+  - Step 2: if inaccessible, try `dl=1`
+  - Step 3: if inaccessible, switch the host to `dl.dropboxusercontent.com` and remove `dl=0`, `dl=1`, or `raw=1`
+- Preserve the `/scl/fi/...` path, filename, `rlkey`, `st`, and all other non-preview query parameters exactly.
+- Use the first accessible direct-media Dropbox variant for image access and analysis.
+- Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
 - If you cannot access or visually analyze the featured image and product gallery images, stop the operation.
 - Do not generate the completed CSV.
 - Do not continue using only YAML text/source notes.
@@ -196,7 +202,7 @@ Rules:
 - Keep the CSV importable.
 - Preserve the parent product row and the Commercial / Extended variation rows.
 - Analyze the featured image and gallery images referenced in the YAML before writing title, descriptions, subcategories, and tags.
-- Apply Dropbox `dl=0` to `raw=1` conversion to all Dropbox media URLs before opening, analyzing, previewing, or writing them into the CSV.
+- Apply the Dropbox direct URL access sequence to all Dropbox media URLs before opening, analyzing, previewing, or writing them into the CSV.
 - If image analysis is not possible, stop the workflow and do not generate the CSV.
 - Use `PRODUCT TITLE` for `post_title`; if empty, generate a clear title from the visual subject and source context.
 - Generate `post_name` from the final `post_title`.
@@ -292,22 +298,22 @@ Use this guide together with the Digital CSV template and the filled YAML produc
 ## Dropbox URL conversion for media imports
 - Blackwork media links may come from Dropbox.
 - WooCommerce CSV imports require direct image/media URLs.
-- Standard Dropbox links with `dl=0` must be converted before writing them into the CSV.
-- Replace only `dl=0` with `raw=1`.
-- Preserve the full URL.
+- Never use the original Dropbox `dl=0` preview URL for image analysis or final CSV output.
+- Use this Dropbox direct URL access sequence:
+  - Step 1: convert `dl=0` to `raw=1`
+  - Step 2: if the `raw=1` variant cannot be visually accessed, try `dl=1`
+  - Step 3: if that still fails, change the host from `www.dropbox.com` to `dl.dropboxusercontent.com` and remove preview/download flags like `dl=0`, `dl=1`, or `raw=1`
+- Preserve the `/scl/fi/...` path.
+- Preserve the filename.
 - Preserve `rlkey`.
 - Preserve `st`.
-- Preserve the filename.
-- Preserve all other query parameters.
+- Preserve all other non-preview query parameters.
 - Do not rewrite the URL in any other way.
-- Do not remove query parameters.
-- Do not use Dropbox preview links unchanged.
-- Do not convert non-Dropbox URLs unless they contain the exact Dropbox-style `dl=0` parameter and need direct file access.
-- Before opening, analyzing, or writing media URLs into the CSV, convert Dropbox `dl=0` links to `raw=1`.
-- Before previewing any Dropbox media, convert `dl=0` to `raw=1`.
-- The converted `raw=1` URLs must be used for media access and visual analysis, not just for final CSV output.
-- The converted `raw=1` URLs must also be used in the final CSV output.
-- If the featured image or product gallery images still cannot be accessed after conversion, stop the workflow and do not generate the CSV.
+- Do not remove non-preview query parameters.
+- Do not convert non-Dropbox URLs unless they contain the exact Dropbox-style preview/download flags and need direct file access.
+- Use the first accessible direct-media Dropbox variant for image analysis.
+- Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
+- If none of the direct Dropbox variants can be visually accessed for the featured image or product gallery, stop the workflow and do not generate the CSV.
 
 This rule applies to all media URL fields:
 - `featured_image`
@@ -319,9 +325,13 @@ This rule applies to all media URL fields:
 
 Example:
 - Input:
-  - `https://www.dropbox.com/scl/fi/fsqw1sah01ku0s84knu9r/Ethnographic-Figures-Artifacts-_id-cover.png?rlkey=wriqcnfn7sd6wmgqs67uz7nvf&st=t4h7d2ic&dl=0`
-- Output:
-  - `https://www.dropbox.com/scl/fi/fsqw1sah01ku0s84knu9r/Ethnographic-Figures-Artifacts-_id-cover.png?rlkey=wriqcnfn7sd6wmgqs67uz7nvf&st=t4h7d2ic&raw=1`
+  - `https://www.dropbox.com/scl/fi/95it0olxnqijs40azg6fl/Ethnographic-Figures-Artifacts-_id-cover.webp?rlkey=youa22xq8lzdr0ecb46hml798&st=qb18mboe&dl=0`
+- Attempt 1:
+  - `https://www.dropbox.com/scl/fi/95it0olxnqijs40azg6fl/Ethnographic-Figures-Artifacts-_id-cover.webp?rlkey=youa22xq8lzdr0ecb46hml798&st=qb18mboe&raw=1`
+- Attempt 2:
+  - `https://www.dropbox.com/scl/fi/95it0olxnqijs40azg6fl/Ethnographic-Figures-Artifacts-_id-cover.webp?rlkey=youa22xq8lzdr0ecb46hml798&st=qb18mboe&dl=1`
+- Attempt 3:
+  - `https://dl.dropboxusercontent.com/scl/fi/95it0olxnqijs40azg6fl/Ethnographic-Figures-Artifacts-_id-cover.webp?rlkey=youa22xq8lzdr0ecb46hml798&st=qb18mboe`
 
 ## Meta column prefix
 Columns that start with `meta:` are importer mapping columns.
