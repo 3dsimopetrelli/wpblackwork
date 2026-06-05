@@ -6533,7 +6533,10 @@ function bw_product_transfer_get_active_mode()
 {
     $mode = 'export';
 
-    if (isset($_POST['bw_import_upload_submit']) || isset($_POST['bw_import_run'])) {
+    $is_import_upload_action = isset($_POST['bw_import_action'])
+        && 'upload' === sanitize_key(wp_unslash($_POST['bw_import_action']));
+
+    if (isset($_POST['bw_import_upload_submit']) || isset($_POST['bw_import_run']) || $is_import_upload_action) {
         $mode = 'import';
     } elseif (isset($_POST['bw_export_products_submit'])) {
         $mode = 'export';
@@ -7704,7 +7707,13 @@ function bw_site_render_import_product_tab()
 
     $inline_upload_error = '';
 
-    if (isset($_POST['bw_import_upload_submit'])) {
+    $is_upload_request = isset($_POST['bw_import_upload_submit'])
+        || (
+            isset($_POST['bw_import_action'])
+            && 'upload' === sanitize_key(wp_unslash($_POST['bw_import_action']))
+        );
+
+    if ($is_upload_request) {
         $upload_result = bw_import_handle_upload_request();
         if (is_wp_error($upload_result)) {
             $inline_upload_error = $upload_result->get_error_message();
@@ -7957,6 +7966,7 @@ function bw_site_render_import_product_tab()
         <p class="bw-import-upload-shell__helper"><?php esc_html_e('Choose a CSV file to analyze before mapping columns and running the import.', 'bw'); ?></p>
         <form method="post" enctype="multipart/form-data" id="bw-import-upload-form" class="bw-import-upload-form">
             <input type="hidden" name="product_flow" value="import" />
+            <input type="hidden" name="bw_import_action" value="" id="bw_import_action" />
             <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
             <div class="bw-import-upload-dropzone">
                 <label for="bw_import_csv" class="bw-import-upload-dropzone__label"><?php esc_html_e('CSV file', 'bw'); ?></label>

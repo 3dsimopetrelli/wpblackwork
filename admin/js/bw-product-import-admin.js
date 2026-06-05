@@ -152,6 +152,7 @@
         const $submitButton = $('#bw_import_upload_submit');
         const $selectedFile = $('#bw-import-upload-selected-file');
         const $uploadStatus = $('#bw-import-upload-status');
+        const $uploadAction = $('#bw_import_action');
         const $mappingSection = $('#bw-import-mapping-section');
         const $copyButtons = $('.bw-import-template-card__copy-prompt');
         const $copyStatus = $('#bw-import-template-copy-status');
@@ -243,6 +244,12 @@
             $submitButton.prop('disabled', !!disabled).attr('aria-disabled', disabled ? 'true' : 'false');
         }
 
+        function setUploadAction(value) {
+            if ($uploadAction.length) {
+                $uploadAction.val(value || '');
+            }
+        }
+
         function resetUploadButton() {
             setSubmitButtonState(defaultSubmitLabel, false);
         }
@@ -297,6 +304,7 @@
         function submitOriginalFile(statusMessage) {
             setUploadStatus(statusMessage || getString('uploadingCsv', 'Uploading CSV...'), 'info');
             setSubmitButtonState(getString('uploadingCsvCta', 'Uploading CSV...'), true);
+            setUploadAction('upload');
             pendingSubmit = true;
             $form.trigger('submit');
         }
@@ -310,6 +318,7 @@
 
         $fileInput.on('change', function () {
             const file = this.files && this.files[0] ? this.files[0] : null;
+            setUploadAction('');
             resetUploadButton();
             closeModal();
             setSelectedFileMessage(file);
@@ -347,6 +356,7 @@
                     submitOriginalFile(getString('uploadingCsv', 'Uploading CSV...'));
                     return false;
                 }
+                setUploadAction('');
                 return true;
             }
 
