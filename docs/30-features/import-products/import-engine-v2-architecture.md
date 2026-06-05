@@ -1,5 +1,21 @@
 # Import Engine v2 — Deterministic Architecture Foundation
 
+## Admin Entrypoint Snapshot
+
+Current admin path:
+- `Blackwork Site → Product Import / Export`
+
+Legacy compatibility path:
+- `?page=blackwork-site-settings&tab=import-product`
+- redirects to:
+  - `?page=blackwork-product-import-export`
+
+Important boundary note:
+- this was an admin entrypoint extraction only
+- the import/export runtime has not yet been extracted into dedicated files
+- renderer, request handlers, and state/lock helpers still live inside:
+  - [admin/class-blackwork-site-settings.php](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/admin/class-blackwork-site-settings.php)
+
 ## 1) Scope and Authority Boundary
 
 - Domain: Import / Catalog Data Integrity

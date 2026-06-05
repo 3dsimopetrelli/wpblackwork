@@ -1,5 +1,20 @@
 # Import Products vNext Specification
 
+## Admin Entrypoint Snapshot
+
+Current admin path:
+- `Blackwork Site → Product Import / Export`
+
+Legacy compatibility path:
+- `?page=blackwork-site-settings&tab=import-product`
+- redirects to:
+  - `?page=blackwork-product-import-export`
+
+Current implementation note:
+- the standalone submenu only changes how the operator reaches the tool
+- CSV schema, nonces, product mapping, import/export behavior, and mutation logic are unchanged
+- runtime extraction into dedicated files remains a later phase
+
 ## 1) Module Classification
 
 - Domain: Data Import Domain

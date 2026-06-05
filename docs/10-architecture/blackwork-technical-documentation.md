@@ -1,7 +1,7 @@
 # BlackWork Site - Complete Technical Documentation
 
-**Version:** 1.2
-**Last Updated:** 2026-03-05
+**Version:** 1.3
+**Last Updated:** 2026-06-05
 **Plugin Path:** `wp-content/plugins/wpblackwork/`
 
 ---
@@ -158,7 +158,7 @@ wp_enqueue_scripts (priority 20-30)
 
 **Main File:** `admin/class-blackwork-site-settings.php`
 
-**Admin Menu Location:** Blackwork Site → Settings
+**Admin Menu Location:** Blackwork Site
 
 **Top-Level Tabs:**
 | Tab Key | Label | Description |
@@ -169,9 +169,39 @@ wp_enqueue_scripts (priority 20-30)
 | `my-account-page` | My Account Page | Dashboard customization |
 | `checkout` | Checkout | Checkout layout and integrations |
 | `redirect` | Redirect | URL redirect management |
-| `import-product` | Import Product | Product import tools |
 | `loading` | Loading | Loading screen settings |
 | `google-pay` | Google Pay | Google Pay gateway config |
+
+**Standalone Blackwork Site Submenu Pages:**
+| Page Slug | Label | Description |
+|-----------|-------|-------------|
+| `blackwork-product-import-export` | Product Import / Export | Standalone import/export admin entrypoint |
+
+### 2.1.1 Product Import / Export Admin Entrypoint
+
+Product Import / Export is now exposed as a standalone admin submenu under:
+
+- `Blackwork Site → Product Import / Export`
+
+This change only separates the admin entrypoint from the former Site Settings tab. The import/export runtime remains inside:
+
+- [admin/class-blackwork-site-settings.php](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/admin/class-blackwork-site-settings.php)
+
+Current state:
+- the old Site Settings tab is no longer visible
+- the legacy URL
+  - `?page=blackwork-site-settings&tab=import-product`
+  redirects safely to
+  - `?page=blackwork-product-import-export`
+- import/export assets now load on the standalone submenu page instead of unrelated Site Settings tabs
+
+Remaining coupling:
+- renderer still lives in `admin/class-blackwork-site-settings.php`
+- export/import request handlers still live in `admin/class-blackwork-site-settings.php`
+- import state and lock helpers still live in `admin/class-blackwork-site-settings.php`
+
+Future phase:
+- extract Product Import / Export into dedicated admin/runtime module files without changing CSV behavior
 
 ### 2.2 Account Page Tab (Sub-tabs)
 

@@ -3,6 +3,20 @@
 ## Purpose
 This file documents the master import schema for Blackwork products.
 
+## Admin UI Path
+
+Current admin entrypoint:
+- `Blackwork Site → Product Import / Export`
+
+Legacy compatibility path:
+- `?page=blackwork-site-settings&tab=import-product`
+- redirects to:
+  - `?page=blackwork-product-import-export`
+
+Important:
+- this admin move only changes the UI/menu entrypoint
+- it does not change CSV schema, import/export logic, mapping behavior, or runtime storage
+
 Use it when you want one spreadsheet/CSV that can cover:
 - standard WordPress product content
 - standard WooCommerce product data
@@ -29,6 +43,9 @@ Template file:
   - `_bw_variation_license_col1_json`
   - `_bw_variation_license_col2_json`
 - Variation lifecycle is not formalized in the current Import Engine vNext spec, but variation columns are included here because they are useful for your external software.
+- The current runtime is still hosted inside:
+  - [admin/class-blackwork-site-settings.php](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/admin/class-blackwork-site-settings.php)
+  pending a later module extraction.
 
 ## Row Model
 - `row_type`

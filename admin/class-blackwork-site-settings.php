@@ -43,6 +43,15 @@ function bw_site_settings_menu()
         'blackwork-site-settings',
         'bw_site_settings_page'
     );
+
+    add_submenu_page(
+        'blackwork-site-settings',
+        __('Product Import / Export', 'bw'),
+        __('Product Import / Export', 'bw'),
+        'manage_options',
+        'blackwork-product-import-export',
+        'bw_product_import_export_page'
+    );
 }
 add_action('admin_menu', 'bw_site_settings_menu');
 
@@ -144,6 +153,7 @@ function bw_is_blackwork_site_admin_screen($hook, $page_slug = '')
 
     $allowed_pages = [
         'blackwork-site-settings',
+        'blackwork-product-import-export',
         'bw-product-labels-settings',
         'blackwork-mail-marketing',
         'bw-reviews',
@@ -185,6 +195,10 @@ function bw_site_settings_admin_assets($hook)
     $current_tab_raw = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
 
     $is_site_settings_page = ('blackwork-site-settings' === $current_page || 'toplevel_page_blackwork-site-settings' === $hook);
+    $is_product_transfer_page = (
+        'blackwork-product-import-export' === $current_page
+        || 'blackwork-site-settings_page_blackwork-product-import-export' === $hook
+    );
     $is_product_labels_page = (
         'bw-product-labels-settings' === $current_page
         || 'blackwork-site-settings_page_bw-product-labels-settings' === $hook
@@ -195,7 +209,7 @@ function bw_site_settings_admin_assets($hook)
     );
 
     // Site Settings asset matrix is restricted to Site Settings and Mail Marketing pages.
-    if (!$is_site_settings_page && !$is_mail_marketing_page && !$is_product_labels_page) {
+    if (!$is_site_settings_page && !$is_mail_marketing_page && !$is_product_labels_page && !$is_product_transfer_page) {
         return;
     }
 
@@ -287,7 +301,7 @@ function bw_site_settings_admin_assets($hook)
         );
     }
 
-    if ($is_site_settings_page && 'import-product' === $current_site_settings_tab) {
+    if ($is_product_transfer_page || ($is_site_settings_page && 'import-product' === $current_site_settings_tab)) {
         $papaparse_path = BW_MEW_PATH . 'assets/lib/papaparse/papaparse.min.js';
         $import_admin_js_path = BW_MEW_PATH . 'admin/js/bw-product-import-admin.js';
 
@@ -1183,8 +1197,13 @@ function bw_site_settings_page()
         exit;
     }
 
+    if ('import-product' === $requested_tab) {
+        wp_safe_redirect(bw_product_import_export_admin_url());
+        exit;
+    }
+
     // Determina quale tab è attivo
-    $allowed_tabs = ['info', 'layout', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'import-product', 'loading'];
+    $allowed_tabs = ['info', 'layout', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'loading'];
     $active_tab = $requested_tab;
     if (!in_array($active_tab, $allowed_tabs, true)) {
         $active_tab = 'info';
@@ -1259,10 +1278,6 @@ function bw_site_settings_page()
                     class="nav-tab <?php echo $active_tab === 'redirect' ? 'nav-tab-active' : ''; ?>">
                     Redirect
                 </a>
-                <a href="?page=blackwork-site-settings&tab=import-product"
-                    class="nav-tab <?php echo $active_tab === 'import-product' ? 'nav-tab-active' : ''; ?>">
-                    Product Import / Export
-                </a>
                 <a href="?page=blackwork-site-settings&tab=loading"
                     class="nav-tab <?php echo $active_tab === 'loading' ? 'nav-tab-active' : ''; ?>">
                     Loading
@@ -1329,6 +1344,45 @@ function bw_site_settings_page()
     })();
     </script>
     <?php endif; ?>
+    <?php
+}
+
+function bw_product_import_export_admin_url($args = [])
+{
+    $base_args = ['page' => 'blackwork-product-import-export'];
+
+    if (isset($_GET['product_flow'])) {
+        $product_flow = sanitize_key(wp_unslash($_GET['product_flow']));
+        if (in_array($product_flow, ['export', 'import'], true)) {
+            $base_args['product_flow'] = $product_flow;
+        }
+    }
+
+    foreach ((array) $args as $key => $value) {
+        if ($value === null || $value === '') {
+            continue;
+        }
+        $base_args[$key] = $value;
+    }
+
+    return add_query_arg($base_args, admin_url('admin.php'));
+}
+
+function bw_product_import_export_page()
+{
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    ?>
+    <div class="wrap bw-admin-root bw-admin-page bw-admin-page-site-settings">
+        <div class="bw-admin-header">
+            <h1 class="bw-admin-title"><?php esc_html_e('Product Import / Export', 'bw'); ?></h1>
+            <p class="bw-admin-subtitle"><?php esc_html_e('Export structured product CSVs or import product data back into WooCommerce.', 'bw'); ?></p>
+        </div>
+        <div class="bw-admin-site-settings-content">
+            <?php bw_site_render_import_product_tab(); ?>
+        </div>
+    </div>
     <?php
 }
 
@@ -6134,7 +6188,10 @@ function bw_export_maybe_handle_admin_request()
     $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
     $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
 
-    if ($page !== 'blackwork-site-settings' || $tab !== 'import-product') {
+    $is_legacy_page = ($page === 'blackwork-site-settings' && $tab === 'import-product');
+    $is_standalone_page = ($page === 'blackwork-product-import-export');
+
+    if (!$is_legacy_page && !$is_standalone_page) {
         return;
     }
 
@@ -7509,17 +7566,32 @@ function bw_site_render_import_product_tab()
             $selected_export_product_value = 'all';
         }
     }
+
+    $page_slug = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : 'blackwork-product-import-export';
+    if (!in_array($page_slug, ['blackwork-product-import-export', 'blackwork-site-settings'], true)) {
+        $page_slug = 'blackwork-product-import-export';
+    }
+
+    $base_import_export_url = $page_slug === 'blackwork-site-settings'
+        ? add_query_arg(
+            [
+                'page' => 'blackwork-site-settings',
+                'tab' => 'import-product',
+            ],
+            admin_url('admin.php')
+        )
+        : bw_product_import_export_admin_url();
     ?>
     <section class="bw-admin-card">
         <h2 class="bw-admin-card-title"><?php esc_html_e('Product Import / Export', 'bw'); ?></h2>
         <p class="bw-admin-card-helper"><?php esc_html_e('Use Export to generate a structured product CSV, or switch to Import to upload and map a CSV back into WooCommerce.', 'bw'); ?></p>
 
         <nav class="nav-tab-wrapper bw-admin-tabs" style="margin-top:12px;">
-            <a href="?page=blackwork-site-settings&tab=import-product&product_flow=export"
+            <a href="<?php echo esc_url(add_query_arg('product_flow', 'export', $base_import_export_url)); ?>"
                 class="nav-tab <?php echo $active_mode === 'export' ? 'nav-tab-active' : ''; ?>">
                 <?php esc_html_e('Export Product', 'bw'); ?>
             </a>
-            <a href="?page=blackwork-site-settings&tab=import-product&product_flow=import"
+            <a href="<?php echo esc_url(add_query_arg('product_flow', 'import', $base_import_export_url)); ?>"
                 class="nav-tab <?php echo $active_mode === 'import' ? 'nav-tab-active' : ''; ?>">
                 <?php esc_html_e('Import Product', 'bw'); ?>
             </a>
@@ -7532,8 +7604,10 @@ function bw_site_render_import_product_tab()
             <p class="bw-admin-card-helper"><?php esc_html_e('Export a category or a single product to a master CSV with WooCommerce standard fields, Blackwork meta keys, and the raw product meta keys detected on the exported products.', 'bw'); ?></p>
 
             <form method="get" style="max-width: 760px;">
-                <input type="hidden" name="page" value="<?php echo isset($_GET['page']) ? esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) : 'blackwork-site-settings'; ?>" />
-                <input type="hidden" name="tab" value="import-product" />
+                <input type="hidden" name="page" value="<?php echo esc_attr($page_slug); ?>" />
+                <?php if ($page_slug === 'blackwork-site-settings') : ?>
+                    <input type="hidden" name="tab" value="import-product" />
+                <?php endif; ?>
                 <input type="hidden" name="product_flow" value="export" />
                 <input type="hidden" name="bw_export_profile" value="<?php echo esc_attr($selected_export_profile); ?>" />
                 <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
