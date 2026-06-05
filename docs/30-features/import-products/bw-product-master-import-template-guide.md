@@ -32,6 +32,16 @@ Standalone downloadable templates available from the admin UI:
 - [blackwork-digital-product-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-digital-product-import-template.csv)
 - [blackwork-book-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-book-import-template.csv)
 - [blackwork-print-import-template.csv](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-print-import-template.csv)
+- [blackwork-digital-product-import-guide.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-digital-product-import-guide.md)
+- [blackwork-book-import-guide.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-book-import-guide.md)
+- [blackwork-print-import-guide.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-print-import-guide.md)
+
+## Template downloads and AI guides
+
+- CSV files are the importable templates
+- Markdown guide files are companion instructions for ChatGPT/Codex
+- the admin page now provides both downloads per product type
+- do not paste Markdown guide text or instruction rows inside the CSV files
 
 ## Quick Templates
 
@@ -40,8 +50,11 @@ Use the downloadable templates when you want a smaller CSV tailored to one produ
 - `blackwork-digital-product-import-template.csv`
   - optimized for digital/downloadable products
   - includes current importable core fields and Blackwork digital meta
-  - intentionally omits non-mappable runtime fields such as `downloadable` and `virtual` until importer mapping supports them
-  - also includes future-ready variation/license columns for preparation only
+  - defaults parent rows to `product_type=variable`
+  - includes Product Presentation hover media metakeys
+  - uses `product_gallery` as the canonical and actual gallery import column
+  - keeps `gallery_images` only as a legacy backward-compatible alias in importer mapping
+  - includes future-ready native Woo variation columns for preparation only
 - `blackwork-book-import-template.csv`
   - optimized for books
   - includes current importable core fields and bibliographic Blackwork meta
@@ -51,8 +64,16 @@ Use the downloadable templates when you want a smaller CSV tailored to one produ
 
 Variation note:
 - current importer runtime does **not** implement full variation create/update lifecycle
-- digital template variation/license columns are included only as preparation for a later phase
+- digital template variation columns are included only as preparation for a later phase
 - they can be left unmapped safely today
+- custom variation license meta columns are not part of the active digital template scope
+
+Gallery note:
+- `product_gallery` is the field to fill for gallery import
+- it accepts multiple direct image URLs in one CSV cell, separated by commas
+- example:
+  - `https://example.com/image-1.jpg,https://example.com/image-2.jpg,https://example.com/image-3.jpg`
+- `gallery_images` remains only as a legacy backward-compatible alias for older CSVs
 
 ## Important Scope Notes
 - This schema is designed as a practical master spreadsheet for an external product-management system.
@@ -87,6 +108,33 @@ Variation note:
 Recommended usage:
 - one parent row per product
 - one extra row per variation when needed
+
+Digital template current parent-row emphasis:
+- use the provided example row as the parent/product row
+- `product_type` defaults to `variable`
+- `default_variation` is singular and should usually be `commercial`
+- `meta:_bw_slider_hover_image` and `meta:_bw_slider_hover_video` are included for product presentation hover media
+
+Digital template current variation-row emphasis:
+- the template includes two standard example variation rows:
+  - `Commercial`
+  - `Extended`
+- future-ready variation columns currently included are:
+  - `row_type`
+  - `parent_sku`
+  - `sku`
+  - `variation_name`
+  - `variation_regular_price`
+  - `variation_sale_price`
+  - `variation_image`
+  - `variation_enabled`
+  - `variation_virtual`
+  - `variation_downloadable`
+  - `variation_download_name`
+  - `variation_download_url`
+  - `variation_attributes_json`
+- these columns are **not** active variation import support yet
+- do not import real variation rows until the runtime is updated explicitly
 
 ## Group 1 — WordPress Core Content Fields
 

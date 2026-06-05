@@ -1373,20 +1373,47 @@ function bw_product_import_template_registry()
     $base_dir = BW_MEW_PATH . 'docs/30-features/import-products/templates/';
 
     return [
-        'digital' => [
-            'label' => __('Download Digital CSV', 'bw'),
+        'digital_csv' => [
+            'group' => __('Digital Product', 'bw'),
+            'label' => __('Download CSV', 'bw'),
             'filename' => 'blackwork-digital-product-import-template.csv',
             'path' => $base_dir . 'blackwork-digital-product-import-template.csv',
+            'content_type' => 'text/csv; charset=utf-8',
         ],
-        'books' => [
-            'label' => __('Download Books CSV', 'bw'),
+        'digital_md' => [
+            'group' => __('Digital Product', 'bw'),
+            'label' => __('Download Guide MD', 'bw'),
+            'filename' => 'blackwork-digital-product-import-guide.md',
+            'path' => $base_dir . 'blackwork-digital-product-import-guide.md',
+            'content_type' => 'text/markdown; charset=utf-8',
+        ],
+        'books_csv' => [
+            'group' => __('Books', 'bw'),
+            'label' => __('Download CSV', 'bw'),
             'filename' => 'blackwork-book-import-template.csv',
             'path' => $base_dir . 'blackwork-book-import-template.csv',
+            'content_type' => 'text/csv; charset=utf-8',
         ],
-        'prints' => [
-            'label' => __('Download Prints CSV', 'bw'),
+        'books_md' => [
+            'group' => __('Books', 'bw'),
+            'label' => __('Download Guide MD', 'bw'),
+            'filename' => 'blackwork-book-import-guide.md',
+            'path' => $base_dir . 'blackwork-book-import-guide.md',
+            'content_type' => 'text/markdown; charset=utf-8',
+        ],
+        'prints_csv' => [
+            'group' => __('Prints', 'bw'),
+            'label' => __('Download CSV', 'bw'),
             'filename' => 'blackwork-print-import-template.csv',
             'path' => $base_dir . 'blackwork-print-import-template.csv',
+            'content_type' => 'text/csv; charset=utf-8',
+        ],
+        'prints_md' => [
+            'group' => __('Prints', 'bw'),
+            'label' => __('Download Guide MD', 'bw'),
+            'filename' => 'blackwork-print-import-guide.md',
+            'path' => $base_dir . 'blackwork-print-import-guide.md',
+            'content_type' => 'text/markdown; charset=utf-8',
         ],
     ];
 }
@@ -1442,13 +1469,14 @@ function bw_product_import_template_maybe_download()
     $template = $templates[$template_key];
     $file_path = isset($template['path']) ? (string) $template['path'] : '';
     $file_name = isset($template['filename']) ? (string) $template['filename'] : '';
+    $content_type = isset($template['content_type']) ? (string) $template['content_type'] : 'text/plain; charset=utf-8';
 
     if ($file_path === '' || $file_name === '' || !file_exists($file_path) || !is_readable($file_path)) {
         wp_die(esc_html__('The requested import template is not available.', 'bw'), 404);
     }
 
     nocache_headers();
-    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Type: ' . $content_type);
     header('Content-Disposition: attachment; filename="' . rawurlencode($file_name) . '"');
     header('Content-Length: ' . (string) filesize($file_path));
     header('X-Content-Type-Options: nosniff');
@@ -1629,7 +1657,7 @@ function bw_site_render_layout_tab()
     <form method="post" action="">
         <?php wp_nonce_field('bw_layout_settings_save', 'bw_layout_settings_nonce'); ?>
 
-        <section class="bw-admin-card">
+        <section class="bw-admin-card bw-import-panel">
             <h2 class="bw-admin-card-title"><?php esc_html_e('Global Layout Width System', 'bw'); ?></h2>
             <p class="bw-admin-card-helper"><?php esc_html_e('Create a reusable centered shell with a configurable max content width and responsive horizontal padding.', 'bw'); ?></p>
 
@@ -7779,36 +7807,82 @@ function bw_site_render_import_product_tab()
     <?php endif; ?>
 
     <?php if ($active_mode === 'import') : ?>
-        <section class="bw-admin-card">
+        <section class="bw-admin-card bw-import-panel">
             <h3 class="bw-admin-card-title"><?php esc_html_e('Import Product', 'bw'); ?></h3>
             <p class="bw-admin-card-helper"><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?></p>
 
         <?php $import_templates = bw_product_import_template_registry(); ?>
-        <div style="display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 22px;">
-            <?php foreach ($import_templates as $template_key => $template): ?>
-                <?php $download_url = bw_product_import_template_download_url($template_key); ?>
-                <?php if ($download_url !== ''): ?>
-                    <a class="button button-secondary" href="<?php echo esc_url($download_url); ?>">
-                        <?php echo esc_html($template['label']); ?>
-                    </a>
-                <?php endif; ?>
-            <?php endforeach; ?>
+        <?php
+        $template_groups = [];
+        foreach ($import_templates as $template_key => $template) {
+            $group_label = isset($template['group']) ? (string) $template['group'] : '';
+            if ($group_label === '') {
+                continue;
+            }
+            if (!isset($template_groups[$group_label])) {
+                $template_groups[$group_label] = [];
+            }
+            $template_groups[$group_label][$template_key] = $template;
+        }
+        ?>
+        <div class="bw-import-templates-panel">
+            <h3 class="bw-import-templates-panel__title"><?php esc_html_e('Product import templates', 'bw'); ?></h3>
+            <p class="description bw-import-templates-panel__helper">
+                <?php esc_html_e('Download the CSV template and its Markdown guide. Give both files to ChatGPT/Codex together with product images or source notes.', 'bw'); ?>
+            </p>
+            <div class="bw-import-template-grid">
+                <?php foreach ($template_groups as $group_label => $group_templates): ?>
+                    <div class="bw-import-template-card">
+                        <div class="bw-import-template-card__copy">
+                            <strong class="bw-import-template-card__title"><?php echo esc_html($group_label); ?></strong>
+                            <p class="bw-import-template-card__text">
+                                <?php
+                                if ($group_label === __('Digital Product', 'bw')) {
+                                    esc_html_e('Variable digital product template with companion AI guide.', 'bw');
+                                } elseif ($group_label === __('Books', 'bw')) {
+                                    esc_html_e('Book import template with bibliographic guidance.', 'bw');
+                                } else {
+                                    esc_html_e('Print import template with technique and condition guidance.', 'bw');
+                                }
+                                ?>
+                            </p>
+                        </div>
+                        <div class="bw-import-template-card__actions">
+                            <?php foreach ($group_templates as $template_key => $template): ?>
+                                <?php $download_url = bw_product_import_template_download_url($template_key); ?>
+                                <?php if ($download_url !== ''): ?>
+                                    <a class="button button-secondary" href="<?php echo esc_url($download_url); ?>">
+                                        <?php echo esc_html($template['label']); ?>
+                                    </a>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
 
-        <h3><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
-        <form method="post" enctype="multipart/form-data" id="bw-import-upload-form">
+        <div class="bw-import-upload-shell">
+        <h3 class="bw-import-upload-shell__title"><?php esc_html_e('1. Upload CSV', 'bw'); ?></h3>
+        <p class="bw-import-upload-shell__helper"><?php esc_html_e('Choose a CSV file to analyze before mapping columns and running the import.', 'bw'); ?></p>
+        <form method="post" enctype="multipart/form-data" id="bw-import-upload-form" class="bw-import-upload-form">
             <input type="hidden" name="product_flow" value="import" />
             <?php wp_nonce_field('bw_import_upload', 'bw_import_upload_nonce'); ?>
-            <input type="file" name="bw_import_csv" id="bw_import_csv" accept=".csv,.txt,text/csv" />
-            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 620px;">
-                <strong><?php esc_html_e('Update existing products', 'bw'); ?></strong>
-                <label style="display: flex; gap: 8px; align-items: flex-start;">
-                    <input type="checkbox" name="bw_import_update_existing" value="1" <?php checked(!empty($state['update_existing'])); ?> />
-                    <span><?php esc_html_e('Existing products that match by ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
+            <div class="bw-import-upload-dropzone">
+                <label for="bw_import_csv" class="bw-import-upload-dropzone__label"><?php esc_html_e('CSV file', 'bw'); ?></label>
+                <input type="file" name="bw_import_csv" id="bw_import_csv" class="bw-import-upload-dropzone__input" accept=".csv,.txt,text/csv" />
+                <p class="bw-import-upload-dropzone__hint"><?php esc_html_e('Select a clean CSV file. The selected filename will appear in the browser file input next to the button.', 'bw'); ?></p>
+            </div>
+            <div class="bw-import-update-box">
+                <strong class="bw-import-update-box__title"><?php esc_html_e('Update existing products', 'bw'); ?></strong>
+                <label class="bw-import-update-box__label">
+                    <input type="checkbox" name="bw_import_update_existing" value="1" class="bw-import-update-box__checkbox" <?php checked(!empty($state['update_existing'])); ?> />
+                    <span><?php esc_html_e('When enabled, products matching an existing ID or SKU will be updated. Products that do not exist will be skipped.', 'bw'); ?></span>
                 </label>
             </div>
             <?php submit_button(__('Upload & Analyze', 'bw'), 'primary', 'bw_import_upload_submit', false, ['id' => 'bw_import_upload_submit']); ?>
         </form>
+        </div>
         <div id="bw-import-preflight-modal" style="display:none; position:fixed; inset:0; z-index:100000; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:24px;">
             <div role="dialog" aria-modal="true" aria-labelledby="bw-import-preflight-title" style="width:min(680px, 100%); background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden;">
                 <div style="padding:24px 24px 18px; border-bottom:1px solid #e7e7e7;">
@@ -9119,7 +9193,8 @@ function bw_import_get_mapping_options()
         ],
         __('Images', 'bw') => [
             'featured_image' => __('Product Image (featured image URL)', 'bw'),
-            'gallery_images' => __('Product Gallery (comma-separated image URLs)', 'bw'),
+            'product_gallery' => __('Product Gallery (comma-separated image URLs)', 'bw'),
+            'gallery_images' => __('Product Gallery (legacy alias)', 'bw'),
         ],
         __('Links', 'bw') => [
             'upsells' => __('Upsells (comma-separated IDs or SKUs)', 'bw'),
@@ -9257,7 +9332,9 @@ function bw_import_get_mapping_aliases()
         'stock' => 'stock_quantity',
         'featured_image' => 'featured_image',
         'image' => 'featured_image',
-        'gallery' => 'gallery_images',
+        'gallery' => 'product_gallery',
+        'product_gallery' => 'product_gallery',
+        'gallery_images' => 'product_gallery',
         'category' => 'categories',
         'categories' => 'categories',
         'tag' => 'tags',
@@ -9702,6 +9779,7 @@ function bw_import_prepare_row_data($row_data, $mapping)
             case 'featured_image':
                 $data['product']['featured_image'] = esc_url_raw($clean_value);
                 break;
+            case 'product_gallery':
             case 'gallery_images':
                 $data['product']['gallery'] = array_map('esc_url_raw', bw_import_explode_list($clean_value));
                 break;
