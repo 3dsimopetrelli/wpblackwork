@@ -39,6 +39,9 @@ Clarifications:
 - Image access to the featured image and product gallery is mandatory for this workflow.
 - If the featured image or product gallery images cannot be accessed and visually analyzed, ChatGPT/Codex must stop the workflow and must not generate the completed CSV.
 - ChatGPT/Codex must not continue from YAML-only data when mandatory images are inaccessible.
+- If Dropbox direct-media access fails for mandatory images, ChatGPT/Codex must ask Blackwork to upload the required images manually into the chat/session before continuing.
+- Manually uploaded images are acceptable for visual analysis only.
+- The YAML media URLs remain the canonical source for CSV media URL fields.
 - Source notes are optional but should be preferred over visual guessing when provided.
 - ChatGPT/Codex must not invent missing factual metadata.
 - If a YAML field is empty, leave the corresponding CSV field empty unless this guide defines a safe fallback.
@@ -52,20 +55,21 @@ Required AI behavior:
 6. Fill the existing structural parent row and the two standard variation rows.
 7. Analyze the featured image and gallery images referenced in the YAML before filling content fields.
 8. Stop the workflow and do not generate the CSV if the featured image or product gallery images cannot be accessed and visually analyzed.
-9. Create a clean product title.
-10. Create a lowercase URL slug in `post_name`.
-11. Generate a stable parent SKU from the product title.
-12. Generate Commercial and Extended variation SKUs from the parent SKU.
-13. Create a detailed natural SEO-oriented `post_content` description.
-14. Create a concise `post_excerpt`.
-15. Choose allowed `product_subcategories` according to the guide.
-16. Write exactly 10 internal-search tags according to the guide.
-17. Use `TECHNIQUE` from the YAML for `meta:_digital_technique`.
-18. Use `Unknown` for technique if `TECHNIQUE` is empty.
-19. Fill year and author/artist only when provided or clearly supported by the YAML or source notes.
-20. Fill media fields from the supplied direct URLs in the YAML.
-21. Do not invent facts.
-22. Return a downloadable completed `.csv` file with the same columns as the template and no extra explanation unless Blackwork asks for it.
+9. If Dropbox direct-media access fails for mandatory images, ask Blackwork to upload the required images manually into the chat/session.
+10. Create a clean product title.
+11. Create a lowercase URL slug in `post_name`.
+12. Generate a stable parent SKU from the product title.
+13. Generate Commercial and Extended variation SKUs from the parent SKU.
+14. Create a detailed natural SEO-oriented `post_content` description.
+15. Create a concise `post_excerpt`.
+16. Choose allowed `product_subcategories` according to the guide.
+17. Write exactly 10 internal-search tags according to the guide.
+18. Use `TECHNIQUE` from the YAML for `meta:_digital_technique`.
+19. Use `Unknown` for technique if `TECHNIQUE` is empty.
+20. Fill year and author/artist only when provided or clearly supported by the YAML or source notes.
+21. Fill media fields from the supplied direct URLs in the YAML.
+22. Do not invent facts.
+23. Return a downloadable completed `.csv` file with the same columns as the template and no extra explanation unless Blackwork asks for it.
 
 ## External YAML input structure
 Blackwork prepares a filled YAML file for each product before starting a ChatGPT/Codex CSV production session.
@@ -143,6 +147,7 @@ PRICE EXTENDED:
 9. Visually analyze the accessible images.
 10. Only then fill the CSV.
 11. If image access fails, stop and request accessible image links or direct image uploads.
+12. If Blackwork uploads the required images manually into the chat/session, use those uploads only for visual analysis and continue using the YAML media URLs for CSV output.
 
 Mandatory image fields:
 - `FEATURED IMAGE URL`
@@ -157,6 +162,8 @@ Blocking rule:
 - The workflow must stop if the featured image or product gallery images cannot be accessed and visually analyzed.
 - Hover/showcase/video failures should be reported, but they do not block the workflow unless Blackwork explicitly makes them required for that product.
 - Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
+- Manual image uploads are acceptable as the visual-analysis source when Dropbox URL access fails.
+- The final CSV must still contain direct media URLs from the YAML, not chat upload references.
 
 ### Description and SEO requirement
 - `post_content` should be a detailed, natural, SEO-oriented product description.
@@ -196,6 +203,9 @@ Rules:
 - Do not continue using only YAML text/source notes.
 - Do not invent tags, subcategories, title, description, subject matter, or visual details.
 - Return a blocking message explaining which images could not be accessed and ask Blackwork to provide accessible links or upload the images directly.
+- If Blackwork uploads the required images manually into the chat/session, use those uploaded images only for visual analysis.
+- Continue using the YAML media URLs for CSV media fields.
+- Do not write chat attachment URLs or internal upload references into the CSV.
 - Do not rename CSV columns.
 - Do not remove `meta:` prefixes.
 - Do not add comment rows.
@@ -314,6 +324,9 @@ Use this guide together with the Digital CSV template and the filled YAML produc
 - Use the first accessible direct-media Dropbox variant for image analysis.
 - Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
 - If none of the direct Dropbox variants can be visually accessed for the featured image or product gallery, stop the workflow and do not generate the CSV.
+- If Dropbox direct-media access fails for mandatory images, ask Blackwork to upload the required images manually into the chat/session.
+- Manual uploads are acceptable for visual analysis only.
+- The final CSV must still use the converted YAML media URLs, not chat upload references.
 
 This rule applies to all media URL fields:
 - `featured_image`
@@ -322,6 +335,19 @@ This rule applies to all media URL fields:
 - `meta:_bw_slider_hover_image`
 - `meta:_bw_slider_hover_video`
 - any future download/media URL fields when they use Dropbox links
+
+Visual analysis may use:
+- `FEATURED IMAGE URL`
+- `PRODUCT GALLERY`
+- or manually uploaded replacement images if those URLs fail
+
+CSV output must use:
+- `featured_image` from the converted YAML `FEATURED IMAGE URL`
+- `product_gallery` from converted YAML `PRODUCT GALLERY` URLs
+- `variation_image` from the converted YAML `FEATURED IMAGE URL`
+- `meta:_bw_slider_hover_image` from the converted YAML `HOVER IMAGE URL`
+- `meta:_bw_showcase_image` from the converted YAML `SHOWCASE IMAGE URLS`
+- `meta:_bw_slider_hover_video` from the converted YAML `HOVER VIDEO URL`, if provided
 
 Example:
 - Input:

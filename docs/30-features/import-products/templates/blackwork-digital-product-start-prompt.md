@@ -27,6 +27,20 @@ Dropbox direct URL access sequence:
 - Use the first accessible direct-media Dropbox variant for image analysis.
 - Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
 
+Manual image upload recovery:
+- If the featured image or product gallery images cannot be visually accessed through the Dropbox direct URL sequence, stop the operation and ask Blackwork to upload the required images manually into the chat/session.
+- Do not generate the CSV until the required images are visually available.
+- Specify which mandatory images are missing or inaccessible, for example:
+  - `FEATURED IMAGE URL`
+  - `PRODUCT GALLERY 01`
+  - `PRODUCT GALLERY 02`
+- When Blackwork uploads the images manually:
+  - use the uploaded images only for visual analysis
+  - continue filling the CSV
+  - keep using the YAML media URLs for CSV media fields
+  - convert Dropbox URLs into direct/WordPress-compatible URLs before writing them into the CSV
+  - do not write chat attachment URLs or internal upload references into the CSV
+
 Do not rename columns.
 Do not remove `meta:` prefixes.
 Do not add comment rows.
@@ -47,6 +61,10 @@ Instructions:
 - Apply this to all Dropbox media URLs before writing them into the CSV.
 - The final CSV must contain a direct-access Dropbox URL, not the original `dl=0` preview link.
 - If none of the Dropbox direct-media variants can be visually accessed for the featured image or product gallery images, stop immediately and do not generate the CSV.
+- If Dropbox direct-media access fails for mandatory images, ask Blackwork to upload those images manually into the chat/session before continuing.
+- Use manually uploaded images only for visual analysis.
+- Continue using converted YAML media URLs in the CSV fields.
+- Do not write chat attachment URLs or internal upload references into the CSV.
 - Use `PRODUCT TITLE` for `post_title`; if empty, generate a clear title from the visual subject and source context.
 - Generate `post_name` from the final `post_title`.
 - Generate parent SKU from the final `post_title`.
