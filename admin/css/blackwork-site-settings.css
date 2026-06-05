@@ -317,6 +317,18 @@
     gap: 8px;
 }
 
+.bw-import-panel .bw-import-template-card__copy-prompt {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+}
+
+.bw-import-panel .bw-import-template-card__copy-prompt .dashicons {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+}
+
 .bw-import-panel .bw-import-upload-shell {
     background: #fcfcfd;
     border: 1px solid #d8dadd;

@@ -340,7 +340,11 @@ function bw_site_settings_admin_assets($hook)
                     'preflightFailure' => esc_html__('CSV analysis failed unexpectedly. The original file will be submitted unchanged.', 'bw'),
                     'invalidPreviewLabel' => esc_html__('Example skipped rows', 'bw'),
                     'missingSkuAndName' => esc_html__('Missing SKU and name', 'bw'),
+                    'copyPrompt' => esc_html__('Copy Prompt', 'bw'),
+                    'copiedPrompt' => esc_html__('Copied', 'bw'),
+                    'copyFailed' => esc_html__('Copy failed. Please try again.', 'bw'),
                 ],
+                'prompts' => bw_product_import_prompt_payload(),
             ]
         );
     }
@@ -1389,7 +1393,7 @@ function bw_product_import_template_registry()
         ],
         'digital_prompt' => [
             'group' => __('Digital Product', 'bw'),
-            'label' => __('↓ Prompt', 'bw'),
+            'label' => __('Copy Prompt', 'bw'),
             'filename' => 'blackwork-digital-product-start-prompt.md',
             'path' => $base_dir . 'blackwork-digital-product-start-prompt.md',
             'content_type' => 'text/markdown; charset=utf-8',
@@ -1410,7 +1414,7 @@ function bw_product_import_template_registry()
         ],
         'books_prompt' => [
             'group' => __('Books', 'bw'),
-            'label' => __('↓ Prompt', 'bw'),
+            'label' => __('Copy Prompt', 'bw'),
             'filename' => 'blackwork-book-start-prompt.md',
             'path' => $base_dir . 'blackwork-book-start-prompt.md',
             'content_type' => 'text/markdown; charset=utf-8',
@@ -1431,7 +1435,7 @@ function bw_product_import_template_registry()
         ],
         'prints_prompt' => [
             'group' => __('Prints', 'bw'),
-            'label' => __('↓ Prompt', 'bw'),
+            'label' => __('Copy Prompt', 'bw'),
             'filename' => 'blackwork-print-start-prompt.md',
             'path' => $base_dir . 'blackwork-print-start-prompt.md',
             'content_type' => 'text/markdown; charset=utf-8',
@@ -1455,6 +1459,31 @@ function bw_product_import_template_download_url($template_key)
         ]),
         'bw_download_import_template_' . $template_key
     );
+}
+
+function bw_product_import_prompt_payload()
+{
+    $templates = bw_product_import_template_registry();
+    $payload = [];
+
+    foreach (['digital_prompt', 'books_prompt', 'prints_prompt'] as $template_key) {
+        if (!isset($templates[$template_key])) {
+            continue;
+        }
+
+        $template = $templates[$template_key];
+        $file_path = isset($template['path']) ? (string) $template['path'] : '';
+        if ($file_path === '' || !file_exists($file_path) || !is_readable($file_path)) {
+            continue;
+        }
+
+        $payload[$template_key] = [
+            'group' => isset($template['group']) ? (string) $template['group'] : '',
+            'content' => file_get_contents($file_path),
+        ];
+    }
+
+    return $payload;
 }
 
 function bw_product_import_template_maybe_download()
@@ -7849,8 +7878,9 @@ function bw_site_render_import_product_tab()
         <div class="bw-import-templates-panel">
             <h3 class="bw-import-templates-panel__title"><?php esc_html_e('Product import templates', 'bw'); ?></h3>
             <p class="description bw-import-templates-panel__helper">
-                <?php esc_html_e('Download the CSV template, Markdown guide, and start prompt. Give all three files to ChatGPT/Codex together with product images or source notes.', 'bw'); ?>
+                <?php esc_html_e('Download the CSV template and Markdown guide, then copy the start prompt. Give all three resources to ChatGPT/Codex together with product images or source notes.', 'bw'); ?>
             </p>
+            <p class="screen-reader-text" id="bw-import-template-copy-status" aria-live="polite"></p>
             <div class="bw-import-template-grid">
                 <?php foreach ($template_groups as $group_label => $group_templates): ?>
                     <div class="bw-import-template-card">
@@ -7869,14 +7899,41 @@ function bw_site_render_import_product_tab()
                             </p>
                         </div>
                         <div class="bw-import-template-card__actions">
-                            <?php foreach ($group_templates as $template_key => $template): ?>
-                                <?php $download_url = bw_product_import_template_download_url($template_key); ?>
-                                <?php if ($download_url !== ''): ?>
+                            <?php
+                            $prompt_template_key = '';
+                            foreach ($group_templates as $template_key => $template):
+                                if (substr((string) $template_key, -7) === '_prompt') {
+                                    $prompt_template_key = (string) $template_key;
+                                    continue;
+                                }
+                                $download_url = bw_product_import_template_download_url($template_key);
+                                if ($download_url !== ''):
+                                ?>
                                     <a class="button button-secondary" href="<?php echo esc_url($download_url); ?>">
                                         <?php echo esc_html($template['label']); ?>
                                     </a>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
+                                <?php
+                                endif;
+                            endforeach;
+
+                            if ($prompt_template_key !== ''):
+                                $aria_label = sprintf(
+                                    /* translators: %s: product template group label */
+                                    __('Copy %s start prompt', 'bw'),
+                                    $group_label
+                                );
+                                ?>
+                                <button
+                                    type="button"
+                                    class="button button-secondary bw-import-template-card__copy-prompt"
+                                    data-prompt-key="<?php echo esc_attr($prompt_template_key); ?>"
+                                    data-default-label="<?php echo esc_attr__('Copy Prompt', 'bw'); ?>"
+                                    aria-label="<?php echo esc_attr($aria_label); ?>"
+                                >
+                                    <span class="dashicons dashicons-admin-page" aria-hidden="true"></span>
+                                    <span><?php esc_html_e('Copy Prompt', 'bw'); ?></span>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>

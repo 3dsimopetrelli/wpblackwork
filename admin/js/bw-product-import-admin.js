@@ -3,6 +3,7 @@
 
     const config = window.bwProductImportAdmin || { strings: {} };
     const strings = config.strings || {};
+    const prompts = config.prompts || {};
 
     function getString(key, fallback) {
         return strings[key] || fallback;
@@ -89,6 +90,35 @@
         return new File([blob], file.name, { type: 'text/csv' });
     }
 
+    function fallbackCopyText(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', 'readonly');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.pointerEvents = 'none';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+
+    function copyText(text) {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            return navigator.clipboard.writeText(text).catch(function () {
+                fallbackCopyText(text);
+            });
+        }
+
+        fallbackCopyText(text);
+        return Promise.resolve();
+    }
+
     $(function () {
         const $form = $('#bw-import-upload-form');
         const $fileInput = $('#bw_import_csv');
@@ -100,6 +130,51 @@
         const $invalidList = $('#bw-import-preflight-invalid-list');
         const $continue = $('#bw-import-preflight-continue');
         const $close = $('#bw-import-preflight-close');
+        const $copyButtons = $('.bw-import-template-card__copy-prompt');
+        const $copyStatus = $('#bw-import-template-copy-status');
+
+        if (!$form.length || !$fileInput.length) {
+            if ($copyButtons.length) {
+                // Allow copy prompt actions even when upload UI is absent.
+            } else {
+                return;
+            }
+        }
+
+        if ($copyButtons.length) {
+            $copyButtons.on('click', function () {
+                const $button = $(this);
+                const promptKey = String($button.data('promptKey') || '');
+                const defaultLabel = String($button.data('defaultLabel') || getString('copyPrompt', 'Copy Prompt'));
+                const promptEntry = prompts[promptKey];
+                const promptContent = promptEntry && typeof promptEntry.content === 'string' ? promptEntry.content : '';
+
+                if (!promptContent) {
+                    if ($copyStatus.length) {
+                        $copyStatus.text(getString('copyFailed', 'Copy failed. Please try again.'));
+                    }
+                    return;
+                }
+
+                copyText(promptContent).then(function () {
+                    $button.addClass('is-copied');
+                    $button.find('span').last().text(getString('copiedPrompt', 'Copied'));
+
+                    if ($copyStatus.length) {
+                        $copyStatus.text(getString('copiedPrompt', 'Copied'));
+                    }
+
+                    window.setTimeout(function () {
+                        $button.removeClass('is-copied');
+                        $button.find('span').last().text(defaultLabel);
+                    }, 1200);
+                }).catch(function () {
+                    if ($copyStatus.length) {
+                        $copyStatus.text(getString('copyFailed', 'Copy failed. Please try again.'));
+                    }
+                });
+            });
+        }
 
         if (!$form.length || !$fileInput.length) {
             return;

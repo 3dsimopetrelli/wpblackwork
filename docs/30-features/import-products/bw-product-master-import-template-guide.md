@@ -43,8 +43,12 @@ Standalone downloadable templates available from the admin UI:
 
 - CSV files are the importable templates
 - Markdown guide files are companion instructions for ChatGPT/Codex
-- Markdown start prompt files are reusable kickoff prompts for ChatGPT/Codex
-- the admin page now provides all three downloads per product type
+- Markdown start prompt files are reusable kickoff prompts for ChatGPT/Codex and remain stored in the repository as source prompt files
+- the admin page now provides:
+  - CSV Template download
+  - Guide MD download
+  - Copy Prompt action
+- in the admin UI, the prompt is copied directly to the clipboard instead of downloaded
 - do not paste Markdown guide text or instruction rows inside the CSV files
 
 ## Quick Templates
