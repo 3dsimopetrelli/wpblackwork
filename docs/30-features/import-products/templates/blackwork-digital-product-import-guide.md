@@ -9,6 +9,9 @@ Blackwork will provide:
 3. the filled `product-upload-details-template.yml`
 
 Clarifications:
+- Blackwork prepares and fills `product-upload-details-template.yml` separately for each product production session.
+- The YAML file is an operational input supplied by Blackwork, not part of the downloadable template set stored in this repository.
+- It is not downloaded from the Product Import / Export dashboard.
 - The YAML file is the source for:
   - product title
   - digital assets list
@@ -59,6 +62,33 @@ Required AI behavior:
 19. Fill media fields from the supplied direct URLs in the YAML.
 20. Do not invent facts.
 21. Return completed CSV content only, unless Blackwork asks for explanation.
+
+## External YAML input structure
+Blackwork prepares a filled YAML file for each product before starting a ChatGPT/Codex CSV production session.
+
+- The YAML is an external operational input, not a repository template.
+- The YAML should be attached to ChatGPT/Codex together with the Digital guide and the Digital CSV.
+- The filename can be `product-upload-details-template.yml` or any clear per-product filename, but the expected field labels must match this guide exactly.
+
+```yaml
+PRODUCT TITLE:
+DIGITAL ASSETS LIST:
+FEATURED IMAGE URL:
+PRODUCT GALLERY:
+HOVER IMAGE URL:
+SHOWCASE IMAGE URLS:
+HOVER VIDEO URL:
+YEAR:
+AUTHOR / ARTIST:
+TOTAL ASSETS:
+FORMATS:
+SOURCE NOTES:
+PRODUCT CONTEXT:
+TECHNIQUE:
+PRICE:
+PRICE COMMERCIAL:
+PRICE EXTENDED:
+```
 
 ### Media link mapping
 - `PRODUCT TITLE` → `post_title`
@@ -112,7 +142,7 @@ You are filling a Blackwork Digital Product CSV.
 Read the attached files in this order:
 1. `blackwork-digital-product-import-guide.md`
 2. `blackwork-digital-product-import-template.csv`
-3. `product-upload-details-template.yml`
+3. the filled `product-upload-details-template.yml` attached by Blackwork
 
 Use the YAML file as the source for Blackwork-provided product data and media URLs.
 
@@ -155,12 +185,12 @@ Rules:
 - Return the completed CSV content only.
 
 ## Purpose
-Use this guide together with the Digital CSV template and the filled YAML product details file to help ChatGPT/Codex prepare a clean importable CSV for Blackwork digital products.
+Use this guide together with the Digital CSV template and the filled YAML product details file supplied by Blackwork for a specific product to help ChatGPT/Codex prepare a clean importable CSV for Blackwork digital products.
 
 ## Files to use
 - `blackwork-digital-product-import-template.csv`
 - this guide: `blackwork-digital-product-import-guide.md`
-- the filled `product-upload-details-template.yml`
+- the filled `product-upload-details-template.yml` attached by Blackwork for the current product
 
 ## Template row usage
 - The CSV contains structural rows, not final example content.
@@ -249,7 +279,7 @@ Keep the `meta:` prefix exactly as written in the CSV template.
 Provide:
 - the CSV template
 - this Markdown guide
-- the filled `product-upload-details-template.yml`
+- the filled `product-upload-details-template.yml` attached by Blackwork for the current product
 
 Recommended prompt framing:
 - fill the CSV using the exact column names

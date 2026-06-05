@@ -3,7 +3,7 @@ You are filling a Blackwork Digital Product CSV.
 Read the attached files in this order:
 1. `blackwork-digital-product-import-guide.md`
 2. `blackwork-digital-product-import-template.csv`
-3. `product-upload-details-template.yml`
+3. the filled `product-upload-details-template.yml` attached by Blackwork
 
 Use the YAML file as the source for Blackwork-provided product data and media URLs.
 
