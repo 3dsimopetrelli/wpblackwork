@@ -212,6 +212,52 @@ Identity / Graphics:
 - Do not put multiple URLs in either hover media field.
 - Each hover media field accepts one URL only.
 
+## Digital Technique / Production Technique
+- `meta:_digital_technique` maps to the product meta key `_digital_technique`.
+- Fill `meta:_digital_technique` only with one of the allowed standardized technique values below.
+- Use the technique that best matches the source image, print, scan, or provided source notes.
+- Do not invent technique names.
+- Do not use broad free-text descriptions if a controlled value exists.
+- Preserve exact spelling and capitalization.
+- If the technique is uncertain, use `Unknown`.
+- If multiple techniques are clearly present, use `Mixed Techniques`.
+- If the item is hand-colored after printing, use `Hand-Colored Print` when that is the most important technique note.
+- If source notes provide the production technique, prefer the source notes over visual guessing.
+- If the image alone is insufficient to identify the technique, use `Unknown`.
+
+### Allowed technique values
+
+Relief Printing:
+- Woodcut
+- Wood Engraving
+
+Intaglio Printing:
+- Copper Engraving
+- Steel Engraving
+- Etching
+- Aquatint
+- Mezzotint
+- Stipple Engraving
+
+Planographic Printing:
+- Lithography
+- Chromolithography
+
+Photomechanical Processes:
+- Photogravure
+- Collotype
+- Heliogravure
+- Line Block
+- Halftone
+
+Modern Printing:
+- Offset Print
+
+Special Categories:
+- Hand-Colored Print
+- Mixed Techniques
+- Unknown
+
 ## Tags
 - The `tags` field must contain exactly 10 tags.
 - Tags are for internal Blackwork site search and image discovery.
@@ -306,7 +352,7 @@ Good tags for architectural ornament images:
 | `meta:_digital_source` | Optional | Source/origin | `Private archive` | Factual only |
 | `meta:_digital_publisher` | Optional | Publisher | `Blackwork Editions` | Factual only |
 | `meta:_digital_year` | Optional | Year | `1888` | Use exact year if known |
-| `meta:_digital_technique` | Optional | Technique | `Lithography` | Factual only |
+| `meta:_digital_technique` | Optional / controlled vocabulary | One standardized production technique | `Lithography` | Use `Unknown` if uncertain; do not invent values |
 | `meta:_digital_total_assets` | Optional | Asset count summary | `50` | Can mirror assets count |
 | `meta:_digital_assets_list` | Optional | Asset list | `Layered master file|Source scan|Preview JPG set` | Keep compact and factual |
 | `meta:_digital_file_size` | Optional | Digital file size detail | `320 MB` | Optional mirror field |
