@@ -35,12 +35,16 @@ Standalone downloadable templates available from the admin UI:
 - [blackwork-digital-product-import-guide.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-digital-product-import-guide.md)
 - [blackwork-book-import-guide.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-book-import-guide.md)
 - [blackwork-print-import-guide.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-print-import-guide.md)
+- [blackwork-digital-product-start-prompt.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-digital-product-start-prompt.md)
+- [blackwork-book-start-prompt.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-book-start-prompt.md)
+- [blackwork-print-start-prompt.md](/Users/simonezanon/Documents/local%20site/BlackWork/wp-content/plugins/wpblackwork/docs/30-features/import-products/templates/blackwork-print-start-prompt.md)
 
 ## Template downloads and AI guides
 
 - CSV files are the importable templates
 - Markdown guide files are companion instructions for ChatGPT/Codex
-- the admin page now provides both downloads per product type
+- Markdown start prompt files are reusable kickoff prompts for ChatGPT/Codex
+- the admin page now provides all three downloads per product type
 - do not paste Markdown guide text or instruction rows inside the CSV files
 
 ## Quick Templates

@@ -1375,44 +1375,65 @@ function bw_product_import_template_registry()
     return [
         'digital_csv' => [
             'group' => __('Digital Product', 'bw'),
-            'label' => __('Download CSV', 'bw'),
+            'label' => __('↓ CSV', 'bw'),
             'filename' => 'blackwork-digital-product-import-template.csv',
             'path' => $base_dir . 'blackwork-digital-product-import-template.csv',
             'content_type' => 'text/csv; charset=utf-8',
         ],
         'digital_md' => [
             'group' => __('Digital Product', 'bw'),
-            'label' => __('Download Guide MD', 'bw'),
+            'label' => __('↓ Guide', 'bw'),
             'filename' => 'blackwork-digital-product-import-guide.md',
             'path' => $base_dir . 'blackwork-digital-product-import-guide.md',
             'content_type' => 'text/markdown; charset=utf-8',
         ],
+        'digital_prompt' => [
+            'group' => __('Digital Product', 'bw'),
+            'label' => __('↓ Prompt', 'bw'),
+            'filename' => 'blackwork-digital-product-start-prompt.md',
+            'path' => $base_dir . 'blackwork-digital-product-start-prompt.md',
+            'content_type' => 'text/markdown; charset=utf-8',
+        ],
         'books_csv' => [
             'group' => __('Books', 'bw'),
-            'label' => __('Download CSV', 'bw'),
+            'label' => __('↓ CSV', 'bw'),
             'filename' => 'blackwork-book-import-template.csv',
             'path' => $base_dir . 'blackwork-book-import-template.csv',
             'content_type' => 'text/csv; charset=utf-8',
         ],
         'books_md' => [
             'group' => __('Books', 'bw'),
-            'label' => __('Download Guide MD', 'bw'),
+            'label' => __('↓ Guide', 'bw'),
             'filename' => 'blackwork-book-import-guide.md',
             'path' => $base_dir . 'blackwork-book-import-guide.md',
             'content_type' => 'text/markdown; charset=utf-8',
         ],
+        'books_prompt' => [
+            'group' => __('Books', 'bw'),
+            'label' => __('↓ Prompt', 'bw'),
+            'filename' => 'blackwork-book-start-prompt.md',
+            'path' => $base_dir . 'blackwork-book-start-prompt.md',
+            'content_type' => 'text/markdown; charset=utf-8',
+        ],
         'prints_csv' => [
             'group' => __('Prints', 'bw'),
-            'label' => __('Download CSV', 'bw'),
+            'label' => __('↓ CSV', 'bw'),
             'filename' => 'blackwork-print-import-template.csv',
             'path' => $base_dir . 'blackwork-print-import-template.csv',
             'content_type' => 'text/csv; charset=utf-8',
         ],
         'prints_md' => [
             'group' => __('Prints', 'bw'),
-            'label' => __('Download Guide MD', 'bw'),
+            'label' => __('↓ Guide', 'bw'),
             'filename' => 'blackwork-print-import-guide.md',
             'path' => $base_dir . 'blackwork-print-import-guide.md',
+            'content_type' => 'text/markdown; charset=utf-8',
+        ],
+        'prints_prompt' => [
+            'group' => __('Prints', 'bw'),
+            'label' => __('↓ Prompt', 'bw'),
+            'filename' => 'blackwork-print-start-prompt.md',
+            'path' => $base_dir . 'blackwork-print-start-prompt.md',
             'content_type' => 'text/markdown; charset=utf-8',
         ],
     ];
@@ -7828,7 +7849,7 @@ function bw_site_render_import_product_tab()
         <div class="bw-import-templates-panel">
             <h3 class="bw-import-templates-panel__title"><?php esc_html_e('Product import templates', 'bw'); ?></h3>
             <p class="description bw-import-templates-panel__helper">
-                <?php esc_html_e('Download the CSV template and its Markdown guide. Give both files to ChatGPT/Codex together with product images or source notes.', 'bw'); ?>
+                <?php esc_html_e('Download the CSV template, Markdown guide, and start prompt. Give all three files to ChatGPT/Codex together with product images or source notes.', 'bw'); ?>
             </p>
             <div class="bw-import-template-grid">
                 <?php foreach ($template_groups as $group_label => $group_templates): ?>
