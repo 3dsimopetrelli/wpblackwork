@@ -4,51 +4,93 @@
 Blackwork is creating a new Digital product for the Blackwork site. This is an internal Blackwork production workflow, not an end-customer workflow.
 
 Blackwork will provide:
-1. `blackwork-digital-product-import-template.csv`
-2. `blackwork-digital-product-import-guide.md`
-3. the featured image URL
-4. the product gallery / slide image URLs
-5. the hover image URL
-6. optionally, the hover video URL
-7. optionally, source notes, year, author/artist, archive notes, formats, file size, asset count, or other product context
+1. `blackwork-digital-product-import-guide.md`
+2. `blackwork-digital-product-import-template.csv`
+3. the filled `product-upload-details-template.yml`
 
 Clarifications:
-- The featured image and gallery / slide images are always provided because ChatGPT/Codex must analyze them.
+- The YAML file is the source for:
+  - product title
+  - digital assets list
+  - featured image URL
+  - product gallery URLs
+  - hover image URL
+  - showcase image URLs
+  - optional hover video URL
+  - year
+  - author / artist
+  - total assets
+  - formats
+  - source notes
+  - product context
+  - technique
+  - parent price
+  - commercial price
+  - extended price
+- ChatGPT/Codex still analyzes the featured image and gallery images referenced in the YAML to produce:
+  - subject understanding
+  - SEO-oriented `post_content`
+  - concise `post_excerpt`
+  - allowed `product_subcategories`
+  - exactly 10 internal-search tags
 - Source notes are optional but should be preferred over visual guessing when provided.
-- Year and author/artist may be provided by Blackwork; if provided, use them.
-- If year or author/artist are not provided, infer them only when clearly supported by the images or source notes.
-- Do not invent year, author, publisher, technique, or source.
+- ChatGPT/Codex must not invent missing factual metadata.
+- If a YAML field is empty, leave the corresponding CSV field empty unless this guide defines a safe fallback.
 
 Required AI behavior:
 1. Read this MD guide first.
 2. Read the CSV template second.
-3. Preserve exact CSV headers.
-4. Keep the CSV importable.
-5. Fill the existing structural parent row and the two standard variation rows.
-6. Analyze the featured image and gallery/slide images before filling content fields.
-7. Create a clean product title.
-8. Create a lowercase URL slug in `post_name`.
-9. Generate a stable parent SKU from the product title.
-10. Generate Commercial and Extended variation SKUs from the parent SKU.
-11. Create a detailed natural SEO-oriented `post_content` description.
-12. Create a concise `post_excerpt`.
-13. Choose allowed `product_subcategories` according to the guide.
-14. Write exactly 10 internal-search tags according to the guide.
-15. Choose `meta:_digital_technique` only from the controlled technique list.
-16. Use `Unknown` for technique if uncertain.
-17. Fill year and author/artist only when provided or clearly supported.
-18. Fill media fields from the supplied direct URLs.
-19. Do not invent facts.
-20. Return completed CSV content only, unless Blackwork asks for explanation.
+3. Read the filled YAML product details file third.
+4. Preserve exact CSV headers.
+5. Keep the CSV importable.
+6. Fill the existing structural parent row and the two standard variation rows.
+7. Analyze the featured image and gallery images referenced in the YAML before filling content fields.
+8. Create a clean product title.
+9. Create a lowercase URL slug in `post_name`.
+10. Generate a stable parent SKU from the product title.
+11. Generate Commercial and Extended variation SKUs from the parent SKU.
+12. Create a detailed natural SEO-oriented `post_content` description.
+13. Create a concise `post_excerpt`.
+14. Choose allowed `product_subcategories` according to the guide.
+15. Write exactly 10 internal-search tags according to the guide.
+16. Use `TECHNIQUE` from the YAML for `meta:_digital_technique`.
+17. Use `Unknown` for technique if `TECHNIQUE` is empty.
+18. Fill year and author/artist only when provided or clearly supported by the YAML or source notes.
+19. Fill media fields from the supplied direct URLs in the YAML.
+20. Do not invent facts.
+21. Return completed CSV content only, unless Blackwork asks for explanation.
 
 ### Media link mapping
-- Featured image URL goes into `featured_image`.
-- The same featured image URL should also go into `variation_image` for both Commercial and Extended rows unless Blackwork provides separate variation images.
-- Product gallery / slide image URLs go into `product_gallery`.
-- `product_gallery` must contain all gallery URLs in one CSV cell, comma-separated.
-- Hover image URL goes into `meta:_bw_slider_hover_image`.
-- Hover video URL goes into `meta:_bw_slider_hover_video` only if provided.
+- `PRODUCT TITLE` → `post_title`
+- Generate `post_name` from `PRODUCT TITLE`
+- Generate parent `sku` from `PRODUCT TITLE`
+- Generate Commercial and Extended variation SKUs from the parent SKU
+- `FEATURED IMAGE URL` → `featured_image`
+- `FEATURED IMAGE URL` → `variation_image` for both Commercial and Extended, unless separate variation images are added in the future
+- `PRODUCT GALLERY` → `product_gallery`
+- `PRODUCT GALLERY` may be one URL per line or comma-separated in YAML; in the CSV it must become one cell with comma-separated direct URLs
+- `HOVER IMAGE URL` → `meta:_bw_slider_hover_image`
+- `HOVER VIDEO URL` → `meta:_bw_slider_hover_video` only if provided
 - If hover video is not provided, leave `meta:_bw_slider_hover_video` empty.
+- `SHOWCASE IMAGE URLS` → `meta:_bw_showcase_image`
+- If multiple showcase image URLs are provided, use the first URL unless Blackwork notes specify a different primary showcase image
+- `PRICE` → parent row `regular_price` only if Blackwork wants a parent/base price
+- `PRICE COMMERCIAL` → Commercial variation row `variation_regular_price`
+- `PRICE EXTENDED` → Extended variation row `variation_regular_price`
+- Leave sale price fields empty unless explicit sale price fields are added later
+- `YEAR` → `meta:_digital_year`
+- `AUTHOR / ARTIST` → `meta:_bw_artist_name`
+- `TOTAL ASSETS` → `meta:_bw_assets_count`
+- `TOTAL ASSETS` → `meta:_digital_total_assets`
+- `FORMATS` → `meta:_bw_formats`
+- `FORMATS` → `meta:_digital_formats`
+- `DIGITAL ASSETS LIST` → `meta:_digital_assets_list`
+- If `DIGITAL ASSETS LIST` is empty, generate a concise factual assets list from `TOTAL ASSETS`, `FORMATS`, `SOURCE NOTES`, and `PRODUCT CONTEXT`
+- `SOURCE NOTES` may inform `meta:_digital_source`, `meta:_digital_publisher`, `post_content`, and `post_excerpt`, but do not invent source/publisher if not explicit
+- `PRODUCT CONTEXT` may inform descriptions, asset list, tags, and subcategories
+- `TECHNIQUE` → `meta:_digital_technique`
+- If `TECHNIQUE` is empty, use `Unknown`
+- Do not infer technique from images anymore unless Blackwork explicitly asks for it
 - Only `product_gallery` accepts multiple URLs.
 - All other media fields accept one direct URL only.
 - Do not use Markdown links.
@@ -67,71 +109,58 @@ Required AI behavior:
 
 You are filling a Blackwork Digital Product CSV.
 
-First read the attached files in this order:
+Read the attached files in this order:
 1. `blackwork-digital-product-import-guide.md`
 2. `blackwork-digital-product-import-template.csv`
+3. `product-upload-details-template.yml`
 
-Blackwork is creating a new Digital product for the Blackwork site. Use the guide as the source of truth for how every CSV column must be filled.
+Use the YAML file as the source for Blackwork-provided product data and media URLs.
 
-Do not rename columns.
-Do not add comment rows.
-Do not add guide text inside the CSV.
-Keep the CSV importable.
-Preserve the existing parent product row and the two standard variation rows: Commercial and Extended.
+Fill the CSV according to the guide.
 
-FEATURED IMAGE URL:
-[PASTE FEATURED IMAGE URL HERE]
-
-PRODUCT GALLERY / SLIDE IMAGE URLS:
-[PASTE GALLERY / SLIDE IMAGE URLS HERE, ONE PER LINE OR COMMA-SEPARATED]
-
-HOVER IMAGE URL:
-[PASTE HOVER IMAGE URL HERE]
-
-HOVER VIDEO URL, IF AVAILABLE:
-[PASTE HOVER VIDEO URL HERE OR LEAVE EMPTY]
-
-YEAR, IF KNOWN:
-[PASTE YEAR HERE OR LEAVE EMPTY]
-
-AUTHOR / ARTIST, IF KNOWN:
-[PASTE AUTHOR OR ARTIST HERE OR LEAVE EMPTY]
-
-SOURCE NOTES:
-[PASTE SOURCE NOTES, ARCHIVE NOTES, TITLE-PAGE NOTES, OR ANY KNOWN METADATA HERE]
-
-PRODUCT CONTEXT:
-[PASTE FORMATS, ASSET COUNT, FILE SIZE, COLLECTION NOTES, DOWNLOAD DETAILS, OR EXTRA CONTEXT HERE]
-
-Instructions:
-- Analyze the featured image and gallery/slide images before filling the CSV.
-- Use the featured image URL in `featured_image`.
-- Use the same featured image URL as `variation_image` for both Commercial and Extended unless separate variation images are provided.
-- Put all gallery/slide image URLs into `product_gallery` as comma-separated direct URLs in one cell.
-- Put the hover image URL into `meta:_bw_slider_hover_image`.
-- Put the hover video URL into `meta:_bw_slider_hover_video` only if provided; otherwise leave it empty.
-- Create a clean product title in `post_title`.
-- Create a lowercase URL slug in `post_name`.
-- Generate a stable parent SKU from the title using the guide rules.
+Rules:
+- Do not rename CSV columns.
+- Do not remove `meta:` prefixes.
+- Do not add comment rows.
+- Keep the CSV importable.
+- Preserve the parent product row and the Commercial / Extended variation rows.
+- Analyze the featured image and gallery images referenced in the YAML before writing title, descriptions, subcategories, and tags.
+- Apply Dropbox `dl=0` to `raw=1` conversion to all Dropbox media URLs before writing them into the CSV.
+- Use `PRODUCT TITLE` for `post_title`.
+- Generate `post_name` from `PRODUCT TITLE`.
+- Generate parent SKU from `PRODUCT TITLE`.
 - Generate Commercial and Extended variation SKUs from the parent SKU.
-- Use provided year in `meta:_digital_year`; if not provided, fill only if clearly supported.
-- Use provided author/artist in `meta:_bw_artist_name`; if not provided, fill only if clearly supported.
+- Use `FEATURED IMAGE URL` in `featured_image`.
+- Use `FEATURED IMAGE URL` as `variation_image` for both Commercial and Extended unless separate variation images are provided in the future.
+- Use `PRODUCT GALLERY` in `product_gallery`.
+- Use `HOVER IMAGE URL` in `meta:_bw_slider_hover_image`.
+- Use `HOVER VIDEO URL` in `meta:_bw_slider_hover_video` only if provided.
+- Use `SHOWCASE IMAGE URLS` for `meta:_bw_showcase_image`, using the first URL if multiple are provided.
+- Use `PRICE COMMERCIAL` in the Commercial row `variation_regular_price`.
+- Use `PRICE EXTENDED` in the Extended row `variation_regular_price`.
+- Use `PRICE` in the parent row `regular_price` only if appropriate.
+- Use `TOTAL ASSETS` in `meta:_bw_assets_count` and `meta:_digital_total_assets`.
+- Use `FORMATS` in `meta:_bw_formats` and `meta:_digital_formats`.
+- Use `DIGITAL ASSETS LIST` in `meta:_digital_assets_list`; if empty, generate a concise factual assets list from the YAML context.
+- Use `YEAR` in `meta:_digital_year` if provided.
+- Use `AUTHOR / ARTIST` in `meta:_bw_artist_name` if provided.
+- Use `TECHNIQUE` in `meta:_digital_technique`; if empty, use `Unknown`.
+- Do not visually guess technique unless Blackwork explicitly asks.
 - Choose `product_subcategories` only from the allowed list in the guide.
 - Choose up to 5 subcategories; if 5 coherent ones are not available, choose at least 3.
-- Write exactly 10 `tags` for internal Blackwork site search/discovery, not SEO.
-- Create a detailed, natural, SEO-oriented `post_content`.
+- Write exactly 10 tags for internal Blackwork search/discovery, not SEO.
+- Create a detailed natural SEO-oriented `post_content`.
 - Create a concise `post_excerpt`.
-- Choose `meta:_digital_technique` only from the controlled technique list in the guide.
-- Use `Unknown` for technique if uncertain.
-- Do not invent facts not visible in the images or source notes.
+- Do not invent facts not present in the images, YAML, or source notes.
 - Return the completed CSV content only.
 
 ## Purpose
-Use this guide together with the Digital CSV template to help ChatGPT/Codex prepare a clean importable CSV for Blackwork digital products from product images, source notes, and catalog metadata.
+Use this guide together with the Digital CSV template and the filled YAML product details file to help ChatGPT/Codex prepare a clean importable CSV for Blackwork digital products.
 
 ## Files to use
 - `blackwork-digital-product-import-template.csv`
 - this guide: `blackwork-digital-product-import-guide.md`
+- the filled `product-upload-details-template.yml`
 
 ## Template row usage
 - The CSV contains structural rows, not final example content.
@@ -220,14 +249,14 @@ Keep the `meta:` prefix exactly as written in the CSV template.
 Provide:
 - the CSV template
 - this Markdown guide
-- product images
-- source notes, archive notes, or listing notes
+- the filled `product-upload-details-template.yml`
 
 Recommended prompt framing:
 - fill the CSV using the exact column names
 - keep the CSV importable
 - do not add comments or extra rows
-- do not invent facts from the images
+- use the YAML file as the source for Blackwork-provided values
+- do not invent facts from the images, YAML, or source notes
 
 ## Required fields
 - `row_type`
@@ -385,49 +414,9 @@ Identity / Graphics:
 
 ## Digital Technique / Production Technique
 - `meta:_digital_technique` maps to the product meta key `_digital_technique`.
-- Fill `meta:_digital_technique` only with one of the allowed standardized technique values below.
-- Use the technique that best matches the source image, print, scan, or provided source notes.
-- Do not invent technique names.
-- Do not use broad free-text descriptions if a controlled value exists.
-- Preserve exact spelling and capitalization.
-- If the technique is uncertain, use `Unknown`.
-- If multiple techniques are clearly present, use `Mixed Techniques`.
-- If the item is hand-colored after printing, use `Hand-Colored Print` when that is the most important technique note.
-- If source notes provide the production technique, prefer the source notes over visual guessing.
-- If the image alone is insufficient to identify the technique, use `Unknown`.
-
-### Allowed technique values
-
-Relief Printing:
-- Woodcut
-- Wood Engraving
-
-Intaglio Printing:
-- Copper Engraving
-- Steel Engraving
-- Etching
-- Aquatint
-- Mezzotint
-- Stipple Engraving
-
-Planographic Printing:
-- Lithography
-- Chromolithography
-
-Photomechanical Processes:
-- Photogravure
-- Collotype
-- Heliogravure
-- Line Block
-- Halftone
-
-Modern Printing:
-- Offset Print
-
-Special Categories:
-- Hand-Colored Print
-- Mixed Techniques
-- Unknown
+- Use `TECHNIQUE` from the YAML for `meta:_digital_technique`.
+- If `TECHNIQUE` is empty, use `Unknown`.
+- Do not invent or visually guess technique unless Blackwork explicitly asks.
 
 ## Tags
 - The `tags` field must contain exactly 10 tags.
@@ -516,17 +505,15 @@ Good tags for architectural ornament images:
 | `meta:_bw_showcase_title` | Optional | Showcase title | `Bats of the World Pack` | Presentation copy |
 | `meta:_bw_showcase_description` | Optional | Showcase description | `Curated digital archive pack...` | Presentation copy |
 | `meta:_bw_showcase_image` | Optional | Showcase image URL | `https://example.com/images/bats-showcase.jpg` | Direct URL or media reference policy used by your workflow |
-| `meta:_bw_file_size` | Optional | Main file size | `320 MB` | Human-readable text is acceptable |
 | `meta:_bw_assets_count` | Optional | Number of assets | `50` | Text or number |
 | `meta:_bw_formats` | Optional | Formats list | `AI,PNG,EPS,SVG` | Comma-separated text |
 | `meta:_bw_artist_name` | Optional | Artist/creator name | `Blackwork Archive` | Use only if known |
 | `meta:_digital_source` | Optional | Source/origin | `Private archive` | Factual only |
 | `meta:_digital_publisher` | Optional | Publisher | `Blackwork Editions` | Factual only |
 | `meta:_digital_year` | Optional | Year | `1888` | Use exact year if known |
-| `meta:_digital_technique` | Optional / controlled vocabulary | One standardized production technique | `Lithography` | Use `Unknown` if uncertain; do not invent values |
+| `meta:_digital_technique` | YAML-provided / fallback | `TECHNIQUE` from YAML | `Lithography` | Use `Unknown` if YAML is empty; do not infer unless explicitly instructed |
 | `meta:_digital_total_assets` | Optional | Asset count summary | `50` | Can mirror assets count |
 | `meta:_digital_assets_list` | Optional | Asset list | `Layered master file|Source scan|Preview JPG set` | Keep compact and factual |
-| `meta:_digital_file_size` | Optional | Digital file size detail | `320 MB` | Optional mirror field |
 | `meta:_digital_formats` | Optional | Digital formats detail | `AI,PNG,EPS,SVG` | Optional mirror field |
 | `meta:_bw_slider_hover_image` | Recommended when provided / normally expected | Hover image URL | `https://example.com/images/bats-hover.jpg` | Direct URL only. Acts as fallback when no hover video is provided |
 | `meta:_bw_slider_hover_video` | Optional | Hover video URL | `https://example.com/video/bats-hover.mp4` | Direct URL only. Leave empty if not provided. Takes priority when present |

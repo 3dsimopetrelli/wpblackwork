@@ -61,6 +61,7 @@ Use the downloadable templates when you want a smaller CSV tailored to one produ
   - defaults parent rows to `product_type=variable`
   - includes Product Presentation hover media metakeys
   - uses `product_gallery` as the canonical and actual gallery import column
+  - the current compact Digital AI workflow no longer uses file-size columns
   - keeps `gallery_images` only as a legacy backward-compatible alias in importer mapping
   - includes future-ready native Woo variation columns for preparation only
 - `blackwork-book-import-template.csv`
