@@ -7,6 +7,48 @@ Use this guide together with the Digital CSV template to help ChatGPT/Codex prep
 - `blackwork-digital-product-import-template.csv`
 - this guide: `blackwork-digital-product-import-guide.md`
 
+## Template row usage
+- The CSV contains structural rows, not final example content.
+- ChatGPT/Codex must replace empty fields with product-specific data.
+- Do not copy placeholder or example subjects from the template into real products.
+- These fixed defaults may remain as provided in the template:
+  - `post_status = publish`
+  - `product_type = variable`
+  - `default_variation = commercial`
+  - `categories = Digital Collections`
+  - `meta:_bw_product_type = digital`
+  - `variation_name = Commercial`
+  - `variation_name = Extended`
+  - `variation_enabled = yes`
+  - `variation_virtual = yes`
+  - `variation_downloadable = yes`
+
+## SKU generation rules
+- Generate a stable SKU from the product title.
+- Parent SKU format:
+  - `DIGI-{SHORT-SLUG}-{3 DIGIT NUMBER}`
+- Example:
+  - Product title: `Bats of the World`
+  - Parent SKU: `DIGI-BATS-WORLD-001`
+- Commercial variation SKU:
+  - `{PARENT-SKU}-COMMERCIAL`
+- Extended variation SKU:
+  - `{PARENT-SKU}-EXTENDED`
+- Use the same parent_sku value in variation rows.
+- Do not reuse the example SKU across products.
+- Keep SKUs uppercase, ASCII, hyphen-separated.
+
+## Title and slug rules
+- `post_title` should be a clean product title based on the image package.
+- `post_name` should be a lowercase URL slug derived from `post_title`.
+- Do not include placeholder words from the template.
+
+## Media rules
+- `featured_image` must be one direct image URL.
+- `product_gallery` must be one CSV cell containing comma-separated direct image URLs.
+- Do not split gallery URLs across multiple columns.
+- Do not use Markdown links.
+
 ## How to give the files to ChatGPT/Codex
 Provide:
 - the CSV template
