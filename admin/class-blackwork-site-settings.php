@@ -11898,6 +11898,93 @@ function bw_import_product_subcategories_to_meta_string($value)
     return implode(', ', $items);
 }
 
+function bw_import_find_product_cat_term_id_by_name_under_parent($name, $parent_term_id)
+{
+    $name = sanitize_text_field(trim((string) $name));
+    $parent_term_id = absint($parent_term_id);
+
+    if ($name === '' || $parent_term_id < 1) {
+        return 0;
+    }
+
+    $target_slug = sanitize_title($name);
+    $terms = get_terms([
+        'taxonomy' => 'product_cat',
+        'hide_empty' => false,
+        'parent' => $parent_term_id,
+        'number' => 200,
+    ]);
+
+    if (is_wp_error($terms) || empty($terms)) {
+        return 0;
+    }
+
+    foreach ($terms as $term) {
+        if (!$term instanceof WP_Term) {
+            continue;
+        }
+
+        if (strcasecmp((string) $term->name, $name) === 0 || sanitize_title((string) $term->slug) === $target_slug) {
+            return (int) $term->term_id;
+        }
+    }
+
+    return 0;
+}
+
+function bw_import_assign_digital_product_subcategories($product_id, $subcategory_string, &$warnings = [])
+{
+    $product_id = absint($product_id);
+    if ($product_id < 1) {
+        return false;
+    }
+
+    $subcategory_items = bw_import_normalize_product_subcategories($subcategory_string);
+    if (empty($subcategory_items)) {
+        return true;
+    }
+
+    $parent_term = get_term_by('slug', sanitize_title('Digital Collections'), 'product_cat');
+    if (!$parent_term || is_wp_error($parent_term)) {
+        $parent_term = get_term_by('name', 'Digital Collections', 'product_cat');
+    }
+
+    if (!$parent_term || is_wp_error($parent_term) || !($parent_term instanceof WP_Term)) {
+        $warnings[] = __('Digital Collections category was not found, so product subcategories could not be assigned.', 'bw');
+        return false;
+    }
+
+    $existing_term_ids = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
+    if (is_wp_error($existing_term_ids) || !is_array($existing_term_ids)) {
+        $existing_term_ids = [];
+    }
+
+    $assigned_term_ids = array_map('absint', $existing_term_ids);
+    $assigned_term_ids[] = (int) $parent_term->term_id;
+
+    foreach ($subcategory_items as $subcategory_name) {
+        $subcategory_term_id = bw_import_find_product_cat_term_id_by_name_under_parent($subcategory_name, (int) $parent_term->term_id);
+        if ($subcategory_term_id > 0) {
+            $assigned_term_ids[] = $subcategory_term_id;
+            continue;
+        }
+
+        $warnings[] = sprintf(
+            /* translators: %s: subcategory name */
+            __('Product subcategory "%s" was not found under Digital Collections.', 'bw'),
+            $subcategory_name
+        );
+    }
+
+    $assigned_term_ids = array_values(array_unique(array_filter(array_map('absint', $assigned_term_ids))));
+    if (empty($assigned_term_ids)) {
+        return false;
+    }
+
+    wp_set_object_terms($product_id, $assigned_term_ids, 'product_cat', false);
+    return true;
+}
+
 /**
  * Salva un prodotto a partire dai dati di riga.
  *
@@ -12122,7 +12209,6 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
     }
 
     if (isset($data['product_subcategories'])) {
-        // Preserve builder/import subcategories as product meta without changing product_cat assignments.
         $subcategory_value = bw_import_product_subcategories_to_meta_string($data['product_subcategories']);
         $product->update_meta_data('product_subcategories', $subcategory_value);
         $product->update_meta_data('_bw_product_subcategories', $subcategory_value);
@@ -12219,6 +12305,8 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         update_post_meta($product->get_id(), '_bw_product_subcategories', $subcategory_value);
         if ($subcategory_value === '') {
             $warnings[] = __('Product subcategories were present in mapping but resolved to an empty value.', 'bw');
+        } elseif (!bw_import_assign_digital_product_subcategories($product->get_id(), $subcategory_value, $warnings)) {
+            $warnings[] = __('Product subcategories meta was saved, but no matching WooCommerce product categories could be assigned.', 'bw');
         }
     }
 
@@ -12476,6 +12564,42 @@ function bw_import_build_variation_downloads($download_url, $download_name)
     ];
 }
 
+function bw_import_persist_variation_attribute_value($variation_id, $attribute_key, $attribute_value, &$warnings = [])
+{
+    $variation_id = absint($variation_id);
+    $attribute_key = sanitize_title((string) $attribute_key);
+    $attribute_value = trim((string) $attribute_value);
+
+    if ($variation_id < 1 || $attribute_key === '' || $attribute_value === '') {
+        $warnings[] = __('Variation attribute assignment failed because the attribute key or value was empty.', 'bw');
+        return false;
+    }
+
+    $meta_key = 'attribute_' . $attribute_key;
+    update_post_meta($variation_id, $meta_key, $attribute_value);
+    delete_post_meta($variation_id, 'attribute_pa_' . $attribute_key);
+    clean_post_cache($variation_id);
+
+    $stored_value = (string) get_post_meta($variation_id, $meta_key, true);
+    if (sanitize_title($stored_value) !== sanitize_title($attribute_value)) {
+        update_post_meta($variation_id, $meta_key, $attribute_value);
+        clean_post_cache($variation_id);
+        $stored_value = (string) get_post_meta($variation_id, $meta_key, true);
+    }
+
+    if (sanitize_title($stored_value) !== sanitize_title($attribute_value)) {
+        $warnings[] = sprintf(
+            /* translators: 1: attribute label, 2: expected value */
+            __('Variation attribute %1$s could not be persisted as %2$s.', 'bw'),
+            $attribute_key,
+            $attribute_value
+        );
+        return false;
+    }
+
+    return true;
+}
+
 function bw_import_normalize_source_image_url_for_lookup($url)
 {
     $url = trim((string) $url);
@@ -12705,7 +12829,9 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
     }
 
     if ($variation_id > 0 && $variation_attribute_value !== '') {
-        update_post_meta($variation_id, 'attribute_' . sanitize_title($attribute_key), $variation_attribute_value);
+        bw_import_persist_variation_attribute_value($variation_id, $attribute_key, $variation_attribute_value, $warnings);
+    } else {
+        $warnings[] = __('Variation License attribute value was empty after save.', 'bw');
     }
 
     if (!empty($options['skip_images'])) {
