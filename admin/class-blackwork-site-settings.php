@@ -1895,6 +1895,10 @@ function bw_digital_csv_builder_validate_complete_json($raw_json)
         );
     }
 
+    if (count($subcategories) > 5) {
+        return new WP_Error('bw_digital_csv_json_subcategories_too_many', __('Complete Product JSON creative_data.product_subcategories must contain no more than 5 items.', 'bw'));
+    }
+
     foreach (['product_gallery', 'showcase_image_urls'] as $source_array_key) {
         foreach ($decoded['source_data'][$source_array_key] as $index => $item_value) {
             if (!is_scalar($item_value)) {
@@ -2231,6 +2235,10 @@ function bw_digital_csv_builder_generate($raw_json)
     $errors = [];
     $warnings = [];
     $success = [];
+
+    if (!empty($creative['product_subcategories']) && count($creative['product_subcategories']) < 3) {
+        $warnings[] = __('Fewer than 3 product_subcategories were provided. Add more when visually and contextually justified.', 'bw');
+    }
 
     $final_title = $creative['post_title'] !== '' ? $creative['post_title'] : trim((string) $yaml['PRODUCT TITLE']);
     $final_slug = bw_digital_csv_builder_slugify($final_title);
@@ -9693,6 +9701,10 @@ function bw_import_handle_run_request($state)
         return new WP_Error('bw_import_permission', __('You do not have permission to run the import.', 'bw'));
     }
 
+    if (function_exists('set_time_limit')) {
+        @set_time_limit(300);
+    }
+
     if (!isset($_POST['bw_import_run_nonce']) || !wp_verify_nonce($_POST['bw_import_run_nonce'], 'bw_import_run')) {
         return new WP_Error('bw_import_nonce', __('Invalid nonce. Please try again.', 'bw'));
     }
@@ -10757,6 +10769,7 @@ function bw_import_get_mapping_options()
         ],
         __('Categories & Tags', 'bw') => [
             'categories' => __('Product Categories (comma separated)', 'bw'),
+            'product_subcategories' => __('Product Subcategories (comma separated)', 'bw'),
             'tags' => __('Product Tags (comma separated)', 'bw'),
         ],
         __('Images', 'bw') => [
@@ -10930,6 +10943,9 @@ function bw_import_get_mapping_aliases()
         'defaultvariation' => 'default_variation',
         'category' => 'categories',
         'categories' => 'categories',
+        'product_subcategories' => 'product_subcategories',
+        'productsubcategories' => 'product_subcategories',
+        'subcategories' => 'product_subcategories',
         'tag' => 'tags',
         'tags' => 'tags',
         'upsell' => 'upsells',
@@ -11524,6 +11540,9 @@ function bw_import_prepare_row_data($row_data, $mapping)
             case 'categories':
                 $data['categories'] = bw_import_explode_list($clean_value);
                 break;
+            case 'product_subcategories':
+                $data['product_subcategories'] = bw_import_explode_list($clean_value);
+                break;
             case 'tags':
                 $data['tags'] = bw_import_explode_list($clean_value);
                 break;
@@ -11838,6 +11857,11 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         }
     }
 
+    if (isset($data['product_subcategories'])) {
+        // Preserve builder/import subcategories as product meta without changing product_cat assignments.
+        $product->update_meta_data('product_subcategories', implode(',', array_map('sanitize_text_field', (array) $data['product_subcategories'])));
+    }
+
     $normalized_meta = bw_import_normalize_meta_aliases(isset($data['meta']) ? $data['meta'] : []);
 
     if (!empty($normalized_meta)) {
@@ -11870,25 +11894,32 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         }
     } else {
         if (!empty($data['product']['featured_image'])) {
-            $attachment_id = bw_import_handle_image($data['product']['featured_image'], $product_id);
+            $featured_image_error = '';
+            $attachment_id = bw_import_handle_image($data['product']['featured_image'], $product_id, $featured_image_error);
             if ($attachment_id) {
                 $product->set_image_id($attachment_id);
             } else {
-                $warnings[] = __('Featured image sideload failed.', 'bw');
+                $warnings[] = sprintf(
+                    __('Featured image sideload failed: %1$s (%2$s)', 'bw'),
+                    esc_url_raw($data['product']['featured_image']),
+                    $featured_image_error !== '' ? $featured_image_error : __('unknown error', 'bw')
+                );
             }
         }
 
         if (!empty($data['product']['gallery'])) {
             $gallery_ids = [];
             foreach ($data['product']['gallery'] as $image_url) {
-                $image_id = bw_import_handle_image($image_url, $product_id);
+                $gallery_error = '';
+                $image_id = bw_import_handle_image($image_url, $product_id, $gallery_error);
                 if ($image_id) {
                     $gallery_ids[] = $image_id;
                 } else {
                     $warnings[] = sprintf(
-                        /* translators: %s: image URL */
-                        __('Gallery image sideload failed: %s', 'bw'),
-                        esc_url_raw($image_url)
+                        /* translators: 1: image URL, 2: error detail */
+                        __('Gallery image sideload failed: %1$s (%2$s)', 'bw'),
+                        esc_url_raw($image_url),
+                        $gallery_error !== '' ? $gallery_error : __('unknown error', 'bw')
                     );
                 }
             }
@@ -11896,11 +11927,16 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         }
 
         if (!empty($normalized_meta['_bw_slider_hover_image'])) {
-            $hover_image_id = bw_import_handle_image($normalized_meta['_bw_slider_hover_image'], $product_id);
+            $hover_image_error = '';
+            $hover_image_id = bw_import_handle_image($normalized_meta['_bw_slider_hover_image'], $product_id, $hover_image_error);
             if ($hover_image_id) {
                 $product->update_meta_data('_bw_slider_hover_image', $hover_image_id);
             } else {
-                $warnings[] = __('Hover image sideload failed.', 'bw');
+                $warnings[] = sprintf(
+                    __('Hover image sideload failed: %1$s (%2$s)', 'bw'),
+                    esc_url_raw($normalized_meta['_bw_slider_hover_image']),
+                    $hover_image_error !== '' ? $hover_image_error : __('unknown error', 'bw')
+                );
             }
         }
     }
@@ -12241,7 +12277,8 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
             $warnings[] = __('Variation image skipped by configuration.', 'bw');
         }
     } elseif (!empty($data['variation']['image'])) {
-        $image_id = bw_import_handle_image($data['variation']['image'], $variation_id);
+        $variation_image_error = '';
+        $image_id = bw_import_handle_image($data['variation']['image'], $variation_id, $variation_image_error);
         if ($image_id) {
             $variation->set_image_id($image_id);
             try {
@@ -12251,9 +12288,10 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
             }
         } else {
             $warnings[] = sprintf(
-                /* translators: %s: image URL */
-                __('Variation image sideload failed: %s', 'bw'),
-                esc_url_raw($data['variation']['image'])
+                /* translators: 1: image URL, 2: error detail */
+                __('Variation image sideload failed: %1$s (%2$s)', 'bw'),
+                esc_url_raw($data['variation']['image']),
+                $variation_image_error !== '' ? $variation_image_error : __('unknown error', 'bw')
             );
         }
     }
@@ -12371,13 +12409,14 @@ function bw_import_resolve_term_ids($terms, $taxonomy)
  *
  * @return int Attachment ID.
  */
-function bw_import_handle_image($image_url, $product_id)
+function bw_import_handle_image($image_url, $product_id, &$error_message = '')
 {
+    $error_message = '';
     if (empty($image_url)) {
         return 0;
     }
 
-    if (!function_exists('media_sideload_image')) {
+    if (!function_exists('media_sideload_image') || !function_exists('media_handle_sideload')) {
         require_once ABSPATH . 'wp-admin/includes/media.php';
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -12388,12 +12427,38 @@ function bw_import_handle_image($image_url, $product_id)
         return $image_id;
     }
 
-    $sideload = media_sideload_image($image_url, $product_id, null, 'id');
-    if (is_wp_error($sideload)) {
+    $parsed_path = wp_parse_url($image_url, PHP_URL_PATH);
+    $file_name = $parsed_path ? basename((string) $parsed_path) : '';
+    if ($file_name === '') {
+        $file_name = 'blackwork-import-image';
+    }
+
+    $timeout = (int) apply_filters('bw_import_image_timeout', 20, $image_url);
+    if ($timeout < 5) {
+        $timeout = 5;
+    }
+
+    $temporary_file = download_url($image_url, $timeout);
+    if (is_wp_error($temporary_file)) {
+        $error_message = $temporary_file->get_error_message();
         return 0;
     }
 
-    return (int) $sideload;
+    $file_array = [
+        'name' => sanitize_file_name($file_name),
+        'tmp_name' => $temporary_file,
+    ];
+
+    $attachment_id = media_handle_sideload($file_array, absint($product_id));
+    if (is_wp_error($attachment_id)) {
+        $error_message = $attachment_id->get_error_message();
+        if (!empty($file_array['tmp_name']) && file_exists($file_array['tmp_name'])) {
+            @unlink($file_array['tmp_name']);
+        }
+        return 0;
+    }
+
+    return (int) $attachment_id;
 }
 
 /**
