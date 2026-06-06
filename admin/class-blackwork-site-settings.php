@@ -1544,6 +1544,774 @@ function bw_product_import_template_maybe_download()
 }
 add_action('admin_init', 'bw_product_import_template_maybe_download', 4);
 
+function bw_digital_csv_builder_user_can_manage()
+{
+    return current_user_can('manage_woocommerce') || current_user_can('manage_options');
+}
+
+function bw_digital_csv_builder_allowed_subcategories()
+{
+    return [
+        'Botany',
+        'Mammals',
+        'Birds',
+        'Fish',
+        'Insects',
+        'Reptiles & Amphibians',
+        'Paleontology',
+        'Skeletal Anatomy',
+        'Muscular Anatomy',
+        'Internal Anatomy',
+        'Surgery',
+        'Medical Conditions',
+        'Physiognomy / Phrenology',
+        'Astronomy',
+        'Mathematics / Geometry',
+        'Physics',
+        'Chemistry',
+        'Scientific Instruments',
+        'Maps',
+        'Exploration / Voyages',
+        'Ethnography',
+        'Landscapes',
+        'Religious Scenes',
+        'Mythology',
+        'Allegory',
+        'Symbolism / Iconology',
+        'Architecture',
+        'Ornament / Patterns',
+        'Furniture',
+        'Interiors',
+        'Weapons & Armor',
+        'Tools & Instruments',
+        'Decorative Objects',
+        'Everyday Objects',
+        'Ships',
+        'Vehicles (Land)',
+        'Aviation',
+        'Machinery',
+        'Heraldry / Coats of Arms',
+        'Emblems / Seals',
+        'Letterforms / Calligraphy',
+        'Ornaments / Borders',
+    ];
+}
+
+function bw_digital_csv_builder_expected_yaml_fields()
+{
+    return [
+        'PRODUCT TITLE',
+        'DIGITAL ASSETS LIST',
+        'FEATURED IMAGE URL',
+        'PRODUCT GALLERY',
+        'HOVER IMAGE URL',
+        'SHOWCASE IMAGE URLS',
+        'HOVER VIDEO URL',
+        'YEAR',
+        'AUTHOR / ARTIST',
+        'TOTAL ASSETS',
+        'FORMATS',
+        'SOURCE NOTES',
+        'PRODUCT CONTEXT',
+        'TECHNIQUE',
+        'PRICE',
+        'PRICE COMMERCIAL',
+        'PRICE EXTENDED',
+        'DOWNLOAD ZIP URL',
+        'DOWNLOAD ZIP URL COMMERCIAL',
+        'DOWNLOAD ZIP URL EXTENDED',
+    ];
+}
+
+function bw_digital_csv_builder_template_path()
+{
+    $templates = bw_product_import_template_registry();
+    if (empty($templates['digital_csv']['path'])) {
+        return '';
+    }
+
+    return (string) $templates['digital_csv']['path'];
+}
+
+function bw_digital_csv_builder_parse_template()
+{
+    $template_path = bw_digital_csv_builder_template_path();
+    if ($template_path === '' || !file_exists($template_path) || !is_readable($template_path)) {
+        return new WP_Error('bw_digital_csv_template_missing', __('Digital CSV template is not available.', 'bw'));
+    }
+
+    $rows = [];
+    $handle = fopen($template_path, 'r');
+    if (!$handle) {
+        return new WP_Error('bw_digital_csv_template_open', __('Digital CSV template could not be opened.', 'bw'));
+    }
+
+    while (($row = fgetcsv($handle)) !== false) {
+        $rows[] = $row;
+    }
+    fclose($handle);
+
+    if (count($rows) !== 4) {
+        return new WP_Error('bw_digital_csv_template_shape', __('Digital CSV template must contain exactly 1 header row and 3 data rows.', 'bw'));
+    }
+
+    $headers = isset($rows[0]) ? array_map('strval', (array) $rows[0]) : [];
+    $header_count = count($headers);
+    if ($header_count < 1) {
+        return new WP_Error('bw_digital_csv_template_headers', __('Digital CSV template headers are empty.', 'bw'));
+    }
+
+    $assoc_rows = [];
+    for ($i = 1; $i < 4; $i++) {
+        if (count($rows[$i]) !== $header_count) {
+            return new WP_Error('bw_digital_csv_template_columns', __('Digital CSV template rows do not match the header column count.', 'bw'));
+        }
+        $assoc_rows[] = array_combine($headers, $rows[$i]);
+    }
+
+    return [
+        'headers' => $headers,
+        'rows' => $assoc_rows,
+    ];
+}
+
+function bw_digital_csv_builder_parse_yaml($raw_yaml)
+{
+    $raw_yaml = (string) $raw_yaml;
+    if (trim($raw_yaml) === '') {
+        return new WP_Error('bw_digital_csv_yaml_empty', __('Product YAML is required.', 'bw'));
+    }
+
+    $lines = preg_split("/\r\n|\n|\r/", $raw_yaml);
+    $data = [];
+    $current_key = '';
+
+    foreach ((array) $lines as $line) {
+        $line = rtrim((string) $line, "\r");
+        if (trim($line) === '') {
+            if ($current_key !== '' && isset($data[$current_key]) && $data[$current_key] !== '') {
+                $data[$current_key] .= "\n";
+            }
+            continue;
+        }
+
+        if (preg_match('/^([A-Z0-9 \/&_\-\(\)]+):\s*(.*)$/', $line, $matches)) {
+            $current_key = trim((string) $matches[1]);
+            $data[$current_key] = (string) $matches[2];
+            continue;
+        }
+
+        if ($current_key === '') {
+            continue;
+        }
+
+        $data[$current_key] = isset($data[$current_key]) && $data[$current_key] !== ''
+            ? rtrim((string) $data[$current_key], "\n") . "\n" . trim($line)
+            : trim($line);
+    }
+
+    $missing_fields = [];
+    foreach (bw_digital_csv_builder_expected_yaml_fields() as $field_name) {
+        if (!array_key_exists($field_name, $data)) {
+            $missing_fields[] = $field_name;
+        }
+    }
+
+    if (!empty($missing_fields)) {
+        return new WP_Error(
+            'bw_digital_csv_yaml_missing_fields',
+            sprintf(
+                /* translators: %s: missing YAML field list */
+                __('YAML is missing required field labels: %s', 'bw'),
+                implode(', ', $missing_fields)
+            )
+        );
+    }
+
+    foreach ($data as $key => $value) {
+        $data[$key] = trim((string) $value);
+    }
+
+    return $data;
+}
+
+function bw_digital_csv_builder_read_yaml_input()
+{
+    $raw_yaml = isset($_POST['bw_digital_csv_yaml']) ? (string) wp_unslash($_POST['bw_digital_csv_yaml']) : '';
+
+    if (!empty($_FILES['bw_digital_csv_yaml_file']['tmp_name']) && is_uploaded_file($_FILES['bw_digital_csv_yaml_file']['tmp_name'])) {
+        $uploaded_yaml = file_get_contents($_FILES['bw_digital_csv_yaml_file']['tmp_name']);
+        if ($uploaded_yaml !== false && trim((string) $uploaded_yaml) !== '') {
+            $raw_yaml = (string) $uploaded_yaml;
+        }
+    }
+
+    return $raw_yaml;
+}
+
+function bw_digital_csv_builder_validate_creative_json($raw_json)
+{
+    $raw_json = (string) $raw_json;
+    if (trim($raw_json) === '') {
+        return new WP_Error('bw_digital_csv_json_empty', __('ChatGPT Creative JSON is required.', 'bw'));
+    }
+
+    $decoded = json_decode($raw_json, true);
+    if (!is_array($decoded)) {
+        return new WP_Error('bw_digital_csv_json_invalid', __('ChatGPT Creative JSON could not be parsed.', 'bw'));
+    }
+
+    $allowed_keys = [
+        'post_title',
+        'post_content',
+        'post_excerpt',
+        'tags',
+        'product_subcategories',
+        'visual_analysis_notes',
+    ];
+    $required_keys = [
+        'post_title',
+        'post_content',
+        'post_excerpt',
+        'tags',
+        'product_subcategories',
+    ];
+
+    $unknown_keys = array_diff(array_keys($decoded), $allowed_keys);
+    if (!empty($unknown_keys)) {
+        return new WP_Error(
+            'bw_digital_csv_json_unknown_keys',
+            sprintf(
+                /* translators: %s: unexpected JSON keys */
+                __('ChatGPT Creative JSON contains unsupported keys: %s', 'bw'),
+                implode(', ', $unknown_keys)
+            )
+        );
+    }
+
+    foreach ($required_keys as $required_key) {
+        if (!array_key_exists($required_key, $decoded)) {
+            return new WP_Error(
+                'bw_digital_csv_json_missing_key',
+                sprintf(
+                    /* translators: %s: missing JSON key */
+                    __('ChatGPT Creative JSON is missing required key: %s', 'bw'),
+                    $required_key
+                )
+            );
+        }
+    }
+
+    $recursive_values = new RecursiveIteratorIterator(new RecursiveArrayIterator($decoded));
+    foreach ($recursive_values as $value) {
+        if (!is_scalar($value)) {
+            continue;
+        }
+
+        $value = (string) $value;
+        if (preg_match('~https?://|www\.dropbox\.com|dl\.dropboxusercontent\.com~i', $value)) {
+            return new WP_Error('bw_digital_csv_json_contains_urls', __('ChatGPT Creative JSON must not contain media or download URLs.', 'bw'));
+        }
+    }
+
+    if (!is_array($decoded['tags'])) {
+        return new WP_Error('bw_digital_csv_json_tags_type', __('ChatGPT Creative JSON tags must be an array.', 'bw'));
+    }
+
+    $tags = array_values(array_filter(array_map(static function ($tag) {
+        return trim((string) $tag);
+    }, $decoded['tags']), static function ($tag) {
+        return $tag !== '';
+    }));
+
+    if (count($tags) !== 10) {
+        return new WP_Error('bw_digital_csv_json_tags_count', __('ChatGPT Creative JSON must contain exactly 10 tags.', 'bw'));
+    }
+
+    if (!is_array($decoded['product_subcategories'])) {
+        return new WP_Error('bw_digital_csv_json_subcategories_type', __('ChatGPT Creative JSON product_subcategories must be an array.', 'bw'));
+    }
+
+    $allowed_subcategories = bw_digital_csv_builder_allowed_subcategories();
+    $subcategories = array_values(array_filter(array_map(static function ($subcategory) {
+        return trim((string) $subcategory);
+    }, $decoded['product_subcategories']), static function ($subcategory) {
+        return $subcategory !== '';
+    }));
+
+    $invalid_subcategories = array_values(array_diff($subcategories, $allowed_subcategories));
+    if (!empty($invalid_subcategories)) {
+        return new WP_Error(
+            'bw_digital_csv_json_subcategories_invalid',
+            sprintf(
+                /* translators: %s: invalid subcategories */
+                __('ChatGPT Creative JSON contains invalid Digital subcategories: %s', 'bw'),
+                implode(', ', $invalid_subcategories)
+            )
+        );
+    }
+
+    return [
+        'post_title' => trim((string) $decoded['post_title']),
+        'post_content' => trim((string) $decoded['post_content']),
+        'post_excerpt' => trim((string) $decoded['post_excerpt']),
+        'tags' => $tags,
+        'product_subcategories' => $subcategories,
+        'visual_analysis_notes' => isset($decoded['visual_analysis_notes']) ? trim((string) $decoded['visual_analysis_notes']) : '',
+    ];
+}
+
+function bw_digital_csv_builder_parse_url_list($value)
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return [];
+    }
+
+    $parts = preg_split('/[\r\n,]+/', $value);
+    $urls = [];
+    foreach ((array) $parts as $part) {
+        $part = trim((string) $part);
+        if ($part !== '') {
+            $urls[] = $part;
+        }
+    }
+
+    return $urls;
+}
+
+function bw_digital_csv_builder_convert_dropbox_url($url, &$error_message = '')
+{
+    $error_message = '';
+    $url = trim((string) $url);
+    if ($url === '') {
+        return '';
+    }
+
+    $parts = wp_parse_url($url);
+    if (!is_array($parts) || empty($parts['host'])) {
+        return $url;
+    }
+
+    $host = strtolower((string) $parts['host']);
+    $is_dropbox = $host === 'www.dropbox.com' || $host === 'dropbox.com' || $host === 'dl.dropboxusercontent.com';
+    if (!$is_dropbox) {
+        return $url;
+    }
+
+    $query = isset($parts['query']) ? (string) $parts['query'] : '';
+    $query_segments = $query === '' ? [] : preg_split('/&/', $query);
+    $filtered_segments = [];
+    $preserved_keys = [];
+    $had_rlkey = false;
+    $had_st = false;
+
+    foreach ((array) $query_segments as $segment) {
+        if ($segment === '') {
+            continue;
+        }
+
+        $pair = explode('=', $segment, 2);
+        $raw_key = isset($pair[0]) ? (string) $pair[0] : '';
+        $decoded_key = strtolower(rawurldecode($raw_key));
+
+        if ($decoded_key === 'rlkey') {
+            $had_rlkey = true;
+        }
+        if ($decoded_key === 'st') {
+            $had_st = true;
+        }
+
+        if (in_array($decoded_key, ['dl', 'raw'], true)) {
+            continue;
+        }
+
+        $preserved_keys[] = $decoded_key;
+        $filtered_segments[] = $segment;
+    }
+
+    if ($had_rlkey && !in_array('rlkey', $preserved_keys, true)) {
+        $error_message = __('Dropbox conversion removed rlkey unexpectedly.', 'bw');
+        return '';
+    }
+
+    if ($had_st && !in_array('st', $preserved_keys, true)) {
+        $error_message = __('Dropbox conversion removed st unexpectedly.', 'bw');
+        return '';
+    }
+
+    $scheme = isset($parts['scheme']) ? (string) $parts['scheme'] : 'https';
+    $path = isset($parts['path']) ? (string) $parts['path'] : '';
+    $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+    $query_string = !empty($filtered_segments) ? '?' . implode('&', $filtered_segments) : '';
+
+    return $scheme . '://dl.dropboxusercontent.com' . $path . $query_string . $fragment;
+}
+
+function bw_digital_csv_builder_slugify($title)
+{
+    return sanitize_title((string) $title);
+}
+
+function bw_digital_csv_builder_generate_parent_sku($title)
+{
+    $slug = bw_digital_csv_builder_slugify($title);
+    if ($slug === '') {
+        return '';
+    }
+
+    return strtoupper(str_replace('-', '_', $slug));
+}
+
+function bw_digital_csv_builder_assign_value(array &$row, $key, $value)
+{
+    if (array_key_exists($key, $row)) {
+        $row[$key] = $value;
+    }
+}
+
+function bw_digital_csv_builder_generate($raw_yaml, $raw_json)
+{
+    $template = bw_digital_csv_builder_parse_template();
+    if (is_wp_error($template)) {
+        return $template;
+    }
+
+    $yaml = bw_digital_csv_builder_parse_yaml($raw_yaml);
+    if (is_wp_error($yaml)) {
+        return $yaml;
+    }
+
+    $creative = bw_digital_csv_builder_validate_creative_json($raw_json);
+    if (is_wp_error($creative)) {
+        return $creative;
+    }
+
+    $headers = $template['headers'];
+    $rows = $template['rows'];
+    $parent = $rows[0];
+    $commercial = $rows[1];
+    $extended = $rows[2];
+    $errors = [];
+    $warnings = [];
+    $success = [];
+
+    $final_title = $creative['post_title'] !== '' ? $creative['post_title'] : trim((string) $yaml['PRODUCT TITLE']);
+    $final_slug = bw_digital_csv_builder_slugify($final_title);
+    $parent_sku = bw_digital_csv_builder_generate_parent_sku($final_title);
+    $commercial_sku = $parent_sku !== '' ? $parent_sku . '_COMMERCIAL' : '';
+    $extended_sku = $parent_sku !== '' ? $parent_sku . '_EXTENDED' : '';
+
+    $featured_error = '';
+    $featured_image_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['FEATURED IMAGE URL'], $featured_error);
+    if ($featured_error !== '') {
+        $errors[] = $featured_error;
+    }
+
+    $gallery_urls = [];
+    foreach (bw_digital_csv_builder_parse_url_list((string) $yaml['PRODUCT GALLERY']) as $gallery_url) {
+        $gallery_error = '';
+        $converted_gallery_url = bw_digital_csv_builder_convert_dropbox_url($gallery_url, $gallery_error);
+        if ($gallery_error !== '') {
+            $errors[] = $gallery_error;
+            continue;
+        }
+        if ($converted_gallery_url !== '') {
+            $gallery_urls[] = $converted_gallery_url;
+        }
+    }
+
+    $hover_image_error = '';
+    $hover_image_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['HOVER IMAGE URL'], $hover_image_error);
+    if ($hover_image_error !== '') {
+        $errors[] = $hover_image_error;
+    }
+
+    $showcase_urls = [];
+    foreach (bw_digital_csv_builder_parse_url_list((string) $yaml['SHOWCASE IMAGE URLS']) as $showcase_url) {
+        $showcase_error = '';
+        $converted_showcase_url = bw_digital_csv_builder_convert_dropbox_url($showcase_url, $showcase_error);
+        if ($showcase_error !== '') {
+            $errors[] = $showcase_error;
+            continue;
+        }
+        if ($converted_showcase_url !== '') {
+            $showcase_urls[] = $converted_showcase_url;
+        }
+    }
+    $showcase_image_url = !empty($showcase_urls) ? $showcase_urls[0] : '';
+
+    $hover_video_error = '';
+    $hover_video_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['HOVER VIDEO URL'], $hover_video_error);
+    if ($hover_video_error !== '') {
+        $errors[] = $hover_video_error;
+    }
+
+    $default_zip_error = '';
+    $default_zip_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['DOWNLOAD ZIP URL'], $default_zip_error);
+    if ($default_zip_error !== '') {
+        $errors[] = $default_zip_error;
+    }
+    $commercial_zip_error = '';
+    $commercial_zip_override = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['DOWNLOAD ZIP URL COMMERCIAL'], $commercial_zip_error);
+    if ($commercial_zip_error !== '') {
+        $errors[] = $commercial_zip_error;
+    }
+    $extended_zip_error = '';
+    $extended_zip_override = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['DOWNLOAD ZIP URL EXTENDED'], $extended_zip_error);
+    if ($extended_zip_error !== '') {
+        $errors[] = $extended_zip_error;
+    }
+
+    $commercial_zip_url = $commercial_zip_override !== '' ? $commercial_zip_override : $default_zip_url;
+    $extended_zip_url = $extended_zip_override !== '' ? $extended_zip_override : $default_zip_url;
+
+    bw_digital_csv_builder_assign_value($parent, 'row_type', 'product');
+    bw_digital_csv_builder_assign_value($parent, 'parent_sku', '');
+    bw_digital_csv_builder_assign_value($parent, 'sku', $parent_sku);
+    bw_digital_csv_builder_assign_value($parent, 'post_title', $final_title);
+    bw_digital_csv_builder_assign_value($parent, 'post_name', $final_slug);
+    bw_digital_csv_builder_assign_value($parent, 'post_status', 'publish');
+    bw_digital_csv_builder_assign_value($parent, 'product_type', 'variable');
+    bw_digital_csv_builder_assign_value($parent, 'default_variation', 'commercial');
+    bw_digital_csv_builder_assign_value($parent, 'regular_price', trim((string) $yaml['PRICE']));
+    bw_digital_csv_builder_assign_value($parent, 'categories', 'Digital Collections');
+    bw_digital_csv_builder_assign_value($parent, 'tags', implode(',', $creative['tags']));
+    bw_digital_csv_builder_assign_value($parent, 'post_content', $creative['post_content']);
+    bw_digital_csv_builder_assign_value($parent, 'post_excerpt', $creative['post_excerpt']);
+    bw_digital_csv_builder_assign_value($parent, 'featured_image', $featured_image_url);
+    bw_digital_csv_builder_assign_value($parent, 'product_gallery', implode(',', $gallery_urls));
+    bw_digital_csv_builder_assign_value($parent, 'stock_status', 'instock');
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_product_type', 'digital');
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_showcase_title', $final_title);
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_showcase_description', $creative['post_excerpt']);
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_showcase_image', $showcase_image_url);
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_assets_count', trim((string) $yaml['TOTAL ASSETS']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_formats', trim((string) $yaml['FORMATS']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_artist_name', trim((string) $yaml['AUTHOR / ARTIST']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_digital_source', trim((string) $yaml['SOURCE NOTES']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_digital_year', trim((string) $yaml['YEAR']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_digital_technique', trim((string) $yaml['TECHNIQUE']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_digital_total_assets', trim((string) $yaml['TOTAL ASSETS']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_digital_assets_list', trim((string) $yaml['DIGITAL ASSETS LIST']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_digital_formats', trim((string) $yaml['FORMATS']));
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_slider_hover_image', $hover_image_url);
+    bw_digital_csv_builder_assign_value($parent, 'meta:_bw_slider_hover_video', $hover_video_url);
+
+    bw_digital_csv_builder_assign_value($commercial, 'row_type', 'variation');
+    bw_digital_csv_builder_assign_value($commercial, 'parent_sku', $parent_sku);
+    bw_digital_csv_builder_assign_value($commercial, 'sku', $commercial_sku);
+    bw_digital_csv_builder_assign_value($commercial, 'variation_name', 'Commercial');
+    bw_digital_csv_builder_assign_value($commercial, 'variation_regular_price', trim((string) $yaml['PRICE COMMERCIAL']));
+    bw_digital_csv_builder_assign_value($commercial, 'variation_image', $featured_image_url);
+    bw_digital_csv_builder_assign_value($commercial, 'variation_enabled', 'yes');
+    bw_digital_csv_builder_assign_value($commercial, 'variation_virtual', 'yes');
+    bw_digital_csv_builder_assign_value($commercial, 'variation_downloadable', 'yes');
+    bw_digital_csv_builder_assign_value($commercial, 'variation_download_name', sprintf('Commercial License — %s', $final_title));
+    bw_digital_csv_builder_assign_value($commercial, 'variation_download_url', $commercial_zip_url);
+
+    bw_digital_csv_builder_assign_value($extended, 'row_type', 'variation');
+    bw_digital_csv_builder_assign_value($extended, 'parent_sku', $parent_sku);
+    bw_digital_csv_builder_assign_value($extended, 'sku', $extended_sku);
+    bw_digital_csv_builder_assign_value($extended, 'variation_name', 'Extended');
+    bw_digital_csv_builder_assign_value($extended, 'variation_regular_price', trim((string) $yaml['PRICE EXTENDED']));
+    bw_digital_csv_builder_assign_value($extended, 'variation_image', $featured_image_url);
+    bw_digital_csv_builder_assign_value($extended, 'variation_enabled', 'yes');
+    bw_digital_csv_builder_assign_value($extended, 'variation_virtual', 'yes');
+    bw_digital_csv_builder_assign_value($extended, 'variation_downloadable', 'yes');
+    bw_digital_csv_builder_assign_value($extended, 'variation_download_name', sprintf('Extended License — %s', $final_title));
+    bw_digital_csv_builder_assign_value($extended, 'variation_download_url', $extended_zip_url);
+
+    if (in_array('product_subcategories', $headers, true)) {
+        bw_digital_csv_builder_assign_value($parent, 'product_subcategories', implode(',', $creative['product_subcategories']));
+    } elseif (!empty($creative['product_subcategories'])) {
+        $warnings[] = __('The current Digital template has no product_subcategories column, so validated subcategories were not written into the CSV.', 'bw');
+    }
+
+    if ($final_title === '') {
+        $errors[] = __('Final post_title is empty after YAML/JSON fallback.', 'bw');
+    }
+    if ($final_slug === '') {
+        $errors[] = __('Final post_name could not be generated from post_title.', 'bw');
+    }
+    if ($parent_sku === '') {
+        $errors[] = __('Parent SKU could not be generated from the final post_title.', 'bw');
+    }
+
+    if (trim((string) $yaml['FEATURED IMAGE URL']) !== '') {
+        if ($featured_image_url === '') {
+            $errors[] = __('FEATURED IMAGE URL exists in YAML but featured_image would be empty.', 'bw');
+        }
+        if ((string) $commercial['variation_image'] === '' || (string) $extended['variation_image'] === '') {
+            $errors[] = __('FEATURED IMAGE URL exists in YAML but one or both variation_image fields would be empty.', 'bw');
+        }
+    }
+
+    if (trim((string) $yaml['PRODUCT GALLERY']) !== '' && (string) $parent['product_gallery'] === '') {
+        $errors[] = __('PRODUCT GALLERY exists in YAML but product_gallery would be empty.', 'bw');
+    }
+
+    if (trim((string) $yaml['HOVER IMAGE URL']) !== '' && (string) $parent['meta:_bw_slider_hover_image'] === '') {
+        $errors[] = __('HOVER IMAGE URL exists in YAML but meta:_bw_slider_hover_image would be empty.', 'bw');
+    }
+
+    if (trim((string) $yaml['SHOWCASE IMAGE URLS']) !== '' && (string) $parent['meta:_bw_showcase_image'] === '') {
+        $errors[] = __('SHOWCASE IMAGE URLS exists in YAML but meta:_bw_showcase_image would be empty.', 'bw');
+    }
+
+    if (trim((string) $yaml['DOWNLOAD ZIP URL']) !== '') {
+        if ((string) $commercial['variation_download_url'] === '' || (string) $extended['variation_download_url'] === '') {
+            $errors[] = __('DOWNLOAD ZIP URL exists in YAML but one or both variation_download_url fields would be empty.', 'bw');
+        }
+    }
+    if (trim((string) $yaml['DOWNLOAD ZIP URL COMMERCIAL']) !== '' && (string) $commercial['variation_download_url'] === '') {
+        $errors[] = __('DOWNLOAD ZIP URL COMMERCIAL exists in YAML but the Commercial variation_download_url would be empty.', 'bw');
+    }
+    if (trim((string) $yaml['DOWNLOAD ZIP URL EXTENDED']) !== '' && (string) $extended['variation_download_url'] === '') {
+        $errors[] = __('DOWNLOAD ZIP URL EXTENDED exists in YAML but the Extended variation_download_url would be empty.', 'bw');
+    }
+
+    $required_parent_fields = [
+        'row_type',
+        'sku',
+        'post_title',
+        'post_name',
+        'post_status',
+        'product_type',
+        'default_variation',
+        'categories',
+        'stock_status',
+        'meta:_bw_product_type',
+    ];
+    foreach ($required_parent_fields as $required_parent_field) {
+        if (array_key_exists($required_parent_field, $parent) && trim((string) $parent[$required_parent_field]) === '') {
+            $errors[] = sprintf(__('Parent row field %s is required and empty.', 'bw'), $required_parent_field);
+        }
+    }
+
+    $required_variation_fields = [
+        'row_type',
+        'parent_sku',
+        'sku',
+        'variation_name',
+        'variation_regular_price',
+        'variation_enabled',
+        'variation_virtual',
+        'variation_downloadable',
+        'variation_download_name',
+    ];
+
+    foreach (['Commercial' => $commercial, 'Extended' => $extended] as $label => $variation_row) {
+        foreach ($required_variation_fields as $required_variation_field) {
+            if (array_key_exists($required_variation_field, $variation_row) && trim((string) $variation_row[$required_variation_field]) === '') {
+                $errors[] = sprintf(__('%1$s variation field %2$s is required and empty.', 'bw'), $label, $required_variation_field);
+            }
+        }
+    }
+
+    if ((string) $commercial['variation_downloadable'] === 'yes' && trim((string) $commercial['variation_download_url']) === '') {
+        $errors[] = __('Commercial variation is downloadable but has no download ZIP URL. Provide DOWNLOAD ZIP URL or DOWNLOAD ZIP URL COMMERCIAL.', 'bw');
+    }
+
+    if ((string) $extended['variation_downloadable'] === 'yes' && trim((string) $extended['variation_download_url']) === '') {
+        $errors[] = __('Extended variation is downloadable but has no download ZIP URL. Provide DOWNLOAD ZIP URL or DOWNLOAD ZIP URL EXTENDED.', 'bw');
+    }
+
+    $final_rows = [$headers, [], [], []];
+    $ordered_rows = [$parent, $commercial, $extended];
+    foreach ($ordered_rows as $index => $ordered_row) {
+        foreach ($headers as $header) {
+            $final_rows[$index + 1][] = isset($ordered_row[$header]) ? (string) $ordered_row[$header] : '';
+        }
+    }
+
+    if (count($final_rows) !== 4) {
+        $errors[] = __('Final CSV row count is invalid. Expected exactly 4 rows.', 'bw');
+    }
+
+    $header_count = count($headers);
+    foreach ($final_rows as $row_index => $final_row) {
+        if (count($final_row) !== $header_count) {
+            $errors[] = sprintf(__('Final CSV row %d does not match the template column count.', 'bw'), $row_index + 1);
+        }
+    }
+
+    $csv_handle = fopen('php://temp', 'r+');
+    foreach ($final_rows as $csv_row) {
+        fputcsv($csv_handle, $csv_row);
+    }
+    rewind($csv_handle);
+    $csv_content = stream_get_contents($csv_handle);
+    fclose($csv_handle);
+
+    if (!empty($errors)) {
+        return [
+            'ok' => false,
+            'errors' => array_values(array_unique($errors)),
+            'warnings' => array_values(array_unique($warnings)),
+            'success' => [],
+            'csv' => '',
+            'filename' => '',
+            'yaml' => $yaml,
+            'creative' => $creative,
+        ];
+    }
+
+    $success[] = sprintf(__('Template columns validated: %d', 'bw'), $header_count);
+    $success[] = __('Generated exactly 1 parent row and 2 variation rows.', 'bw');
+    $success[] = __('Dropbox media and ZIP URLs were converted into final WordPress-compatible direct URLs.', 'bw');
+
+    return [
+        'ok' => true,
+        'errors' => [],
+        'warnings' => array_values(array_unique($warnings)),
+        'success' => $success,
+        'csv' => $csv_content,
+        'filename' => sprintf('blackwork-digital-product-completed-%s.csv', $final_slug !== '' ? $final_slug : 'product'),
+        'yaml' => $yaml,
+        'creative' => $creative,
+    ];
+}
+
+function bw_digital_csv_builder_handle_download_request()
+{
+    if (!bw_digital_csv_builder_user_can_manage()) {
+        return new WP_Error('bw_digital_csv_permission', __('You do not have permission to download generated Digital CSV files.', 'bw'));
+    }
+
+    if (!isset($_POST['bw_digital_csv_download_nonce']) || !wp_verify_nonce(wp_unslash($_POST['bw_digital_csv_download_nonce']), 'bw_digital_csv_download')) {
+        return new WP_Error('bw_digital_csv_download_nonce', __('Invalid Digital CSV download nonce. Please regenerate the CSV and try again.', 'bw'));
+    }
+
+    $payload = isset($_POST['bw_digital_csv_payload']) ? base64_decode((string) wp_unslash($_POST['bw_digital_csv_payload']), true) : false;
+    $filename = isset($_POST['bw_digital_csv_filename']) ? sanitize_file_name((string) wp_unslash($_POST['bw_digital_csv_filename'])) : 'blackwork-digital-product-completed.csv';
+
+    if ($payload === false || $payload === '') {
+        return new WP_Error('bw_digital_csv_download_empty', __('Generated Digital CSV payload is missing. Please generate the CSV again.', 'bw'));
+    }
+
+    nocache_headers();
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . rawurlencode($filename) . '"');
+    header('Content-Length: ' . (string) strlen($payload));
+    header('X-Content-Type-Options: nosniff');
+    echo $payload;
+    exit;
+}
+
+function bw_digital_csv_builder_maybe_download()
+{
+    if (!is_admin() || !isset($_POST['bw_digital_csv_download_submit'])) {
+        return;
+    }
+
+    $download_result = bw_digital_csv_builder_handle_download_request();
+    if (is_wp_error($download_result)) {
+        wp_die(esc_html($download_result->get_error_message()), 400);
+    }
+}
+add_action('admin_init', 'bw_digital_csv_builder_maybe_download', 5);
+
 function bw_product_import_export_page()
 {
     if (!current_user_can('manage_options')) {
@@ -7711,6 +8479,15 @@ function bw_site_render_import_product_tab()
     }
 
     $notices = [];
+    $digital_csv_builder = [
+        'yaml_input' => '',
+        'json_input' => '',
+        'errors' => [],
+        'warnings' => [],
+        'success' => [],
+        'csv_payload' => '',
+        'filename' => '',
+    ];
     $state = bw_import_get_state();
     $active_mode = bw_product_transfer_get_active_mode();
     $selected_export_category_id = bw_export_get_selected_category_id();
@@ -7735,6 +8512,28 @@ function bw_site_render_import_product_tab()
         $export_result = $GLOBALS['bw_export_request_result'];
         if (is_wp_error($export_result)) {
             $notices[] = ['type' => 'error', 'message' => $export_result->get_error_message()];
+        }
+    }
+
+    if (isset($_POST['bw_digital_csv_generate_submit'])) {
+        if (!bw_digital_csv_builder_user_can_manage()) {
+            $notices[] = ['type' => 'error', 'message' => __('You do not have permission to generate Digital CSV files.', 'bw')];
+        } elseif (!isset($_POST['bw_digital_csv_generate_nonce']) || !wp_verify_nonce(wp_unslash($_POST['bw_digital_csv_generate_nonce']), 'bw_digital_csv_generate')) {
+            $notices[] = ['type' => 'error', 'message' => __('Invalid Digital CSV generate nonce. Please try again.', 'bw')];
+        } else {
+            $digital_csv_builder['yaml_input'] = bw_digital_csv_builder_read_yaml_input();
+            $digital_csv_builder['json_input'] = isset($_POST['bw_digital_csv_creative_json']) ? (string) wp_unslash($_POST['bw_digital_csv_creative_json']) : '';
+            $builder_result = bw_digital_csv_builder_generate($digital_csv_builder['yaml_input'], $digital_csv_builder['json_input']);
+
+            if (is_wp_error($builder_result)) {
+                $digital_csv_builder['errors'][] = $builder_result->get_error_message();
+            } else {
+                $digital_csv_builder['errors'] = isset($builder_result['errors']) ? (array) $builder_result['errors'] : [];
+                $digital_csv_builder['warnings'] = isset($builder_result['warnings']) ? (array) $builder_result['warnings'] : [];
+                $digital_csv_builder['success'] = isset($builder_result['success']) ? (array) $builder_result['success'] : [];
+                $digital_csv_builder['csv_payload'] = !empty($builder_result['ok']) && !empty($builder_result['csv']) ? base64_encode((string) $builder_result['csv']) : '';
+                $digital_csv_builder['filename'] = isset($builder_result['filename']) ? (string) $builder_result['filename'] : '';
+            }
         }
     }
 
@@ -7990,6 +8789,83 @@ function bw_site_render_import_product_tab()
                         </div>
                     </div>
                 <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="bw-admin-card" style="margin-top:24px;">
+            <h3 class="bw-admin-card-title"><?php esc_html_e('Create Digital CSV', 'bw'); ?></h3>
+            <p class="bw-admin-card-helper"><?php esc_html_e('Upload or paste the Blackwork product YAML and paste the ChatGPT creative JSON. The plugin will build and validate the Digital CSV before download.', 'bw'); ?></p>
+
+            <form method="post" enctype="multipart/form-data" style="max-width:960px;">
+                <input type="hidden" name="product_flow" value="import" />
+                <?php wp_nonce_field('bw_digital_csv_generate', 'bw_digital_csv_generate_nonce'); ?>
+                <table class="form-table bw-admin-table bw-admin-form-grid" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="bw_digital_csv_yaml"><?php esc_html_e('Product YAML', 'bw'); ?></label></th>
+                            <td>
+                                <textarea id="bw_digital_csv_yaml" name="bw_digital_csv_yaml" rows="14" class="large-text code" placeholder="<?php echo esc_attr("PRODUCT TITLE:\nFEATURED IMAGE URL:\nPRODUCT GALLERY:\nDOWNLOAD ZIP URL:"); ?>"><?php echo esc_textarea($digital_csv_builder['yaml_input']); ?></textarea>
+                                <p class="description"><?php esc_html_e('Paste the full Blackwork product YAML here, or upload a .yml/.yaml file below.', 'bw'); ?></p>
+                                <input type="file" name="bw_digital_csv_yaml_file" accept=".yml,.yaml,.txt,text/plain" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="bw_digital_csv_creative_json"><?php esc_html_e('ChatGPT Creative JSON', 'bw'); ?></label></th>
+                            <td>
+                                <textarea id="bw_digital_csv_creative_json" name="bw_digital_csv_creative_json" rows="14" class="large-text code" placeholder="<?php echo esc_attr("{\n  \"post_title\": \"\",\n  \"post_content\": \"\",\n  \"post_excerpt\": \"\",\n  \"tags\": [],\n  \"product_subcategories\": [],\n  \"visual_analysis_notes\": \"\"\n}"); ?>"><?php echo esc_textarea($digital_csv_builder['json_input']); ?></textarea>
+                                <p class="description"><?php esc_html_e('Provide only creative/semantic JSON fields. Media URLs, Dropbox links, prices, ZIP URLs, and CSV rows are not allowed here.', 'bw'); ?></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <?php submit_button(__('Generate Digital CSV', 'bw'), 'secondary', 'bw_digital_csv_generate_submit', false); ?>
+            </form>
+
+            <div style="margin-top:18px;">
+                <h4 style="margin:0 0 10px;"><?php esc_html_e('Validation report', 'bw'); ?></h4>
+
+                <?php if (!empty($digital_csv_builder['errors'])) : ?>
+                    <div class="notice notice-error inline">
+                        <p><strong><?php esc_html_e('Blocking errors', 'bw'); ?></strong></p>
+                        <ul style="margin:0 0 0 18px; list-style:disc;">
+                            <?php foreach ($digital_csv_builder['errors'] as $builder_error) : ?>
+                                <li><?php echo esc_html($builder_error); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($digital_csv_builder['warnings'])) : ?>
+                    <div class="notice notice-warning inline">
+                        <p><strong><?php esc_html_e('Warnings', 'bw'); ?></strong></p>
+                        <ul style="margin:0 0 0 18px; list-style:disc;">
+                            <?php foreach ($digital_csv_builder['warnings'] as $builder_warning) : ?>
+                                <li><?php echo esc_html($builder_warning); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($digital_csv_builder['success'])) : ?>
+                    <div class="notice notice-success inline">
+                        <p><strong><?php esc_html_e('Success summary', 'bw'); ?></strong></p>
+                        <ul style="margin:0 0 0 18px; list-style:disc;">
+                            <?php foreach ($digital_csv_builder['success'] as $builder_success) : ?>
+                                <li><?php echo esc_html($builder_success); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($digital_csv_builder['csv_payload'] !== '' && empty($digital_csv_builder['errors'])) : ?>
+                    <form method="post" style="margin-top:12px;">
+                        <input type="hidden" name="product_flow" value="import" />
+                        <?php wp_nonce_field('bw_digital_csv_download', 'bw_digital_csv_download_nonce'); ?>
+                        <input type="hidden" name="bw_digital_csv_payload" value="<?php echo esc_attr($digital_csv_builder['csv_payload']); ?>" />
+                        <input type="hidden" name="bw_digital_csv_filename" value="<?php echo esc_attr($digital_csv_builder['filename']); ?>" />
+                        <?php submit_button(__('Download Completed Digital CSV', 'bw'), 'primary', 'bw_digital_csv_download_submit', false); ?>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
 
