@@ -459,6 +459,24 @@
     margin: 0 0 12px;
 }
 
+.bw-import-panel .bw-import-mapping-status-summary {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 0 0 12px;
+}
+
+.bw-import-panel .bw-import-mapping-status-summary__item {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+}
+
+.bw-import-panel .bw-import-mapping-digital-warning {
+    margin: 0 0 12px;
+}
+
 .bw-import-panel .bw-import-upload-summary {
     margin-top: 24px;
 }
@@ -598,6 +616,46 @@
     box-sizing: border-box;
     padding: 14px 16px;
     vertical-align: middle;
+}
+
+.bw-import-panel .bw-import-mapping-table__row.is-mapped {
+    background: #f6fcf8;
+}
+
+.bw-import-panel .bw-import-mapping-table__row.is-ignored {
+    background: #fff8f8;
+}
+
+.bw-import-panel .bw-import-mapping-table__column-inner {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.bw-import-panel .bw-import-mapping-status-badge {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 22px;
+    justify-content: center;
+    width: 22px;
+}
+
+.bw-import-panel .bw-import-mapping-status-badge[data-state="mapped"] {
+    background: #008a20;
+    color: #fff;
+}
+
+.bw-import-panel .bw-import-mapping-status-badge[data-state="ignored"] {
+    background: #d63638;
+    color: #fff;
+}
+
+.bw-import-panel .bw-import-mapping-status-badge__icon {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .bw-import-panel .bw-import-mapping-table td strong {
@@ -762,6 +820,12 @@ body.bw-import-mapping-modal-open {
         align-items: flex-start;
         flex-direction: column;
     }
+
+    .bw-import-panel .bw-import-mapping-status-summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
 }
 
 @media (max-width: 782px) {
@@ -807,6 +871,10 @@ body.bw-import-mapping-modal-open {
 
     .bw-import-panel .bw-import-mapping-table td {
         padding: 8px 0;
+    }
+
+    .bw-import-panel .bw-import-mapping-table__column-inner {
+        align-items: flex-start;
     }
 
     .bw-import-panel .bw-import-mapping-table__mapping {

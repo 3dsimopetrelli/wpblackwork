@@ -8202,6 +8202,25 @@ function bw_site_render_import_product_tab()
                                     <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field, then continue to Step 3 — Run import.', 'bw'); ?></p>
                                 </div>
 
+                                <div class="bw-import-mapping-status-summary" id="bw-import-mapping-status-summary" aria-live="polite">
+                                    <span class="bw-import-mapping-status-summary__item">
+                                        <strong><?php esc_html_e('Mapped:', 'bw'); ?></strong>
+                                        <span id="bw-import-mapping-status-mapped">0</span>
+                                    </span>
+                                    <span class="bw-import-mapping-status-summary__item">
+                                        <strong><?php esc_html_e('Ignored:', 'bw'); ?></strong>
+                                        <span id="bw-import-mapping-status-ignored">0</span>
+                                    </span>
+                                </div>
+
+                                <div
+                                    class="notice notice-warning inline bw-import-mapping-digital-warning"
+                                    id="bw-import-mapping-digital-warning"
+                                    hidden
+                                >
+                                    <p><?php esc_html_e('Some important Digital fields are ignored. Review highlighted rows before running the import.', 'bw'); ?></p>
+                                </div>
+
                                 <table class="widefat fixed bw-import-mapping-table">
                                     <thead>
                                         <tr>
@@ -8226,9 +8245,19 @@ function bw_site_render_import_product_tab()
                                                 ? $submitted_mapping[$header]
                                                 : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
                                             ?>
-                                            <tr>
+                                            <tr class="bw-import-mapping-table__row" data-mapping-header="<?php echo esc_attr($header); ?>">
                                                 <td class="bw-import-mapping-table__column">
-                                                    <strong><?php echo esc_html($header); ?></strong>
+                                                    <div class="bw-import-mapping-table__column-inner">
+                                                        <span
+                                                            class="bw-import-mapping-status-badge"
+                                                            data-state="ignored"
+                                                            aria-label="<?php esc_attr_e('Ignored', 'bw'); ?>"
+                                                        >
+                                                            <span class="bw-import-mapping-status-badge__icon" aria-hidden="true">!</span>
+                                                            <span class="screen-reader-text bw-import-mapping-status-badge__text"><?php esc_html_e('Ignored', 'bw'); ?></span>
+                                                        </span>
+                                                        <strong><?php echo esc_html($header); ?></strong>
+                                                    </div>
                                                 </td>
                                                 <td class="bw-import-mapping-table__mapping">
                                                     <select class="bw-import-mapping-table__select" name="bw_import_mapping[<?php echo esc_attr($header); ?>]">

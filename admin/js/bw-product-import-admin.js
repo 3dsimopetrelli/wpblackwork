@@ -161,6 +161,10 @@
         const $mappingReopen = $('#bw-import-mapping-reopen');
         const $mappingClearForm = $('#bw-import-mapping-clear-form');
         const $mappingClearButton = $('#bw-import-mapping-clear');
+        const $mappingRows = $('.bw-import-mapping-table__row');
+        const $mappingStatusMapped = $('#bw-import-mapping-status-mapped');
+        const $mappingStatusIgnored = $('#bw-import-mapping-status-ignored');
+        const $mappingDigitalWarning = $('#bw-import-mapping-digital-warning');
         const $copyButtons = $('.bw-import-template-card__copy-prompt');
         const $copyStatus = $('#bw-import-template-copy-status');
 
@@ -366,6 +370,115 @@
             }
         }
 
+        function getImportantDigitalTargets() {
+            return [
+                'meta:_bw_product_type',
+                'meta:_bw_assets_count',
+                'meta:_bw_formats',
+                'meta:_bw_artist_name',
+                'meta:_digital_source',
+                'meta:_digital_publisher',
+                'meta:_digital_year',
+                'meta:_digital_technique',
+                'meta:_digital_total_assets',
+                'meta:_digital_assets_list',
+                'meta:_digital_formats',
+                'meta:_bw_slider_hover_image',
+                'meta:_bw_slider_hover_video',
+                'featured_image',
+                'product_gallery',
+                'variation_download_url',
+                'variation_download_name'
+            ];
+        }
+
+        function getDigitalDetectionTargets() {
+            return [
+                'meta:_bw_product_type',
+                'meta:_digital_source',
+                'meta:_digital_publisher',
+                'meta:_digital_year',
+                'meta:_digital_technique',
+                'meta:_digital_total_assets',
+                'meta:_digital_assets_list',
+                'meta:_digital_formats',
+                'variation_download_url',
+                'variation_download_name'
+            ];
+        }
+
+        function setRowStatus($row, isMapped) {
+            const $badge = $row.find('.bw-import-mapping-status-badge');
+            const $badgeText = $row.find('.bw-import-mapping-status-badge__text');
+            const $badgeIcon = $row.find('.bw-import-mapping-status-badge__icon');
+            const stateLabel = isMapped ? getString('mappedStatus', 'Mapped') : getString('ignoredStatus', 'Ignored');
+
+            $row.removeClass('is-mapped is-ignored').addClass(isMapped ? 'is-mapped' : 'is-ignored');
+
+            if ($badge.length) {
+                $badge.attr('data-state', isMapped ? 'mapped' : 'ignored');
+                $badge.attr('aria-label', stateLabel);
+            }
+
+            if ($badgeText.length) {
+                $badgeText.text(stateLabel);
+            }
+
+            if ($badgeIcon.length) {
+                $badgeIcon.text(isMapped ? '✓' : '!');
+            }
+        }
+
+        function updateMappingStatusIndicators() {
+            if (!$mappingRows.length) {
+                return;
+            }
+
+            const importantTargets = getImportantDigitalTargets();
+            const digitalDetectionTargets = getDigitalDetectionTargets();
+            let mappedCount = 0;
+            let ignoredCount = 0;
+            let ignoredImportantDigitalCount = 0;
+            let digitalMarkerCount = 0;
+
+            $mappingRows.each(function () {
+                const $row = $(this);
+                const header = String($row.data('mappingHeader') || '');
+                const $select = $row.find('.bw-import-mapping-table__select');
+                const value = String($select.val() || 'ignore');
+                const isMapped = value !== '' && value !== 'ignore';
+
+                if (isMapped) {
+                    mappedCount++;
+                } else {
+                    ignoredCount++;
+                }
+
+                if (digitalDetectionTargets.indexOf(header) !== -1) {
+                    digitalMarkerCount++;
+                }
+
+                if (!isMapped && importantTargets.indexOf(header) !== -1) {
+                    ignoredImportantDigitalCount++;
+                }
+
+                setRowStatus($row, isMapped);
+            });
+
+            if ($mappingStatusMapped.length) {
+                $mappingStatusMapped.text(String(mappedCount));
+            }
+
+            if ($mappingStatusIgnored.length) {
+                $mappingStatusIgnored.text(String(ignoredCount));
+            }
+
+            if ($mappingDigitalWarning.length) {
+                const looksDigital = digitalMarkerCount >= 3;
+                $mappingDigitalWarning.prop('hidden', !(looksDigital && ignoredImportantDigitalCount > 0));
+            }
+        }
+
         if ($mappingModal.length && $mappingSection.length) {
             $mappingModal.addClass('is-enhanced');
 
@@ -403,6 +516,14 @@
                 if (event.key === 'Escape' && $mappingModal.hasClass('is-open')) {
                     closeMappingModal();
                 }
+            });
+        }
+
+        if ($mappingRows.length) {
+            updateMappingStatusIndicators();
+
+            $mappingRows.find('.bw-import-mapping-table__select').on('change', function () {
+                updateMappingStatusIndicators();
             });
         }
 
