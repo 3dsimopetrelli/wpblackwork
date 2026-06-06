@@ -1948,6 +1948,103 @@ function bw_digital_csv_builder_convert_dropbox_url($url, &$error_message = '')
     return $scheme . '://dl.dropboxusercontent.com' . $path . $query_string . $fragment;
 }
 
+function bw_digital_csv_builder_is_absolute_http_url($url)
+{
+    $url = trim((string) $url);
+    if ($url === '') {
+        return false;
+    }
+
+    $parts = wp_parse_url($url);
+    if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+        return false;
+    }
+
+    $scheme = strtolower((string) $parts['scheme']);
+
+    return in_array($scheme, ['http', 'https'], true);
+}
+
+function bw_digital_csv_builder_validate_url_field($label, $original_url, $converted_url, $required = false, $conversion_error = '')
+{
+    $label = trim((string) $label);
+    $original_url = trim((string) $original_url);
+    $converted_url = trim((string) $converted_url);
+    $conversion_error = trim((string) $conversion_error);
+
+    if ($original_url === '') {
+        if ($required && $converted_url === '') {
+            return sprintf(__('%s is not a valid URL.', 'bw'), $label);
+        }
+
+        return '';
+    }
+
+    if ($conversion_error !== '') {
+        if (stripos($conversion_error, 'rlkey') !== false) {
+            return sprintf(__('Dropbox URL for %s lost the rlkey parameter during conversion.', 'bw'), $label);
+        }
+        if (stripos($conversion_error, 'st') !== false) {
+            return sprintf(__('Dropbox URL for %s lost the st parameter during conversion.', 'bw'), $label);
+        }
+
+        return sprintf(__('Dropbox URL for %s could not be converted.', 'bw'), $label);
+    }
+
+    if ($converted_url === '' || !bw_digital_csv_builder_is_absolute_http_url($converted_url)) {
+        return sprintf(__('%s is not a valid URL.', 'bw'), $label);
+    }
+
+    $original_parts = wp_parse_url($original_url);
+    if (!is_array($original_parts) || empty($original_parts['host'])) {
+        return '';
+    }
+
+    $original_host = strtolower((string) $original_parts['host']);
+    $is_dropbox = in_array($original_host, ['www.dropbox.com', 'dropbox.com', 'dl.dropboxusercontent.com'], true);
+    if (!$is_dropbox) {
+        return '';
+    }
+
+    $converted_parts = wp_parse_url($converted_url);
+    if (!is_array($converted_parts) || empty($converted_parts['host'])) {
+        return sprintf(__('%s is not a valid URL.', 'bw'), $label);
+    }
+
+    $converted_host = strtolower((string) $converted_parts['host']);
+    if ($converted_host !== 'dl.dropboxusercontent.com') {
+        return sprintf(__('Dropbox URL for %s must use dl.dropboxusercontent.com after conversion.', 'bw'), $label);
+    }
+
+    $original_query = [];
+    if (!empty($original_parts['query'])) {
+        wp_parse_str((string) $original_parts['query'], $original_query);
+    }
+
+    $converted_query = [];
+    if (!empty($converted_parts['query'])) {
+        wp_parse_str((string) $converted_parts['query'], $converted_query);
+    }
+
+    if (array_key_exists('rlkey', $original_query) && !array_key_exists('rlkey', $converted_query)) {
+        return sprintf(__('Dropbox URL for %s lost the rlkey parameter during conversion.', 'bw'), $label);
+    }
+
+    if (array_key_exists('st', $original_query) && !array_key_exists('st', $converted_query)) {
+        return sprintf(__('Dropbox URL for %s lost the st parameter during conversion.', 'bw'), $label);
+    }
+
+    if (array_key_exists('dl', $converted_query)) {
+        return sprintf(__('Dropbox URL for %s still contains the dl parameter after conversion.', 'bw'), $label);
+    }
+
+    if (array_key_exists('raw', $converted_query)) {
+        return sprintf(__('Dropbox URL for %s still contains the raw parameter after conversion.', 'bw'), $label);
+    }
+
+    return '';
+}
+
 function bw_digital_csv_builder_slugify($title)
 {
     return sanitize_title((string) $title);
@@ -2003,17 +2100,21 @@ function bw_digital_csv_builder_generate($raw_yaml, $raw_json)
     $extended_sku = $parent_sku !== '' ? $parent_sku . '_EXTENDED' : '';
 
     $featured_error = '';
-    $featured_image_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['FEATURED IMAGE URL'], $featured_error);
-    if ($featured_error !== '') {
-        $errors[] = $featured_error;
+    $featured_image_source = (string) $yaml['FEATURED IMAGE URL'];
+    $featured_image_url = bw_digital_csv_builder_convert_dropbox_url($featured_image_source, $featured_error);
+    $featured_validation_error = bw_digital_csv_builder_validate_url_field('FEATURED IMAGE URL', $featured_image_source, $featured_image_url, false, $featured_error);
+    if ($featured_validation_error !== '') {
+        $errors[] = $featured_validation_error;
     }
 
     $gallery_urls = [];
-    foreach (bw_digital_csv_builder_parse_url_list((string) $yaml['PRODUCT GALLERY']) as $gallery_url) {
+    foreach (bw_digital_csv_builder_parse_url_list((string) $yaml['PRODUCT GALLERY']) as $gallery_index => $gallery_url) {
         $gallery_error = '';
         $converted_gallery_url = bw_digital_csv_builder_convert_dropbox_url($gallery_url, $gallery_error);
-        if ($gallery_error !== '') {
-            $errors[] = $gallery_error;
+        $gallery_label = sprintf(__('PRODUCT GALLERY item %d', 'bw'), $gallery_index + 1);
+        $gallery_validation_error = bw_digital_csv_builder_validate_url_field($gallery_label, $gallery_url, $converted_gallery_url, false, $gallery_error);
+        if ($gallery_validation_error !== '') {
+            $errors[] = $gallery_validation_error;
             continue;
         }
         if ($converted_gallery_url !== '') {
@@ -2022,17 +2123,21 @@ function bw_digital_csv_builder_generate($raw_yaml, $raw_json)
     }
 
     $hover_image_error = '';
-    $hover_image_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['HOVER IMAGE URL'], $hover_image_error);
-    if ($hover_image_error !== '') {
-        $errors[] = $hover_image_error;
+    $hover_image_source = (string) $yaml['HOVER IMAGE URL'];
+    $hover_image_url = bw_digital_csv_builder_convert_dropbox_url($hover_image_source, $hover_image_error);
+    $hover_image_validation_error = bw_digital_csv_builder_validate_url_field('HOVER IMAGE URL', $hover_image_source, $hover_image_url, false, $hover_image_error);
+    if ($hover_image_validation_error !== '') {
+        $errors[] = $hover_image_validation_error;
     }
 
     $showcase_urls = [];
-    foreach (bw_digital_csv_builder_parse_url_list((string) $yaml['SHOWCASE IMAGE URLS']) as $showcase_url) {
+    foreach (bw_digital_csv_builder_parse_url_list((string) $yaml['SHOWCASE IMAGE URLS']) as $showcase_index => $showcase_url) {
         $showcase_error = '';
         $converted_showcase_url = bw_digital_csv_builder_convert_dropbox_url($showcase_url, $showcase_error);
-        if ($showcase_error !== '') {
-            $errors[] = $showcase_error;
+        $showcase_label = sprintf(__('SHOWCASE IMAGE URLS item %d', 'bw'), $showcase_index + 1);
+        $showcase_validation_error = bw_digital_csv_builder_validate_url_field($showcase_label, $showcase_url, $converted_showcase_url, false, $showcase_error);
+        if ($showcase_validation_error !== '') {
+            $errors[] = $showcase_validation_error;
             continue;
         }
         if ($converted_showcase_url !== '') {
@@ -2042,25 +2147,33 @@ function bw_digital_csv_builder_generate($raw_yaml, $raw_json)
     $showcase_image_url = !empty($showcase_urls) ? $showcase_urls[0] : '';
 
     $hover_video_error = '';
-    $hover_video_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['HOVER VIDEO URL'], $hover_video_error);
-    if ($hover_video_error !== '') {
-        $errors[] = $hover_video_error;
+    $hover_video_source = (string) $yaml['HOVER VIDEO URL'];
+    $hover_video_url = bw_digital_csv_builder_convert_dropbox_url($hover_video_source, $hover_video_error);
+    $hover_video_validation_error = bw_digital_csv_builder_validate_url_field('HOVER VIDEO URL', $hover_video_source, $hover_video_url, false, $hover_video_error);
+    if ($hover_video_validation_error !== '') {
+        $errors[] = $hover_video_validation_error;
     }
 
     $default_zip_error = '';
-    $default_zip_url = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['DOWNLOAD ZIP URL'], $default_zip_error);
-    if ($default_zip_error !== '') {
-        $errors[] = $default_zip_error;
+    $default_zip_source = (string) $yaml['DOWNLOAD ZIP URL'];
+    $default_zip_url = bw_digital_csv_builder_convert_dropbox_url($default_zip_source, $default_zip_error);
+    $default_zip_validation_error = bw_digital_csv_builder_validate_url_field('DOWNLOAD ZIP URL', $default_zip_source, $default_zip_url, false, $default_zip_error);
+    if ($default_zip_validation_error !== '') {
+        $errors[] = $default_zip_validation_error;
     }
     $commercial_zip_error = '';
-    $commercial_zip_override = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['DOWNLOAD ZIP URL COMMERCIAL'], $commercial_zip_error);
-    if ($commercial_zip_error !== '') {
-        $errors[] = $commercial_zip_error;
+    $commercial_zip_source = (string) $yaml['DOWNLOAD ZIP URL COMMERCIAL'];
+    $commercial_zip_override = bw_digital_csv_builder_convert_dropbox_url($commercial_zip_source, $commercial_zip_error);
+    $commercial_zip_validation_error = bw_digital_csv_builder_validate_url_field('DOWNLOAD ZIP URL COMMERCIAL', $commercial_zip_source, $commercial_zip_override, false, $commercial_zip_error);
+    if ($commercial_zip_validation_error !== '') {
+        $errors[] = $commercial_zip_validation_error;
     }
     $extended_zip_error = '';
-    $extended_zip_override = bw_digital_csv_builder_convert_dropbox_url((string) $yaml['DOWNLOAD ZIP URL EXTENDED'], $extended_zip_error);
-    if ($extended_zip_error !== '') {
-        $errors[] = $extended_zip_error;
+    $extended_zip_source = (string) $yaml['DOWNLOAD ZIP URL EXTENDED'];
+    $extended_zip_override = bw_digital_csv_builder_convert_dropbox_url($extended_zip_source, $extended_zip_error);
+    $extended_zip_validation_error = bw_digital_csv_builder_validate_url_field('DOWNLOAD ZIP URL EXTENDED', $extended_zip_source, $extended_zip_override, false, $extended_zip_error);
+    if ($extended_zip_validation_error !== '') {
+        $errors[] = $extended_zip_validation_error;
     }
 
     $commercial_zip_url = $commercial_zip_override !== '' ? $commercial_zip_override : $default_zip_url;
