@@ -156,16 +156,52 @@ PRICE EXTENDED:
 ### Image access order
 1. Read the YAML.
 2. Extract all media URLs.
-3. Never attempt to analyze the original Dropbox `dl=0` preview URL.
-4. For Dropbox URLs, first convert `dl=0` to `raw=1`.
-5. If the `raw=1` version is inaccessible for visual analysis, try `dl=1`.
-6. If that is still inaccessible, switch the host from `www.dropbox.com` to `dl.dropboxusercontent.com` and remove preview/download flags like `dl=0`, `dl=1`, or `raw=1`.
-7. Preserve the `/scl/fi/...` path, filename, `rlkey`, `st`, and all other non-preview query parameters exactly.
-8. Test that the featured image and gallery images are accessible.
-9. Visually analyze the accessible images.
-10. Only then fill the CSV.
-11. If image access fails, stop and request accessible image links or direct image uploads.
-12. If Blackwork uploads the required images manually into the chat/session, use those uploads only for visual analysis and continue using the YAML media URLs for CSV output.
+3. Use the visual analysis Dropbox URL attempt sequence for Dropbox image links.
+4. Test that the featured image and gallery images are accessible.
+5. Visually analyze the accessible images.
+6. Only then fill the CSV.
+7. If image access fails, stop and request accessible image links or direct image uploads.
+8. If Blackwork uploads the required images manually into the chat/session, use those uploads only for visual analysis and continue using the YAML media URLs for CSV output.
+
+### Visual analysis Dropbox URL attempts
+- Purpose: let ChatGPT/Codex try alternate Dropbox URL variants so it can visually access images.
+- Never attempt to analyze the original Dropbox `dl=0` preview URL.
+- Try these variants in order:
+  1. replace `dl=0` with `raw=1`
+  2. if inaccessible, try `dl=1`
+  3. if inaccessible, switch the host from `www.dropbox.com` to `dl.dropboxusercontent.com` and remove preview/download/render flags like `dl=0`, `dl=1`, or `raw=1`
+- Preserve the `/scl/fi/...` path, filename, `rlkey`, `st`, and all other non-preview query parameters exactly during these visual-access attempts.
+- Use the first accessible direct-media Dropbox variant for visual analysis.
+- If the featured image or product gallery images still cannot be visually accessed, stop and ask Blackwork to upload the required images manually.
+- Manually uploaded files are for visual analysis only.
+
+### Final CSV / WordPress Dropbox URL format
+- Purpose: write the most stable direct Dropbox URL into WordPress/WooCommerce CSV fields.
+- For final CSV output, prefer the `dl.dropboxusercontent.com` host for Dropbox media and download URLs.
+- Preserve the original `/scl/fi/.../filename.ext` path.
+- Remove only Dropbox preview/download/render flags:
+  - `dl=0`
+  - `dl=1`
+  - `raw=1`
+- Preserve `rlkey`, `st`, and all other non-preview query parameters exactly.
+- Do not drop `st`.
+- Do not drop unknown non-preview parameters.
+- Never write the original `www.dropbox.com` `dl=0` preview URL into the CSV.
+- Never write chat attachment URLs or internal upload references into the CSV.
+- Apply this final CSV / WordPress URL rule to:
+  - `featured_image`
+  - `product_gallery`
+  - `variation_image`
+  - `meta:_bw_slider_hover_image`
+  - `meta:_bw_showcase_image`
+  - `meta:_bw_slider_hover_video`
+  - `variation_download_url`
+  - any other YAML media or download URL field
+- Example:
+  - Input YAML URL:
+    - `https://www.dropbox.com/scl/fi/4cbfqgbwr4m3fmzxr197k/product_gallery_03.jpg?rlkey=wrt7dc40s210re4ugkqep09fg&st=nkqv6wv9&dl=0`
+  - Final CSV URL:
+    - `https://dl.dropboxusercontent.com/scl/fi/4cbfqgbwr4m3fmzxr197k/product_gallery_03.jpg?rlkey=wrt7dc40s210re4ugkqep09fg&st=nkqv6wv9`
 
 ### ZIP download URL handling
 - Read `DOWNLOAD ZIP URL`, `DOWNLOAD ZIP URL COMMERCIAL`, and `DOWNLOAD ZIP URL EXTENDED` from the external YAML input.
@@ -178,13 +214,8 @@ PRICE EXTENDED:
 - Do not use image URLs as ZIP download URLs.
 - ZIP URLs are not required for visual analysis.
 - Missing ZIP URLs should not block the image-analysis workflow or CSV generation.
-- If a ZIP URL is a Dropbox link, convert it to a direct URL before writing it into the CSV.
+- If a ZIP URL is a Dropbox link, convert it into the final CSV / WordPress Dropbox URL format before writing it into the CSV.
 - Never write a Dropbox `dl=0` preview URL into `variation_download_url`.
-- Use the same Dropbox direct URL access sequence for ZIP URLs before CSV output:
-  1. convert `dl=0` to `raw=1`
-  2. if needed, try `dl=1`
-  3. if needed, switch to `dl.dropboxusercontent.com` and remove preview/download flags while preserving the `/scl/fi/...` path, filename, `rlkey`, `st`, and other non-preview parameters
-- Use the successful direct URL variant or the most stable direct Dropbox variant in the CSV.
 
 ### Filename matching for manual uploads
 - When Blackwork uploads images manually because Dropbox access failed, match each uploaded image to the YAML media field by filename.
@@ -229,7 +260,7 @@ Optional media fields:
 Blocking rule:
 - The workflow must stop if the featured image or product gallery images cannot be accessed and visually analyzed.
 - Hover/showcase/video failures should be reported, but they do not block the workflow unless Blackwork explicitly makes them required for that product.
-- Write only a direct-access Dropbox URL into the CSV, never the original `dl=0` preview URL.
+- Write only the final CSV / WordPress direct Dropbox URL format into the CSV, never the original `dl=0` preview URL.
 - Manual image uploads are acceptable as the visual-analysis source when Dropbox URL access fails.
 - The final CSV must still contain direct media URLs from the YAML, not chat upload references.
 
