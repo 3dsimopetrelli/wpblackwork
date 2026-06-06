@@ -2513,8 +2513,11 @@ function bw_site_render_account_page_tab()
     $supabase_auto_login = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
     $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
     $custom_wp_login_hide_default = (int) get_option('bw_custom_wp_login_hide_default', 0);
-    $custom_wp_login_recovery_mode = (int) get_option('bw_custom_wp_login_recovery_mode', 1);
+    $custom_wp_login_recovery_mode_option = get_option('bw_custom_wp_login_recovery_mode', null);
     $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug((string) get_option('bw_custom_wp_login_slug', ''));
+    $custom_wp_login_recovery_mode = null !== $custom_wp_login_recovery_mode_option
+        ? (int) $custom_wp_login_recovery_mode_option
+        : (int) !($custom_wp_login_hide_default && '' !== $custom_wp_login_slug);
     $custom_wp_login_url = '';
     if ('' !== $custom_wp_login_slug) {
         $custom_wp_login_url = home_url('/' . $custom_wp_login_slug . '/');
@@ -3473,18 +3476,21 @@ function bw_site_render_account_page_tab()
                                 <?php esc_html_e('Hide default WordPress login URLs', 'bw'); ?>
                             </label>
                             <p class="description">
-                                <?php esc_html_e('When enabled, logged-out visitors opening /wp-login.php or /wp-admin/ can receive a 404, but only when recovery mode is disabled and your custom login shortcut is configured correctly.', 'bw'); ?>
+                                <?php esc_html_e('When enabled, logged-out visitors opening /wp-login.php or /wp-admin/ will receive a 404 only if recovery mode is disabled and your custom login shortcut is configured correctly.', 'bw'); ?>
                             </p>
                             <p class="description">
                                 <strong><?php esc_html_e('Warning:', 'bw'); ?></strong>
-                                <?php esc_html_e('Hiding default WordPress login URLs can lock you out. Keep recovery mode enabled unless you have already saved and tested the custom login URL end to end.', 'bw'); ?>
+                                <?php esc_html_e('Hiding default WordPress login URLs can lock you out. Disable recovery mode only after you have saved and tested the custom login URL end to end.', 'bw'); ?>
                             </p>
                             <label>
                                 <input type="checkbox" id="bw_custom_wp_login_recovery_mode" name="bw_custom_wp_login_recovery_mode" value="1" <?php checked(1, $custom_wp_login_recovery_mode); ?> />
                                 <?php esc_html_e('Recovery mode: keep default /wp-login.php and /wp-admin/ available for admin recovery.', 'bw'); ?>
                             </label>
                             <p class="description">
-                                <?php esc_html_e('Recovery mode fails open if the custom login configuration is missing or invalid, which helps prevent accidental admin lockout while you test the custom login URL.', 'bw'); ?>
+                                <?php esc_html_e('When recovery mode is enabled, hide-default protection is not active. Default WordPress login/admin URLs remain accessible until you explicitly disable recovery mode.', 'bw'); ?>
+                            </p>
+                            <p class="description">
+                                <?php esc_html_e('If the custom login slug is missing or invalid, the plugin will fail open and keep default login/admin URLs available to prevent lockout.', 'bw'); ?>
                             </p>
                             <p class="description">
                                 <?php esc_html_e('If you still lose access, define BLACKWORK_ALLOW_DEFAULT_WP_LOGIN as true in wp-config.php as a last-resort emergency override.', 'bw'); ?>

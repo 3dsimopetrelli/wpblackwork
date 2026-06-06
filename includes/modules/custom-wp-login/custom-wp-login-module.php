@@ -73,7 +73,13 @@ if (!function_exists('bw_custom_wp_login_hide_default_enabled')) {
 if (!function_exists('bw_custom_wp_login_recovery_mode_enabled')) {
     function bw_custom_wp_login_recovery_mode_enabled()
     {
-        return 1 === (int) get_option('bw_custom_wp_login_recovery_mode', 1);
+        $recovery_mode = get_option('bw_custom_wp_login_recovery_mode', null);
+        if (null !== $recovery_mode) {
+            return 1 === (int) $recovery_mode;
+        }
+
+        // Fail open only while the custom login protection is not fully configured yet.
+        return !(bw_custom_wp_login_hide_default_enabled() && '' !== bw_custom_wp_login_get_slug());
     }
 }
 
