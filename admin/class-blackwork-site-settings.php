@@ -12129,13 +12129,32 @@ function bw_import_build_license_attribute_key()
     return sanitize_title('License');
 }
 
+function bw_import_canonicalize_license_value($value)
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    $normalized = sanitize_title($value);
+    if ($normalized === 'commercial') {
+        return 'Commercial';
+    }
+
+    if ($normalized === 'extended') {
+        return 'Extended';
+    }
+
+    return $value;
+}
+
 function bw_import_ensure_parent_license_attribute($parent_product, $variation_name)
 {
     if (!$parent_product || !method_exists($parent_product, 'get_attributes')) {
         return '';
     }
 
-    $variation_name = trim((string) $variation_name);
+    $variation_name = bw_import_canonicalize_license_value($variation_name);
     if ($variation_name === '') {
         return '';
     }
@@ -12167,10 +12186,24 @@ function bw_import_ensure_parent_license_attribute($parent_product, $variation_n
         $license_attribute->set_variation(true);
         $existing_attributes[$attribute_key] = $license_attribute;
     } else {
-        $options = array_map('strval', (array) $license_attribute->get_options());
-        if (!in_array($variation_name, $options, true)) {
-            $options[] = $variation_name;
+        $options = [];
+        foreach ((array) $license_attribute->get_options() as $option) {
+            $canonical_option = bw_import_canonicalize_license_value($option);
+            if ($canonical_option === '') {
+                continue;
+            }
+
+            $option_index = sanitize_title($canonical_option);
+            if (!isset($options[$option_index])) {
+                $options[$option_index] = $canonical_option;
+            }
         }
+
+        $variation_option_index = sanitize_title($variation_name);
+        if (!isset($options[$variation_option_index])) {
+            $options[$variation_option_index] = $variation_name;
+        }
+
         $license_attribute->set_options(array_values($options));
         $license_attribute->set_visible(true);
         $license_attribute->set_variation(true);
@@ -12189,7 +12222,7 @@ function bw_import_get_parent_attribute_option_value($parent_product, $attribute
         return '';
     }
 
-    $requested_value = trim((string) $requested_value);
+    $requested_value = bw_import_canonicalize_license_value($requested_value);
     if ($requested_value === '') {
         return '';
     }
@@ -12209,7 +12242,6 @@ function bw_import_get_parent_attribute_option_value($parent_product, $attribute
             }
         }
     }
-
     return $requested_value;
 }
 
@@ -12296,7 +12328,7 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
 
     $parent_sku = isset($data['parent_sku']) ? sanitize_text_field((string) $data['parent_sku']) : '';
     $variation_sku = isset($data['product']['sku']) ? sanitize_text_field((string) $data['product']['sku']) : '';
-    $variation_name = isset($data['variation']['name']) ? sanitize_text_field((string) $data['variation']['name']) : '';
+    $variation_name = isset($data['variation']['name']) ? bw_import_canonicalize_license_value(sanitize_text_field((string) $data['variation']['name'])) : '';
 
     if ($parent_sku === '' || $variation_sku === '' || $variation_name === '') {
         return new WP_Error('bw_import_invalid_variation_row', __('Variation rows require parent_sku, sku, and variation_name.', 'bw'));
@@ -12405,6 +12437,10 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
         $variation_id = $variation->save();
     } catch (Throwable $exception) {
         return new WP_Error('bw_import_save', $exception->getMessage());
+    }
+
+    if ($variation_id > 0 && $variation_attribute_value !== '') {
+        update_post_meta($variation_id, 'attribute_' . sanitize_title($attribute_key), $variation_attribute_value);
     }
 
     if (!empty($options['skip_images'])) {
