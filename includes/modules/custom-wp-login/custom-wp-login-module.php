@@ -70,6 +70,13 @@ if (!function_exists('bw_custom_wp_login_hide_default_enabled')) {
     }
 }
 
+if (!function_exists('bw_custom_wp_login_recovery_mode_enabled')) {
+    function bw_custom_wp_login_recovery_mode_enabled()
+    {
+        return 1 === (int) get_option('bw_custom_wp_login_recovery_mode', 1);
+    }
+}
+
 if (!function_exists('bw_custom_wp_login_hide_default_active')) {
     function bw_custom_wp_login_hide_default_active()
     {
@@ -78,6 +85,10 @@ if (!function_exists('bw_custom_wp_login_hide_default_active')) {
         }
 
         if (!bw_custom_wp_login_hide_default_enabled()) {
+            return false;
+        }
+
+        if (bw_custom_wp_login_recovery_mode_enabled()) {
             return false;
         }
 

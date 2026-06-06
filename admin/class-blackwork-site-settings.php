@@ -2301,6 +2301,7 @@ function bw_site_render_account_page_tab()
         $supabase_auto_login = isset($_POST['bw_supabase_auto_login_after_confirm']) ? 1 : 0;
         $supabase_create_users = isset($_POST['bw_supabase_create_wp_users']) ? 1 : 0;
         $custom_wp_login_hide_default = isset($_POST['bw_custom_wp_login_hide_default']) ? 1 : 0;
+        $custom_wp_login_recovery_mode = isset($_POST['bw_custom_wp_login_recovery_mode']) ? 1 : 0;
         $custom_wp_login_slug_raw = isset($_POST['bw_custom_wp_login_slug']) ? (string) $_POST['bw_custom_wp_login_slug'] : '';
         $custom_wp_login_slug_raw = trim((string) wp_unslash($custom_wp_login_slug_raw));
         $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug($custom_wp_login_slug_raw);
@@ -2380,6 +2381,7 @@ function bw_site_render_account_page_tab()
         update_option('bw_account_passwordless_url', $passwordless_url);
         update_option('bw_custom_wp_login_slug', $custom_wp_login_slug);
         update_option('bw_custom_wp_login_hide_default', $custom_wp_login_hide_default);
+        update_option('bw_custom_wp_login_recovery_mode', $custom_wp_login_recovery_mode);
 
         if ($custom_wp_login_slug !== $previous_custom_wp_login_slug) {
             update_option('bw_custom_wp_login_slug_needs_flush', 1, false);
@@ -2511,6 +2513,7 @@ function bw_site_render_account_page_tab()
     $supabase_auto_login = (int) get_option('bw_supabase_auto_login_after_confirm', 0);
     $supabase_create_users = (int) get_option('bw_supabase_create_wp_users', 1);
     $custom_wp_login_hide_default = (int) get_option('bw_custom_wp_login_hide_default', 0);
+    $custom_wp_login_recovery_mode = (int) get_option('bw_custom_wp_login_recovery_mode', 1);
     $custom_wp_login_slug = bw_sanitize_custom_wp_login_slug((string) get_option('bw_custom_wp_login_slug', ''));
     $custom_wp_login_url = '';
     if ('' !== $custom_wp_login_slug) {
@@ -3470,11 +3473,21 @@ function bw_site_render_account_page_tab()
                                 <?php esc_html_e('Hide default WordPress login URLs', 'bw'); ?>
                             </label>
                             <p class="description">
-                                <?php esc_html_e('When enabled, logged-out visitors opening /wp-login.php or /wp-admin/ will receive a 404. Your custom login shortcut will remain available.', 'bw'); ?>
+                                <?php esc_html_e('When enabled, logged-out visitors opening /wp-login.php or /wp-admin/ can receive a 404, but only when recovery mode is disabled and your custom login shortcut is configured correctly.', 'bw'); ?>
                             </p>
                             <p class="description">
                                 <strong><?php esc_html_e('Warning:', 'bw'); ?></strong>
-                                <?php esc_html_e('Save and test your custom login URL before enabling this option. If you lose access, disable the option from the database or define BLACKWORK_ALLOW_DEFAULT_WP_LOGIN as true in wp-config.php.', 'bw'); ?>
+                                <?php esc_html_e('Hiding default WordPress login URLs can lock you out. Keep recovery mode enabled unless you have already saved and tested the custom login URL end to end.', 'bw'); ?>
+                            </p>
+                            <label>
+                                <input type="checkbox" id="bw_custom_wp_login_recovery_mode" name="bw_custom_wp_login_recovery_mode" value="1" <?php checked(1, $custom_wp_login_recovery_mode); ?> />
+                                <?php esc_html_e('Recovery mode: keep default /wp-login.php and /wp-admin/ available for admin recovery.', 'bw'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Recovery mode fails open if the custom login configuration is missing or invalid, which helps prevent accidental admin lockout while you test the custom login URL.', 'bw'); ?>
+                            </p>
+                            <p class="description">
+                                <?php esc_html_e('If you still lose access, define BLACKWORK_ALLOW_DEFAULT_WP_LOGIN as true in wp-config.php as a last-resort emergency override.', 'bw'); ?>
                             </p>
                         </td>
                     </tr>

@@ -23,13 +23,11 @@ if (!defined('BLACKWORK_PLUGIN_VERSION')) {
 }
 
 /**
- * Emergency safety override:
- * keep default WordPress admin/login URLs available so /wp-admin/ and wp-login.php
- * cannot be hard-blocked by the custom login module during backend recovery.
+ * Emergency recovery override.
+ *
+ * Define BLACKWORK_ALLOW_DEFAULT_WP_LOGIN as true in wp-config.php only as a
+ * last-resort recovery measure if custom login protection locks you out.
  */
-if (!defined('BLACKWORK_ALLOW_DEFAULT_WP_LOGIN')) {
-    define('BLACKWORK_ALLOW_DEFAULT_WP_LOGIN', true);
-}
 
 /**
  * Enable safe SVG uploads for administrators/editors and prevent raster metadata processing.
