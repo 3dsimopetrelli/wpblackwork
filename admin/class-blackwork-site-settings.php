@@ -11198,7 +11198,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         if (is_wp_error($prepared)) {
             $row_identity = bw_import_make_row_identity($row_offset, $row_index, '');
             $error_code = $prepared->get_error_code();
-            $skip_codes = ['bw_import_missing_parent_match', 'bw_import_invalid_variation_row', 'bw_import_unknown_row_type'];
+            $skip_codes = ['bw_import_missing_parent_match', 'bw_import_invalid_variation_row', 'bw_import_unknown_row_type', 'bw_import_existing_sku_requires_update'];
             if ($row_type === 'variation') {
                 $skip_codes[] = 'bw_import_missing_identifiers';
             }
@@ -11287,7 +11287,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
         if (is_wp_error($save_result)) {
             $error_code = $save_result->get_error_code();
             $row_recorded = false;
-            $skip_codes = ['bw_import_missing_product_match', 'bw_import_missing_parent_match', 'bw_import_invalid_variation_row', 'bw_import_unknown_row_type'];
+            $skip_codes = ['bw_import_missing_product_match', 'bw_import_missing_parent_match', 'bw_import_invalid_variation_row', 'bw_import_unknown_row_type', 'bw_import_existing_sku_requires_update'];
             if (in_array($error_code, $skip_codes, true)) {
                 $row_recorded = bw_import_record_row_outcome($run_state, $row_identity, 'skipped', $save_result->get_error_message());
                 if ($row_recorded) {
@@ -11771,16 +11771,34 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
     $product = null;
     $status = 'created';
     $warnings = [];
+    $resolved_product_id = 0;
+    $variation_conflict_id = 0;
 
     if ($product_id) {
         $product = wc_get_product($product_id);
     }
 
-    if (!$product && $sku) {
-        $maybe_id = bw_import_find_product_id_by_sku($sku, ['product']);
-        if ($maybe_id) {
-            $product = wc_get_product($maybe_id);
-            $product_id = $maybe_id;
+    if ($sku) {
+        $resolved_product_id = bw_import_find_product_id_by_sku($sku, ['product']);
+        $variation_conflict_id = bw_import_find_product_id_by_sku($sku, ['product_variation']);
+
+        if ($variation_conflict_id > 0) {
+            return new WP_Error(
+                'bw_import_sku_conflict',
+                sprintf(
+                    /* translators: 1: SKU, 2: conflicting variation ID */
+                    __('SKU %1$s is already assigned to variation ID %2$d.', 'bw'),
+                    sanitize_text_field((string) $sku),
+                    $variation_conflict_id
+                )
+            );
+        }
+
+        if (!$product && $resolved_product_id > 0 && $update_existing) {
+            $product = wc_get_product($resolved_product_id);
+            if ($product) {
+                $product_id = $resolved_product_id;
+            }
         }
     }
 
@@ -11801,15 +11819,11 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
             __('Skipping row because no existing product matches the provided ID or SKU.', 'bw')
         );
     } else {
-        if ($sku) {
-            $resolved_product_id = bw_import_find_product_id_by_sku($sku, ['product']);
-            if ($resolved_product_id) {
-                $product = wc_get_product($resolved_product_id);
-                if ($product) {
-                    $product_id = $resolved_product_id;
-                    $status = 'updated';
-                }
-            }
+        if ($sku && $resolved_product_id > 0) {
+            return new WP_Error(
+                'bw_import_existing_sku_requires_update',
+                bw_import_format_existing_sku_requires_update_message($sku, __('Product', 'bw'))
+            );
         }
 
         if (!$product) {
@@ -12307,9 +12321,29 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
     $warnings = [];
     $variation_id = bw_import_find_variation_by_sku($variation_sku, $parent_product->get_id());
     $variation = $variation_id > 0 ? wc_get_product($variation_id) : null;
+    $sku_owner_id = bw_import_find_product_id_by_sku($variation_sku, ['product', 'product_variation']);
+    $sku_owner_type = $sku_owner_id > 0 ? get_post_type($sku_owner_id) : '';
 
     if ($variation) {
+        if (!$update_existing) {
+            return new WP_Error(
+                'bw_import_existing_sku_requires_update',
+                bw_import_format_existing_sku_requires_update_message($variation_sku, __('Variation', 'bw'))
+            );
+        }
         $status = 'updated';
+    } elseif ($sku_owner_id > 0) {
+        $conflict_label = $sku_owner_type === 'product_variation' ? __('variation', 'bw') : __('product', 'bw');
+        return new WP_Error(
+            'bw_import_sku_conflict',
+            sprintf(
+                /* translators: 1: SKU, 2: conflicting object type, 3: conflicting ID */
+                __('SKU %1$s is already assigned to %2$s ID %3$d.', 'bw'),
+                $variation_sku,
+                $conflict_label,
+                $sku_owner_id
+            )
+        );
     } elseif ($update_existing) {
         return new WP_Error('bw_import_missing_parent_match', sprintf(__('Variation SKU %1$s skipped because it does not exist and update-only mode is enabled.', 'bw'), $variation_sku));
     } else {
