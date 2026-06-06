@@ -11635,6 +11635,47 @@ function bw_import_normalize_meta_aliases($meta)
     return $normalized;
 }
 
+function bw_import_find_product_id_by_sku($sku, $allowed_post_types = ['product', 'product_variation'])
+{
+    global $wpdb;
+
+    $sku = sanitize_text_field((string) $sku);
+    if ($sku === '') {
+        return 0;
+    }
+
+    $allowed_post_types = array_values(array_filter(array_map('sanitize_key', (array) $allowed_post_types)));
+    if (empty($allowed_post_types)) {
+        $allowed_post_types = ['product', 'product_variation'];
+    }
+
+    $product_id = (int) wc_get_product_id_by_sku($sku);
+    if ($product_id > 0) {
+        $post_type = get_post_type($product_id);
+        if ($post_type && in_array($post_type, $allowed_post_types, true)) {
+            return $product_id;
+        }
+    }
+
+    $placeholders = implode(',', array_fill(0, count($allowed_post_types), '%s'));
+    $sql = "
+        SELECT posts.ID
+        FROM {$wpdb->posts} AS posts
+        INNER JOIN {$wpdb->postmeta} AS postmeta
+            ON posts.ID = postmeta.post_id
+        WHERE postmeta.meta_key = '_sku'
+          AND postmeta.meta_value = %s
+          AND posts.post_type IN ({$placeholders})
+        ORDER BY posts.ID DESC
+        LIMIT 1
+    ";
+
+    $prepared = array_merge([$sql, $sku], $allowed_post_types);
+    $resolved_id = (int) $wpdb->get_var($wpdb->prepare(...$prepared));
+
+    return $resolved_id > 0 ? $resolved_id : 0;
+}
+
 /**
  * Suddivide una stringa in array usando virgola o pipe.
  *
@@ -11679,7 +11720,7 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
     }
 
     if (!$product && $sku) {
-        $maybe_id = wc_get_product_id_by_sku($sku);
+        $maybe_id = bw_import_find_product_id_by_sku($sku, ['product']);
         if ($maybe_id) {
             $product = wc_get_product($maybe_id);
             $product_id = $maybe_id;
@@ -11704,7 +11745,7 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         );
     } else {
         if ($sku) {
-            $resolved_product_id = wc_get_product_id_by_sku($sku);
+            $resolved_product_id = bw_import_find_product_id_by_sku($sku, ['product']);
             if ($resolved_product_id) {
                 $product = wc_get_product($resolved_product_id);
                 if ($product) {
@@ -11734,7 +11775,7 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
             $product->set_sku($sku);
         } catch (WC_Data_Exception $exception) {
             if (empty($options['sku_retry_done'])) {
-                $resolved_product_id = wc_get_product_id_by_sku($sku);
+                $resolved_product_id = bw_import_find_product_id_by_sku($sku, ['product']);
                 if ($resolved_product_id) {
                     $retry_data = $data;
                     $retry_data['product']['id'] = $resolved_product_id;
@@ -11859,7 +11900,9 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
 
     if (isset($data['product_subcategories'])) {
         // Preserve builder/import subcategories as product meta without changing product_cat assignments.
-        $product->update_meta_data('product_subcategories', implode(',', array_map('sanitize_text_field', (array) $data['product_subcategories'])));
+        $subcategory_value = implode(',', array_map('sanitize_text_field', (array) $data['product_subcategories']));
+        $product->update_meta_data('product_subcategories', $subcategory_value);
+        $product->update_meta_data('_bw_product_subcategories', $subcategory_value);
     }
 
     $normalized_meta = bw_import_normalize_meta_aliases(isset($data['meta']) ? $data['meta'] : []);
@@ -11991,7 +12034,7 @@ function bw_import_find_variation_by_sku($sku, $parent_id = 0)
         return 0;
     }
 
-    $variation_id = (int) wc_get_product_id_by_sku($sku);
+    $variation_id = bw_import_find_product_id_by_sku($sku, ['product_variation']);
     if ($variation_id < 1) {
         return 0;
     }
@@ -12186,7 +12229,7 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
         return new WP_Error('bw_import_invalid_variation_row', __('Variation rows require parent_sku, sku, and variation_name.', 'bw'));
     }
 
-    $parent_id = (int) wc_get_product_id_by_sku($parent_sku);
+    $parent_id = bw_import_find_product_id_by_sku($parent_sku, ['product']);
     if ($parent_id < 1) {
         return new WP_Error('bw_import_missing_parent_match', sprintf(__('Variation SKU %1$s skipped because parent SKU %2$s was not found.', 'bw'), $variation_sku, $parent_sku));
     }
