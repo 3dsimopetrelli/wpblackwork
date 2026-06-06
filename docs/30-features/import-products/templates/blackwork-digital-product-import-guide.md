@@ -281,20 +281,60 @@ Expected YAML-backed fields:
 - No CSV.
 
 ## Final self-check before returning JSON
-Before returning the Complete Product JSON, verify:
-- the JSON parses
-- no string contains `[http`
-- no string contains `](http`
-- no URL contains `%22` unless it was present in the YAML
-- `source_data` contains all YAML fields.
-- `source_data` media and ZIP URLs match the YAML exactly.
-- all `source_data` URLs are plain strings
+Before returning the Complete Product JSON, silently verify all of the following. If any check fails, fix the JSON before returning it.
+
+1. JSON validity
+- The output is valid JSON.
+- No Markdown appears outside the allowed fallback code block.
+- No explanations appear before or after the JSON.
+- No trailing commas.
+- No comments.
+- No Markdown links.
+- No string contains `[http`.
+- No string contains `](http`.
+- Prefer a downloadable `.json` file when possible.
+- If file creation is not possible, return exactly one fenced `json` code block.
+
+2. `source_data` check
+- Every `source_data` value was copied from the YAML.
+- Media and ZIP URLs are unchanged from the YAML.
+- Dropbox URLs still contain the original `rlkey` and `st` when present.
+- No Dropbox URL was converted.
+- No query parameter was removed.
 - `product_gallery` is an array.
 - `showcase_image_urls` is an array.
-- `creative_data.tags` has exactly 10 items.
-- `creative_data.product_subcategories` uses only allowed names.
-- `creative_data` contains no URLs
-- no CSV fields are present.
-- no WordPress meta keys are present.
-- no Dropbox conversion was performed.
-- mandatory images were visually analyzed.
+- Empty optional YAML fields remain empty strings.
+- No missing YAML value is invented.
+
+3. Image analysis check
+- The featured image was visually analyzed.
+- Product gallery images were visually analyzed.
+- If Dropbox links were inaccessible, manually uploaded images were matched by filename.
+- Uploaded images were used only for visual analysis.
+- Creative fields were not generated from YAML text alone when mandatory images were unavailable.
+
+4. `creative_data` check
+- `post_title` is natural and product-ready.
+- `post_content` is detailed, natural, and SEO-oriented.
+- `post_excerpt` is concise.
+- `tags` contains exactly 10 items.
+- `tags` are internal Blackwork search and discovery terms, not generic marketing terms.
+- `product_subcategories` contains up to 5 allowed values.
+- `product_subcategories` contains at least 3 values when visually and contextually possible.
+- `product_subcategories` uses only names from the allowed list in this guide.
+- `creative_data` contains no URLs.
+- `creative_data` contains no prices.
+- `creative_data` contains no SKU.
+- `creative_data` contains no CSV column names.
+- `creative_data` contains no WordPress meta keys.
+- `creative_data` contains no ZIP or download fields.
+
+5. Responsibility boundary check
+- ChatGPT did not create CSV.
+- ChatGPT did not convert Dropbox URLs.
+- ChatGPT did not create SKU.
+- ChatGPT did not create parent or variation rows.
+- ChatGPT did not write WordPress meta keys.
+- The plugin remains responsible for CSV generation, Dropbox conversion, SKU generation, variation rows, media mapping, ZIP mapping, and validation.
+
+Blackwork should not need to manually review every JSON. The JSON must pass this self-check before it is returned, and the WordPress plugin will perform the second validation before generating the CSV.

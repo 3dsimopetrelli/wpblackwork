@@ -11652,7 +11652,8 @@ function bw_import_find_product_id_by_sku($sku, $allowed_post_types = ['product'
     $product_id = (int) wc_get_product_id_by_sku($sku);
     if ($product_id > 0) {
         $post_type = get_post_type($product_id);
-        if ($post_type && in_array($post_type, $allowed_post_types, true)) {
+        $post_status = get_post_status($product_id);
+        if ($post_type && $post_status !== 'trash' && in_array($post_type, $allowed_post_types, true)) {
             return $product_id;
         }
     }
@@ -11666,6 +11667,7 @@ function bw_import_find_product_id_by_sku($sku, $allowed_post_types = ['product'
         WHERE postmeta.meta_key = '_sku'
           AND postmeta.meta_value = %s
           AND posts.post_type IN ({$placeholders})
+          AND posts.post_status <> 'trash'
         ORDER BY posts.ID DESC
         LIMIT 1
     ";
@@ -11674,6 +11676,61 @@ function bw_import_find_product_id_by_sku($sku, $allowed_post_types = ['product'
     $resolved_id = (int) $wpdb->get_var($wpdb->prepare(...$prepared));
 
     return $resolved_id > 0 ? $resolved_id : 0;
+}
+
+function bw_import_assign_sku_to_object($product, $sku)
+{
+    $sku = sanitize_text_field((string) $sku);
+    if ($sku === '' || !$product || !method_exists($product, 'get_id')) {
+        return true;
+    }
+
+    $current_product_id = absint($product->get_id());
+    $current_sku = method_exists($product, 'get_sku') ? sanitize_text_field((string) $product->get_sku()) : '';
+
+    if ($current_product_id > 0 && $current_sku === $sku) {
+        return true;
+    }
+
+    $conflict_id = bw_import_find_product_id_by_sku($sku, ['product', 'product_variation']);
+    if ($conflict_id > 0 && $conflict_id !== $current_product_id) {
+        $conflict_type = get_post_type($conflict_id);
+        $conflict_label = $conflict_type === 'product_variation'
+            ? __('variation', 'bw')
+            : __('product', 'bw');
+
+        return new WP_Error(
+            'bw_import_sku_conflict',
+            sprintf(
+                /* translators: 1: SKU, 2: object type, 3: post ID */
+                __('SKU %1$s is already assigned to %2$s ID %3$d.', 'bw'),
+                $sku,
+                $conflict_label,
+                $conflict_id
+            )
+        );
+    }
+
+    try {
+        $product->set_sku($sku);
+    } catch (WC_Data_Exception $exception) {
+        return new WP_Error('bw_import_sku', $exception->getMessage());
+    }
+
+    return true;
+}
+
+function bw_import_format_existing_sku_requires_update_message($sku, $entity_label = 'Product')
+{
+    $sku = sanitize_text_field((string) $sku);
+    $entity_label = sanitize_text_field((string) $entity_label);
+
+    return sprintf(
+        /* translators: 1: entity label, 2: SKU */
+        __('%1$s with SKU %2$s already exists. Enable Update existing products to update it instead of creating a duplicate.', 'bw'),
+        $entity_label,
+        $sku
+    );
 }
 
 /**
@@ -11771,10 +11828,12 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
     }
 
     if ($sku) {
-        try {
-            $product->set_sku($sku);
-        } catch (WC_Data_Exception $exception) {
-            if (empty($options['sku_retry_done'])) {
+        $sku_assignment = bw_import_assign_sku_to_object($product, $sku);
+        if (is_wp_error($sku_assignment)) {
+            if (
+                $sku_assignment->get_error_code() === 'bw_import_sku'
+                && empty($options['sku_retry_done'])
+            ) {
                 $resolved_product_id = bw_import_find_product_id_by_sku($sku, ['product']);
                 if ($resolved_product_id) {
                     $retry_data = $data;
@@ -11785,7 +11844,7 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
                 }
             }
 
-            return new WP_Error('bw_import_sku', $exception->getMessage());
+            return $sku_assignment;
         }
     }
 
@@ -12262,10 +12321,9 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
         return new WP_Error('bw_import_product_object', __('Unable to initialize variation product object.', 'bw'));
     }
 
-    try {
-        $variation->set_sku($variation_sku);
-    } catch (WC_Data_Exception $exception) {
-        return new WP_Error('bw_import_sku', $exception->getMessage());
+    $variation_sku_assignment = bw_import_assign_sku_to_object($variation, $variation_sku);
+    if (is_wp_error($variation_sku_assignment)) {
+        return $variation_sku_assignment;
     }
 
     $attribute_key = bw_import_ensure_parent_license_attribute($parent_product, $variation_name);
