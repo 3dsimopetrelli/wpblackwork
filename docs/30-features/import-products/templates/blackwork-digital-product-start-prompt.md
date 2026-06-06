@@ -89,6 +89,21 @@ Instructions:
 - Use `HOVER IMAGE URL` in `meta:_bw_slider_hover_image`.
 - Use `HOVER VIDEO URL` in `meta:_bw_slider_hover_video` only if provided.
 - Use `SHOWCASE IMAGE URLS` for `meta:_bw_showcase_image`, using the first URL if multiple are provided.
+- Read `DOWNLOAD ZIP URL`, `DOWNLOAD ZIP URL COMMERCIAL`, and `DOWNLOAD ZIP URL EXTENDED` from the YAML.
+- Use `DOWNLOAD ZIP URL COMMERCIAL` in the Commercial row `variation_download_url`; if it is empty, fall back to `DOWNLOAD ZIP URL`.
+- Use `DOWNLOAD ZIP URL EXTENDED` in the Extended row `variation_download_url`; if it is empty, fall back to `DOWNLOAD ZIP URL`.
+- If both the variation-specific ZIP URL and the default ZIP URL are empty for a variation row, leave `variation_download_url` empty.
+- Use `Commercial License — {final post_title}` in the Commercial row `variation_download_name`.
+- Use `Extended License — {final post_title}` in the Extended row `variation_download_name`.
+- Before writing any Dropbox ZIP URL into the CSV, convert it to a direct-access URL using the same sequence:
+  - Step 1: convert `dl=0` to `raw=1`
+  - Step 2: if needed, try `dl=1`
+  - Step 3: if needed, switch the host to `dl.dropboxusercontent.com` and remove `dl=0`, `dl=1`, or `raw=1`
+- Preserve the `/scl/fi/...` path, filename, `rlkey`, `st`, and all other non-preview query parameters exactly.
+- Do not write Dropbox `dl=0` ZIP preview URLs into `variation_download_url`.
+- ZIP URLs do not require visual analysis, but they must be converted before CSV output.
+- Do not use image URLs as download ZIP URLs.
+- Do not invent ZIP URLs.
 - Use `PRICE COMMERCIAL` in the Commercial row `variation_regular_price`.
 - Use `PRICE EXTENDED` in the Extended row `variation_regular_price`.
 - Use `PRICE` in the parent row `regular_price` only if appropriate.

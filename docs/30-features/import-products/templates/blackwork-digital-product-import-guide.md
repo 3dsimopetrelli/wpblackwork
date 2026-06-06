@@ -20,6 +20,9 @@ Clarifications:
   - hover image URL
   - showcase image URLs
   - optional hover video URL
+  - default download ZIP URL
+  - commercial download ZIP URL override
+  - extended download ZIP URL override
   - year
   - author / artist
   - total assets
@@ -86,6 +89,9 @@ PRODUCT GALLERY:
 HOVER IMAGE URL:
 SHOWCASE IMAGE URLS:
 HOVER VIDEO URL:
+DOWNLOAD ZIP URL:
+DOWNLOAD ZIP URL COMMERCIAL:
+DOWNLOAD ZIP URL EXTENDED:
 YEAR:
 AUTHOR / ARTIST:
 TOTAL ASSETS:
@@ -113,6 +119,16 @@ PRICE EXTENDED:
 - If hover video is not provided, leave `meta:_bw_slider_hover_video` empty.
 - `SHOWCASE IMAGE URLS` → `meta:_bw_showcase_image`
 - If multiple showcase image URLs are provided, use the first URL unless Blackwork notes specify a different primary showcase image
+- `DOWNLOAD ZIP URL` → default `variation_download_url` source for both Commercial and Extended variation rows
+- `DOWNLOAD ZIP URL COMMERCIAL` → Commercial variation row `variation_download_url` override
+- `DOWNLOAD ZIP URL EXTENDED` → Extended variation row `variation_download_url` override
+- If `DOWNLOAD ZIP URL COMMERCIAL` is empty, use `DOWNLOAD ZIP URL` for the Commercial variation row
+- If `DOWNLOAD ZIP URL EXTENDED` is empty, use `DOWNLOAD ZIP URL` for the Extended variation row
+- If both the variation-specific ZIP URL and the default ZIP URL are empty for a variation row, leave `variation_download_url` empty and expect the importer to warn without blocking
+- Commercial variation row `variation_download_name` → `Commercial License — {final post_title}`
+- Extended variation row `variation_download_name` → `Extended License — {final post_title}`
+- Do not use image URLs as download ZIP URLs
+- Do not invent ZIP URLs
 - `PRICE` → parent row `regular_price` only if Blackwork wants a parent/base price
 - `PRICE COMMERCIAL` → Commercial variation row `variation_regular_price`
 - `PRICE EXTENDED` → Extended variation row `variation_regular_price`
@@ -134,6 +150,8 @@ PRICE EXTENDED:
 - All other media fields accept one direct URL only.
 - Do not use Markdown links.
 - Do not invent or transform media URLs.
+- ZIP download URLs are external file URLs, not visual-analysis sources.
+- ZIP download URLs should be converted to direct-access Dropbox URLs before writing them into `variation_download_url`, but ZIP access does not block visual image analysis or CSV completion.
 
 ### Image access order
 1. Read the YAML.
@@ -148,6 +166,25 @@ PRICE EXTENDED:
 10. Only then fill the CSV.
 11. If image access fails, stop and request accessible image links or direct image uploads.
 12. If Blackwork uploads the required images manually into the chat/session, use those uploads only for visual analysis and continue using the YAML media URLs for CSV output.
+
+### ZIP download URL handling
+- Read `DOWNLOAD ZIP URL`, `DOWNLOAD ZIP URL COMMERCIAL`, and `DOWNLOAD ZIP URL EXTENDED` from the external YAML input.
+- `DOWNLOAD ZIP URL` is the default package URL for both Commercial and Extended variation rows.
+- `DOWNLOAD ZIP URL COMMERCIAL` overrides the default ZIP URL for the Commercial variation row when provided.
+- `DOWNLOAD ZIP URL EXTENDED` overrides the default ZIP URL for the Extended variation row when provided.
+- If a variation-specific ZIP URL is empty, fall back to `DOWNLOAD ZIP URL`.
+- If both the variation-specific ZIP URL and `DOWNLOAD ZIP URL` are empty, leave that row's `variation_download_url` empty.
+- Do not invent ZIP URLs.
+- Do not use image URLs as ZIP download URLs.
+- ZIP URLs are not required for visual analysis.
+- Missing ZIP URLs should not block the image-analysis workflow or CSV generation.
+- If a ZIP URL is a Dropbox link, convert it to a direct URL before writing it into the CSV.
+- Never write a Dropbox `dl=0` preview URL into `variation_download_url`.
+- Use the same Dropbox direct URL access sequence for ZIP URLs before CSV output:
+  1. convert `dl=0` to `raw=1`
+  2. if needed, try `dl=1`
+  3. if needed, switch to `dl.dropboxusercontent.com` and remove preview/download flags while preserving the `/scl/fi/...` path, filename, `rlkey`, `st`, and other non-preview parameters
+- Use the successful direct URL variant or the most stable direct Dropbox variant in the CSV.
 
 ### Filename matching for manual uploads
 - When Blackwork uploads images manually because Dropbox access failed, match each uploaded image to the YAML media field by filename.
@@ -697,8 +734,8 @@ Good tags for architectural ornament images:
 | `variation_enabled` | Required on variation rows | Enable flag | `yes` | `yes` publishes the variation, `no` stores it disabled/private |
 | `variation_virtual` | Required on variation rows | Virtual flag | `yes` | Variation row |
 | `variation_downloadable` | Required on variation rows | Downloadable flag | `yes` | Variation row |
-| `variation_download_name` | Optional | Download label | `Bats of the World Commercial License` | Used when a downloadable file URL is present |
-| `variation_download_url` | Optional | Direct downloadable file URL | `https://example.com/downloads/bats-commercial.zip` | Saved as WooCommerce downloadable file URL |
+| `variation_download_name` | Optional / normally expected for downloadable Digital variations | Download label | `Commercial License — Bats of the World` | Use `Commercial License — {final post_title}` on the Commercial row and `Extended License — {final post_title}` on the Extended row |
+| `variation_download_url` | Optional / fallback-driven | Direct downloadable file URL | `https://example.com/downloads/bats-commercial.zip` | Use `DOWNLOAD ZIP URL COMMERCIAL` or fall back to `DOWNLOAD ZIP URL` on the Commercial row. Use `DOWNLOAD ZIP URL EXTENDED` or fall back to `DOWNLOAD ZIP URL` on the Extended row. Leave empty if both are empty. Convert Dropbox links to direct URLs before writing them |
 | `variation_attributes_json` | Optional / future-facing | Variation attributes JSON object | `{"licences":"Commercial"}` | Current runtime uses `variation_name` as the canonical License attribute |
 
 ## Common mistakes
