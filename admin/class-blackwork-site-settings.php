@@ -8250,7 +8250,7 @@ function bw_site_render_import_product_tab()
                                     <strong><?php esc_html_e('Image import behavior', 'bw'); ?></strong>
                                     <label class="bw-import-mapping-images__label">
                                         <input type="checkbox" name="bw_import_skip_images" value="1" <?php checked($state_skip_images); ?> />
-                                        <span><?php esc_html_e('Skip image sideload for safety (recommended). Image columns are ignored and logged as skipped by configuration.', 'bw'); ?></span>
+                                        <span><?php esc_html_e('Check to skip image sideload. Digital CSVs default to importing available featured, gallery, hover, and variation images from the CSV URLs; other import profiles keep their safer skip-by-default behavior unless you enable image import manually.', 'bw'); ?></span>
                                     </label>
                                 </div>
                             </div>
@@ -8347,6 +8347,7 @@ function bw_import_handle_upload_request()
     }
 
     $summary = bw_import_calculate_header_stats($parsed['headers']);
+    $default_skip_images = bw_import_default_skip_images_for_uploaded_csv($parsed['headers'], $parsed['rows']);
 
     $update_existing = !empty($_POST['bw_import_update_existing']);
     $run_id = bw_import_generate_run_id();
@@ -8364,7 +8365,7 @@ function bw_import_handle_upload_request()
         'headers' => $parsed['headers'],
         'sample' => $parsed['rows'],
         'update_existing' => $update_existing,
-        'skip_images' => true,
+        'skip_images' => $default_skip_images,
         'row_cursor' => 0,
         'in_progress' => false,
         'mapping' => [],
@@ -8395,7 +8396,7 @@ function bw_import_handle_upload_request()
         'mapping_snapshot' => [],
         'options_snapshot' => [
             'update_existing' => $update_existing,
-            'skip_images' => true,
+            'skip_images' => $default_skip_images,
             'chunk_size' => $chunk_size,
         ],
         'started_at' => $now,
@@ -8421,6 +8422,57 @@ function bw_import_handle_upload_request()
     bw_import_save_state($state);
 
     return $state;
+}
+
+function bw_import_default_skip_images_for_uploaded_csv($headers, $rows)
+{
+    $headers = array_values((array) $headers);
+    $header_index = array_flip($headers);
+
+    $digital_header_markers = [
+        'meta:_digital_source',
+        'meta:_digital_publisher',
+        'meta:_digital_year',
+        'meta:_digital_technique',
+        'variation_name',
+        'parent_sku',
+        'default_variation',
+    ];
+
+    $digital_marker_count = 0;
+    foreach ($digital_header_markers as $marker) {
+        if (isset($header_index[$marker])) {
+            $digital_marker_count++;
+        }
+    }
+
+    $bw_product_type_index = isset($header_index['meta:_bw_product_type']) ? (int) $header_index['meta:_bw_product_type'] : -1;
+    $row_type_index = isset($header_index['row_type']) ? (int) $header_index['row_type'] : -1;
+
+    foreach ((array) $rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $row_type = $row_type_index >= 0 && isset($row[$row_type_index]) ? sanitize_key((string) $row[$row_type_index]) : '';
+        if ($row_type !== '' && $row_type !== 'product') {
+            continue;
+        }
+
+        $bw_product_type = $bw_product_type_index >= 0 && isset($row[$bw_product_type_index])
+            ? sanitize_key((string) $row[$bw_product_type_index])
+            : '';
+
+        if ($bw_product_type === 'digital') {
+            return false;
+        }
+    }
+
+    if ($digital_marker_count >= 3) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -10303,6 +10355,32 @@ function bw_import_prepare_row_data($row_data, $mapping)
     return $data;
 }
 
+function bw_import_normalize_meta_aliases($meta)
+{
+    $normalized = is_array($meta) ? $meta : [];
+    $mirror_pairs = [
+        ['_bw_artist_name', '_digital_artist_name'],
+        ['_bw_assets_count', '_digital_total_assets'],
+        ['_bw_formats', '_digital_formats'],
+        ['_bw_file_size', '_digital_file_size'],
+    ];
+
+    foreach ($mirror_pairs as $pair) {
+        $left_key = $pair[0];
+        $right_key = $pair[1];
+        $left_value = isset($normalized[$left_key]) ? trim((string) $normalized[$left_key]) : '';
+        $right_value = isset($normalized[$right_key]) ? trim((string) $normalized[$right_key]) : '';
+
+        if ($left_value !== '' && $right_value === '') {
+            $normalized[$right_key] = $normalized[$left_key];
+        } elseif ($right_value !== '' && $left_value === '') {
+            $normalized[$left_key] = $normalized[$right_key];
+        }
+    }
+
+    return $normalized;
+}
+
 /**
  * Suddivide una stringa in array usando virgola o pipe.
  *
@@ -10525,8 +10603,10 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         }
     }
 
-    if (!empty($data['meta'])) {
-        foreach ($data['meta'] as $meta_key => $meta_value) {
+    $normalized_meta = bw_import_normalize_meta_aliases(isset($data['meta']) ? $data['meta'] : []);
+
+    if (!empty($normalized_meta)) {
+        foreach ($normalized_meta as $meta_key => $meta_value) {
             $product->update_meta_data($meta_key, $meta_value);
         }
     }
@@ -10549,6 +10629,9 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
     if (!empty($options['skip_images'])) {
         if (!empty($data['product']['featured_image']) || !empty($data['product']['gallery'])) {
             $warnings[] = __('Images skipped by configuration.', 'bw');
+        }
+        if (!empty($normalized_meta['_bw_slider_hover_image'])) {
+            $warnings[] = __('Hover image skipped by configuration.', 'bw');
         }
     } else {
         if (!empty($data['product']['featured_image'])) {
@@ -10576,12 +10659,29 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
             }
             $product->set_gallery_image_ids($gallery_ids);
         }
+
+        if (!empty($normalized_meta['_bw_slider_hover_image'])) {
+            $hover_image_id = bw_import_handle_image($normalized_meta['_bw_slider_hover_image'], $product_id);
+            if ($hover_image_id) {
+                $product->update_meta_data('_bw_slider_hover_image', $hover_image_id);
+            } else {
+                $warnings[] = __('Hover image sideload failed.', 'bw');
+            }
+        }
     }
 
     try {
         $product->save();
     } catch (Throwable $exception) {
         return new WP_Error('bw_import_save', $exception->getMessage());
+    }
+
+    if (
+        !empty($data['product']['default_variation'])
+        && !empty($data['product']['type'])
+        && $data['product']['type'] === 'variable'
+    ) {
+        update_post_meta($product->get_id(), '_bw_import_default_variation', sanitize_title((string) $data['product']['default_variation']));
     }
 
     return [
@@ -10694,6 +10794,36 @@ function bw_import_ensure_parent_license_attribute($parent_product, $variation_n
 
     $parent_product->set_attributes($existing_attributes);
     return $attribute_key;
+}
+
+function bw_import_get_parent_attribute_option_value($parent_product, $attribute_key, $requested_value)
+{
+    if (!$parent_product || $attribute_key === '') {
+        return '';
+    }
+
+    $requested_value = trim((string) $requested_value);
+    if ($requested_value === '') {
+        return '';
+    }
+
+    foreach ((array) $parent_product->get_attributes() as $attribute) {
+        if (!$attribute instanceof WC_Product_Attribute) {
+            continue;
+        }
+
+        if (sanitize_title((string) $attribute->get_name()) !== $attribute_key) {
+            continue;
+        }
+
+        foreach ((array) $attribute->get_options() as $option) {
+            if (sanitize_title((string) $option) === sanitize_title($requested_value)) {
+                return (string) $option;
+            }
+        }
+    }
+
+    return $requested_value;
 }
 
 function bw_import_maybe_apply_parent_default_variation($parent_product, $attribute_key, $default_variation)
@@ -10829,8 +10959,15 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
         return new WP_Error('bw_import_invalid_variation_row', __('Unable to prepare the parent License attribute for variation import.', 'bw'));
     }
 
+    try {
+        $parent_product->save();
+    } catch (Throwable $exception) {
+        return new WP_Error('bw_import_save', $exception->getMessage());
+    }
+
+    $variation_attribute_value = bw_import_get_parent_attribute_option_value($parent_product, $attribute_key, $variation_name);
     $variation->set_parent_id($parent_product->get_id());
-    $variation->set_attributes([$attribute_key => $variation_name]);
+    $variation->set_attributes([$attribute_key => $variation_attribute_value]);
     $variation->set_status(!empty($data['variation']['enabled']) ? 'publish' : 'private');
     $variation->set_virtual(!empty($data['variation']['virtual']));
     $variation->set_downloadable(!empty($data['variation']['downloadable']));
@@ -10850,8 +10987,12 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
                 isset($data['variation']['download_name']) ? $data['variation']['download_name'] : ''
             )
         );
-    } else {
+    } elseif (empty($data['variation']['downloadable'])) {
         $variation->set_downloads([]);
+    } else {
+        if (!empty($data['variation']['downloadable'])) {
+            $warnings[] = __('Variation is marked downloadable but variation_download_url is empty.', 'bw');
+        }
     }
 
     try {
@@ -10883,12 +11024,19 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
     }
 
     $default_variation = isset($data['product']['default_variation']) ? $data['product']['default_variation'] : '';
+    if ($default_variation === '') {
+        $default_variation = get_post_meta($parent_product->get_id(), '_bw_import_default_variation', true);
+    }
     bw_import_maybe_apply_parent_default_variation($parent_product, $attribute_key, $default_variation);
 
     try {
         $parent_product->save();
     } catch (Throwable $exception) {
         $warnings[] = $exception->getMessage();
+    }
+
+    if ($default_variation !== '') {
+        delete_post_meta($parent_product->get_id(), '_bw_import_default_variation');
     }
 
     bw_import_sync_variable_parent($parent_product->get_id());
