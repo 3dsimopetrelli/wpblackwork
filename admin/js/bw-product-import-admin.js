@@ -159,6 +159,8 @@
         const $mappingClose = $('#bw-import-mapping-close');
         const $mappingCloseFooter = $('#bw-import-mapping-close-footer');
         const $mappingReopen = $('#bw-import-mapping-reopen');
+        const $mappingClearForm = $('#bw-import-mapping-clear-form');
+        const $mappingClearButton = $('#bw-import-mapping-clear');
         const $copyButtons = $('.bw-import-template-card__copy-prompt');
         const $copyStatus = $('#bw-import-template-copy-status');
 
@@ -320,8 +322,24 @@
             }
 
             $mappingModal.addClass('is-open');
+            $mappingModal.attr('aria-hidden', 'false');
             $mappingReopen.prop('hidden', true);
             $(document.body).addClass('bw-import-mapping-modal-open');
+
+            const dialog = $mappingModal.find('.bw-import-mapping-modal__dialog').get(0);
+            if (!dialog) {
+                $mappingModal.removeClass('is-open is-enhanced').attr('aria-hidden', 'true');
+                $(document.body).removeClass('bw-import-mapping-modal-open');
+                $mappingReopen.prop('hidden', true);
+                return;
+            }
+
+            const computedStyle = window.getComputedStyle(dialog);
+            if (computedStyle.display === 'none') {
+                $mappingModal.removeClass('is-open is-enhanced').attr('aria-hidden', 'true');
+                $(document.body).removeClass('bw-import-mapping-modal-open');
+                $mappingReopen.prop('hidden', true);
+            }
 
             if ($mappingSection.length) {
                 window.setTimeout(function () {
@@ -340,7 +358,7 @@
                 return;
             }
 
-            $mappingModal.removeClass('is-open');
+            $mappingModal.removeClass('is-open').attr('aria-hidden', 'true');
             $mappingReopen.prop('hidden', false);
             $(document.body).removeClass('bw-import-mapping-modal-open');
             if ($mappingOpen.length) {
@@ -384,6 +402,20 @@
             $(document).on('keydown.bwImportMappingModal', function (event) {
                 if (event.key === 'Escape' && $mappingModal.hasClass('is-open')) {
                     closeMappingModal();
+                }
+            });
+        }
+
+        if ($mappingClearForm.length) {
+            $mappingClearForm.on('submit', function (event) {
+                const message = getString('confirmClearImportMapping', 'Clear the current uploaded CSV mapping and start over?');
+                if (!window.confirm(message)) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if ($mappingClearButton.length) {
+                    $mappingClearButton.prop('disabled', true).attr('aria-disabled', 'true');
                 }
             });
         }

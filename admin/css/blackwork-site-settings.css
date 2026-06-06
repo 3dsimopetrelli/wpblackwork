@@ -488,6 +488,25 @@
     margin: 0;
 }
 
+.bw-import-panel .bw-import-mapping-reopen__helper {
+    margin: 0 0 12px;
+}
+
+.bw-import-panel .bw-import-mapping-reopen__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.bw-import-panel .bw-import-mapping-reopen__clear-form {
+    margin: 0;
+}
+
+.bw-import-panel .bw-import-mapping-reopen__clear {
+    color: #b32d2e;
+}
+
 .bw-import-panel .bw-import-mapping-modal {
     margin-top: 24px;
     position: relative;
@@ -669,6 +688,8 @@
 }
 
 .bw-import-panel .bw-import-mapping-modal.is-enhanced.is-open .bw-import-mapping-modal__dialog {
+    display: flex;
+    flex-direction: column;
     left: 50%;
     max-height: calc(100vh - 48px);
     max-width: min(1200px, calc(100vw - 48px));
@@ -735,6 +756,11 @@ body.bw-import-mapping-modal-open {
 
     .bw-import-panel .bw-import-mapping-modal__actions {
         justify-content: flex-start;
+    }
+
+    .bw-import-panel .bw-import-mapping-reopen__actions {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 

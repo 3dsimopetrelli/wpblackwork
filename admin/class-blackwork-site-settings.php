@@ -7697,6 +7697,20 @@ function bw_site_render_import_product_tab()
     $selected_export_category_id = bw_export_get_selected_category_id();
     $selected_export_product_value = bw_export_get_selected_product_value();
     $selected_export_profile = bw_export_get_profile();
+    $page_slug = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : 'blackwork-product-import-export';
+    if (!in_array($page_slug, ['blackwork-product-import-export', 'blackwork-site-settings'], true)) {
+        $page_slug = 'blackwork-product-import-export';
+    }
+
+    $base_import_export_url = $page_slug === 'blackwork-site-settings'
+        ? add_query_arg(
+            [
+                'page' => 'blackwork-site-settings',
+                'tab' => 'import-product',
+            ],
+            admin_url('admin.php')
+        )
+        : bw_product_import_export_admin_url();
 
     if (isset($GLOBALS['bw_export_request_result'])) {
         $export_result = $GLOBALS['bw_export_request_result'];
@@ -7705,7 +7719,21 @@ function bw_site_render_import_product_tab()
         }
     }
 
+    if (isset($_GET['bw_import_notice']) && sanitize_key(wp_unslash($_GET['bw_import_notice'])) === 'cleared') {
+        $notices[] = ['type' => 'success', 'message' => __('Import mapping cleared. You can upload a new CSV.', 'bw')];
+    }
+
     $inline_upload_error = '';
+
+    if (isset($_POST['bw_import_clear_state_submit'])) {
+        $clear_result = bw_import_handle_clear_request($state);
+        if (is_wp_error($clear_result)) {
+            $notices[] = ['type' => 'error', 'message' => $clear_result->get_error_message()];
+        } else {
+            wp_safe_redirect(add_query_arg(['product_flow' => 'import', 'bw_import_notice' => 'cleared'], $base_import_export_url));
+            exit;
+        }
+    }
 
     $is_upload_request = isset($_POST['bw_import_upload_submit'])
         || (
@@ -7754,21 +7782,6 @@ function bw_site_render_import_product_tab()
             $selected_export_product_value = 'all';
         }
     }
-
-    $page_slug = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : 'blackwork-product-import-export';
-    if (!in_array($page_slug, ['blackwork-product-import-export', 'blackwork-site-settings'], true)) {
-        $page_slug = 'blackwork-product-import-export';
-    }
-
-    $base_import_export_url = $page_slug === 'blackwork-site-settings'
-        ? add_query_arg(
-            [
-                'page' => 'blackwork-site-settings',
-                'tab' => 'import-product',
-            ],
-            admin_url('admin.php')
-        )
-        : bw_product_import_export_admin_url();
     ?>
     <section class="bw-admin-card">
         <h2 class="bw-admin-card-title"><?php esc_html_e('Product Import / Export', 'bw'); ?></h2>
@@ -8104,11 +8117,27 @@ function bw_site_render_import_product_tab()
                         <strong><?php esc_html_e('Mapping is ready', 'bw'); ?></strong>
                         <?php esc_html_e('Open the mapping step to review the detected column mapping and continue with Step 3.', 'bw'); ?>
                     </p>
-                    <p>
+                    <p class="bw-import-mapping-reopen__helper">
+                        <?php esc_html_e('Clear the uploaded CSV mapping state and start over if you want to abandon this import setup.', 'bw'); ?>
+                    </p>
+                    <div class="bw-import-mapping-reopen__actions">
                         <button type="button" class="button button-secondary" id="bw-import-mapping-open">
                             <?php esc_html_e('Open mapping step', 'bw'); ?>
                         </button>
-                    </p>
+                        <form method="post" class="bw-import-mapping-reopen__clear-form" id="bw-import-mapping-clear-form">
+                            <input type="hidden" name="product_flow" value="import" />
+                            <?php wp_nonce_field('bw_import_clear_state', 'bw_import_clear_state_nonce'); ?>
+                            <button
+                                type="submit"
+                                class="button button-link-delete bw-import-mapping-reopen__clear"
+                                id="bw-import-mapping-clear"
+                                name="bw_import_clear_state_submit"
+                                value="1"
+                            >
+                                <?php esc_html_e('Abort import', 'bw'); ?>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div
@@ -8757,6 +8786,29 @@ function bw_import_handle_run_request($state)
     return [
         'message' => $message,
     ];
+}
+
+function bw_import_handle_clear_request($state)
+{
+    if (!current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
+        return new WP_Error('bw_import_permission', __('You do not have permission to clear the import state.', 'bw'));
+    }
+
+    if (!isset($_POST['bw_import_clear_state_nonce']) || !wp_verify_nonce($_POST['bw_import_clear_state_nonce'], 'bw_import_clear_state')) {
+        return new WP_Error('bw_import_nonce', __('Invalid nonce. Please try again.', 'bw'));
+    }
+
+    $active_run_id = bw_import_get_active_run_id();
+    $state_run_id = isset($state['run_id']) ? sanitize_text_field((string) $state['run_id']) : '';
+    $run_id = $active_run_id !== '' ? $active_run_id : $state_run_id;
+
+    if ($run_id !== '') {
+        bw_import_release_lock($run_id, get_current_user_id(), true);
+    }
+
+    bw_import_clear_state($run_id, false);
+
+    return true;
 }
 
 /**
