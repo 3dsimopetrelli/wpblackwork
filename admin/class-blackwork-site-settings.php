@@ -8795,8 +8795,18 @@ function bw_site_render_import_product_tab()
         }
     }
 
-    if (isset($_GET['bw_import_notice']) && sanitize_key(wp_unslash($_GET['bw_import_notice'])) === 'cleared') {
+    $import_notice = isset($_GET['bw_import_notice']) ? sanitize_key(wp_unslash($_GET['bw_import_notice'])) : '';
+    if ($import_notice === 'cleared') {
         $notices[] = ['type' => 'success', 'message' => __('Import mapping cleared. You can upload a new CSV.', 'bw')];
+    } elseif ($import_notice === 'lock_cleared') {
+        $notices[] = ['type' => 'success', 'message' => __('Stuck import lock cleared. You can retry the import.', 'bw')];
+    }
+
+    $active_lock = bw_import_get_active_lock();
+    if (!empty($active_lock) && !empty($active_lock['is_stale'])) {
+        bw_import_clear_lock(true);
+        $active_lock = [];
+        $notices[] = ['type' => 'success', 'message' => __('A stale import lock was cleared automatically. You can retry the import.', 'bw')];
     }
 
     $inline_upload_error = '';
@@ -8807,6 +8817,16 @@ function bw_site_render_import_product_tab()
             $notices[] = ['type' => 'error', 'message' => $clear_result->get_error_message()];
         } else {
             wp_safe_redirect(add_query_arg(['product_flow' => 'import', 'bw_import_notice' => 'cleared'], $base_import_export_url));
+            exit;
+        }
+    }
+
+    if (isset($_POST['bw_import_clear_lock_submit'])) {
+        $clear_lock_result = bw_import_handle_clear_lock_request();
+        if (is_wp_error($clear_lock_result)) {
+            $notices[] = ['type' => 'error', 'message' => $clear_lock_result->get_error_message()];
+        } else {
+            wp_safe_redirect(add_query_arg(['product_flow' => 'import', 'bw_import_notice' => 'lock_cleared'], $base_import_export_url));
             exit;
         }
     }
@@ -8970,6 +8990,42 @@ function bw_site_render_import_product_tab()
         <section class="bw-admin-card bw-import-panel">
             <h3 class="bw-admin-card-title"><?php esc_html_e('Import Product', 'bw'); ?></h3>
             <p class="bw-admin-card-helper"><?php esc_html_e('Upload a CSV file to import or update WooCommerce products and custom meta fields.', 'bw'); ?></p>
+
+        <?php if (!empty($active_lock)) : ?>
+            <div class="notice notice-warning inline">
+                <p>
+                    <strong><?php esc_html_e('Active import lock detected.', 'bw'); ?></strong>
+                    <?php
+                    echo ' ' . esc_html(
+                        sprintf(
+                            /* translators: 1: owner user id, 2: run id */
+                            __('Owner user ID: %1$d. Run: %2$s.', 'bw'),
+                            isset($active_lock['owner_user_id']) ? (int) $active_lock['owner_user_id'] : 0,
+                            !empty($active_lock['run_id']) ? (string) $active_lock['run_id'] : 'n/a'
+                        )
+                    );
+                    ?>
+                </p>
+                <p>
+                    <?php
+                    echo esc_html(
+                        sprintf(
+                            /* translators: 1: age in seconds, 2: ttl in seconds */
+                            __('Current lock age: %1$d seconds. Lock TTL: %2$d seconds.', 'bw'),
+                            isset($active_lock['age_seconds']) ? (int) $active_lock['age_seconds'] : 0,
+                            bw_import_lock_ttl()
+                        )
+                    );
+                    ?>
+                </p>
+                <p><?php esc_html_e('If the previous import request was interrupted, you can clear only the import lock and active run state here. No WooCommerce products will be deleted.', 'bw'); ?></p>
+                <form method="post" style="margin-top:12px;">
+                    <input type="hidden" name="product_flow" value="import" />
+                    <?php wp_nonce_field('bw_import_clear_lock', 'bw_import_clear_lock_nonce'); ?>
+                    <?php submit_button(__('Clear stuck import lock', 'bw'), 'secondary', 'bw_import_clear_lock_submit', false); ?>
+                </form>
+            </div>
+        <?php endif; ?>
 
         <?php $import_templates = bw_product_import_template_registry(); ?>
         <?php
@@ -9997,6 +10053,29 @@ function bw_import_handle_clear_request($state)
     return true;
 }
 
+function bw_import_handle_clear_lock_request()
+{
+    if (!current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
+        return new WP_Error('bw_import_permission', __('You do not have permission to clear the import lock.', 'bw'));
+    }
+
+    if (!isset($_POST['bw_import_clear_lock_nonce']) || !wp_verify_nonce($_POST['bw_import_clear_lock_nonce'], 'bw_import_clear_lock')) {
+        return new WP_Error('bw_import_nonce', __('Invalid nonce. Please try again.', 'bw'));
+    }
+
+    $lock = bw_import_get_active_lock();
+    if (empty($lock)) {
+        return new WP_Error('bw_import_lock_missing', __('No active import lock was found.', 'bw'));
+    }
+
+    bw_import_clear_lock(true);
+
+    return [
+        'run_id' => isset($lock['run_id']) ? (string) $lock['run_id'] : '',
+        'owner_user_id' => isset($lock['owner_user_id']) ? (int) $lock['owner_user_id'] : 0,
+    ];
+}
+
 /**
  * Chunk size for importer run steps.
  *
@@ -10211,6 +10290,51 @@ function bw_import_clear_run_state($run_id)
     }
 }
 
+function bw_import_lock_ttl()
+{
+    return (int) apply_filters('bw_import_lock_ttl', 15 * MINUTE_IN_SECONDS);
+}
+
+function bw_import_get_active_lock()
+{
+    $lock = bw_import_get_lock_payload();
+    if (empty($lock)) {
+        return [];
+    }
+
+    $now = time();
+    $lock['run_id'] = isset($lock['run_id']) ? sanitize_text_field((string) $lock['run_id']) : '';
+    $lock['owner_user_id'] = isset($lock['owner_user_id']) ? absint($lock['owner_user_id']) : 0;
+    $lock['acquired_at'] = isset($lock['acquired_at']) ? (int) $lock['acquired_at'] : 0;
+    $lock['heartbeat_at'] = isset($lock['heartbeat_at']) ? (int) $lock['heartbeat_at'] : 0;
+    $lock['expires_at'] = isset($lock['expires_at']) ? (int) $lock['expires_at'] : 0;
+    $lock['age_seconds'] = $lock['acquired_at'] > 0 ? max(0, $now - $lock['acquired_at']) : 0;
+    $lock['expires_in'] = $lock['expires_at'] > 0 ? ($lock['expires_at'] - $now) : 0;
+    $lock['is_stale'] = bw_import_is_lock_stale($lock);
+
+    return $lock;
+}
+
+function bw_import_clear_lock($clear_run_state = true)
+{
+    $lock = bw_import_get_active_lock();
+    $run_id = !empty($lock['run_id']) ? sanitize_text_field((string) $lock['run_id']) : '';
+
+    delete_option(bw_import_lock_option_key());
+
+    if ($run_id !== '') {
+        if ($clear_run_state) {
+            bw_import_clear_run_state($run_id);
+        } elseif (bw_import_get_active_run_id() === $run_id) {
+            bw_import_set_active_run_id('');
+        }
+    } else {
+        bw_import_set_active_run_id('');
+    }
+
+    return $lock;
+}
+
 function bw_import_get_lock_payload()
 {
     $lock = get_option(bw_import_lock_option_key(), []);
@@ -10259,7 +10383,7 @@ function bw_import_acquire_lock($run_id, $user_id)
             'run_id' => $run_id,
             'owner_user_id' => $user_id,
             'acquired_at' => $now,
-            'expires_at' => $now + 300,
+            'expires_at' => $now + bw_import_lock_ttl(),
             'heartbeat_at' => $now,
         ];
 
@@ -10296,7 +10420,7 @@ function bw_import_refresh_lock($run_id, $user_id)
     $now = time();
     $updated_lock = $lock;
     $updated_lock['heartbeat_at'] = $now;
-    $updated_lock['expires_at'] = $now + 300;
+    $updated_lock['expires_at'] = $now + bw_import_lock_ttl();
     return bw_import_lock_compare_and_swap($lock, $updated_lock);
 }
 
@@ -12317,6 +12441,112 @@ function bw_import_build_variation_downloads($download_url, $download_name)
     ];
 }
 
+function bw_import_normalize_source_image_url_for_lookup($url)
+{
+    $url = trim((string) $url);
+    if ($url === '') {
+        return '';
+    }
+
+    $url = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
+    return esc_url_raw($url);
+}
+
+function bw_import_get_source_image_url_hash($url)
+{
+    $normalized_url = bw_import_normalize_source_image_url_for_lookup($url);
+    if ($normalized_url === '') {
+        return '';
+    }
+
+    return hash('sha256', $normalized_url);
+}
+
+function bw_import_find_attachment_by_source_url($url)
+{
+    global $wpdb;
+    global $bw_import_source_image_attachment_cache;
+
+    if (!is_array($bw_import_source_image_attachment_cache)) {
+        $bw_import_source_image_attachment_cache = [];
+    }
+
+    $normalized_url = bw_import_normalize_source_image_url_for_lookup($url);
+    if ($normalized_url === '') {
+        return 0;
+    }
+
+    $url_hash = bw_import_get_source_image_url_hash($normalized_url);
+    if ($url_hash === '') {
+        return 0;
+    }
+
+    if (array_key_exists($url_hash, $bw_import_source_image_attachment_cache)) {
+        return (int) $bw_import_source_image_attachment_cache[$url_hash];
+    }
+
+    $attachment_ids = $wpdb->get_col(
+        $wpdb->prepare(
+            "
+            SELECT posts.ID
+            FROM {$wpdb->posts} AS posts
+            INNER JOIN {$wpdb->postmeta} AS postmeta
+                ON posts.ID = postmeta.post_id
+            WHERE posts.post_type = 'attachment'
+              AND posts.post_status <> 'trash'
+              AND postmeta.meta_key = '_bw_source_image_url_hash'
+              AND postmeta.meta_value = %s
+            ORDER BY posts.ID DESC
+            ",
+            $url_hash
+        )
+    );
+
+    if (empty($attachment_ids)) {
+        $bw_import_source_image_attachment_cache[$url_hash] = 0;
+        return 0;
+    }
+
+    foreach (array_map('absint', (array) $attachment_ids) as $attachment_id) {
+        if ($attachment_id < 1) {
+            continue;
+        }
+
+        $stored_url = bw_import_normalize_source_image_url_for_lookup(get_post_meta($attachment_id, '_bw_source_image_url', true));
+        if ($stored_url === $normalized_url) {
+            $bw_import_source_image_attachment_cache[$url_hash] = $attachment_id;
+            return $attachment_id;
+        }
+    }
+
+    $bw_import_source_image_attachment_cache[$url_hash] = 0;
+    return 0;
+}
+
+function bw_import_store_attachment_source_url($attachment_id, $url)
+{
+    global $bw_import_source_image_attachment_cache;
+
+    if (!is_array($bw_import_source_image_attachment_cache)) {
+        $bw_import_source_image_attachment_cache = [];
+    }
+
+    $attachment_id = absint($attachment_id);
+    if ($attachment_id < 1) {
+        return;
+    }
+
+    $normalized_url = bw_import_normalize_source_image_url_for_lookup($url);
+    $url_hash = bw_import_get_source_image_url_hash($normalized_url);
+    if ($normalized_url === '' || $url_hash === '') {
+        return;
+    }
+
+    update_post_meta($attachment_id, '_bw_source_image_url', $normalized_url);
+    update_post_meta($attachment_id, '_bw_source_image_url_hash', $url_hash);
+    $bw_import_source_image_attachment_cache[$url_hash] = $attachment_id;
+}
+
 function bw_import_save_variation_from_row($data, $update_existing = false, $options = [])
 {
     $options = wp_parse_args(
@@ -12583,7 +12813,8 @@ function bw_import_resolve_term_ids($terms, $taxonomy)
 function bw_import_handle_image($image_url, $product_id, &$error_message = '')
 {
     $error_message = '';
-    if (empty($image_url)) {
+    $normalized_image_url = bw_import_normalize_source_image_url_for_lookup($image_url);
+    if ($normalized_image_url === '') {
         return 0;
     }
 
@@ -12593,23 +12824,29 @@ function bw_import_handle_image($image_url, $product_id, &$error_message = '')
         require_once ABSPATH . 'wp-admin/includes/image.php';
     }
 
-    $image_id = attachment_url_to_postid($image_url);
-    if ($image_id) {
+    $image_id = bw_import_find_attachment_by_source_url($normalized_image_url);
+    if ($image_id > 0) {
         return $image_id;
     }
 
-    $parsed_path = wp_parse_url($image_url, PHP_URL_PATH);
+    $image_id = attachment_url_to_postid($normalized_image_url);
+    if ($image_id) {
+        bw_import_store_attachment_source_url($image_id, $normalized_image_url);
+        return $image_id;
+    }
+
+    $parsed_path = wp_parse_url($normalized_image_url, PHP_URL_PATH);
     $file_name = $parsed_path ? basename((string) $parsed_path) : '';
     if ($file_name === '') {
         $file_name = 'blackwork-import-image';
     }
 
-    $timeout = (int) apply_filters('bw_import_image_timeout', 20, $image_url);
+    $timeout = (int) apply_filters('bw_import_image_timeout', 20, $normalized_image_url);
     if ($timeout < 5) {
         $timeout = 5;
     }
 
-    $temporary_file = download_url($image_url, $timeout);
+    $temporary_file = download_url($normalized_image_url, $timeout);
     if (is_wp_error($temporary_file)) {
         $error_message = $temporary_file->get_error_message();
         return 0;
@@ -12628,6 +12865,8 @@ function bw_import_handle_image($image_url, $product_id, &$error_message = '')
         }
         return 0;
     }
+
+    bw_import_store_attachment_source_url((int) $attachment_id, $normalized_image_url);
 
     return (int) $attachment_id;
 }
