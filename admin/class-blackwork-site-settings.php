@@ -2383,7 +2383,9 @@ function bw_digital_csv_builder_generate($raw_json)
     bw_digital_csv_builder_assign_value($extended, 'variation_download_url', $extended_zip_url);
 
     if (in_array('product_subcategories', $headers, true)) {
-        bw_digital_csv_builder_assign_value($parent, 'product_subcategories', implode(',', $creative['product_subcategories']));
+        bw_digital_csv_builder_assign_value($parent, 'product_subcategories', bw_import_product_subcategories_to_meta_string($creative['product_subcategories']));
+        bw_digital_csv_builder_assign_value($commercial, 'product_subcategories', '');
+        bw_digital_csv_builder_assign_value($extended, 'product_subcategories', '');
     } elseif (!empty($creative['product_subcategories'])) {
         $warnings[] = __('The current Digital template has no product_subcategories column, so validated subcategories were not written into the CSV.', 'bw');
     }
@@ -11665,7 +11667,7 @@ function bw_import_prepare_row_data($row_data, $mapping)
                 $data['categories'] = bw_import_explode_list($clean_value);
                 break;
             case 'product_subcategories':
-                $data['product_subcategories'] = bw_import_explode_list($clean_value);
+                $data['product_subcategories'] = bw_import_normalize_product_subcategories($clean_value);
                 break;
             case 'tags':
                 $data['tags'] = bw_import_explode_list($clean_value);
@@ -11870,6 +11872,30 @@ function bw_import_explode_list($value)
     $parts = preg_split('/[|,]/', $value);
     $parts = array_filter(array_map('trim', $parts));
     return $parts;
+}
+
+function bw_import_normalize_product_subcategories($value)
+{
+    $items = is_array($value) ? $value : bw_import_explode_list((string) $value);
+    $items = array_map(static function ($item) {
+        return sanitize_text_field(trim((string) $item));
+    }, (array) $items);
+
+    $items = array_values(array_filter($items, static function ($item) {
+        return $item !== '';
+    }));
+
+    return $items;
+}
+
+function bw_import_product_subcategories_to_meta_string($value)
+{
+    $items = bw_import_normalize_product_subcategories($value);
+    if (empty($items)) {
+        return '';
+    }
+
+    return implode(', ', $items);
 }
 
 /**
@@ -12097,7 +12123,7 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
 
     if (isset($data['product_subcategories'])) {
         // Preserve builder/import subcategories as product meta without changing product_cat assignments.
-        $subcategory_value = implode(',', array_map('sanitize_text_field', (array) $data['product_subcategories']));
+        $subcategory_value = bw_import_product_subcategories_to_meta_string($data['product_subcategories']);
         $product->update_meta_data('product_subcategories', $subcategory_value);
         $product->update_meta_data('_bw_product_subcategories', $subcategory_value);
     }
@@ -12185,6 +12211,15 @@ function bw_import_save_product_from_row($data, $update_existing = false, $optio
         $product->save();
     } catch (Throwable $exception) {
         return new WP_Error('bw_import_save', $exception->getMessage());
+    }
+
+    if (isset($data['product_subcategories'])) {
+        $subcategory_value = bw_import_product_subcategories_to_meta_string($data['product_subcategories']);
+        update_post_meta($product->get_id(), 'product_subcategories', $subcategory_value);
+        update_post_meta($product->get_id(), '_bw_product_subcategories', $subcategory_value);
+        if ($subcategory_value === '') {
+            $warnings[] = __('Product subcategories were present in mapping but resolved to an empty value.', 'bw');
+        }
     }
 
     if (
