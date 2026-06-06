@@ -8140,32 +8140,6 @@ function bw_site_render_import_product_tab()
                             </button>
                         </div>
 
-                        <?php if (!empty($state['upload_summary'])): ?>
-                            <div class="bw-import-mapping-modal__summary">
-                                <h4 class="bw-import-mapping-modal__summary-title"><?php esc_html_e('Step 1 — Upload summary', 'bw'); ?></h4>
-                                <table class="widefat fixed bw-import-upload-summary__table">
-                                    <tbody>
-                                        <tr>
-                                            <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
-                                            <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
-                                        </tr>
-                                        <tr>
-                                            <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
-                                            <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
-                                        </tr>
-                                        <tr>
-                                            <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
-                                            <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="notice notice-success inline bw-import-mapping-section__notice">
-                            <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field, then continue to Step 3 — Run import.', 'bw'); ?></p>
-                        </div>
-
                         <form method="post">
                             <input type="hidden" name="product_flow" value="import" />
                             <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
@@ -8173,11 +8147,37 @@ function bw_site_render_import_product_tab()
                             $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
                             ?>
                             <div class="bw-import-mapping-modal__body">
+                                <?php if (!empty($state['upload_summary'])): ?>
+                                    <div class="bw-import-mapping-modal__summary">
+                                        <h4 class="bw-import-mapping-modal__summary-title"><?php esc_html_e('Step 1 — Upload summary', 'bw'); ?></h4>
+                                        <table class="widefat fixed bw-import-upload-summary__table">
+                                            <tbody>
+                                                <tr>
+                                                    <th><?php esc_html_e('Uploaded file', 'bw'); ?></th>
+                                                    <td><?php echo esc_html($state['upload_summary']['file_name']); ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><?php esc_html_e('Total fields in file', 'bw'); ?></th>
+                                                    <td><?php echo (int) $state['upload_summary']['total_fields']; ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <th><?php esc_html_e('Fields detected', 'bw'); ?></th>
+                                                    <td><?php echo (int) $state['upload_summary']['loaded_fields']; ?></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="notice notice-success inline bw-import-mapping-section__notice">
+                                    <p><?php esc_html_e('Match each CSV column to a WooCommerce field or a custom meta field, then continue to Step 3 — Run import.', 'bw'); ?></p>
+                                </div>
+
                                 <table class="widefat fixed bw-import-mapping-table">
                                     <thead>
                                         <tr>
-                                            <th style="width:50%;"><?php esc_html_e('CSV Column', 'bw'); ?></th>
-                                            <th><?php esc_html_e('Map To', 'bw'); ?></th>
+                                            <th class="bw-import-mapping-table__heading bw-import-mapping-table__heading--column"><?php esc_html_e('CSV Column', 'bw'); ?></th>
+                                            <th class="bw-import-mapping-table__heading bw-import-mapping-table__heading--mapping"><?php esc_html_e('Map To', 'bw'); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -8198,9 +8198,11 @@ function bw_site_render_import_product_tab()
                                                 : (isset($auto_mapping[$header]) ? $auto_mapping[$header] : 'ignore');
                                             ?>
                                             <tr>
-                                                <td><strong><?php echo esc_html($header); ?></strong></td>
-                                                <td>
-                                                    <select name="bw_import_mapping[<?php echo esc_attr($header); ?>]" style="width:100%;">
+                                                <td class="bw-import-mapping-table__column">
+                                                    <strong><?php echo esc_html($header); ?></strong>
+                                                </td>
+                                                <td class="bw-import-mapping-table__mapping">
+                                                    <select class="bw-import-mapping-table__select" name="bw_import_mapping[<?php echo esc_attr($header); ?>]">
                                                         <option value="ignore" <?php selected($current_value, 'ignore'); ?>>
                                                             <?php esc_html_e('Ignore this column', 'bw'); ?>
                                                         </option>
