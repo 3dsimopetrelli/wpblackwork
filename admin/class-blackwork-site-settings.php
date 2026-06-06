@@ -8193,6 +8193,7 @@ function bw_site_render_import_product_tab()
                             <?php wp_nonce_field('bw_import_run', 'bw_import_run_nonce'); ?>
                             <?php
                             $state_skip_images = array_key_exists('skip_images', $state) ? !empty($state['skip_images']) : true;
+                            $state_import_images = !$state_skip_images;
                             ?>
                             <div class="bw-import-mapping-modal__body">
                                 <?php if (!empty($state['upload_summary'])): ?>
@@ -8326,11 +8327,17 @@ function bw_site_render_import_product_tab()
                                 </div>
 
                                 <div class="bw-import-mapping-images">
-                                    <strong><?php esc_html_e('Image import behavior', 'bw'); ?></strong>
+                                    <strong><?php esc_html_e('Image import to WordPress Media Library', 'bw'); ?></strong>
                                     <label class="bw-import-mapping-images__label">
-                                        <input type="checkbox" name="bw_import_skip_images" value="1" <?php checked($state_skip_images); ?> />
-                                        <span><?php esc_html_e('Check to skip image sideload. Digital CSVs default to importing available featured, gallery, hover, and variation images from the CSV URLs; other import profiles keep their safer skip-by-default behavior unless you enable image import manually.', 'bw'); ?></span>
+                                        <input type="checkbox" name="bw_import_import_images" value="1" <?php checked($state_import_images); ?> />
+                                        <span><?php esc_html_e('Import images from CSV URLs into the WordPress Media Library', 'bw'); ?></span>
                                     </label>
+                                    <p class="description">
+                                        <?php esc_html_e('When enabled, WordPress downloads the featured image, product gallery images, hover image, showcase image, and variation images from the CSV URLs and saves them in the Media Library. Disable this only if you want to create/update the product without importing images.', 'bw'); ?>
+                                    </p>
+                                    <p class="description">
+                                        <?php esc_html_e('Digital CSVs default to importing images. Other import profiles may keep image import disabled by default unless you enable it here.', 'bw'); ?>
+                                    </p>
                                 </div>
                             </div>
 
@@ -8673,7 +8680,7 @@ function bw_import_handle_run_request($state)
         $run_state['processed_row_keys'] = [];
         $run_state['last_errors'] = [];
         $run_state['last_warnings'] = [];
-        $run_state['skip_images'] = !empty($_POST['bw_import_skip_images']);
+        $run_state['skip_images'] = empty($_POST['bw_import_import_images']);
         $run_state['options_snapshot'] = [
             'update_existing' => !empty($run_state['update_existing']),
             'skip_images' => !empty($run_state['skip_images']),
