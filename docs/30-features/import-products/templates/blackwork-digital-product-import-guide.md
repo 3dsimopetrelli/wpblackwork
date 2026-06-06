@@ -48,6 +48,7 @@ Clarifications:
 - Source notes are optional but should be preferred over visual guessing when provided.
 - ChatGPT/Codex must not invent missing factual metadata.
 - If a YAML field is empty, leave the corresponding CSV field empty unless this guide defines a safe fallback.
+- If a YAML media URL or ZIP URL is present, the completed CSV must carry that converted YAML URL into the correct CSV field and must not leave that field empty.
 
 Required AI behavior:
 1. Read this MD guide first.
@@ -152,6 +153,15 @@ PRICE EXTENDED:
 - Do not invent or transform media URLs.
 - ZIP download URLs are external file URLs, not visual-analysis sources.
 - ZIP download URLs should be converted to direct-access Dropbox URLs before writing them into `variation_download_url`, but ZIP access does not block visual image analysis or CSV completion.
+- If any of these YAML URL fields are present, the matching CSV field must be populated before the CSV is returned:
+  - `FEATURED IMAGE URL` → `featured_image`
+  - `FEATURED IMAGE URL` → Commercial `variation_image`
+  - `FEATURED IMAGE URL` → Extended `variation_image`
+  - `PRODUCT GALLERY` → `product_gallery`
+  - `HOVER IMAGE URL` → `meta:_bw_slider_hover_image`
+  - `SHOWCASE IMAGE URLS` → `meta:_bw_showcase_image`
+  - `DOWNLOAD ZIP URL` / `DOWNLOAD ZIP URL COMMERCIAL` / `DOWNLOAD ZIP URL EXTENDED` → variation row `variation_download_url`
+- Manual uploaded images never replace these YAML URLs in the final CSV. They are only the visual-analysis source.
 
 ### Image access order
 1. Read the YAML.
@@ -188,6 +198,15 @@ PRICE EXTENDED:
 - Do not drop unknown non-preview parameters.
 - Never write the original `www.dropbox.com` `dl=0` preview URL into the CSV.
 - Never write chat attachment URLs or internal upload references into the CSV.
+- The final CSV must use `dl.dropboxusercontent.com` for Dropbox media and ZIP URLs written into:
+  - `featured_image`
+  - `product_gallery`
+  - `variation_image`
+  - `meta:_bw_slider_hover_image`
+  - `meta:_bw_showcase_image`
+  - `meta:_bw_slider_hover_video`
+  - `variation_download_url`
+- Preserve `rlkey`, `st`, the `/scl/fi/.../filename.ext` path, and all non-preview query parameters exactly.
 - Apply this final CSV / WordPress URL rule to:
   - `featured_image`
   - `product_gallery`
@@ -216,6 +235,19 @@ PRICE EXTENDED:
 - Missing ZIP URLs should not block the image-analysis workflow or CSV generation.
 - If a ZIP URL is a Dropbox link, convert it into the final CSV / WordPress Dropbox URL format before writing it into the CSV.
 - Never write a Dropbox `dl=0` preview URL into `variation_download_url`.
+- If a ZIP URL exists in YAML, do not return the completed CSV with the matching `variation_download_url` field empty.
+
+### Pre-return CSV validation
+Before returning the completed CSV, validate all YAML URL carryover rules:
+- if `FEATURED IMAGE URL` exists in YAML, `featured_image` must not be empty
+- if `FEATURED IMAGE URL` exists in YAML, both Commercial and Extended rows `variation_image` must not be empty
+- if `PRODUCT GALLERY` exists in YAML, `product_gallery` must not be empty
+- if `HOVER IMAGE URL` exists in YAML, `meta:_bw_slider_hover_image` must not be empty
+- if `SHOWCASE IMAGE URLS` exists in YAML, `meta:_bw_showcase_image` must not be empty
+- if `DOWNLOAD ZIP URL` exists in YAML, Commercial and Extended `variation_download_url` must not be empty unless variation-specific ZIP URLs override it
+- if `DOWNLOAD ZIP URL COMMERCIAL` exists in YAML, the Commercial row `variation_download_url` must not be empty
+- if `DOWNLOAD ZIP URL EXTENDED` exists in YAML, the Extended row `variation_download_url` must not be empty
+- If any required YAML URL exists but the matching CSV field is empty, do not return the CSV. Fix the CSV first.
 
 ### Filename matching for manual uploads
 - When Blackwork uploads images manually because Dropbox access failed, match each uploaded image to the YAML media field by filename.
@@ -325,6 +357,8 @@ Rules:
 - Use `HOVER IMAGE URL` in `meta:_bw_slider_hover_image`.
 - Use `HOVER VIDEO URL` in `meta:_bw_slider_hover_video` only if provided.
 - Use `SHOWCASE IMAGE URLS` for `meta:_bw_showcase_image`, using the first URL if multiple are provided.
+- If any of those YAML media fields are present, the corresponding CSV field must not be left empty.
+- Manual uploaded images are only for visual analysis. Continue using the converted YAML URLs in the CSV output.
 - Use `PRICE COMMERCIAL` in the Commercial row `variation_regular_price`.
 - Use `PRICE EXTENDED` in the Extended row `variation_regular_price`.
 - Use `PRICE` in the parent row `regular_price` only if appropriate.

@@ -43,6 +43,12 @@ Final CSV / WordPress URL phase:
 - Never write the original `www.dropbox.com` `dl=0` preview URL into the CSV.
 - Never write chat attachment URLs or internal upload references into the CSV.
 
+YAML media and ZIP URLs are mandatory in the final CSV when provided:
+- If the YAML contains a media URL or ZIP URL, write the converted YAML URL into the correct CSV field.
+- Do not leave the matching CSV field empty when the YAML already provides the source URL.
+- Manual uploaded images are only for visual analysis. They never replace YAML URLs in the CSV.
+- If a required YAML URL exists but the matching CSV field is still empty, do not return the CSV. Fix the CSV first.
+
 Manual image upload recovery:
 - If the featured image or product gallery images cannot be visually accessed through the Dropbox direct URL sequence, stop the operation and ask Blackwork to upload the required images manually into the chat/session.
 - Do not generate the CSV until the required images are visually available.
@@ -112,6 +118,7 @@ Instructions:
 - Use `DOWNLOAD ZIP URL COMMERCIAL` in the Commercial row `variation_download_url`; if it is empty, fall back to `DOWNLOAD ZIP URL`.
 - Use `DOWNLOAD ZIP URL EXTENDED` in the Extended row `variation_download_url`; if it is empty, fall back to `DOWNLOAD ZIP URL`.
 - If both the variation-specific ZIP URL and the default ZIP URL are empty for a variation row, leave `variation_download_url` empty.
+- If any YAML ZIP URL exists for a variation row, that row `variation_download_url` must not be left empty.
 - Use `Commercial License — {final post_title}` in the Commercial row `variation_download_name`.
 - Use `Extended License — {final post_title}` in the Extended row `variation_download_name`.
 - Before writing any Dropbox ZIP URL into the CSV, convert it to a direct-access URL using the same sequence:
@@ -156,4 +163,14 @@ Instructions:
 - Do not include guide text.
 - Do not add extra rows.
 - Include the completed parent product row and the completed Commercial and Extended variation rows.
+- Before returning the CSV, validate all required YAML URL carryover rules:
+  - if `FEATURED IMAGE URL` exists in YAML, `featured_image` must not be empty
+  - if `FEATURED IMAGE URL` exists in YAML, both Commercial and Extended rows `variation_image` must not be empty
+  - if `PRODUCT GALLERY` exists in YAML, `product_gallery` must not be empty
+  - if `HOVER IMAGE URL` exists in YAML, `meta:_bw_slider_hover_image` must not be empty
+  - if `SHOWCASE IMAGE URLS` exists in YAML, `meta:_bw_showcase_image` must not be empty
+  - if `DOWNLOAD ZIP URL` exists in YAML, Commercial and Extended `variation_download_url` must not be empty unless variation-specific ZIP URLs override it
+  - if `DOWNLOAD ZIP URL COMMERCIAL` exists in YAML, the Commercial row `variation_download_url` must not be empty
+  - if `DOWNLOAD ZIP URL EXTENDED` exists in YAML, the Extended row `variation_download_url` must not be empty
+- If any required YAML URL exists but the matching CSV field is empty, do not return the CSV. Fix the CSV first.
 - If the platform cannot create a downloadable file, return only the raw CSV content in a single CSV code block.
