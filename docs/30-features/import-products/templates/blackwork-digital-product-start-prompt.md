@@ -20,6 +20,23 @@ Workflow:
 - Do not create CSV.
 - Do not include Markdown.
 
+Preferred final output:
+Create and return a downloadable `.json` file.
+
+Filename pattern:
+`blackwork-digital-product-complete-{product-slug}.json`
+
+If a downloadable file cannot be created:
+Return exactly one fenced code block with language `json`.
+
+Do not include:
+- Markdown links
+- explanations before or after the JSON
+- comments
+- trailing commas
+- CSV
+- normal prose JSON outside a code block
+
 Return exactly this JSON structure:
 
 ```json
@@ -63,3 +80,5 @@ Important:
 - `tags` must contain exactly 10 items.
 - `product_subcategories` must use only allowed guide names.
 - final output must be JSON only.
+- never use Markdown links inside JSON.
+- never output JSON as ordinary prose.

@@ -51,6 +51,13 @@ Important:
 - validation
 - downloadable CSV output
 
+Responsibility boundary:
+- ChatGPT creates Complete Product JSON only.
+- The plugin creates the CSV.
+- The plugin converts Dropbox URLs.
+- The plugin validates and blocks malformed URLs.
+- ChatGPT must not create or edit the CSV.
+
 ## Complete Product JSON schema
 Return exactly this structure:
 
@@ -85,6 +92,64 @@ Return exactly this structure:
     "tags": [],
     "product_subcategories": [],
     "visual_analysis_notes": ""
+  }
+}
+```
+
+## Example Complete Product JSON structure
+
+```json
+{
+  "source_data": {
+    "product_title": "Birds of the Northern Coast",
+    "digital_assets_list": "12 high-resolution scanned plates, 1 title sheet, 1 reference sheet",
+    "featured_image_url": "https://www.dropbox.com/scl/fi/example/featured.webp?rlkey=examplekey&st=examplest&dl=0",
+    "product_gallery": [
+      "https://www.dropbox.com/scl/fi/example/gallery-01.webp?rlkey=examplekey&st=examplest&dl=0",
+      "https://www.dropbox.com/scl/fi/example/gallery-02.webp?rlkey=examplekey&st=examplest&dl=0"
+    ],
+    "hover_image_url": "https://www.dropbox.com/scl/fi/example/hover.webp?rlkey=examplekey&st=examplest&dl=0",
+    "showcase_image_urls": [
+      "https://www.dropbox.com/scl/fi/example/showcase-01.webp?rlkey=examplekey&st=examplest&dl=0",
+      "https://www.dropbox.com/scl/fi/example/showcase-02.webp?rlkey=examplekey&st=examplest&dl=0"
+    ],
+    "hover_video_url": "",
+    "year": "1847",
+    "author_artist": "Example Artist",
+    "total_assets": "14",
+    "formats": "WEBP, JPG, PDF",
+    "source_notes": "Natural history study with coastal bird species and engraved captions.",
+    "product_context": "19th-century ornithology reference material with detailed plate compositions.",
+    "technique": "Engraving",
+    "price": "",
+    "price_commercial": "39",
+    "price_extended": "79",
+    "download_zip_url": "https://www.dropbox.com/scl/fi/example/digital-pack.zip?rlkey=examplekey&st=examplest&dl=0",
+    "download_zip_url_commercial": "",
+    "download_zip_url_extended": ""
+  },
+  "creative_data": {
+    "post_title": "Birds of the Northern Coast Digital Archive",
+    "post_content": "A detailed digital collection of ornithological coastal bird plates featuring engraved linework, period captions, and carefully preserved natural history compositions suited for researchers, designers, and collectors.",
+    "post_excerpt": "A curated digital archive of engraved coastal bird studies from a 19th-century natural history source.",
+    "tags": [
+      "birds",
+      "ornithology",
+      "natural history",
+      "engraving",
+      "coastal wildlife",
+      "avian anatomy",
+      "historical illustration",
+      "scientific plates",
+      "nineteenth century",
+      "field reference"
+    ],
+    "product_subcategories": [
+      "Birds",
+      "Scientific Instruments",
+      "Landscapes"
+    ],
+    "visual_analysis_notes": "The featured and gallery images show engraved bird studies with coastal settings, scientific labeling, and strong natural history reference value."
   }
 }
 ```
@@ -197,26 +262,38 @@ Expected YAML-backed fields:
 - Letterforms / Calligraphy
 - Ornaments / Borders
 
-## JSON output rules
-- Return valid JSON only.
-- No Markdown.
+## JSON output and download rules
+- The output must be valid JSON parseable by `JSON.parse`.
+- Prefer a downloadable `.json` file.
+- Filename pattern:
+  - `blackwork-digital-product-complete-{product-slug}.json`
+- If a downloadable file cannot be created, return one fenced `json` code block only.
+- Do not write JSON as ordinary chat prose.
+- Do not split the JSON across multiple messages unless impossible.
+- Do not include Markdown links.
+- URLs must be plain JSON strings.
+- URLs must not be wrapped in `[]` or `()`.
+- URLs must be copied exactly from YAML into `source_data`.
+- Dropbox URLs must not be converted by ChatGPT.
+- Do not include explanations before or after the JSON.
 - No comments.
 - No trailing commas.
 - No CSV.
-- No explanation outside JSON.
-- Do not wrap JSON in a code fence if creating a downloadable `.json` file.
-- If file download is not possible, return one JSON code block only.
-- Filename pattern:
-  - `blackwork-digital-product-complete-{product-slug}.json`
 
 ## Final self-check before returning JSON
 Before returning the Complete Product JSON, verify:
+- the JSON parses
+- no string contains `[http`
+- no string contains `](http`
+- no URL contains `%22` unless it was present in the YAML
 - `source_data` contains all YAML fields.
 - `source_data` media and ZIP URLs match the YAML exactly.
+- all `source_data` URLs are plain strings
 - `product_gallery` is an array.
 - `showcase_image_urls` is an array.
 - `creative_data.tags` has exactly 10 items.
 - `creative_data.product_subcategories` uses only allowed names.
+- `creative_data` contains no URLs
 - no CSV fields are present.
 - no WordPress meta keys are present.
 - no Dropbox conversion was performed.
