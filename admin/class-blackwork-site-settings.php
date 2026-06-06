@@ -9706,7 +9706,14 @@ function bw_import_guess_mapping($headers, $options)
     $guessed = [];
 
     foreach ($headers as $header) {
+        $raw_header = trim((string) $header);
         $normalized_header = bw_import_normalize_string($header);
+
+        // Treat explicit meta:* CSV headers as first-class mapping targets.
+        if ($raw_header !== '' && isset($flat_options[$raw_header])) {
+            $guessed[$header] = $raw_header;
+            continue;
+        }
 
         if (isset($aliases[$normalized_header]) && isset($flat_options[$aliases[$normalized_header]])) {
             $guessed[$header] = $aliases[$normalized_header];
