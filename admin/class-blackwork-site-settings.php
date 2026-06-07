@@ -11297,6 +11297,7 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
     $checkpoint_every = isset($options['checkpoint_every']) ? absint($options['checkpoint_every']) : 0;
     $processed_since_checkpoint = 0;
     $last_absolute_row = -1;
+    $digital_parent_variations = [];
 
     $maybe_checkpoint = static function ($absolute_row) use (&$processed_since_checkpoint, &$last_absolute_row, $checkpoint_every, $checkpoint_callback) {
         if (!$checkpoint_callback || $checkpoint_every < 1) {
@@ -11450,6 +11451,23 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
             }
         }
 
+        if (
+            $row_type === 'variation'
+            && !empty($save_result['parent_id'])
+            && !empty($save_result['variation_id'])
+            && !empty($prepared['variation']['name'])
+        ) {
+            $parent_id = absint($save_result['parent_id']);
+            $variation_id = absint($save_result['variation_id']);
+            $variation_name = bw_import_canonicalize_license_value((string) $prepared['variation']['name']);
+            if ($parent_id > 0 && $variation_id > 0 && $variation_name !== '') {
+                if (!isset($digital_parent_variations[$parent_id]) || !is_array($digital_parent_variations[$parent_id])) {
+                    $digital_parent_variations[$parent_id] = [];
+                }
+                $digital_parent_variations[$parent_id][$variation_id] = $variation_name;
+            }
+        }
+
         $entity_type = isset($save_result['entity_type']) ? (string) $save_result['entity_type'] : ($row_type === 'variation' ? 'variation' : 'product');
         if (!empty($save_result['status']) && $save_result['status'] === 'updated') {
             if (bw_import_record_row_outcome($run_state, $row_identity, 'updated')) {
@@ -11476,6 +11494,14 @@ function bw_import_process_rows($headers, $rows, $mapping, $update_existing = fa
 
     if ($checkpoint_callback && $processed_since_checkpoint > 0 && $last_absolute_row >= 0) {
         call_user_func($checkpoint_callback, $last_absolute_row);
+    }
+
+    foreach ($digital_parent_variations as $parent_id => $variation_map) {
+        $repair_warnings = [];
+        bw_import_repair_digital_license_variations((int) $parent_id, $variation_map, $repair_warnings);
+        foreach ($repair_warnings as $warning) {
+            $result['warnings'][] = $warning;
+        }
     }
 
     return $result;
@@ -11932,6 +11958,36 @@ function bw_import_find_product_cat_term_id_by_name_under_parent($name, $parent_
     return 0;
 }
 
+function bw_import_maybe_create_allowed_digital_product_subcategory($name, $parent_term_id)
+{
+    $name = sanitize_text_field(trim((string) $name));
+    $parent_term_id = absint($parent_term_id);
+
+    if ($name === '' || $parent_term_id < 1) {
+        return 0;
+    }
+
+    $allowed_subcategories = bw_digital_csv_builder_allowed_subcategories();
+    if (!in_array($name, $allowed_subcategories, true)) {
+        return 0;
+    }
+
+    $created = wp_insert_term(
+        $name,
+        'product_cat',
+        [
+            'parent' => $parent_term_id,
+            'slug' => sanitize_title($name),
+        ]
+    );
+
+    if (is_wp_error($created) || empty($created['term_id'])) {
+        return 0;
+    }
+
+    return (int) $created['term_id'];
+}
+
 function bw_import_assign_digital_product_subcategories($product_id, $subcategory_string, &$warnings = [])
 {
     $product_id = absint($product_id);
@@ -11964,6 +12020,9 @@ function bw_import_assign_digital_product_subcategories($product_id, $subcategor
 
     foreach ($subcategory_items as $subcategory_name) {
         $subcategory_term_id = bw_import_find_product_cat_term_id_by_name_under_parent($subcategory_name, (int) $parent_term->term_id);
+        if ($subcategory_term_id < 1) {
+            $subcategory_term_id = bw_import_maybe_create_allowed_digital_product_subcategory($subcategory_name, (int) $parent_term->term_id);
+        }
         if ($subcategory_term_id > 0) {
             $assigned_term_ids[] = $subcategory_term_id;
             continue;
@@ -12600,6 +12659,91 @@ function bw_import_persist_variation_attribute_value($variation_id, $attribute_k
     return true;
 }
 
+function bw_import_repair_digital_license_variations($parent_id, $variation_map, &$warnings = [])
+{
+    $parent_id = absint($parent_id);
+    if ($parent_id < 1 || empty($variation_map) || !is_array($variation_map)) {
+        return;
+    }
+
+    $parent_product = wc_get_product($parent_id);
+    if (!$parent_product || !$parent_product->is_type('variable')) {
+        $warnings[] = sprintf(__('Digital license repair skipped because parent product ID %d is not a variable product.', 'bw'), $parent_id);
+        return;
+    }
+
+    $attribute_key = bw_import_build_license_attribute_key();
+    $canonical_options = ['Commercial', 'Extended'];
+    $attribute_objects = $parent_product->get_attributes();
+    if (!is_array($attribute_objects)) {
+        $attribute_objects = [];
+    }
+
+    $license_attribute = new WC_Product_Attribute();
+    $license_attribute->set_id(0);
+    $license_attribute->set_name('License');
+    $license_attribute->set_options($canonical_options);
+    $license_attribute->set_visible(true);
+    $license_attribute->set_variation(true);
+    $license_attribute->set_position(count($attribute_objects));
+
+    $replaced = false;
+    foreach ($attribute_objects as $index => $attribute) {
+        if ($attribute instanceof WC_Product_Attribute && sanitize_title((string) $attribute->get_name()) === $attribute_key) {
+            $license_attribute->set_position($attribute->get_position());
+            $attribute_objects[$index] = $license_attribute;
+            $replaced = true;
+            break;
+        }
+    }
+
+    if (!$replaced) {
+        $attribute_objects[$attribute_key] = $license_attribute;
+    }
+
+    $parent_product->set_attributes($attribute_objects);
+    bw_import_maybe_apply_parent_default_variation($parent_product, $attribute_key, 'commercial');
+
+    try {
+        $parent_product->save();
+    } catch (Throwable $exception) {
+        $warnings[] = $exception->getMessage();
+        return;
+    }
+
+    foreach ($variation_map as $variation_id => $variation_name) {
+        $variation_id = absint($variation_id);
+        $variation_name = bw_import_canonicalize_license_value($variation_name);
+
+        if ($variation_id < 1 || $variation_name === '') {
+            $warnings[] = __('Variation license repair skipped because the variation ID or canonical variation_name was empty.', 'bw');
+            continue;
+        }
+
+        $variation = wc_get_product($variation_id);
+        if (!$variation || !$variation->is_type('variation')) {
+            $warnings[] = sprintf(__('Digital license repair skipped because variation ID %d could not be loaded.', 'bw'), $variation_id);
+            continue;
+        }
+
+        $variation->set_parent_id($parent_id);
+        $variation->set_attributes([
+            $attribute_key => $variation_name,
+        ]);
+
+        try {
+            $variation->save();
+        } catch (Throwable $exception) {
+            $warnings[] = $exception->getMessage();
+            continue;
+        }
+
+        bw_import_persist_variation_attribute_value($variation_id, $attribute_key, $variation_name, $warnings);
+    }
+
+    bw_import_sync_variable_parent($parent_id);
+}
+
 function bw_import_normalize_source_image_url_for_lookup($url)
 {
     $url = trim((string) $url);
@@ -12879,6 +13023,8 @@ function bw_import_save_variation_from_row($data, $update_existing = false, $opt
     return [
         'entity_type' => 'variation',
         'status' => $status,
+        'parent_id' => $parent_product->get_id(),
+        'variation_id' => $variation_id,
         'warnings' => $warnings,
     ];
 }
