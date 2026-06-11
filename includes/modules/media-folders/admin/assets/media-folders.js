@@ -2,6 +2,33 @@
     'use strict';
 
     var cfg = window.bwMediaFolders || window.bwMF || {};
+    function readSessionDebugFlag(key) {
+        try {
+            if (!window.sessionStorage) {
+                return false;
+            }
+
+            return window.sessionStorage.getItem(key) === '1';
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function isMediaFoldersDebugEnabled() {
+        return !!(
+            window.BW_MEDIA_FOLDERS_DEBUG === true ||
+            window.bwMediaFoldersDebug === true ||
+            window.bwMFDebug === true ||
+            readSessionDebugFlag('BW_MEDIA_FOLDERS_DEBUG') ||
+            readSessionDebugFlag('bwMediaFoldersDebug') ||
+            readSessionDebugFlag('bwMFDebug')
+        );
+    }
+
+    if (isMediaFoldersDebugEnabled() && window.console && typeof console.log === 'function') {
+        console.log('[BW Media Folders Modal] script loaded');
+    }
+
     if (!cfg.ajaxUrl || !cfg.nonce) {
         return;
     }
@@ -91,10 +118,6 @@
     var mediaFramePatchRunCount = 0;
     var mediaFramePatchSignalCount = 0;
     var mediaFramePatchRetryCount = 0;
-
-    function isMediaFoldersDebugEnabled() {
-        return !!(window.BW_MEDIA_FOLDERS_DEBUG || window.bwMediaFoldersDebug || window.bwMFDebug);
-    }
 
     function mediaFoldersDebugLog(message, payload) {
         if (!isMediaFoldersDebugEnabled() || !window.console || typeof console.log !== 'function') {
