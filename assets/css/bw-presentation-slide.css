@@ -16,8 +16,8 @@
 .bw-ps-image {
     position: relative;
     overflow: hidden;
-    /* Base color shown while image is downloading */
-    background-color: #e8e8e8;
+    /* Keep the wrapper transparent so PNG alpha remains visible. */
+    background-color: transparent;
 }
 
 /* Shimmer skeleton: animated gradient while image downloads */

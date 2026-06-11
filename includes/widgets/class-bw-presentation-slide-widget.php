@@ -77,6 +77,21 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'include_featured_image',
+            [
+                'label'        => __( 'Include Featured Image', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'condition'    => [
+                    'images_source' => 'query',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'gallery',
             [
                 'label'      => __( 'Add Images', 'bw-elementor-widgets' ),
@@ -1087,14 +1102,24 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
             $context_product = $this->get_product_context();
 
             if ( $context_product ) {
-                $attachment_ids = $context_product->get_gallery_image_ids();
+                $attachment_ids = [];
+                $gallery_ids    = $context_product->get_gallery_image_ids();
+                $gallery_ids    = is_array( $gallery_ids ) ? array_map( 'absint', $gallery_ids ) : [];
 
-                // Include featured image as first
-                $featured_id = $context_product->get_image_id();
-                if ( $featured_id ) {
-                    array_unshift( $attachment_ids, $featured_id );
+                if ( ( $settings['include_featured_image'] ?? 'yes' ) === 'yes' ) {
+                    $featured_id = absint( $context_product->get_image_id() );
+                    if ( $featured_id ) {
+                        $attachment_ids[] = $featured_id;
+                    }
                 }
 
+                foreach ( $gallery_ids as $gallery_id ) {
+                    if ( $gallery_id ) {
+                        $attachment_ids[] = $gallery_id;
+                    }
+                }
+
+                $attachment_ids = array_values( array_filter( array_unique( $attachment_ids ) ) );
                 foreach ( $attachment_ids as $attachment_id ) {
                     $images[] = [
                         'id'  => $attachment_id,
