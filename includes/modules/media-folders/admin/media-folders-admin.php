@@ -98,6 +98,41 @@ if (!function_exists('bw_mf_admin_is_supported_list_screen')) {
     }
 }
 
+if (!function_exists('bw_mf_admin_should_enqueue_media_modal_assets')) {
+    function bw_mf_admin_should_enqueue_media_modal_assets($hook_suffix)
+    {
+        $hook_suffix = sanitize_key((string) $hook_suffix);
+
+        if ($hook_suffix === '') {
+            return false;
+        }
+
+        if (bw_mf_admin_is_supported_list_screen()) {
+            return true;
+        }
+
+        // Media modal entry points in wp-admin, including Elementor editor screens.
+        $modal_hooks = [
+            'post.php',
+            'post-new.php',
+            'upload.php',
+            'media-new.php',
+            'edit.php',
+        ];
+
+        if (in_array($hook_suffix, $modal_hooks, true)) {
+            return true;
+        }
+
+        $action = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
+        if ($action === 'elementor') {
+            return true;
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('bw_mf_get_active_filter_payload')) {
     function bw_mf_get_active_filter_payload($post_type)
     {
@@ -117,6 +152,10 @@ if (!function_exists('bw_mf_get_active_filter_payload')) {
 if (!function_exists('bw_mf_admin_enqueue_assets')) {
     function bw_mf_admin_enqueue_assets($hook_suffix)
     {
+        if (!bw_mf_admin_should_enqueue_media_modal_assets($hook_suffix)) {
+            return;
+        }
+
         $css_path = __DIR__ . '/assets/media-folders.css';
         $js_path = __DIR__ . '/assets/media-folders.js';
         $corner_enabled = bw_mf_is_corner_indicator_enabled();
