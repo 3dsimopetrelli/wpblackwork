@@ -4,6 +4,10 @@ if (!defined('ABSPATH')) {
 }
 
 add_action('admin_enqueue_scripts', 'bw_mf_admin_enqueue_assets', 20);
+add_action('elementor/editor/before_enqueue_scripts', 'bw_mf_admin_enqueue_assets', 20);
+add_action('elementor/editor/after_enqueue_styles', 'bw_mf_admin_enqueue_assets', 20);
+add_action('elementor/editor/v2/scripts/enqueue', 'bw_mf_admin_enqueue_assets', 20);
+add_action('elementor/editor/v2/styles/enqueue', 'bw_mf_admin_enqueue_assets', 20);
 add_action('admin_footer-upload.php', 'bw_mf_render_sidebar_mount', 20);
 add_action('admin_footer-edit.php', 'bw_mf_render_sidebar_mount', 20);
 add_action('current_screen', 'bw_mf_register_list_table_drag_column', 20);
@@ -99,9 +103,21 @@ if (!function_exists('bw_mf_admin_is_supported_list_screen')) {
 }
 
 if (!function_exists('bw_mf_admin_should_enqueue_media_modal_assets')) {
-    function bw_mf_admin_should_enqueue_media_modal_assets($hook_suffix)
+    function bw_mf_admin_should_enqueue_media_modal_assets($hook_suffix = '')
     {
+        $current_hook = function_exists('current_filter') ? (string) current_filter() : '';
         $hook_suffix = sanitize_key((string) $hook_suffix);
+
+        $elementor_hooks = [
+            'elementor/editor/before_enqueue_scripts',
+            'elementor/editor/after_enqueue_styles',
+            'elementor/editor/v2/scripts/enqueue',
+            'elementor/editor/v2/styles/enqueue',
+        ];
+
+        if (in_array($current_hook, $elementor_hooks, true)) {
+            return true;
+        }
 
         if ($hook_suffix === '') {
             return false;
@@ -150,8 +166,10 @@ if (!function_exists('bw_mf_get_active_filter_payload')) {
 }
 
 if (!function_exists('bw_mf_admin_enqueue_assets')) {
-    function bw_mf_admin_enqueue_assets($hook_suffix)
+    function bw_mf_admin_enqueue_assets($hook_suffix = '')
     {
+        static $localized = false;
+
         if (!bw_mf_admin_should_enqueue_media_modal_assets($hook_suffix)) {
             return;
         }
@@ -192,32 +210,36 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
             true
         );
 
-        wp_localize_script('bw-media-folders', 'bwMediaFolders', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('bw_media_folders_nonce'),
-            'active' => bw_mf_get_active_filter_payload($post_type),
-            'postType' => $post_type,
-            'taxonomy' => $taxonomy,
-            'screenContext' => $screen_context,
-            'cornerIndicatorEnabled' => $corner_enabled ? 1 : 0,
-            'flags' => [
-                'cornerIndicator' => $corner_enabled ? 1 : 0,
-            ],
-            'badgeTooltipEnabled' => ($post_type === 'attachment' && $corner_enabled && $badge_tooltip_enabled) ? 1 : 0,
-            'isListScreen' => $is_list_screen ? 1 : 0,
-            'sidebarHtml' => bw_mf_get_sidebar_markup(),
-            'text' => [
-                'newFolderPrompt' => __('Folder name', 'bw'),
-                'renamePrompt' => __('Rename folder', 'bw'),
-                'createSubPrompt' => __('Subfolder name', 'bw'),
-                'confirmDelete' => __('Delete this folder?', 'bw'),
-                'selectMedia' => __('Select at least one media item.', 'bw'),
-                'selectItems' => __('Select at least one item.', 'bw'),
-                'copyLink' => __('Copy link', 'bw'),
-                'copiedLink' => __('Copied', 'bw'),
-                'copyFailed' => __('Copy failed', 'bw'),
-            ],
-        ]);
+        if (!$localized) {
+            wp_localize_script('bw-media-folders', 'bwMediaFolders', [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('bw_media_folders_nonce'),
+                'active' => bw_mf_get_active_filter_payload($post_type),
+                'postType' => $post_type,
+                'taxonomy' => $taxonomy,
+                'screenContext' => $screen_context,
+                'cornerIndicatorEnabled' => $corner_enabled ? 1 : 0,
+                'flags' => [
+                    'cornerIndicator' => $corner_enabled ? 1 : 0,
+                ],
+                'badgeTooltipEnabled' => ($post_type === 'attachment' && $corner_enabled && $badge_tooltip_enabled) ? 1 : 0,
+                'isListScreen' => $is_list_screen ? 1 : 0,
+                'sidebarHtml' => bw_mf_get_sidebar_markup(),
+                'text' => [
+                    'newFolderPrompt' => __('Folder name', 'bw'),
+                    'renamePrompt' => __('Rename folder', 'bw'),
+                    'createSubPrompt' => __('Subfolder name', 'bw'),
+                    'confirmDelete' => __('Delete this folder?', 'bw'),
+                    'selectMedia' => __('Select at least one media item.', 'bw'),
+                    'selectItems' => __('Select at least one item.', 'bw'),
+                    'copyLink' => __('Copy link', 'bw'),
+                    'copiedLink' => __('Copied', 'bw'),
+                    'copyFailed' => __('Copy failed', 'bw'),
+                ],
+            ]);
+
+            $localized = true;
+        }
     }
 }
 
