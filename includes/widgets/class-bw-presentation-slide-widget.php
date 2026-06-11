@@ -77,21 +77,6 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'include_featured_image',
-            [
-                'label'        => __( 'Include Featured Image', 'bw-elementor-widgets' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-                'condition'    => [
-                    'images_source' => 'query',
-                ],
-            ]
-        );
-
-        $this->add_control(
             'gallery',
             [
                 'label'      => __( 'Add Images', 'bw-elementor-widgets' ),
@@ -181,6 +166,21 @@ class BW_Presentation_Slide_Widget extends Widget_Base {
                 'return_value' => 'yes',
                 'default'      => '',
                 'description'  => __( 'Free-scroll drag: the slide does not snap to position, scrolls freely', 'bw-elementor-widgets' ),
+            ]
+        );
+
+        $this->add_control(
+            'include_featured_image',
+            [
+                'label'        => __( 'Include Featured Image', 'bw-elementor-widgets' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+                'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'condition'    => [
+                    'images_source' => 'query',
+                ],
             ]
         );
 

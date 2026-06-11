@@ -339,6 +339,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		}
 
 		$this->add_render_attribute( 'wrapper', 'class', $wrapper_cls );
+		$this->add_render_attribute( 'wrapper', 'data-widget-id', $this->get_id() );
 
 		// SVG chevron.
 		$arrow = '<svg width="14" height="9" viewBox="0 0 14 9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1 1.5L7 7.5L13 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -361,8 +362,8 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		} elseif ( 'compatibility' === $content_type ) {
 			$this->render_compatibility( $compatibility_rows );
 		} else {
-			$this->render_product_details( $product );
-		}
+				$this->render_product_details( $product, $this->get_id() );
+			}
 
 		if ( $accordion_on ) {
 			echo '</div>'; // .bw-biblio-accordion__body-inner
@@ -431,8 +432,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
 	 * Render Product Details rows.
 	 *
 	 * @param \WC_Product $product
+	 * @param string      $widget_id Widget instance ID.
 	 */
-	private function render_product_details( $product ) {
+	private function render_product_details( $product, $widget_id = '' ) {
 		$product_id = $product->get_id();
 
 		$digital_fields = function_exists( 'bw_get_digital_product_fields' )
@@ -513,10 +515,14 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				if ( $total_assets_row || $assets_list_row ) {
 					$total_assets_value = $total_assets_row ? esc_html( $total_assets_row['value'] ) : '';
 					$assets_list_value  = $assets_list_row  ? nl2br( esc_html( $assets_list_row['value'] ) ) : '';
+					$assets_list_id     = 'bw-biblio-assets-list-content-' . sanitize_html_class( $widget_id ? $widget_id : (string) $product_id );
 
 					echo '<div class="bw-biblio-row bw-biblio-row--assets">';
 					echo '<div class="bw-biblio-label bw-biblio-label--assets">' . $total_assets_value . '</div>';
-					echo '<div class="bw-biblio-value bw-biblio-value--assets-list">' . $assets_list_value . '</div>';
+					echo '<div class="bw-biblio-value bw-biblio-value--assets-list">';
+					echo '<div id="' . esc_attr( $assets_list_id ) . '" class="bw-biblio-assets-list__content">' . $assets_list_value . '</div>';
+					echo '<button type="button" class="bw-biblio-assets-list__toggle" aria-expanded="false" aria-controls="' . esc_attr( $assets_list_id ) . '" hidden>' . esc_html__( 'Read more', 'bw' ) . '</button>';
+					echo '</div>';
 					echo '</div>';
 				}
 			}

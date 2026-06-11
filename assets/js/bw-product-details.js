@@ -212,12 +212,81 @@
     }
 
     // ---------------------------------------------------------------------------
+    // initAssetsReadMore
+    // ---------------------------------------------------------------------------
+    function initAssetsReadMore($widget) {
+        if (!$widget || !$widget.length) { return; }
+
+        var widgetId = $widget.data('widget-id') || 'bw-product-details';
+        var resizeNs = '.bwpdAssets.' + widgetId;
+
+        $widget.find('.bw-biblio-row--assets').each(function () {
+            var $row = $(this);
+            if ($row.data('bwAssetsReadMoreInit')) { return; }
+            $row.data('bwAssetsReadMoreInit', true);
+
+            var $content = $row.find('.bw-biblio-assets-list__content').first();
+            var $toggle  = $row.find('.bw-biblio-assets-list__toggle').first();
+
+            if (!$content.length || !$toggle.length) {
+                return;
+            }
+
+            var contentEl = $content[0];
+
+            function setExpanded(isExpanded) {
+                $row.toggleClass('is-expanded', isExpanded);
+                $content.toggleClass('is-expanded', isExpanded);
+                $content.toggleClass('is-collapsed', !isExpanded);
+                $toggle.attr('aria-expanded', isExpanded ? 'true' : 'false');
+                $toggle.text(isExpanded ? 'Read less' : 'Read more');
+            }
+
+            function updateToggleVisibility() {
+                var wasExpanded = $row.hasClass('is-expanded');
+
+                setExpanded(false);
+                contentEl.offsetHeight; // force layout so clamp state is measurable
+
+                var hasOverflow = contentEl.scrollHeight > contentEl.clientHeight + 1;
+
+                if (!hasOverflow) {
+                    $toggle.prop('hidden', true).attr('hidden', 'hidden');
+                    setExpanded(false);
+                    return;
+                }
+
+                $toggle.prop('hidden', false).removeAttr('hidden');
+                setExpanded(wasExpanded);
+            }
+
+            $toggle.off('click.bwpdAssetsReadMore').on('click.bwpdAssetsReadMore', function () {
+                var isExpanded = $row.hasClass('is-expanded');
+                setExpanded(!isExpanded);
+            });
+
+            setExpanded(false);
+            requestAnimationFrame(function () {
+                requestAnimationFrame(updateToggleVisibility);
+            });
+
+            $(window).off('resize' + resizeNs).on('resize' + resizeNs, debounce(function () {
+                updateToggleVisibility();
+            }, 150));
+        });
+    }
+
+    // ---------------------------------------------------------------------------
     // Init
     // ---------------------------------------------------------------------------
 
     function initAll() {
         $('.bw-biblio-widget.bw-biblio-accordion').each(function () {
             initBiblioAccordion($(this));
+        });
+
+        $('.bw-biblio-widget').each(function () {
+            initAssetsReadMore($(this));
         });
     }
 
@@ -231,6 +300,13 @@
                 var $widget = $scope.find('.bw-biblio-widget.bw-biblio-accordion');
                 if ($widget.length) {
                     initBiblioAccordion($widget);
+                }
+
+                var $allWidgets = $scope.find('.bw-biblio-widget');
+                if ($allWidgets.length) {
+                    $allWidgets.each(function () {
+                        initAssetsReadMore($(this));
+                    });
                 }
             }
         );
