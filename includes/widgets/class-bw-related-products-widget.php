@@ -378,6 +378,36 @@ class BW_Related_Products_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_labels',
+			[
+				'label' => __( 'Labels', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'archive_labels_padding',
+			[
+				'label'      => __( 'Badge Padding', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%', 'em', 'rem' ],
+				'default'    => [
+					'top'      => 8,
+					'right'    => 12,
+					'bottom'   => 8,
+					'left'     => 12,
+					'unit'     => 'px',
+					'isLinked' => false,
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-related-products-widget .bw-product-labels--archive .bw-product-label' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	/**

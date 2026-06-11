@@ -10,6 +10,11 @@
   box-sizing: border-box;
 }
 
+.bw-related-products-widget .bw-product-card-media--proportional {
+  background: transparent;
+  background-color: transparent;
+}
+
 .bw-related-products-grid {
   --bw-rp-columns: 4;
   --bw-rp-gap: 24px;
