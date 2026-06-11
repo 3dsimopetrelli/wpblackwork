@@ -61,6 +61,28 @@
     var folderByParentMap = {};
     var folderCollapsedMap = {};
     var FOLDER_COLLAPSED_KEY = 'bw_mf_folder_collapsed';
+    var modalState = {
+        active: false,
+        frame: null,
+        activeFolder: 0,
+        activeUnassigned: false,
+        folders: [],
+        counts: { all: 0, unassigned: 0 }
+    };
+    var modalSelectors = {
+        root: '#bw-media-folders-modal-root',
+        defaults: '#bw-media-folders-modal-defaults',
+        tree: '#bw-media-folders-modal-tree',
+        search: '#bw-mr-folder-search-modal',
+        bulk: '#bw-media-folders-modal-bulk-select',
+        toggle: '#bw-media-folders-toggle-modal',
+        collapseTab: '#bw-mf-collapse-tab-modal',
+        shell: '.bw-mf-modal-sidebar-shell'
+    };
+    var mediaFrameModalPatched = false;
+    var mediaFramePatchAttempts = 0;
+    var mediaModalEventsBound = false;
+    var mediaModalMountTimer = null;
 
     function isGridMode() {
         return state.mode === 'grid' || !!document.querySelector('.attachments-browser');
@@ -80,6 +102,28 @@
 
     function isMediaPostType() {
         return currentPostType === 'attachment';
+    }
+
+    function isModalSidebarActive() {
+        return !!(modalState.active && modalState.frame);
+    }
+
+    function getActiveFilterState() {
+        return isModalSidebarActive() ? modalState : state;
+    }
+
+    function getActiveAjaxContext() {
+        if (isModalSidebarActive()) {
+            return {
+                postType: 'attachment',
+                screenContext: 'upload'
+            };
+        }
+
+        return {
+            postType: currentPostType,
+            screenContext: currentScreenContext
+        };
     }
 
     function getAttachmentsBrowserEl() {
@@ -255,10 +299,12 @@
             return;
         }
 
+        var ajaxContext = getActiveAjaxContext();
+
         var body = $.extend({}, payload || {}, {
             action: action,
             nonce: cfg.nonce,
-            bw_mf_context: currentScreenContext
+            bw_mf_context: ajaxContext.screenContext
         });
 
         $.post(cfg.ajaxUrl, body)
@@ -1213,7 +1259,7 @@
         var requestData = {
             action: 'bw_mf_get_corner_markers',
             nonce: cfg.nonce,
-            bw_mf_context: currentScreenContext,
+            bw_mf_context: getActiveAjaxContext().screenContext,
         };
         if (isMediaPostType()) {
             requestData.attachment_ids = batch;
@@ -1545,12 +1591,13 @@
     }
 
     function applyGridFilter(folderId, unassigned) {
-        if (state.mode !== 'grid' || !window.wp || !wp.media || !wp.media.frame) {
+        var modalActive = isModalSidebarActive();
+        if (!modalActive && (state.mode !== 'grid' || !window.wp || !wp.media || !wp.media.frame)) {
             return false;
         }
 
         try {
-            var frame = wp.media.frame;
+            var frame = modalActive ? modalState.frame : wp.media.frame;
             if (!frame.content || !frame.content.get) {
                 return false;
             }
@@ -1566,6 +1613,14 @@
                 bw_media_unassigned: unassigned ? '1' : '',
                 ignore: (+new Date())
             };
+
+            if (modalActive) {
+                modalState.activeFolder = folderId > 0 ? folderId : 0;
+                modalState.activeUnassigned = !!unassigned;
+            } else {
+                state.activeFolder = folderId > 0 ? folderId : 0;
+                state.activeUnassigned = !!unassigned;
+            }
 
             collection.props.set(nextProps);
             if (typeof collection.reset === 'function') {
@@ -1583,10 +1638,11 @@
         }
     }
 
-    function nodeHtml(item, depth) {
+    function nodeHtml(item, depth, viewState) {
+        var activeState = viewState || state;
         var pad = Math.max(0, depth) * 14;
         var pinnedClass = item.pinned ? ' is-pinned' : '';
-        var active = (!state.activeUnassigned && state.activeFolder === item.id) ? ' is-active' : '';
+        var active = (!activeState.activeUnassigned && activeState.activeFolder === item.id) ? ' is-active' : '';
         var isCollapsed = !!folderCollapsedMap[item.id];
         var hasChildren = !!(folderByParentMap[item.id] && folderByParentMap[item.id].length);
         var styles = ['padding-left:' + pad + 'px'];
@@ -1867,17 +1923,21 @@
         request('bw_media_rename_folder', { term_id: termId, name: newName }, refreshTree);
     }
 
-    function renderDefaults() {
+    function renderDefaults(viewState, selectors, isMedia) {
+        var activeState = viewState || state;
+        var sel = selectors || {};
+        var target = sel.defaults || '#bw-media-folders-defaults';
+        var mediaMode = typeof isMedia === 'boolean' ? isMedia : isMediaPostType();
         var html = '';
-        var allClass = (!state.activeFolder && !state.activeUnassigned) ? ' is-active' : '';
-        var unClass = state.activeUnassigned ? ' is-active' : '';
-        var allLabel = isMediaPostType() ? 'All Files' : 'All Items';
-        var unassignedLabel = isMediaPostType() ? 'Unassigned Files' : 'Unassigned Items';
+        var allClass = (!activeState.activeFolder && !activeState.activeUnassigned) ? ' is-active' : '';
+        var unClass = activeState.activeUnassigned ? ' is-active' : '';
+        var allLabel = mediaMode ? 'All Files' : 'All Items';
+        var unassignedLabel = mediaMode ? 'Unassigned Files' : 'Unassigned Items';
 
-        html += '<button type="button" class="bw-media-default' + allClass + '" data-type="all">' + allLabel + ' <span>' + (state.counts.all || 0) + '</span></button>';
-        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-term-id="0" data-folder-id="0">' + unassignedLabel + ' <span>' + (state.counts.unassigned || 0) + '</span></button>';
+        html += '<button type="button" class="bw-media-default' + allClass + '" data-type="all">' + allLabel + ' <span>' + (activeState.counts.all || 0) + '</span></button>';
+        html += '<button type="button" class="bw-media-default bw-media-default--drop' + unClass + '" data-type="unassigned" data-term-id="0" data-folder-id="0">' + unassignedLabel + ' <span>' + (activeState.counts.unassigned || 0) + '</span></button>';
 
-        $('#bw-media-folders-defaults').html(html);
+        $(target).html(html);
     }
 
     function loadCollapsedState() {
@@ -1925,12 +1985,16 @@
         }
         saveCollapsedState();
         syncTreeNodeVisibility();
+        if (isModalSidebarActive()) {
+            syncModalTreeNodeVisibility();
+        }
     }
 
-    function buildTreeRows() {
+    function buildTreeRows(viewState) {
+        var activeState = viewState || state;
         var byParent = {};
 
-        state.folders.forEach(function (item) {
+        activeState.folders.forEach(function (item) {
             var p = item.parent || 0;
             if (!byParent[p]) {
                 byParent[p] = [];
@@ -1942,7 +2006,7 @@
         function walk(parent, depth, out) {
             var children = byParent[parent] || [];
             children.forEach(function (child) {
-                out.push(nodeHtml(child, depth));
+                out.push(nodeHtml(child, depth, activeState));
                 walk(child.id, depth + 1, out);
             });
         }
@@ -1952,9 +2016,12 @@
         return rows;
     }
 
-    function syncTreeNodeVisibility() {
-        var searchTerm = ($('#bw-mr-folder-search').val() || '').toLowerCase().trim();
-        var nodes = Array.prototype.slice.call(document.querySelectorAll('#bw-media-folders-tree .bw-media-folder-node'));
+    function syncTreeNodeVisibility(viewState, selectors) {
+        var sel = selectors || {};
+        var searchSelector = sel.search || '#bw-mr-folder-search';
+        var treeSelector = sel.tree || '#bw-media-folders-tree';
+        var searchTerm = ($(searchSelector).val() || '').toLowerCase().trim();
+        var nodes = Array.prototype.slice.call(document.querySelectorAll(treeSelector + ' .bw-media-folder-node'));
         var nodeById = {};
         nodes.forEach(function (node) {
             var id = parseInt(node.getAttribute('data-id') || '0', 10);
@@ -1995,16 +2062,23 @@
         });
     }
 
-    function renderTree() {
-        $('#bw-media-folders-tree').html(buildTreeRows().join(''));
+    function renderTree(viewState, selectors) {
+        var activeState = viewState || state;
+        var sel = selectors || {};
+        var treeSelector = sel.tree || '#bw-media-folders-tree';
+        var bulkSelector = sel.bulk || '#bw-media-folders-bulk-select';
+
+        $(treeSelector).html(buildTreeRows(activeState).join(''));
 
         var options = ['<option value="0">Unassigned</option>'];
-        state.folders.forEach(function (item) {
+        activeState.folders.forEach(function (item) {
             options.push('<option value="' + item.id + '">' + item.name + '</option>');
         });
-        $('#bw-media-folders-bulk-select').html(options.join(''));
+        if (bulkSelector) {
+            $(bulkSelector).html(options.join(''));
+        }
 
-        syncTreeNodeVisibility();
+        syncTreeNodeVisibility(activeState, selectors);
         bindDropTargets();
         debugAssertFolderRowLayout();
     }
@@ -2037,8 +2111,291 @@
             state.counts = data.counts || { all: 0, unassigned: 0 };
             renderDefaults();
             renderTree();
+            if (isModalSidebarActive()) {
+                modalState.folders = state.folders.slice();
+                modalState.counts = state.counts;
+                renderModalDefaults();
+                renderModalTree();
+            }
             scheduleBwMfRefresh('refresh-tree');
+        }, {
+            silent: !isSupportedListScreen()
         });
+    }
+
+    function getModalSidebarMarkup() {
+        var html = String(cfg.sidebarHtml || '');
+        if (!html) {
+            return '';
+        }
+
+        return html
+            .replace(/id="bw-media-folders-root"/g, 'id="bw-media-folders-modal-root"')
+            .replace(/id="bw-media-folders-toggle"/g, 'id="bw-media-folders-toggle-modal"')
+            .replace(/id="bw-mr-new-folder-btn"/g, 'id="bw-mr-new-folder-btn-modal"')
+            .replace(/id="bw-mr-folder-search"/g, 'id="bw-mr-folder-search-modal"')
+            .replace(/id="bw-media-folders-defaults"/g, 'id="bw-media-folders-modal-defaults"')
+            .replace(/id="bw-media-folders-tree"/g, 'id="bw-media-folders-modal-tree"')
+            .replace(/id="bw-media-folders-bulk-select"/g, 'id="bw-media-folders-modal-bulk-select"')
+            .replace(/id="bw-media-folders-bulk-btn"/g, 'id="bw-media-folders-modal-bulk-btn"')
+            .replace(/id="bw-mf-collapse-tab"/g, 'id="bw-mf-collapse-tab-modal"');
+    }
+
+    function getModalSidebarRoot() {
+        return $(modalSelectors.root);
+    }
+
+    function getModalSidebarContainer(frame) {
+        if (!frame || !frame.$el || !frame.$el.length) {
+            return $();
+        }
+
+        var content = frame.$el.find('.media-frame-content, .media-frame-browse').first();
+        if (content && content.length) {
+            return content;
+        }
+
+        return frame.$el;
+    }
+
+    function renderModalDefaults() {
+        renderDefaults(modalState, {
+            defaults: modalSelectors.defaults
+        }, true);
+    }
+
+    function renderModalTree() {
+        renderTree(modalState, {
+            tree: modalSelectors.tree,
+            bulk: modalSelectors.bulk,
+            search: modalSelectors.search,
+            isMedia: true
+        });
+    }
+
+    function syncModalTreeNodeVisibility() {
+        syncTreeNodeVisibility(modalState, {
+            tree: modalSelectors.tree,
+            search: modalSelectors.search
+        });
+    }
+
+    function setModalGridFilter(folderId, unassigned) {
+        modalState.activeFolder = folderId > 0 ? folderId : 0;
+        modalState.activeUnassigned = !!unassigned;
+        modalState.active = true;
+        applyGridFilter(folderId, unassigned);
+        renderModalDefaults();
+        renderModalTree();
+    }
+
+    function clearModalSidebar(frame) {
+        if (mediaModalMountTimer) {
+            window.clearTimeout(mediaModalMountTimer);
+            mediaModalMountTimer = null;
+        }
+
+        var root = getModalSidebarRoot();
+        if (root.length) {
+            var shell = root.closest(modalSelectors.shell);
+            if (shell.length) {
+                shell.remove();
+            } else {
+                root.remove();
+            }
+        }
+
+        var container = frame && frame.$el ? frame.$el.find('.media-frame-content, .media-frame-browse').first() : $();
+        if (container && container.length) {
+            container.removeClass('bw-mf-modal-has-sidebar');
+        }
+
+        var browser = frame && frame.$el ? frame.$el.find('.attachments-browser').first() : $();
+        var browserParent = browser.length ? browser.parent() : $();
+        if (browserParent && browserParent.length) {
+            browserParent.removeClass('bw-mf-modal-has-sidebar');
+        }
+
+        modalState.active = false;
+        modalState.frame = null;
+        modalState.activeFolder = 0;
+        modalState.activeUnassigned = false;
+        modalState.folders = [];
+        modalState.counts = { all: 0, unassigned: 0 };
+    }
+
+    function renderModalSidebar(frame) {
+        if (!frame || !frame.$el || !cfg.sidebarHtml) {
+            return false;
+        }
+
+        var container = getModalSidebarContainer(frame);
+        if (!container.length) {
+            return false;
+        }
+
+        var browser = frame.$el.find('.attachments-browser').first();
+        var browserParent = browser.length ? browser.parent() : $();
+        var root = getModalSidebarRoot();
+        if (!root.length) {
+            var html = getModalSidebarMarkup();
+            if (!html) {
+                return false;
+            }
+
+            if (!browser.length) {
+                return false;
+            }
+
+            browser.before('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
+            root = getModalSidebarRoot();
+        }
+
+        if (!root.length) {
+            return false;
+        }
+
+        container.addClass('bw-mf-modal-has-sidebar');
+        if (browserParent && browserParent.length) {
+            browserParent.addClass('bw-mf-modal-has-sidebar');
+        }
+        modalState.active = true;
+        modalState.frame = frame;
+        modalState.activeFolder = 0;
+        modalState.activeUnassigned = false;
+        if (!state.folders.length) {
+            refreshTree();
+        }
+        modalState.folders = state.folders.slice();
+        modalState.counts = state.counts;
+
+        renderModalDefaults();
+        renderModalTree();
+        bindModalEvents();
+        applyGridFilter(0, false);
+        return true;
+    }
+
+    function scheduleModalSidebarMount(frame) {
+        if (mediaModalMountTimer) {
+            window.clearTimeout(mediaModalMountTimer);
+        }
+
+        mediaModalMountTimer = window.setTimeout(function () {
+            mediaModalMountTimer = null;
+            renderModalSidebar(frame);
+        }, 0);
+    }
+
+    function bindModalEvents() {
+        if (mediaModalEventsBound) {
+            return;
+        }
+        mediaModalEventsBound = true;
+
+        $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-media-default', function () {
+            var type = $(this).attr('data-type');
+            if (type === 'unassigned') {
+                setModalGridFilter(0, true);
+                return;
+            }
+
+            setModalGridFilter(0, false);
+        });
+
+        $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-media-folder-node__main', function (e) {
+            if ($(e.target).closest('.bw-mf-chevron').length) {
+                return;
+            }
+            if ($(e.target).closest('.bw-mf-folder-pencil').length) {
+                return;
+            }
+            var folderId = parseInt($(this).closest('.bw-media-folder-node').attr('data-term-id') || $(this).closest('.bw-media-folder-node').attr('data-id') || '0', 10);
+            setModalGridFilter(folderId > 0 ? folderId : 0, false);
+        });
+
+        $(document).on('keydown.bwMfModalSidebar', modalSelectors.root + ' .bw-media-folder-node__main', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+            e.preventDefault();
+            $(this).trigger('click');
+        });
+
+        $(document).on('input.bwMfModalSidebar', modalSelectors.search, function () {
+            syncModalTreeNodeVisibility();
+        });
+
+        $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-mf-chevron', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            var row = $(this).closest('.bw-media-folder-node');
+            var termId = parseInt(row.attr('data-term-id') || row.attr('data-id') || '0', 10);
+            toggleFolderCollapsed(termId);
+            syncModalTreeNodeVisibility();
+        });
+    }
+
+    function patchMediaFrameSelect() {
+        if (mediaFrameModalPatched) {
+            return true;
+        }
+
+        if (!window.wp || !wp.media || !wp.media.view || !wp.media.view.MediaFrame || !wp.media.view.MediaFrame.Select) {
+            return false;
+        }
+
+        var Frame = wp.media.view.MediaFrame.Select;
+        if (Frame.prototype.__bwMfModalPatched) {
+            mediaFrameModalPatched = true;
+            return true;
+        }
+
+        var originalInitialize = Frame.prototype.initialize;
+        if (typeof originalInitialize !== 'function') {
+            return false;
+        }
+
+        Frame.prototype.initialize = function () {
+            originalInitialize.apply(this, arguments);
+
+            if (this.__bwMfModalInitBound) {
+                return;
+            }
+
+            this.__bwMfModalInitBound = true;
+
+            this.on('open', function () {
+                scheduleModalSidebarMount(this);
+            });
+
+            this.on('content:render:browse', function () {
+                scheduleModalSidebarMount(this);
+            });
+
+            this.on('close', function () {
+                clearModalSidebar(this);
+            });
+        };
+
+        Frame.prototype.__bwMfModalPatched = true;
+        mediaFrameModalPatched = true;
+        return true;
+    }
+
+    function ensureMediaFramePatch() {
+        if (patchMediaFrameSelect()) {
+            return;
+        }
+
+        if (mediaFramePatchAttempts >= 10) {
+            return;
+        }
+
+        mediaFramePatchAttempts += 1;
+        window.setTimeout(ensureMediaFramePatch, 200);
     }
 
     function findFolder(id) {
@@ -2407,12 +2764,14 @@
                 return;
             }
 
-            if (state.activeUnassigned) {
+            var activeState = getActiveFilterState();
+
+            if (activeState.activeUnassigned) {
                 if (options.data.indexOf('query%5Bbw_media_unassigned%5D=1') === -1) {
                     options.data += '&query%5Bbw_media_unassigned%5D=1';
                 }
-            } else if (state.activeFolder > 0) {
-                var encodedFolder = 'query%5Bbw_media_folder%5D=' + encodeURIComponent(String(state.activeFolder));
+            } else if (activeState.activeFolder > 0) {
+                var encodedFolder = 'query%5Bbw_media_folder%5D=' + encodeURIComponent(String(activeState.activeFolder));
                 if (options.data.indexOf('query%5Bbw_media_folder%5D=') === -1) {
                     options.data += '&' + encodedFolder;
                 }
@@ -2839,41 +3198,47 @@
         }
         window.__BW_MF_INIT_DONE = true;
 
-        if (!isSupportedListScreen()) {
-            return;
-        }
-
-        mountLayout();
-        ensureDuplicateNotice();
+        ensureMediaFramePatch();
         loadCollapsedState();
-        renderContextMenu();
-        renderColorPopover();
-        makeGridTilesDraggable();
-        makeListRowsDraggable();
-        bindInternalDragSuppression();
 
-        var collapsed = false;
-        try {
-            if (window.localStorage.getItem('bw_mf_collapsed') === '1') {
-                collapsed = true;
+        if (isSupportedListScreen()) {
+            mountLayout();
+            ensureDuplicateNotice();
+            renderContextMenu();
+            renderColorPopover();
+            makeGridTilesDraggable();
+            makeListRowsDraggable();
+            bindInternalDragSuppression();
+
+            var collapsed = false;
+            try {
+                if (window.localStorage.getItem('bw_mf_collapsed') === '1') {
+                    collapsed = true;
+                }
+            } catch (e) {
+                // ignore storage errors
             }
-        } catch (e) {
-            // ignore storage errors
+
+            setCollapsedState(collapsed);
+            bindEvents();
+            bindBadgeTooltipEvents();
+            if (isMediaPostType()) {
+                bindQuickTypeFilterEvents();
+                bindQuickTypeLayoutObserver();
+                registerGridAjaxFilter();
+            }
+            bindCornerMarkerObserver();
+            if (isMediaPostType()) {
+                bindQuickTypeFilterObserver();
+                ensureTypeFiltersPlacement();
+            }
         }
 
-        setCollapsedState(collapsed);
-        bindEvents();
-        bindBadgeTooltipEvents();
-        if (isMediaPostType()) {
-            bindQuickTypeFilterEvents();
-            bindQuickTypeLayoutObserver();
-            registerGridAjaxFilter();
+        if (isSupportedListScreen() || (window.wp && wp.media)) {
+            refreshTree();
         }
-        refreshTree();
-        bindCornerMarkerObserver();
-        if (isMediaPostType()) {
-            bindQuickTypeFilterObserver();
-            ensureTypeFiltersPlacement();
+        if (isModalSidebarActive()) {
+            renderModalSidebar(modalState.frame);
         }
         scheduleBwMfRefresh('init');
     }

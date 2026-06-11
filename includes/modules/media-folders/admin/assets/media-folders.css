@@ -233,6 +233,55 @@ body.bw-mf-enabled .bw-mf-folder-drop-hover .bw-mf-folder-icon {
     color: #0b0b0b !important;
 }
 
+body.bw-mf-enabled .media-modal .media-frame-content.bw-mf-modal-has-sidebar,
+body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar {
+    display: flex;
+    min-width: 0;
+}
+
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell {
+    flex: 0 0 300px;
+    max-width: 300px;
+    min-width: 260px;
+    border-right: 1px solid #dcdcde;
+    background: #ffffff;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+}
+
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    border-right: 0;
+    transform: none;
+}
+
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal {
+    display: none;
+}
+
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree {
+    min-height: 0;
+}
+
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap {
+    margin-bottom: 8px;
+}
+
+body.bw-mf-enabled .media-modal .media-frame-content.bw-mf-modal-has-sidebar > .attachments-browser,
+body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .attachments-browser {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 body.bw-mf-enabled .bw-media-folder-node[data-icon-color] .bw-mf-folder-icon,
 body.bw-mf-enabled .bw-media-folder-node[data-icon-color].is-active .bw-mf-folder-icon,
 body.bw-mf-enabled .bw-media-folder-node[data-icon-color]:hover .bw-mf-folder-icon,

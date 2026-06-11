@@ -117,28 +117,23 @@ if (!function_exists('bw_mf_get_active_filter_payload')) {
 if (!function_exists('bw_mf_admin_enqueue_assets')) {
     function bw_mf_admin_enqueue_assets($hook_suffix)
     {
-        if (!in_array($hook_suffix, ['upload.php', 'edit.php'], true)) {
-            return;
-        }
-
-        if (!bw_mf_admin_is_supported_list_screen()) {
-            return;
-        }
-
-        $post_type = bw_mf_get_current_screen_post_type();
-        if ($post_type === '') {
-            return;
-        }
-
-        $screen_context = bw_mf_get_context_for_post_type($post_type);
-        $taxonomy = bw_mf_get_taxonomy_for_post_type($post_type);
-        if ($taxonomy === '') {
-            return;
-        }
         $css_path = __DIR__ . '/assets/media-folders.css';
         $js_path = __DIR__ . '/assets/media-folders.js';
         $corner_enabled = bw_mf_is_corner_indicator_enabled();
         $badge_tooltip_enabled = function_exists('bw_mf_get_badge_tooltip_enabled') ? bw_mf_get_badge_tooltip_enabled() : false;
+        $is_list_screen = bw_mf_admin_is_supported_list_screen();
+        $post_type = $is_list_screen ? bw_mf_get_current_screen_post_type() : 'attachment';
+        if ($post_type === '') {
+            $post_type = 'attachment';
+        }
+        $screen_context = $is_list_screen ? bw_mf_get_context_for_post_type($post_type) : 'upload';
+        $taxonomy = bw_mf_get_taxonomy_for_post_type($post_type);
+        if ($taxonomy === '') {
+            $taxonomy = bw_mf_get_taxonomy_for_post_type('attachment');
+        }
+        if ($taxonomy === '') {
+            return;
+        }
 
         $css_version = file_exists($css_path) ? (string) filemtime($css_path) : '1.0.0';
         $js_version = file_exists($js_path) ? (string) filemtime($js_path) : '1.0.0';
@@ -170,6 +165,8 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
                 'cornerIndicator' => $corner_enabled ? 1 : 0,
             ],
             'badgeTooltipEnabled' => ($post_type === 'attachment' && $corner_enabled && $badge_tooltip_enabled) ? 1 : 0,
+            'isListScreen' => $is_list_screen ? 1 : 0,
+            'sidebarHtml' => bw_mf_get_sidebar_markup(),
             'text' => [
                 'newFolderPrompt' => __('Folder name', 'bw'),
                 'renamePrompt' => __('Rename folder', 'bw'),
@@ -182,6 +179,15 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
                 'copyFailed' => __('Copy failed', 'bw'),
             ],
         ]);
+    }
+}
+
+if (!function_exists('bw_mf_get_sidebar_markup')) {
+    function bw_mf_get_sidebar_markup()
+    {
+        ob_start();
+        include __DIR__ . '/media-folders-sidebar.php';
+        return (string) ob_get_clean();
     }
 }
 
@@ -295,6 +301,6 @@ if (!function_exists('bw_mf_render_sidebar_mount')) {
             return;
         }
 
-        include __DIR__ . '/media-folders-sidebar.php';
+        echo bw_mf_get_sidebar_markup();
     }
 }
