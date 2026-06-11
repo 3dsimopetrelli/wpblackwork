@@ -532,7 +532,14 @@ class Widget_Bw_Product_Details extends Widget_Base {
 					? $this->render_formats_pills( $row['value'] )
 					: esc_html( $row['value'] );
 
-				echo '<div class="bw-biblio-row">';
+				$row_classes = [ 'bw-biblio-row' ];
+				if ( in_array( $row['meta'], [ '_bw_biblio_title', '_bw_biblio_author', '_bw_biblio_publisher', '_bw_biblio_binding', '_digital_publisher' ], true ) ) {
+					$row_classes[] = 'bw-biblio-row--long-text';
+				} else {
+					$row_classes[] = 'bw-biblio-row--compact';
+				}
+
+				echo '<div class="' . esc_attr( implode( ' ', array_map( 'sanitize_html_class', $row_classes ) ) ) . '">';
 				echo '<div class="bw-biblio-label">' . esc_html( $row['label'] ) . '</div>';
 				echo '<div class="bw-biblio-value">' . $value . '</div>';
 				echo '</div>';

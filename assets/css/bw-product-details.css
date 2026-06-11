@@ -235,10 +235,38 @@
    RESPONSIVE — stack columns on small screens
    ======================================== */
 @media (max-width: 480px) {
-    .bw-biblio-row,
     .bw-biblio-row--assets {
         grid-template-columns: 1fr;
         gap: 4px;
+    }
+
+    .bw-biblio-row--long-text {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .bw-biblio-row--long-text .bw-biblio-value {
+        text-align: left !important;
+        justify-self: start;
+        width: 100%;
+    }
+
+    .bw-biblio-row--compact {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        align-items: start;
+    }
+
+    .bw-biblio-row--compact .bw-biblio-label {
+        text-align: left;
+    }
+
+    .bw-biblio-row--compact .bw-biblio-value {
+        text-align: right !important;
+        justify-self: end;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .bw-biblio-table--product-details .bw-biblio-value,
@@ -268,6 +296,11 @@
     .bw-biblio-table--compatibility .bw-biblio-row--compatibility:nth-child(even) {
         padding-left: 0;
         padding-right: 0;
+    }
+
+    .bw-biblio-row--compact .bw-biblio-label,
+    .bw-biblio-row--long-text .bw-biblio-label {
+        min-width: 0;
     }
 }
 
