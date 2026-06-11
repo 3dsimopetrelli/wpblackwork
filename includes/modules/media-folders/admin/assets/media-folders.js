@@ -87,6 +87,43 @@
     var mediaFramePatchDelay = 250;
     var mediaModalEventsBound = false;
     var mediaModalMountTimer = null;
+    var mediaModalMountAttempts = 0;
+    var mediaFramePatchRunCount = 0;
+    var mediaFramePatchSignalCount = 0;
+    var mediaFramePatchRetryCount = 0;
+
+    function isMediaFoldersDebugEnabled() {
+        return !!(window.BW_MEDIA_FOLDERS_DEBUG || window.bwMediaFoldersDebug || window.bwMFDebug);
+    }
+
+    function mediaFoldersDebugLog(message, payload) {
+        if (!isMediaFoldersDebugEnabled() || !window.console || typeof console.log !== 'function') {
+            return;
+        }
+
+        var prefix = '[BW Media Folders Modal] ' + message;
+        if (typeof payload !== 'undefined') {
+            console.log(prefix, payload);
+            return;
+        }
+
+        console.log(prefix);
+    }
+
+    function mediaFoldersDebugState(frame) {
+        var frameEl = frame && frame.$el && frame.$el.length ? frame.$el : $();
+        return {
+            url: window.location ? window.location.href : '',
+            hasWpMedia: !!(window.wp && wp.media),
+            hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
+            frameHasEl: !!frameEl.length,
+            modalExists: !!document.querySelector('.media-modal'),
+            mediaFrameContentExists: !!frameEl.find('.media-frame-content').length,
+            mediaFrameBrowseExists: !!frameEl.find('.media-frame-browse').length,
+            attachmentsBrowserExists: !!frameEl.find('.attachments-browser').length,
+            sidebarShellExists: !!getModalSidebarRoot().length
+        };
+    }
 
     function isGridMode() {
         return state.mode === 'grid' || !!document.querySelector('.attachments-browser');
@@ -2228,34 +2265,73 @@
         modalState.counts = { all: 0, unassigned: 0 };
     }
 
-    function renderModalSidebar(frame) {
+    function renderModalSidebar(frame, attemptNumber) {
         if (!frame || !frame.$el || !cfg.sidebarHtml) {
+            mediaFoldersDebugLog('renderModalSidebar aborted: missing frame or sidebar html', {
+                attempt: attemptNumber || 0,
+                hasFrame: !!frame,
+                hasFrameEl: !!(frame && frame.$el && frame.$el.length),
+                hasSidebarHtml: !!cfg.sidebarHtml
+            });
             return false;
         }
+
+        var modalExists = !!document.querySelector('.media-modal');
+        var frameContentExists = !!frame.$el.find('.media-frame-content').length;
+        var frameBrowseExists = !!frame.$el.find('.media-frame-browse').length;
+        var attachmentsBrowser = frame.$el.find('.attachments-browser').first();
+        var attachmentsBrowserExists = !!attachmentsBrowser.length;
+        var root = getModalSidebarRoot();
+        mediaFoldersDebugLog('renderModalSidebar attempt', {
+            attempt: attemptNumber || 0,
+            modalExists: modalExists,
+            mediaFrameContentExists: frameContentExists,
+            mediaFrameBrowseExists: frameBrowseExists,
+            attachmentsBrowserExists: attachmentsBrowserExists,
+            sidebarShellExists: !!root.length
+        });
 
         var container = getModalSidebarContainer(frame);
         if (!container.length) {
+            mediaFoldersDebugLog('renderModalSidebar failed: missing container', {
+                attempt: attemptNumber || 0,
+                missing: '.media-frame-content or .media-frame-browse'
+            });
             return false;
         }
 
-        var browser = frame.$el.find('.attachments-browser').first();
+        var browser = attachmentsBrowser;
         var browserParent = browser.length ? browser.parent() : $();
-        var root = getModalSidebarRoot();
         if (!root.length) {
             var html = getModalSidebarMarkup();
             if (!html) {
+                mediaFoldersDebugLog('renderModalSidebar failed: missing sidebar markup', {
+                    attempt: attemptNumber || 0
+                });
                 return false;
             }
 
             if (!browser.length) {
+                mediaFoldersDebugLog('renderModalSidebar failed: missing selector', {
+                    attempt: attemptNumber || 0,
+                    missing: '.attachments-browser'
+                });
                 return false;
             }
 
             browser.before('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
             root = getModalSidebarRoot();
+            mediaFoldersDebugLog('renderModalSidebar injection attempted', {
+                attempt: attemptNumber || 0,
+                injected: !!root.length
+            });
         }
 
         if (!root.length) {
+            mediaFoldersDebugLog('renderModalSidebar failed after injection attempt', {
+                attempt: attemptNumber || 0,
+                missing: '#bw-media-folders-modal-root'
+            });
             return false;
         }
 
@@ -2277,20 +2353,38 @@
         renderModalTree();
         bindModalEvents();
         applyGridFilter(0, false);
+        mediaFoldersDebugLog('renderModalSidebar success', {
+            attempt: attemptNumber || 0,
+            activeFolder: modalState.activeFolder,
+            activeUnassigned: modalState.activeUnassigned
+        });
         return true;
     }
 
-    function scheduleModalSidebarMount(frame) {
+    function scheduleModalSidebarMount(frame, source) {
         if (mediaModalMountTimer) {
             window.clearTimeout(mediaModalMountTimer);
         }
 
+        mediaModalMountAttempts += 1;
+        var attemptNumber = mediaModalMountAttempts;
+        mediaFoldersDebugLog('scheduleModalSidebarMount', {
+            attempt: attemptNumber,
+            source: source || '',
+            state: mediaFoldersDebugState(frame)
+        });
+
         mediaModalMountTimer = window.setTimeout(function () {
             mediaModalMountTimer = null;
-            var mounted = renderModalSidebar(frame);
+            var mounted = renderModalSidebar(frame, attemptNumber);
             if (!mounted) {
+                mediaFoldersDebugLog('scheduleModalSidebarMount retry queued', {
+                    attempt: attemptNumber,
+                    retryDelayMs: 150
+                });
                 window.setTimeout(function () {
-                    renderModalSidebar(frame);
+                    mediaModalMountAttempts += 1;
+                    renderModalSidebar(frame, mediaModalMountAttempts);
                 }, 150);
             }
         }, 0);
@@ -2348,43 +2442,69 @@
     }
 
     function patchMediaFrameSelect() {
+        mediaFoldersDebugLog('patchMediaFrameSelect invoked', {
+            run: ++mediaFramePatchRunCount,
+            state: {
+                hasWpMedia: !!(window.wp && wp.media),
+                hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
+                alreadyPatched: !!mediaFrameModalPatched
+            }
+        });
+
         if (mediaFrameModalPatched) {
+            mediaFoldersDebugLog('patchMediaFrameSelect early exit: already patched');
             return true;
         }
 
         if (!window.wp || !wp.media || !wp.media.view || !wp.media.view.MediaFrame || !wp.media.view.MediaFrame.Select) {
+            mediaFoldersDebugLog('patchMediaFrameSelect early exit: wp.media.view.MediaFrame.Select unavailable');
             return false;
         }
 
         var Frame = wp.media.view.MediaFrame.Select;
         if (Frame.prototype.__bwMfModalPatched) {
             mediaFrameModalPatched = true;
+            mediaFoldersDebugLog('patchMediaFrameSelect early exit: prototype already patched');
             return true;
         }
 
         var originalInitialize = Frame.prototype.initialize;
         if (typeof originalInitialize !== 'function') {
+            mediaFoldersDebugLog('patchMediaFrameSelect early exit: initialize is not a function');
             return false;
         }
 
         Frame.prototype.initialize = function () {
+            mediaFoldersDebugLog('MediaFrame.Select.initialize called', {
+                frame: mediaFoldersDebugState(this)
+            });
             originalInitialize.apply(this, arguments);
 
             if (this.__bwMfModalInitBound) {
+                mediaFoldersDebugLog('MediaFrame.Select.initialize skipped duplicate binding');
                 return;
             }
 
             this.__bwMfModalInitBound = true;
 
             this.on('open', function () {
-                scheduleModalSidebarMount(this);
+                mediaFoldersDebugLog('patched frame event: open', {
+                    frame: mediaFoldersDebugState(this)
+                });
+                scheduleModalSidebarMount(this, 'open');
             });
 
             this.on('content:render:browse', function () {
-                scheduleModalSidebarMount(this);
+                mediaFoldersDebugLog('patched frame event: content:render:browse', {
+                    frame: mediaFoldersDebugState(this)
+                });
+                scheduleModalSidebarMount(this, 'content:render:browse');
             });
 
             this.on('close', function () {
+                mediaFoldersDebugLog('patched frame event: close', {
+                    frame: mediaFoldersDebugState(this)
+                });
                 clearModalSidebar(this);
             });
         };
@@ -2398,11 +2518,13 @@
             window.clearTimeout(mediaFramePatchTimer);
             mediaFramePatchTimer = null;
         }
+        mediaFoldersDebugLog('patchMediaFrameSelect success: initialize patched');
         return true;
     }
 
-    function scheduleMediaFramePatchRetry() {
+    function scheduleMediaFramePatchRetry(source) {
         if (mediaFrameModalPatched) {
+            mediaFoldersDebugLog('scheduleMediaFramePatchRetry skipped: already patched');
             return;
         }
 
@@ -2412,40 +2534,74 @@
         }
 
         if (now >= mediaFramePatchDeadline) {
+            mediaFoldersDebugLog('scheduleMediaFramePatchRetry stopped: deadline reached', {
+                source: source || '',
+                attempts: mediaFramePatchAttempts
+            });
             return;
         }
 
         if (mediaFramePatchTimer) {
+            mediaFoldersDebugLog('scheduleMediaFramePatchRetry skipped: timer already pending', {
+                source: source || '',
+                attempts: mediaFramePatchAttempts
+            });
             return;
         }
 
         mediaFramePatchTimer = window.setTimeout(function () {
             mediaFramePatchTimer = null;
-            ensureMediaFramePatch();
+            mediaFoldersDebugLog('scheduleMediaFramePatchRetry timer fired', {
+                source: source || '',
+                attempts: mediaFramePatchAttempts
+            });
+            ensureMediaFramePatch(source || 'timer');
         }, mediaFramePatchDelay);
 
         mediaFramePatchAttempts += 1;
         mediaFramePatchDelay = Math.min(Math.max(mediaFramePatchDelay * 1.5, 250), 2000);
+        mediaFramePatchRetryCount += 1;
+        mediaFoldersDebugLog('scheduleMediaFramePatchRetry scheduled', {
+            source: source || '',
+            retryCount: mediaFramePatchRetryCount,
+            delayMs: mediaFramePatchDelay,
+            attempts: mediaFramePatchAttempts
+        });
     }
 
-    function ensureMediaFramePatch() {
+    function ensureMediaFramePatch(source) {
+        mediaFoldersDebugLog('ensureMediaFramePatch invoked', {
+            source: source || '',
+            state: {
+                hasWpMedia: !!(window.wp && wp.media),
+                hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
+                patched: !!mediaFrameModalPatched
+            }
+        });
+
         if (patchMediaFrameSelect()) {
             return;
         }
 
         if (mediaFramePatchAttempts >= 60) {
+            mediaFoldersDebugLog('ensureMediaFramePatch stopped: max attempts reached', {
+                source: source || '',
+                attempts: mediaFramePatchAttempts
+            });
             return;
         }
 
-        scheduleMediaFramePatchRetry();
+        scheduleMediaFramePatchRetry(source || 'ensure');
     }
 
     function bindMediaFramePatchSignals() {
         if (mediaFramePatchSignalsBound) {
+            mediaFoldersDebugLog('bindMediaFramePatchSignals skipped: already bound');
             return;
         }
 
         mediaFramePatchSignalsBound = true;
+        mediaFoldersDebugLog('bindMediaFramePatchSignals start');
 
         var retryEvents = [
             'elementor:init',
@@ -2456,22 +2612,42 @@
 
         retryEvents.forEach(function (eventName) {
             if (window.jQuery && typeof jQuery !== 'undefined') {
-                jQuery(window).on(eventName + '.bwMfMediaPatch', ensureMediaFramePatch);
+                jQuery(window).on(eventName + '.bwMfMediaPatch', function () {
+                    mediaFramePatchSignalCount += 1;
+                    mediaFoldersDebugLog('Elementor hook fired: ' + eventName, {
+                        signalCount: mediaFramePatchSignalCount
+                    });
+                    ensureMediaFramePatch(eventName);
+                });
+                mediaFoldersDebugLog('Elementor hook bound: ' + eventName);
             }
         });
 
         if (window.elementorFrontend && elementorFrontend.hooks && typeof elementorFrontend.hooks.addAction === 'function') {
             try {
-                elementorFrontend.hooks.addAction('frontend/element_ready/global', ensureMediaFramePatch);
+                elementorFrontend.hooks.addAction('frontend/element_ready/global', function () {
+                    mediaFramePatchSignalCount += 1;
+                    mediaFoldersDebugLog('Elementor hook fired: frontend/element_ready/global', {
+                        signalCount: mediaFramePatchSignalCount
+                    });
+                    ensureMediaFramePatch('frontend/element_ready/global');
+                });
+                mediaFoldersDebugLog('Elementor hook bound: frontend/element_ready/global');
             } catch (e) {
                 // ignore Elementor hook registration errors
             }
         }
 
         if (document.readyState === 'complete') {
-            window.setTimeout(ensureMediaFramePatch, 0);
+            mediaFoldersDebugLog('document readyState complete; scheduling immediate patch check');
+            window.setTimeout(function () {
+                ensureMediaFramePatch('document-ready-complete');
+            }, 0);
         } else {
-            window.addEventListener('load', ensureMediaFramePatch, { once: true });
+            window.addEventListener('load', function () {
+                mediaFoldersDebugLog('window load fired');
+                ensureMediaFramePatch('window-load');
+            }, { once: true });
         }
     }
 
@@ -3275,8 +3451,15 @@
         }
         window.__BW_MF_INIT_DONE = true;
 
+        mediaFoldersDebugLog('script loaded', {
+            url: window.location ? window.location.href : '',
+            hasWpMedia: !!(window.wp && wp.media),
+            hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
+            patchApplied: !!mediaFrameModalPatched
+        });
+
         bindMediaFramePatchSignals();
-        ensureMediaFramePatch();
+        ensureMediaFramePatch('init');
         loadCollapsedState();
 
         if (isSupportedListScreen()) {
@@ -3316,7 +3499,7 @@
             refreshTree();
         }
         if (isModalSidebarActive()) {
-            renderModalSidebar(modalState.frame);
+            renderModalSidebar(modalState.frame, 'init');
         }
         scheduleBwMfRefresh('init');
     }
