@@ -317,6 +317,30 @@
     .bw-biblio-row--long-text .bw-biblio-label {
         min-width: 0;
     }
+
+    .bw-biblio-table--product-details .bw-biblio-row.bw-biblio-row--long-text {
+        display: grid;
+        grid-template-columns: 1fr !important;
+        gap: 4px;
+        text-align: left;
+    }
+
+    .bw-biblio-table--product-details .bw-biblio-row.bw-biblio-row--long-text > .bw-biblio-label {
+        width: 100%;
+        text-align: left !important;
+        justify-self: stretch;
+    }
+
+    .bw-biblio-table--product-details .bw-biblio-row.bw-biblio-row--long-text > .bw-biblio-value {
+        width: 100%;
+        text-align: left !important;
+        justify-self: stretch !important;
+        max-width: 100%;
+    }
+
+    .bw-biblio-table--product-details .bw-biblio-row.bw-biblio-row--compact {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
 }
 
 /* ========================================
