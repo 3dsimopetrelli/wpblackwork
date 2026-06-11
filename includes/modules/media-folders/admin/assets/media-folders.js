@@ -81,6 +81,10 @@
     };
     var mediaFrameModalPatched = false;
     var mediaFramePatchAttempts = 0;
+    var mediaFramePatchTimer = null;
+    var mediaFramePatchDeadline = 0;
+    var mediaFramePatchSignalsBound = false;
+    var mediaFramePatchDelay = 250;
     var mediaModalEventsBound = false;
     var mediaModalMountTimer = null;
 
@@ -2283,7 +2287,12 @@
 
         mediaModalMountTimer = window.setTimeout(function () {
             mediaModalMountTimer = null;
-            renderModalSidebar(frame);
+            var mounted = renderModalSidebar(frame);
+            if (!mounted) {
+                window.setTimeout(function () {
+                    renderModalSidebar(frame);
+                }, 150);
+            }
         }, 0);
     }
 
@@ -2382,7 +2391,41 @@
 
         Frame.prototype.__bwMfModalPatched = true;
         mediaFrameModalPatched = true;
+        mediaFramePatchAttempts = 0;
+        mediaFramePatchDeadline = 0;
+        mediaFramePatchDelay = 250;
+        if (mediaFramePatchTimer) {
+            window.clearTimeout(mediaFramePatchTimer);
+            mediaFramePatchTimer = null;
+        }
         return true;
+    }
+
+    function scheduleMediaFramePatchRetry() {
+        if (mediaFrameModalPatched) {
+            return;
+        }
+
+        var now = Date.now();
+        if (!mediaFramePatchDeadline) {
+            mediaFramePatchDeadline = now + 30000;
+        }
+
+        if (now >= mediaFramePatchDeadline) {
+            return;
+        }
+
+        if (mediaFramePatchTimer) {
+            return;
+        }
+
+        mediaFramePatchTimer = window.setTimeout(function () {
+            mediaFramePatchTimer = null;
+            ensureMediaFramePatch();
+        }, mediaFramePatchDelay);
+
+        mediaFramePatchAttempts += 1;
+        mediaFramePatchDelay = Math.min(Math.max(mediaFramePatchDelay * 1.5, 250), 2000);
     }
 
     function ensureMediaFramePatch() {
@@ -2390,12 +2433,46 @@
             return;
         }
 
-        if (mediaFramePatchAttempts >= 10) {
+        if (mediaFramePatchAttempts >= 60) {
             return;
         }
 
-        mediaFramePatchAttempts += 1;
-        window.setTimeout(ensureMediaFramePatch, 200);
+        scheduleMediaFramePatchRetry();
+    }
+
+    function bindMediaFramePatchSignals() {
+        if (mediaFramePatchSignalsBound) {
+            return;
+        }
+
+        mediaFramePatchSignalsBound = true;
+
+        var retryEvents = [
+            'elementor:init',
+            'elementor/editor/init',
+            'elementor/frontend/init',
+            'elementor/components/init'
+        ];
+
+        retryEvents.forEach(function (eventName) {
+            if (window.jQuery && typeof jQuery !== 'undefined') {
+                jQuery(window).on(eventName + '.bwMfMediaPatch', ensureMediaFramePatch);
+            }
+        });
+
+        if (window.elementorFrontend && elementorFrontend.hooks && typeof elementorFrontend.hooks.addAction === 'function') {
+            try {
+                elementorFrontend.hooks.addAction('frontend/element_ready/global', ensureMediaFramePatch);
+            } catch (e) {
+                // ignore Elementor hook registration errors
+            }
+        }
+
+        if (document.readyState === 'complete') {
+            window.setTimeout(ensureMediaFramePatch, 0);
+        } else {
+            window.addEventListener('load', ensureMediaFramePatch, { once: true });
+        }
     }
 
     function findFolder(id) {
@@ -3198,6 +3275,7 @@
         }
         window.__BW_MF_INIT_DONE = true;
 
+        bindMediaFramePatchSignals();
         ensureMediaFramePatch();
         loadCollapsedState();
 
