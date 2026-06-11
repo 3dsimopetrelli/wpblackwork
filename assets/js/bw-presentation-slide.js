@@ -47,6 +47,12 @@
             // Flag: al primo swipe orizzontale vengono caricate tutte le slide
             this._allSlidesPreloaded = false;
 
+            // Guarded initial stabilization pass (prevents duplicate bind/reflow)
+            this._initialStabilizationBound   = false;
+            this._initialStabilizationQueued  = false;
+            this._initialStabilizationRunning = false;
+            this._initialStabilizationDone     = false;
+
             // Body scroll lock state (iOS-safe popup scroll locking)
             this._savedScrollY = 0;
 
@@ -182,7 +188,12 @@
             // coordinated fade-in instead of a jarring opacity jump.
             // A 2s timeout acts as a safety net in case the image never fires load/error.
             const firstImg = this.$wrapper.find('.bw-ps-image img')[0];
-            const revealWrapper = () => this.$wrapper.removeClass('loading');
+            this._bindInitialStabilization(firstImg);
+            this._queueInitialStabilization();
+            const revealWrapper = () => {
+                this.$wrapper.removeClass('loading');
+                this._queueInitialStabilization();
+            };
             if (!firstImg) {
                 revealWrapper();
             } else if (firstImg.complete && firstImg.naturalWidth > 0) {
@@ -231,6 +242,9 @@
             $(window).on(`resize.bwps-${this.widgetId}`, debounce(() => {
                 this._updateImageHeightControls();
                 this._updateEmblaBreakpointOptions();
+                if (!this._initialStabilizationDone) {
+                    this._queueInitialStabilization();
+                }
             }, 150));
 
             // Track a real press sequence so popup opening can only happen after
@@ -436,6 +450,9 @@
             });
 
             const mainApi = this.emblaMain.init();
+            const firstMainImg = this.$wrapper.find('.bw-ps-main-image img')[0];
+            this._bindInitialStabilization(firstMainImg);
+            this._queueInitialStabilization();
 
             // Thumbs slider
             this.emblaThumbs = new BWEmblaCore(thumbsViewport, {
@@ -494,6 +511,79 @@
             });
 
             this._updateActiveThumb(0);
+        }
+
+        _bindInitialStabilization(firstImg) {
+            if (this._initialStabilizationBound) return;
+            this._initialStabilizationBound = true;
+
+            if (!firstImg) return;
+
+            const queueOnce = () => {
+                this._queueInitialStabilization();
+            };
+
+            if (firstImg.complete && firstImg.naturalWidth > 0) {
+                queueOnce();
+                return;
+            }
+
+            const onDone = () => {
+                firstImg.removeEventListener('load', onDone);
+                firstImg.removeEventListener('error', onDone);
+                queueOnce();
+            };
+
+            firstImg.addEventListener('load', onDone, { once: true });
+            firstImg.addEventListener('error', onDone, { once: true });
+        }
+
+        _queueInitialStabilization() {
+            if (this._initialStabilizationDone || this._initialStabilizationQueued) return;
+            this._initialStabilizationQueued = true;
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    this._initialStabilizationQueued = false;
+                    this._runInitialStabilization();
+                }, 40);
+            });
+        }
+
+        _runInitialStabilization() {
+            if (this._initialStabilizationRunning || this._initialStabilizationDone) return;
+
+            const viewport = this._emblaViewport || this.$wrapper.find('.bw-ps-main-viewport')[0];
+            if (!viewport) return;
+
+            const rect = viewport.getBoundingClientRect();
+            if (!rect || rect.width <= 0 || rect.height <= 0) {
+                return;
+            }
+
+            this._initialStabilizationRunning = true;
+
+            try {
+                if (this.emblaCore) {
+                    const prevBreakpointIndex = this._lastBreakpointIndex;
+                    this._updateImageHeightControls();
+                    this._updateEmblaBreakpointOptions();
+
+                    const api = this.emblaCore.api();
+                    if (api && this._lastBreakpointIndex === prevBreakpointIndex) {
+                        api.reInit();
+                    }
+                } else if (this.emblaMain) {
+                    const api = this.emblaMain.api();
+                    if (api) {
+                        api.reInit();
+                    }
+                }
+
+                this._initialStabilizationDone = true;
+            } finally {
+                this._initialStabilizationRunning = false;
+            }
         }
 
         _updateActiveThumb(index) {
