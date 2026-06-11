@@ -44,7 +44,7 @@
 
 .bw-biblio-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 30%) minmax(0, 70%);
     gap: 8px;
     align-items: start;
     padding: 12px 0;
