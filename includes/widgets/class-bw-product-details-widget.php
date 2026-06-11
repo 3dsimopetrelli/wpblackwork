@@ -533,7 +533,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 					: esc_html( $row['value'] );
 
 				$row_classes = [ 'bw-biblio-row' ];
-				if ( in_array( $row['meta'], [ '_bw_biblio_title', '_bw_biblio_author', '_bw_biblio_publisher', '_bw_biblio_binding', '_digital_publisher' ], true ) ) {
+				if ( in_array( $row['meta'], [ '_bw_biblio_title', '_bw_biblio_author', '_bw_biblio_publisher', '_bw_biblio_binding', '_bw_biblio_edition', '_digital_publisher' ], true ) ) {
 					$row_classes[] = 'bw-biblio-row--long-text';
 				} else {
 					$row_classes[] = 'bw-biblio-row--compact';
