@@ -521,7 +521,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 					echo '<div class="bw-biblio-label bw-biblio-label--assets">' . $total_assets_value . '</div>';
 					echo '<div class="bw-biblio-value bw-biblio-value--assets-list">';
 					echo '<div id="' . esc_attr( $assets_list_id ) . '" class="bw-biblio-assets-list__content">' . $assets_list_value . '</div>';
-					echo '<button type="button" class="bw-biblio-assets-list__toggle" aria-expanded="false" aria-controls="' . esc_attr( $assets_list_id ) . '" hidden>' . esc_html__( 'Read more', 'bw' ) . '</button>';
+					echo '<button type="button" class="bw-biblio-assets-list__toggle" aria-expanded="false" aria-controls="' . esc_attr( $assets_list_id ) . '" hidden>' . esc_html__( 'View complete list', 'bw' ) . '</button>';
 					echo '</div>';
 					echo '</div>';
 				}

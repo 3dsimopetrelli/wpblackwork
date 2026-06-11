@@ -239,7 +239,7 @@
                 $content.toggleClass('is-expanded', isExpanded);
                 $content.toggleClass('is-collapsed', !isExpanded);
                 $toggle.attr('aria-expanded', isExpanded ? 'true' : 'false');
-                $toggle.text(isExpanded ? 'Read less' : 'Read more');
+                $toggle.text(isExpanded ? 'Hide list' : 'View complete list');
             }
 
             function updateToggleVisibility() {
