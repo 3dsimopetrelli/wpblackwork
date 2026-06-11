@@ -18,6 +18,7 @@
     height: 600px;
     display: flex;
     overflow: hidden !important;
+    border: 0 !important;
     border-radius: 8px !important;
     clip-path: inset(0 round 8px);
     isolation: isolate;
@@ -26,6 +27,12 @@
     --bw-slide-showcase-text-color: #ffffff;
     --bw-slide-showcase-badge-border-color: #ffffff;
     --bw-static-showcase-image-radius: 8px;
+}
+
+.elementor-widget-bw-static-showcase .bw-static-showcase-container {
+    border: 0 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 
 .bw-static-showcase-container * {
