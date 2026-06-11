@@ -147,12 +147,12 @@ function bw_get_bibliographic_fields() {
         '_bw_biblio_author'    => __( 'Author', 'bw' ),
         '_bw_biblio_publisher' => __( 'Publisher', 'bw' ),
         '_bw_biblio_year'      => __( 'Year', 'bw' ),
+        '_bw_biblio_location'  => __( 'Place of Publication', 'bw' ),
         '_bw_biblio_language'  => __( 'Language', 'bw' ),
         '_bw_biblio_binding'   => __( 'Binding', 'bw' ),
         '_bw_biblio_pages'     => __( 'Pages', 'bw' ),
         '_bw_biblio_edition'   => __( 'Edition', 'bw' ),
         '_bw_biblio_condition' => __( 'Condition', 'bw' ),
-        '_bw_biblio_location'  => __( 'Location', 'bw' ),
     ];
 }
 
@@ -264,6 +264,10 @@ function bw_get_books_admin_field_config() {
             'label' => __( 'Book Year', 'bw' ),
             'id'    => 'book_year',
         ],
+        '_bw_biblio_location'  => [
+            'label' => __( 'Place of Publication', 'bw' ),
+            'id'    => 'book_location',
+        ],
         '_bw_biblio_language'  => [
             'label' => __( 'Book Language', 'bw' ),
             'id'    => 'book_language',
@@ -283,10 +287,6 @@ function bw_get_books_admin_field_config() {
         '_bw_biblio_condition' => [
             'label' => __( 'Book Condition', 'bw' ),
             'id'    => 'book_condition',
-        ],
-        '_bw_biblio_location'  => [
-            'label' => __( 'Book Location', 'bw' ),
-            'id'    => 'book_location',
         ],
     ];
 }

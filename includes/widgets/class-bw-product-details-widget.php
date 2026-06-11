@@ -458,12 +458,12 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				'_bw_biblio_author'    => __( 'Author', 'bw' ),
 				'_bw_biblio_publisher' => __( 'Publisher', 'bw' ),
 				'_bw_biblio_year'      => __( 'Year', 'bw' ),
+				'_bw_biblio_location'  => __( 'Place of Publication', 'bw' ),
 				'_bw_biblio_language'  => __( 'Language', 'bw' ),
 				'_bw_biblio_binding'   => __( 'Binding', 'bw' ),
 				'_bw_biblio_pages'     => __( 'Pages', 'bw' ),
 				'_bw_biblio_edition'   => __( 'Edition', 'bw' ),
 				'_bw_biblio_condition' => __( 'Condition', 'bw' ),
-				'_bw_biblio_location'  => __( 'Location', 'bw' ),
 			];
 
 		$print_fields = function_exists( 'bw_get_prints_bibliographic_fields' )
