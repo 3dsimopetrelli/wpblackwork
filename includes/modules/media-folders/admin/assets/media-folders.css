@@ -270,17 +270,52 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-
 
 body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
 body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
-body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal,
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
-body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal,
 .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
 .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
-.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal,
 .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
-.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
-.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal {
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__bulk {
     display: none;
+}
+
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal,
+.media-modal.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal {
+    display: inline-flex !important;
+    position: absolute;
+    top: 12px;
+    left: calc(290px + 12px);
+    z-index: 4;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1d2327;
+    font-size: 12px;
+    line-height: 1;
+    box-shadow: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-mf-collapse-tab-modal,
+.media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-mf-collapse-tab-modal {
+    left: 12px;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell,
+.media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell {
+    display: none !important;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed .attachments-browser,
+.media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed .attachments-browser {
+    padding-left: 0 !important;
 }
 
 body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__tree,

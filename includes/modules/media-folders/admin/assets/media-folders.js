@@ -115,6 +115,7 @@
         frame: null,
         activeFolder: 0,
         activeUnassigned: false,
+        sidebarCollapsed: false,
         folders: [],
         counts: { all: 0, unassigned: 0 }
     };
@@ -2284,6 +2285,39 @@
         return frame.$el;
     }
 
+    function getModalSidebarToggle() {
+        return $(modalSelectors.collapseTab);
+    }
+
+    function syncModalSidebarToggleLabel() {
+        var toggle = getModalSidebarToggle();
+        if (!toggle.length) {
+            return;
+        }
+
+        var collapsed = !!modalState.sidebarCollapsed;
+        toggle
+            .attr('aria-expanded', collapsed ? 'false' : 'true')
+            .text(collapsed ? 'Open folders' : 'Close folders');
+    }
+
+    function setModalSidebarCollapsed(collapsed, options) {
+        var isCollapsed = !!collapsed;
+        var opts = options || {};
+        modalState.sidebarCollapsed = isCollapsed;
+
+        var modalRoot = getModalRootElement();
+        if (modalRoot.length) {
+            modalRoot.toggleClass('bw-mf-modal-sidebar-collapsed', isCollapsed);
+        }
+
+        syncModalSidebarToggleLabel();
+
+        if (modalState.active && modalState.frame && !opts.skipResize) {
+            refreshModalLayout(modalState.frame);
+        }
+    }
+
     function renderModalDefaults() {
         renderDefaults(modalState, {
             defaults: modalSelectors.defaults
@@ -2331,6 +2365,8 @@
             }
         }
 
+        $(modalSelectors.collapseTab).remove();
+
         var container = frame && frame.$el ? frame.$el.find('.media-frame-content, .media-frame-browse').first() : $();
         if (container && container.length) {
             container.removeClass('bw-mf-modal-has-sidebar');
@@ -2345,12 +2381,14 @@
         var modalRoot = getModalRootElement();
         if (modalRoot.length) {
             modalRoot.removeClass('bw-mf-modal-has-sidebar');
+            modalRoot.removeClass('bw-mf-modal-sidebar-collapsed');
         }
 
         modalState.active = false;
         modalState.frame = null;
         modalState.activeFolder = 0;
         modalState.activeUnassigned = false;
+        modalState.sidebarCollapsed = false;
         modalState.folders = [];
         modalState.counts = { all: 0, unassigned: 0 };
         updateMediaFoldersDiag({
@@ -2599,6 +2637,7 @@
         }
         modalState.folders = state.folders.slice();
         modalState.counts = state.counts;
+        setModalSidebarCollapsed(modalState.sidebarCollapsed, { skipResize: true });
         updateMediaFoldersDiag({
             sidebarInjected: true,
             lastMissingSelector: '',
@@ -2674,6 +2713,12 @@
             }
 
             setModalGridFilter(0, false);
+        });
+
+        $(document).on('click.bwMfModalSidebar', modalSelectors.collapseTab, function (e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            setModalSidebarCollapsed(!modalState.sidebarCollapsed);
         });
 
         $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-media-folder-node__main', function (e) {
