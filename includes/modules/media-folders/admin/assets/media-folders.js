@@ -1708,6 +1708,43 @@
         return url.toString();
     }
 
+    function setCollectionFilterProps(collection, folderId, unassigned) {
+        if (!collection || !collection.props || typeof collection.props.set !== 'function') {
+            return false;
+        }
+
+        var folderValue = folderId > 0 ? String(folderId) : '';
+        var unassignedValue = unassigned ? '1' : '';
+        var ignoreValue = String(+new Date());
+
+        collection.props.set({
+            bw_media_folder: folderValue,
+            bw_media_unassigned: unassignedValue,
+            ignore: ignoreValue
+        });
+
+        try {
+            var queryProps = {};
+            if (typeof collection.props.get === 'function') {
+                var existingQuery = collection.props.get('query');
+                if (existingQuery && typeof existingQuery === 'object') {
+                    queryProps = $.extend({}, existingQuery);
+                }
+            }
+
+            queryProps.bw_media_folder = folderValue;
+            queryProps.bw_media_unassigned = unassignedValue;
+            queryProps.ignore = ignoreValue;
+            collection.props.set({
+                query: queryProps
+            });
+        } catch (err) {
+            // ignore query prop sync errors
+        }
+
+        return true;
+    }
+
     function applyGridFilter(folderId, unassigned) {
         var modalActive = isModalSidebarActive();
         if (!modalActive && (state.mode !== 'grid' || !window.wp || !wp.media || !wp.media.frame)) {
@@ -1726,11 +1763,6 @@
             }
 
             var collection = content.collection;
-            var nextProps = {
-                bw_media_folder: folderId > 0 ? String(folderId) : '',
-                bw_media_unassigned: unassigned ? '1' : '',
-                ignore: (+new Date())
-            };
 
             if (modalActive) {
                 modalState.activeFolder = folderId > 0 ? folderId : 0;
@@ -1740,7 +1772,7 @@
                 state.activeUnassigned = !!unassigned;
             }
 
-            collection.props.set(nextProps);
+            setCollectionFilterProps(collection, folderId, unassigned);
             if (typeof collection.reset === 'function') {
                 collection.reset();
             }
