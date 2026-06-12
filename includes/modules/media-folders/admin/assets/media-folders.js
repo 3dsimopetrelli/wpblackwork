@@ -687,72 +687,7 @@
         return 0;
     }
 
-    function modalClickDebug(message, payload) {
-        if (!window.console || typeof console.log !== 'function') {
-            return;
-        }
-
-        console.log('[BW MF Modal Click] ' + message, payload || {});
-    }
-
-    function debugMediaFrameStructure() {
-        if (!window.wp || !wp.media || !wp.media.frame) {
-            console.log('FRAME', null);
-            console.log('STATE', null);
-            console.log('STATE ATTRIBUTES', null);
-            console.log('LIBRARY', null);
-            console.log('CONTENT', null);
-            console.log('BROWSER', null);
-            return null;
-        }
-
-        var frame = wp.media.frame;
-        var state = null;
-        var library = null;
-        var content = null;
-        var browser = null;
-
-        try {
-            state = frame.state ? frame.state() : null;
-        } catch (err) {
-            state = { error: err && err.message ? String(err.message) : String(err) };
-        }
-
-        try {
-            library = state && typeof state.get === 'function' ? state.get('library') : null;
-        } catch (err2) {
-            library = { error: err2 && err2.message ? String(err2.message) : String(err2) };
-        }
-
-        try {
-            content = frame.content && typeof frame.content.get === 'function' ? frame.content.get() : null;
-        } catch (err3) {
-            content = { error: err3 && err3.message ? String(err3.message) : String(err3) };
-        }
-
-        try {
-            browser = content && typeof content === 'object' ? content.browserView || content.view || content.collection || null : null;
-        } catch (err4) {
-            browser = { error: err4 && err4.message ? String(err4.message) : String(err4) };
-        }
-
-        console.log('FRAME', frame);
-        console.log('STATE', state);
-        console.log('STATE ATTRIBUTES', state && state.attributes ? state.attributes : null);
-        console.log('LIBRARY', library);
-        console.log('CONTENT', content);
-        console.log('BROWSER', browser);
-
-        return {
-            frame: frame,
-            state: state,
-            library: library,
-            content: content,
-            browser: browser
-        };
-    }
-
-    window.BW_DEBUG_MEDIA_FRAME = debugMediaFrameStructure;
+    function modalClickDebug() {}
 
     function getCollectionPropsSnapshot(collection) {
         try {
