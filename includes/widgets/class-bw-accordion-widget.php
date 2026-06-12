@@ -276,7 +276,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'divider_thickness',
 			[
 				'label'      => __( 'Divider Thickness', 'bw' ),
@@ -299,7 +299,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'divider_spacing',
 			[
 				'label'      => __( 'Divider Spacing', 'bw' ),
@@ -343,7 +343,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'arrow_size',
 			[
 				'label'      => __( 'Arrow Size', 'bw' ),
@@ -366,17 +366,25 @@ class Widget_Bw_Accordion extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'arrow_stroke_width',
 			[
 				'label'   => __( 'Arrow Stroke Weight', 'bw' ),
-				'type'    => Controls_Manager::NUMBER,
-				'min'     => 1,
-				'max'     => 6,
-				'step'    => 0.5,
-				'default' => 2,
+				'type'    => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'   => [
+					'px' => [
+						'min'  => 1,
+						'max'  => 6,
+						'step' => 0.5,
+					],
+				],
+				'default' => [
+					'size' => 2,
+					'unit' => 'px',
+				],
 				'selectors' => [
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-arrow-stroke-width: {{VALUE}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-arrow-stroke-width: {{SIZE}};',
 				],
 			]
 		);
