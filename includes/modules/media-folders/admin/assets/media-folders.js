@@ -9,7 +9,17 @@
         patchApplied: false,
         lastPatchAttempt: null,
         lastMountAttempt: null,
+        lastMountReason: '',
+        lastMountFrameType: '',
+        lastModalExists: false,
+        lastContentExists: false,
+        lastBrowserExists: false,
+        lastAttachmentsBrowserExists: false,
+        lastExistingSidebarCount: 0,
+        lastSidebarMarkupLength: 0,
+        lastInsertionTarget: '',
         lastMissingSelector: '',
+        lastInjectionError: '',
         sidebarInjected: false
     };
 
@@ -2318,7 +2328,7 @@
         modalState.counts = { all: 0, unassigned: 0 };
         updateMediaFoldersDiag({
             sidebarInjected: false,
-            lastMountAttempt: attemptNumber || 0,
+            lastMountAttempt: window.BW_MEDIA_FOLDERS_DIAG && window.BW_MEDIA_FOLDERS_DIAG.lastMountAttempt ? window.BW_MEDIA_FOLDERS_DIAG.lastMountAttempt : 0,
             lastMissingSelector: ''
         });
     }
@@ -2339,6 +2349,7 @@
         var frameBrowseExists = !!frame.$el.find('.media-frame-browse').length;
         var attachmentsBrowser = frame.$el.find('.attachments-browser').first();
         var attachmentsBrowserExists = !!attachmentsBrowser.length;
+        var sidebarMarkup = getModalSidebarMarkup();
         var root = getModalSidebarRoot();
         mediaFoldersDebugLog('renderModalSidebar attempt', {
             attempt: attemptNumber || 0,
@@ -2350,6 +2361,17 @@
         });
         updateMediaFoldersDiag({
             lastMountAttempt: attemptNumber || 0
+            ,
+            lastMountReason: '',
+            lastMountFrameType: (frame && frame.constructor && frame.constructor.name) ? String(frame.constructor.name) : (frame && frame.cid ? String(frame.cid) : ''),
+            lastModalExists: modalExists,
+            lastContentExists: frameContentExists,
+            lastBrowserExists: frameBrowseExists,
+            lastAttachmentsBrowserExists: attachmentsBrowserExists,
+            lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
+            lastSidebarMarkupLength: sidebarMarkup ? sidebarMarkup.length : 0,
+            lastInsertionTarget: '',
+            lastInjectionError: ''
         });
 
         var container = getModalSidebarContainer(frame);
@@ -2368,7 +2390,7 @@
         var browser = attachmentsBrowser;
         var browserParent = browser.length ? browser.parent() : $();
         if (!root.length) {
-            var html = getModalSidebarMarkup();
+            var html = sidebarMarkup;
             if (!html) {
                 updateMediaFoldersDiag({
                     lastMissingSelector: '#bw-media-folders-modal-root',
@@ -2392,12 +2414,62 @@
                 return false;
             }
 
-            browser.before('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
+            updateMediaFoldersDiag({
+                lastInsertionTarget: '.attachments-browser.before(.bw-mf-modal-sidebar-shell)'
+            });
+            try {
+                browser.before('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
+            } catch (err) {
+                updateMediaFoldersDiag({
+                    lastInjectionError: err && err.message ? String(err.message) : 'insertion failed',
+                    sidebarInjected: false
+                });
+                mediaFoldersDebugLog('renderModalSidebar failed: injection error', {
+                    attempt: attemptNumber || 0,
+                    error: err && err.message ? String(err.message) : err
+                });
+                return false;
+            }
             root = getModalSidebarRoot();
             mediaFoldersDebugLog('renderModalSidebar injection attempted', {
                 attempt: attemptNumber || 0,
                 injected: !!root.length
             });
+            updateMediaFoldersDiag({
+                lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
+                sidebarInjected: !!root.length,
+                lastInjectionError: root.length ? '' : (window.BW_MEDIA_FOLDERS_DIAG && window.BW_MEDIA_FOLDERS_DIAG.lastInjectionError ? window.BW_MEDIA_FOLDERS_DIAG.lastInjectionError : '')
+            });
+
+            if (!root.length && container.length) {
+                updateMediaFoldersDiag({
+                    lastInsertionTarget: '.media-frame-content.prepend(.bw-mf-modal-sidebar-shell)'
+                });
+                try {
+                    container.prepend('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
+                } catch (fallbackErr) {
+                    updateMediaFoldersDiag({
+                        lastInjectionError: fallbackErr && fallbackErr.message ? String(fallbackErr.message) : 'fallback insertion failed',
+                        sidebarInjected: false
+                    });
+                    mediaFoldersDebugLog('renderModalSidebar failed: fallback injection error', {
+                        attempt: attemptNumber || 0,
+                        error: fallbackErr && fallbackErr.message ? String(fallbackErr.message) : fallbackErr
+                    });
+                    return false;
+                }
+
+                root = getModalSidebarRoot();
+                updateMediaFoldersDiag({
+                    lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
+                    sidebarInjected: !!root.length,
+                    lastInjectionError: root.length ? '' : 'fallback insertion produced no root'
+                });
+                mediaFoldersDebugLog('renderModalSidebar fallback injection attempted', {
+                    attempt: attemptNumber || 0,
+                    injected: !!root.length
+                });
+            }
         }
 
         if (!root.length) {
@@ -2427,7 +2499,9 @@
         modalState.counts = state.counts;
         updateMediaFoldersDiag({
             sidebarInjected: true,
-            lastMissingSelector: ''
+            lastMissingSelector: '',
+            lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
+            lastInjectionError: ''
         });
 
         renderModalDefaults();
@@ -2455,7 +2529,14 @@
             state: mediaFoldersDebugState(frame)
         });
         updateMediaFoldersDiag({
-            lastMountAttempt: attemptNumber
+            lastMountAttempt: attemptNumber,
+            lastMountReason: source || '',
+            lastMountFrameType: (frame && frame.constructor && frame.constructor.name) ? String(frame.constructor.name) : (frame && frame.cid ? String(frame.cid) : ''),
+            lastModalExists: !!document.querySelector('.media-modal'),
+            lastContentExists: !!(frame && frame.$el && frame.$el.find('.media-frame-content').length),
+            lastBrowserExists: !!(frame && frame.$el && frame.$el.find('.media-frame-browse').length),
+            lastAttachmentsBrowserExists: !!(frame && frame.$el && frame.$el.find('.attachments-browser').length),
+            lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length
         });
 
         mediaModalMountTimer = window.setTimeout(function () {
@@ -2535,7 +2616,8 @@
             }
         });
         updateMediaFoldersDiag({
-            lastPatchAttempt: mediaFramePatchRunCount
+            lastPatchAttempt: mediaFramePatchRunCount,
+            patchApplied: !!mediaFrameModalPatched
         });
 
         if (mediaFrameModalPatched) {
@@ -3550,7 +3632,17 @@
         updateMediaFoldersDiag({
             lastPatchAttempt: 0,
             lastMountAttempt: 0,
+            lastMountReason: 'init',
+            lastMountFrameType: '',
+            lastModalExists: !!document.querySelector('.media-modal'),
+            lastContentExists: false,
+            lastBrowserExists: false,
+            lastAttachmentsBrowserExists: false,
+            lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
+            lastSidebarMarkupLength: cfg.sidebarHtml ? String(cfg.sidebarHtml).length : 0,
+            lastInsertionTarget: '',
             lastMissingSelector: '',
+            lastInjectionError: '',
             sidebarInjected: !!getModalSidebarRoot().length
         });
 
