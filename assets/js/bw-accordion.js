@@ -43,6 +43,9 @@
 			$widget.toggleClass('is-closed', !isOpen);
 			$header.attr('aria-expanded', isOpen ? 'true' : 'false');
 			$panel.attr('aria-hidden', isOpen ? 'false' : 'true');
+			if ('inert' in panelEl) {
+				panelEl.inert = !isOpen;
+			}
 
 			if (isOpen) {
 				panelEl.style.height = 'auto';
@@ -65,6 +68,9 @@
 			$widget.addClass('is-open').removeClass('is-closed');
 			$header.attr('aria-expanded', 'true');
 			$panel.attr('aria-hidden', 'false');
+			if ('inert' in panelEl) {
+				panelEl.inert = false;
+			}
 
 			panelEl.style.transition = '';
 			panelEl.style.height = '0px';
@@ -107,6 +113,9 @@
 			$widget.removeClass('is-open').addClass('is-closed');
 			$header.attr('aria-expanded', 'false');
 			$panel.attr('aria-hidden', 'true');
+			if ('inert' in panelEl) {
+				panelEl.inert = true;
+			}
 
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;

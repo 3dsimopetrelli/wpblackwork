@@ -108,7 +108,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 				'label'     => __( 'Text Color', 'bw' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .bw-accordion__title' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-title-color: {{VALUE}};',
 				],
 			]
 		);
@@ -157,7 +157,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 				'label'     => __( 'Text Color', 'bw' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .bw-accordion__content' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-content-color: {{VALUE}};',
 				],
 			]
 		);
