@@ -2289,6 +2289,26 @@
         return $(modalSelectors.collapseTab);
     }
 
+    function ensureModalSidebarToggle(root, container) {
+        var toggle = getModalSidebarToggle();
+        var $root = root && root.length ? root : getModalSidebarRoot();
+        var $container = container && container.length ? container : getModalSidebarContainer(modalState.frame ? { $el: modalState.frame.$el } : null);
+
+        if (!toggle.length) {
+            toggle = $('<button type="button" id="bw-mf-collapse-tab-modal" class="bw-mf-modal-sidebar-toggle"></button>');
+        }
+
+        if ($root.length) {
+            if (!$.contains(document, toggle[0])) {
+                $root.before(toggle);
+            }
+        } else if ($container.length && !$.contains(document, toggle[0])) {
+            $container.prepend(toggle);
+        }
+
+        return toggle;
+    }
+
     function syncModalSidebarToggleLabel() {
         var toggle = getModalSidebarToggle();
         if (!toggle.length) {
@@ -2563,6 +2583,7 @@
             if (root.length) {
                 root.addClass('bw-mf-modal-sidebar-shell');
             }
+            ensureModalSidebarToggle(root, container);
             mediaFoldersDebugLog('renderModalSidebar injection attempted', {
                 attempt: attemptNumber || 0,
                 injected: !!root.length
@@ -2595,6 +2616,7 @@
                 if (root.length) {
                     root.addClass('bw-mf-modal-sidebar-shell');
                 }
+                ensureModalSidebarToggle(root, container);
                 updateMediaFoldersDiag({
                     lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
                     sidebarInjected: !!root.length,
@@ -2618,6 +2640,8 @@
             });
             return false;
         }
+
+        ensureModalSidebarToggle(root, container);
 
         container.addClass('bw-mf-modal-has-sidebar');
         if (browserParent && browserParent.length) {
