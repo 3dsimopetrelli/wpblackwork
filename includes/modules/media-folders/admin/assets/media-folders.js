@@ -1,6 +1,18 @@
 (function ($) {
     'use strict';
 
+    window.BW_MEDIA_FOLDERS_SCRIPT_LOADED = true;
+    window.BW_MEDIA_FOLDERS_DIAG = {
+        scriptLoaded: true,
+        wpMediaExists: !!(window.wp && wp.media),
+        mediaFrameSelectExists: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
+        patchApplied: false,
+        lastPatchAttempt: null,
+        lastMountAttempt: null,
+        lastMissingSelector: '',
+        sidebarInjected: false
+    };
+
     var cfg = window.bwMediaFolders || window.bwMF || {};
     function readSessionDebugFlag(key) {
         try {
@@ -118,6 +130,24 @@
     var mediaFramePatchRunCount = 0;
     var mediaFramePatchSignalCount = 0;
     var mediaFramePatchRetryCount = 0;
+
+    function updateMediaFoldersDiag(patch) {
+        window.BW_MEDIA_FOLDERS_DIAG = window.BW_MEDIA_FOLDERS_DIAG || {};
+        if (patch && typeof patch === 'object') {
+            for (var key in patch) {
+                if (Object.prototype.hasOwnProperty.call(patch, key)) {
+                    window.BW_MEDIA_FOLDERS_DIAG[key] = patch[key];
+                }
+            }
+        }
+
+        window.BW_MEDIA_FOLDERS_DIAG.scriptLoaded = true;
+        window.BW_MEDIA_FOLDERS_DIAG.wpMediaExists = !!(window.wp && wp.media);
+        window.BW_MEDIA_FOLDERS_DIAG.mediaFrameSelectExists = !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select);
+        window.BW_MEDIA_FOLDERS_DIAG.patchApplied = !!mediaFrameModalPatched;
+        window.BW_MEDIA_FOLDERS_DIAG.sidebarInjected = !!(modalState.active && getModalSidebarRoot().length);
+        return window.BW_MEDIA_FOLDERS_DIAG;
+    }
 
     function mediaFoldersDebugLog(message, payload) {
         if (!isMediaFoldersDebugEnabled() || !window.console || typeof console.log !== 'function') {
@@ -2286,6 +2316,11 @@
         modalState.activeUnassigned = false;
         modalState.folders = [];
         modalState.counts = { all: 0, unassigned: 0 };
+        updateMediaFoldersDiag({
+            sidebarInjected: false,
+            lastMountAttempt: attemptNumber || 0,
+            lastMissingSelector: ''
+        });
     }
 
     function renderModalSidebar(frame, attemptNumber) {
@@ -2313,9 +2348,16 @@
             attachmentsBrowserExists: attachmentsBrowserExists,
             sidebarShellExists: !!root.length
         });
+        updateMediaFoldersDiag({
+            lastMountAttempt: attemptNumber || 0
+        });
 
         var container = getModalSidebarContainer(frame);
         if (!container.length) {
+            updateMediaFoldersDiag({
+                lastMissingSelector: '.media-frame-content or .media-frame-browse',
+                sidebarInjected: false
+            });
             mediaFoldersDebugLog('renderModalSidebar failed: missing container', {
                 attempt: attemptNumber || 0,
                 missing: '.media-frame-content or .media-frame-browse'
@@ -2328,6 +2370,10 @@
         if (!root.length) {
             var html = getModalSidebarMarkup();
             if (!html) {
+                updateMediaFoldersDiag({
+                    lastMissingSelector: '#bw-media-folders-modal-root',
+                    sidebarInjected: false
+                });
                 mediaFoldersDebugLog('renderModalSidebar failed: missing sidebar markup', {
                     attempt: attemptNumber || 0
                 });
@@ -2335,6 +2381,10 @@
             }
 
             if (!browser.length) {
+                updateMediaFoldersDiag({
+                    lastMissingSelector: '.attachments-browser',
+                    sidebarInjected: false
+                });
                 mediaFoldersDebugLog('renderModalSidebar failed: missing selector', {
                     attempt: attemptNumber || 0,
                     missing: '.attachments-browser'
@@ -2351,6 +2401,10 @@
         }
 
         if (!root.length) {
+            updateMediaFoldersDiag({
+                lastMissingSelector: '#bw-media-folders-modal-root',
+                sidebarInjected: false
+            });
             mediaFoldersDebugLog('renderModalSidebar failed after injection attempt', {
                 attempt: attemptNumber || 0,
                 missing: '#bw-media-folders-modal-root'
@@ -2371,6 +2425,10 @@
         }
         modalState.folders = state.folders.slice();
         modalState.counts = state.counts;
+        updateMediaFoldersDiag({
+            sidebarInjected: true,
+            lastMissingSelector: ''
+        });
 
         renderModalDefaults();
         renderModalTree();
@@ -2395,6 +2453,9 @@
             attempt: attemptNumber,
             source: source || '',
             state: mediaFoldersDebugState(frame)
+        });
+        updateMediaFoldersDiag({
+            lastMountAttempt: attemptNumber
         });
 
         mediaModalMountTimer = window.setTimeout(function () {
@@ -2473,6 +2534,9 @@
                 alreadyPatched: !!mediaFrameModalPatched
             }
         });
+        updateMediaFoldersDiag({
+            lastPatchAttempt: mediaFramePatchRunCount
+        });
 
         if (mediaFrameModalPatched) {
             mediaFoldersDebugLog('patchMediaFrameSelect early exit: already patched');
@@ -2542,6 +2606,9 @@
             mediaFramePatchTimer = null;
         }
         mediaFoldersDebugLog('patchMediaFrameSelect success: initialize patched');
+        updateMediaFoldersDiag({
+            patchApplied: true
+        });
         return true;
     }
 
@@ -3479,6 +3546,12 @@
             hasWpMedia: !!(window.wp && wp.media),
             hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
             patchApplied: !!mediaFrameModalPatched
+        });
+        updateMediaFoldersDiag({
+            lastPatchAttempt: 0,
+            lastMountAttempt: 0,
+            lastMissingSelector: '',
+            sidebarInjected: !!getModalSidebarRoot().length
         });
 
         bindMediaFramePatchSignals();
