@@ -2506,10 +2506,10 @@
             }
 
             updateMediaFoldersDiag({
-                lastInsertionTarget: '.attachments-browser.before(.bw-mf-modal-sidebar-shell)'
+                lastInsertionTarget: '.attachments-browser.prepend(#bw-media-folders-modal-root)'
             });
             try {
-                browser.before('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
+                browser.prepend(html);
             } catch (err) {
                 updateMediaFoldersDiag({
                     lastInjectionError: err && err.message ? String(err.message) : 'insertion failed',
@@ -2522,6 +2522,9 @@
                 return false;
             }
             root = getModalSidebarRoot();
+            if (root.length) {
+                root.addClass('bw-mf-modal-sidebar-shell');
+            }
             mediaFoldersDebugLog('renderModalSidebar injection attempted', {
                 attempt: attemptNumber || 0,
                 injected: !!root.length
@@ -2534,10 +2537,10 @@
 
             if (!root.length && container.length) {
                 updateMediaFoldersDiag({
-                    lastInsertionTarget: '.media-frame-content.prepend(.bw-mf-modal-sidebar-shell)'
+                    lastInsertionTarget: '.media-frame-content.prepend(#bw-media-folders-modal-root)'
                 });
                 try {
-                    container.prepend('<div class="bw-mf-modal-sidebar-shell">' + html + '</div>');
+                    container.prepend(html);
                 } catch (fallbackErr) {
                     updateMediaFoldersDiag({
                         lastInjectionError: fallbackErr && fallbackErr.message ? String(fallbackErr.message) : 'fallback insertion failed',
@@ -2551,6 +2554,9 @@
                 }
 
                 root = getModalSidebarRoot();
+                if (root.length) {
+                    root.addClass('bw-mf-modal-sidebar-shell');
+                }
                 updateMediaFoldersDiag({
                     lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
                     sidebarInjected: !!root.length,
@@ -2560,24 +2566,6 @@
                     attempt: attemptNumber || 0,
                     injected: !!root.length
                 });
-            }
-
-            if (root.length && browser.length) {
-                try {
-                    root.add(browser).wrapAll('<div class="bw-media-folders-modal-shell"></div>');
-                    updateMediaFoldersDiag({
-                        lastInsertionTarget: '.bw-media-folders-modal-shell.wrapAll(.bw-mf-modal-sidebar-shell + .attachments-browser)'
-                    });
-                } catch (wrapErr) {
-                    updateMediaFoldersDiag({
-                        lastInjectionError: wrapErr && wrapErr.message ? String(wrapErr.message) : 'wrapAll failed',
-                        sidebarInjected: !!root.length
-                    });
-                    mediaFoldersDebugLog('renderModalSidebar failed: wrapAll error', {
-                        attempt: attemptNumber || 0,
-                        error: wrapErr && wrapErr.message ? String(wrapErr.message) : wrapErr
-                    });
-                }
             }
         }
 
