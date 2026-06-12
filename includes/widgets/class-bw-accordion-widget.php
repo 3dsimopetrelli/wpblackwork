@@ -54,10 +54,30 @@ class Widget_Bw_Accordion extends Widget_Base {
 			'accordion_title',
 			[
 				'label'       => __( 'Accordion Title', 'bw' ),
-				'type'        => Controls_Manager::TEXT,
+				'type'        => Controls_Manager::TEXTAREA,
 				'default'     => __( 'Accordion Title', 'bw' ),
 				'placeholder' => __( 'Enter accordion title', 'bw' ),
 				'label_block' => true,
+				'rows'        => 2,
+			]
+		);
+
+		$this->add_control(
+			'title_html_tag',
+			[
+				'label'   => __( 'Title HTML Tag', 'bw' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'h3',
+				'options' => [
+					'h1'   => 'H1',
+					'h2'   => 'H2',
+					'h3'   => 'H3',
+					'h4'   => 'H4',
+					'h5'   => 'H5',
+					'h6'   => 'H6',
+					'div'  => 'DIV',
+					'span' => 'SPAN',
+				],
 			]
 		);
 
@@ -103,12 +123,65 @@ class Widget_Bw_Accordion extends Widget_Base {
 		);
 
 		$this->add_control(
-			'title_color',
+			'closed_state_heading',
 			[
-				'label'     => __( 'Text Color', 'bw' ),
+				'type'            => Controls_Manager::HEADING,
+				'label'           => __( 'Closed State', 'bw' ),
+				'separator'       => 'before',
+			]
+		);
+
+		$this->add_control(
+			'closed_title_color',
+			[
+				'label'     => __( 'Closed Title Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#080808',
+				'selectors' => [
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-title-color-closed: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'closed_header_background',
+			[
+				'label'     => __( 'Closed Background Color', 'bw' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-title-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-header-bg-closed: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'open_state_heading',
+			[
+				'type'      => Controls_Manager::HEADING,
+				'label'     => __( 'Open State', 'bw' ),
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_control(
+			'open_title_color',
+			[
+				'label'     => __( 'Open Title Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#777777',
+				'selectors' => [
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-title-color-open: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'open_header_background',
+			[
+				'label'     => __( 'Open Background Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-header-bg-open: {{VALUE}};',
 				],
 			]
 		);
@@ -314,6 +387,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 	protected function render() {
 		$settings = $this->get_settings_for_display();
 		$title    = isset( $settings['accordion_title'] ) ? trim( (string) $settings['accordion_title'] ) : '';
+		$title_tag = $this->get_allowed_title_tag( isset( $settings['title_html_tag'] ) ? $settings['title_html_tag'] : 'h3' );
 		$content  = isset( $settings['accordion_content'] ) ? (string) $settings['accordion_content'] : '';
 		$state    = isset( $settings['initial_state'] ) && 'open' === $settings['initial_state'] ? 'open' : 'closed';
 		$is_open  = 'open' === $state;
@@ -357,7 +431,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 		?>
 		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
 			<button <?php echo $this->get_render_attribute_string( 'header' ); ?>>
-				<span class="bw-accordion__title"><?php echo esc_html( $title ); ?></span>
+				<<?php echo esc_attr( $title_tag ); ?> class="bw-accordion__title"><?php echo esc_html( $title ); ?></<?php echo esc_attr( $title_tag ); ?>>
 				<span class="bw-accordion__icon" aria-hidden="true">
 					<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
 						<path d="m6 9 6 6 6-6" fill="none"></path>
@@ -375,5 +449,12 @@ class Widget_Bw_Accordion extends Widget_Base {
 			</div>
 		</div>
 		<?php
+	}
+
+	private function get_allowed_title_tag( $tag ) {
+		$allowed_tags = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span' ];
+		$tag          = sanitize_key( (string) $tag );
+
+		return in_array( $tag, $allowed_tags, true ) ? $tag : 'h3';
 	}
 }

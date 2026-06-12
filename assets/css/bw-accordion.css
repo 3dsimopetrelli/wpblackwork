@@ -2,7 +2,10 @@
 	--bw-accordion-divider-color: #d9d9d9;
 	--bw-accordion-divider-thickness: 1px;
 	--bw-accordion-divider-spacing: 16px;
-	--bw-accordion-title-color: currentColor;
+	--bw-accordion-title-color-closed: #080808;
+	--bw-accordion-title-color-open: #777777;
+	--bw-accordion-header-bg-closed: transparent;
+	--bw-accordion-header-bg-open: transparent;
 	--bw-accordion-content-color: currentColor;
 	--bw-accordion-arrow-color: currentColor;
 	--bw-accordion-arrow-size: 16px;
@@ -44,6 +47,16 @@
 	appearance: none;
 }
 
+.bw-accordion.is-closed .bw-accordion__header {
+	background: var(--bw-accordion-header-bg-closed, transparent) !important;
+	background-color: var(--bw-accordion-header-bg-closed, transparent) !important;
+}
+
+.bw-accordion.is-open .bw-accordion__header {
+	background: var(--bw-accordion-header-bg-open, transparent) !important;
+	background-color: var(--bw-accordion-header-bg-open, transparent) !important;
+}
+
 .bw-accordion .bw-accordion__header:hover,
 .bw-accordion .bw-accordion__header:focus,
 .bw-accordion .bw-accordion__header:active,
@@ -66,7 +79,17 @@
 .bw-accordion__title {
 	flex: 1 1 auto;
 	min-width: 0;
-	color: var(--bw-accordion-title-color);
+	margin: 0;
+	padding: 0;
+	color: var(--bw-accordion-title-color-closed, #080808);
+}
+
+.bw-accordion.is-open .bw-accordion__title {
+	color: var(--bw-accordion-title-color-open, #777777);
+}
+
+.bw-accordion.is-closed .bw-accordion__title {
+	color: var(--bw-accordion-title-color-closed, #080808);
 }
 
 .bw-accordion__icon {

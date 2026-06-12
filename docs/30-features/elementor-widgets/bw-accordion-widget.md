@@ -29,8 +29,11 @@ It does **not** use nested Elementor inner widgets in this version.
 ## Content Controls
 
 ### Accordion Title
-- text field
+- larger textarea field for easier multiline editing in Elementor
 - default: `Accordion Title`
+- title tag control: `Title HTML Tag`
+- default tag: `h3`
+- allowed tags: `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `div`, `span`
 
 ### Accordion Content
 - WYSIWYG field
@@ -45,7 +48,8 @@ It does **not** use nested Elementor inner widgets in this version.
 
 ### Title
 - Typography
-- Text Color
+- Closed State: Closed Title Color, Closed Background Color
+- Open State: Open Title Color, Open Background Color
 - Padding
 
 ### Content
@@ -76,6 +80,9 @@ It does **not** use nested Elementor inner widgets in this version.
 
 - verify the widget appears under the `blackwork` category in Elementor
 - confirm the content renders correctly with paragraphs, links, bold, and simple HTML
+- confirm the title field is easier to edit as a textarea
+- confirm the title HTML tag control renders `h1` through `h6`, `div`, and `span`
+- confirm closed/open title colors and header backgrounds can be controlled independently
 - confirm the default state control works in both directions
 - confirm keyboard activation works on the header button
 - confirm no console errors appear in frontend or editor preview
@@ -85,6 +92,7 @@ It does **not** use nested Elementor inner widgets in this version.
 - this first version supports WYSIWYG content only
 - it does not yet support nested Elementor widgets or drag-and-drop inner sections
 - divider movement is implemented as a clean visual transition between the collapsed and expanded states, not as a complex reflowing geometry effect
+- the title is semantic and configurable, but the clickable header remains a button for accessibility
 
 ## Files Changed for Initial Release
 
