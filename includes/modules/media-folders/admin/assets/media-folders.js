@@ -2262,6 +2262,15 @@
         return $(modalSelectors.root);
     }
 
+    function getModalRootElement() {
+        var roots = document.querySelectorAll('.media-modal');
+        if (!roots || !roots.length) {
+            return $();
+        }
+
+        return $(roots[roots.length - 1]);
+    }
+
     function getModalSidebarContainer(frame) {
         if (!frame || !frame.$el || !frame.$el.length) {
             return $();
@@ -2333,11 +2342,9 @@
             browserParent.removeClass('bw-mf-modal-has-sidebar');
         }
 
-        if (!browserParent.length) {
-            var modalRoot = getModalRootElement();
-            if (modalRoot.length) {
-                modalRoot.removeClass('bw-mf-modal-has-sidebar');
-            }
+        var modalRoot = getModalRootElement();
+        if (modalRoot.length) {
+            modalRoot.removeClass('bw-mf-modal-has-sidebar');
         }
 
         modalState.active = false;
@@ -2538,6 +2545,9 @@
         if (browserParent && browserParent.length) {
             browserParent.addClass('bw-mf-modal-has-sidebar');
         } else if (modalRoot.length) {
+            modalRoot.addClass('bw-mf-modal-has-sidebar');
+        }
+        if (modalRoot.length) {
             modalRoot.addClass('bw-mf-modal-has-sidebar');
         }
         modalState.active = true;
