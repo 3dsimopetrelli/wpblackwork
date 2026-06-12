@@ -3170,12 +3170,78 @@
         });
     }
 
+    function patchSingleMediaFrame(Frame, frameLabel) {
+        if (!Frame || !Frame.prototype) {
+            return false;
+        }
+
+        if (Frame.prototype.__bwMfModalPatched) {
+            mediaFoldersDebugLog('patchSingleMediaFrame skipped: prototype already patched', {
+                frameType: frameLabel || ''
+            });
+            return true;
+        }
+
+        var originalInitialize = Frame.prototype.initialize;
+        if (typeof originalInitialize !== 'function') {
+            mediaFoldersDebugLog('patchSingleMediaFrame skipped: initialize is not a function', {
+                frameType: frameLabel || ''
+            });
+            return false;
+        }
+
+        Frame.prototype.initialize = function () {
+            mediaFoldersDebugLog('MediaFrame.initialize called', {
+                frameType: frameLabel || '',
+                frame: mediaFoldersDebugState(this)
+            });
+            originalInitialize.apply(this, arguments);
+
+            if (this.__bwMfModalInitBound) {
+                mediaFoldersDebugLog('MediaFrame.initialize skipped duplicate binding', {
+                    frameType: frameLabel || ''
+                });
+                return;
+            }
+
+            this.__bwMfModalInitBound = true;
+
+            this.on('open', function () {
+                mediaFoldersDebugLog('patched frame event: open', {
+                    frameType: frameLabel || '',
+                    frame: mediaFoldersDebugState(this)
+                });
+                scheduleModalSidebarMount(this, 'open');
+            });
+
+            this.on('content:render:browse', function () {
+                mediaFoldersDebugLog('patched frame event: content:render:browse', {
+                    frameType: frameLabel || '',
+                    frame: mediaFoldersDebugState(this)
+                });
+                scheduleModalSidebarMount(this, 'content:render:browse');
+            });
+
+            this.on('close', function () {
+                mediaFoldersDebugLog('patched frame event: close', {
+                    frameType: frameLabel || '',
+                    frame: mediaFoldersDebugState(this)
+                });
+                clearModalSidebar(this);
+            });
+        };
+
+        Frame.prototype.__bwMfModalPatched = true;
+        return true;
+    }
+
     function patchMediaFrameSelect() {
         mediaFoldersDebugLog('patchMediaFrameSelect invoked', {
             run: ++mediaFramePatchRunCount,
             state: {
                 hasWpMedia: !!(window.wp && wp.media),
                 hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select),
+                hasMediaFramePost: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Post),
                 alreadyPatched: !!mediaFrameModalPatched
             }
         });
@@ -3189,60 +3255,29 @@
             return true;
         }
 
-        if (!window.wp || !wp.media || !wp.media.view || !wp.media.view.MediaFrame || !wp.media.view.MediaFrame.Select) {
-            mediaFoldersDebugLog('patchMediaFrameSelect early exit: wp.media.view.MediaFrame.Select unavailable');
+        if (!window.wp || !wp.media || !wp.media.view || !wp.media.view.MediaFrame) {
+            mediaFoldersDebugLog('patchMediaFrameSelect early exit: wp.media.view.MediaFrame unavailable');
             return false;
         }
 
-        var Frame = wp.media.view.MediaFrame.Select;
-        if (Frame.prototype.__bwMfModalPatched) {
-            mediaFrameModalPatched = true;
-            mediaFoldersDebugLog('patchMediaFrameSelect early exit: prototype already patched');
-            return true;
-        }
+        var frameTypes = [
+            { key: 'Select', ref: wp.media.view.MediaFrame.Select },
+            { key: 'Post', ref: wp.media.view.MediaFrame.Post },
+            { key: 'FeaturedImage', ref: wp.media.view.MediaFrame.FeaturedImage }
+        ];
+        var patchedAny = false;
 
-        var originalInitialize = Frame.prototype.initialize;
-        if (typeof originalInitialize !== 'function') {
-            mediaFoldersDebugLog('patchMediaFrameSelect early exit: initialize is not a function');
-            return false;
-        }
-
-        Frame.prototype.initialize = function () {
-            mediaFoldersDebugLog('MediaFrame.Select.initialize called', {
-                frame: mediaFoldersDebugState(this)
-            });
-            originalInitialize.apply(this, arguments);
-
-            if (this.__bwMfModalInitBound) {
-                mediaFoldersDebugLog('MediaFrame.Select.initialize skipped duplicate binding');
-                return;
+        frameTypes.forEach(function (frameType) {
+            if (patchSingleMediaFrame(frameType.ref, frameType.key)) {
+                patchedAny = true;
             }
+        });
 
-            this.__bwMfModalInitBound = true;
+        if (!patchedAny) {
+            mediaFoldersDebugLog('patchMediaFrameSelect early exit: no supported media frames available');
+            return false;
+        }
 
-            this.on('open', function () {
-                mediaFoldersDebugLog('patched frame event: open', {
-                    frame: mediaFoldersDebugState(this)
-                });
-                scheduleModalSidebarMount(this, 'open');
-            });
-
-            this.on('content:render:browse', function () {
-                mediaFoldersDebugLog('patched frame event: content:render:browse', {
-                    frame: mediaFoldersDebugState(this)
-                });
-                scheduleModalSidebarMount(this, 'content:render:browse');
-            });
-
-            this.on('close', function () {
-                mediaFoldersDebugLog('patched frame event: close', {
-                    frame: mediaFoldersDebugState(this)
-                });
-                clearModalSidebar(this);
-            });
-        };
-
-        Frame.prototype.__bwMfModalPatched = true;
         mediaFrameModalPatched = true;
         mediaFramePatchAttempts = 0;
         mediaFramePatchDeadline = 0;
@@ -3251,7 +3286,7 @@
             window.clearTimeout(mediaFramePatchTimer);
             mediaFramePatchTimer = null;
         }
-        mediaFoldersDebugLog('patchMediaFrameSelect success: initialize patched');
+        mediaFoldersDebugLog('patchMediaFrameSelect success: media frame initialize patched');
         updateMediaFoldersDiag({
             patchApplied: true
         });
