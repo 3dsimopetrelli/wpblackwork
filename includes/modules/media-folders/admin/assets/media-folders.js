@@ -141,6 +141,15 @@
     var mediaFramePatchSignalCount = 0;
     var mediaFramePatchRetryCount = 0;
 
+    function getModalRootElement() {
+        var roots = document.querySelectorAll('.media-modal');
+        if (!roots || !roots.length) {
+            return $();
+        }
+
+        return $(roots[roots.length - 1]);
+    }
+
     function updateMediaFoldersDiag(patch) {
         window.BW_MEDIA_FOLDERS_DIAG = window.BW_MEDIA_FOLDERS_DIAG || {};
         if (patch && typeof patch === 'object') {
@@ -155,6 +164,10 @@
         window.BW_MEDIA_FOLDERS_DIAG.wpMediaExists = !!(window.wp && wp.media);
         window.BW_MEDIA_FOLDERS_DIAG.mediaFrameSelectExists = !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select);
         window.BW_MEDIA_FOLDERS_DIAG.patchApplied = !!mediaFrameModalPatched;
+        window.BW_MEDIA_FOLDERS_DIAG.frameObjectExists = !!(patch && Object.prototype.hasOwnProperty.call(patch, 'frameObjectExists') ? patch.frameObjectExists : window.BW_MEDIA_FOLDERS_DIAG.frameObjectExists);
+        window.BW_MEDIA_FOLDERS_DIAG.frameElExists = !!(patch && Object.prototype.hasOwnProperty.call(patch, 'frameElExists') ? patch.frameElExists : window.BW_MEDIA_FOLDERS_DIAG.frameElExists);
+        window.BW_MEDIA_FOLDERS_DIAG.modalDomFallbackUsed = !!(patch && Object.prototype.hasOwnProperty.call(patch, 'modalDomFallbackUsed') ? patch.modalDomFallbackUsed : window.BW_MEDIA_FOLDERS_DIAG.modalDomFallbackUsed);
+        window.BW_MEDIA_FOLDERS_DIAG.modalRootSelector = typeof (patch && patch.modalRootSelector) !== 'undefined' ? patch.modalRootSelector : (window.BW_MEDIA_FOLDERS_DIAG.modalRootSelector || '');
         window.BW_MEDIA_FOLDERS_DIAG.sidebarInjected = !!(modalState.active && getModalSidebarRoot().length);
         return window.BW_MEDIA_FOLDERS_DIAG;
     }
@@ -2320,6 +2333,13 @@
             browserParent.removeClass('bw-mf-modal-has-sidebar');
         }
 
+        if (!browserParent.length) {
+            var modalRoot = getModalRootElement();
+            if (modalRoot.length) {
+                modalRoot.removeClass('bw-mf-modal-has-sidebar');
+            }
+        }
+
         modalState.active = false;
         modalState.frame = null;
         modalState.activeFolder = 0;
@@ -2329,12 +2349,16 @@
         updateMediaFoldersDiag({
             sidebarInjected: false,
             lastMountAttempt: window.BW_MEDIA_FOLDERS_DIAG && window.BW_MEDIA_FOLDERS_DIAG.lastMountAttempt ? window.BW_MEDIA_FOLDERS_DIAG.lastMountAttempt : 0,
-            lastMissingSelector: ''
+            lastMissingSelector: '',
+            frameObjectExists: !!frame,
+            frameElExists: !!(frame && frame.$el && frame.$el.length),
+            modalDomFallbackUsed: false,
+            modalRootSelector: ''
         });
     }
 
     function renderModalSidebar(frame, attemptNumber) {
-        if (!frame || !frame.$el || !cfg.sidebarHtml) {
+        if (!frame || !cfg.sidebarHtml) {
             mediaFoldersDebugLog('renderModalSidebar aborted: missing frame or sidebar html', {
                 attempt: attemptNumber || 0,
                 hasFrame: !!frame,
@@ -2344,10 +2368,30 @@
             return false;
         }
 
+        var modalRoot = getModalRootElement();
+        var frameEl = frame && frame.$el && frame.$el.length ? frame.$el : modalRoot;
+        var modalDomFallbackUsed = !(frame && frame.$el && frame.$el.length) && !!modalRoot.length;
+        var modalRootSelector = modalRoot.length ? '.media-modal:last' : '';
+
+        if (!frameEl.length) {
+            updateMediaFoldersDiag({
+                lastMissingSelector: '.media-modal',
+                sidebarInjected: false,
+                frameObjectExists: !!frame,
+                frameElExists: false,
+                modalDomFallbackUsed: false,
+                modalRootSelector: ''
+            });
+            mediaFoldersDebugLog('renderModalSidebar failed: missing modal root', {
+                attempt: attemptNumber || 0
+            });
+            return false;
+        }
+
         var modalExists = !!document.querySelector('.media-modal');
-        var frameContentExists = !!frame.$el.find('.media-frame-content').length;
-        var frameBrowseExists = !!frame.$el.find('.media-frame-browse').length;
-        var attachmentsBrowser = frame.$el.find('.attachments-browser').first();
+        var frameContentExists = !!frameEl.find('.media-frame-content').length;
+        var frameBrowseExists = !!frameEl.find('.media-frame-browse').length;
+        var attachmentsBrowser = frameEl.find('.attachments-browser').first();
         var attachmentsBrowserExists = !!attachmentsBrowser.length;
         var sidebarMarkup = getModalSidebarMarkup();
         var root = getModalSidebarRoot();
@@ -2357,7 +2401,9 @@
             mediaFrameContentExists: frameContentExists,
             mediaFrameBrowseExists: frameBrowseExists,
             attachmentsBrowserExists: attachmentsBrowserExists,
-            sidebarShellExists: !!root.length
+            sidebarShellExists: !!root.length,
+            modalDomFallbackUsed: modalDomFallbackUsed,
+            modalRootSelector: modalRootSelector
         });
         updateMediaFoldersDiag({
             lastMountAttempt: attemptNumber || 0
@@ -2371,10 +2417,14 @@
             lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
             lastSidebarMarkupLength: sidebarMarkup ? sidebarMarkup.length : 0,
             lastInsertionTarget: '',
-            lastInjectionError: ''
+            lastInjectionError: '',
+            frameObjectExists: !!frame,
+            frameElExists: !!(frame && frame.$el && frame.$el.length),
+            modalDomFallbackUsed: modalDomFallbackUsed,
+            modalRootSelector: modalRootSelector
         });
 
-        var container = getModalSidebarContainer(frame);
+        var container = getModalSidebarContainer({ $el: frameEl });
         if (!container.length) {
             updateMediaFoldersDiag({
                 lastMissingSelector: '.media-frame-content or .media-frame-browse',
@@ -2487,6 +2537,8 @@
         container.addClass('bw-mf-modal-has-sidebar');
         if (browserParent && browserParent.length) {
             browserParent.addClass('bw-mf-modal-has-sidebar');
+        } else if (modalRoot.length) {
+            modalRoot.addClass('bw-mf-modal-has-sidebar');
         }
         modalState.active = true;
         modalState.frame = frame;
@@ -2501,7 +2553,9 @@
             sidebarInjected: true,
             lastMissingSelector: '',
             lastExistingSidebarCount: document.querySelectorAll(modalSelectors.root).length,
-            lastInjectionError: ''
+            lastInjectionError: '',
+            modalDomFallbackUsed: modalDomFallbackUsed,
+            modalRootSelector: modalRootSelector
         });
 
         renderModalDefaults();
