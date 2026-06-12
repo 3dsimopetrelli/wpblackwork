@@ -36,6 +36,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
 - `editor-panel-widget-families.md`: editor-only widget card family colors, slug/title mapping rules, and deprecated-card hiding behavior inside the Elementor panel
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
+- `bw-accordion-widget.md`: `BW Accordion` - standalone accessible accordion with WYSIWYG content and no nested-widget surface in V1
 - `product-details-widget.md`: `BW-SP Product Details` — single-product details/compatibility/info-box widget backed by the existing WooCommerce Product Details metabox
 - `related-products-widget.md`: BW-SP Related Products widget — proportional grid, component delegation, live preview contract
 - `reviews-widget.md`: BW Reviews widget — custom Reviews module adapter, premium modal flow, AJAX list loading, optional global fallback mode, and current state `Almost ready` / `~9/10` / `Final manual validation`

@@ -12,6 +12,7 @@ Canonical transition note:
 | Widget Slug | Class File | Family (Current) | Notes |
 |---|---|---|---|
 | `bw-about-menu` | `includes/widgets/class-bw-about-menu-widget.php` | UI/Navigation | non-product |
+| `bw-accordion` | `includes/widgets/class-bw-accordion-widget.php` | Content/UI | standalone accordion widget with WYSIWYG body and accessible open/close toggle |
 | `bw-animated-banner` | `includes/widgets/class-bw-animated-banner-widget.php` | Content/UI | non-product |
 | `bw-basic-slide` | `includes/widgets/class-bw-basic-slide-widget.php` | Gallery / Slider | dual-mode image widget: Embla `Slide` mode or responsive `Wall` mode with optional bottom gradient |
 | `bw-psychadelic-banner` | `includes/widgets/class-bw-psychadelic-banner-widget.php` | Content/UI | CSS-only psychedelic label-loop banner with responsive central PNG art, viewport-driven label sizing, and optional marquee motion |

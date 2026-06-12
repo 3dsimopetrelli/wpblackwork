@@ -2,8 +2,6 @@
     'use strict';
 
     window.BW_MEDIA_FOLDERS_SCRIPT_LOADED = true;
-    window.BW_MF_LOADED_AT = Date.now();
-    window.BW_MF_PATCH_STATUS = window.BW_MF_PATCH_STATUS || {};
     window.BW_MEDIA_FOLDERS_DIAG = {
         scriptLoaded: true,
         wpMediaExists: !!(window.wp && wp.media),
@@ -24,16 +22,6 @@
         lastInjectionError: '',
         sidebarInjected: false
     };
-    if (window.console && typeof console.log === 'function') {
-        console.log('[BW MF BOOT]', {
-            loaded: true,
-            loadedAt: window.BW_MF_LOADED_AT,
-            hasWpMedia: !!(window.wp && wp.media),
-            hasMediaFramePost: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Post),
-            hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select)
-        });
-    }
-
     var cfg = window.bwMediaFolders || window.bwMF || {};
     function readSessionDebugFlag(key) {
         try {
@@ -224,18 +212,24 @@
         console.log(prefix);
     }
 
-    function classicModalDebugLog(message, payload) {
-        if (!window.console || typeof console.log !== 'function') {
-            return;
+    function classicModalDebugLog() {}
+
+    function getPrototypeChainNames(obj) {
+        var names = [];
+        var cursor = obj;
+        var depth = 0;
+
+        while (cursor && depth < 8) {
+            if (cursor.constructor && cursor.constructor.name) {
+                names.push(String(cursor.constructor.name));
+            } else {
+                names.push('(anonymous)');
+            }
+            cursor = Object.getPrototypeOf(cursor);
+            depth += 1;
         }
 
-        var prefix = '[BW MF Classic Modal] ' + message;
-        if (typeof payload !== 'undefined') {
-            console.log(prefix, payload);
-            return;
-        }
-
-        console.log(prefix);
+        return names;
     }
 
     function getMediaFrameLabel(frame) {
@@ -296,24 +290,6 @@
             hasAttachmentsBrowser: !!(frame && frame.$el && frame.$el.length && frame.$el.find('.attachments-browser').length),
             hasInjectedRoot: !!getModalSidebarRoot().length
         };
-    }
-
-    function getPrototypeChainNames(obj) {
-        var names = [];
-        var cursor = obj;
-        var depth = 0;
-
-        while (cursor && depth < 8) {
-            if (cursor.constructor && cursor.constructor.name) {
-                names.push(String(cursor.constructor.name));
-            } else {
-                names.push('(anonymous)');
-            }
-            cursor = Object.getPrototypeOf(cursor);
-            depth += 1;
-        }
-
-        return names;
     }
 
     function mediaFoldersDebugState(frame) {
@@ -3424,8 +3400,7 @@
         }
 
         if (frameLabel === 'Post') {
-            classicModalDebugLog('applying Post frame patch');
-            window.BW_MF_PATCH_STATUS.postFound = true;
+            classicModalDebugLog();
         }
 
         Frame.prototype.initialize = function () {
@@ -3436,11 +3411,7 @@
                 frame: mediaFoldersDebugState(this)
             });
             if (frameLabel === 'Post') {
-                window.BW_MF_PATCH_STATUS.postInitializeRan = true;
-                classicModalDebugLog('Post frame initialize', {
-                    frame: getMediaFrameDebugMeta(this),
-                    prototypeChain: getPrototypeChainNames(this)
-                });
+                classicModalDebugLog();
             }
 
             if (this.__bwMfModalInitBound) {
@@ -3458,7 +3429,7 @@
                     frame: mediaFoldersDebugState(this)
                 });
                 if (frameLabel === 'Post') {
-                    classicModalDebugLog('Post frame event: open', getMediaFrameDebugMeta(this));
+                    classicModalDebugLog();
                 }
                 scheduleModalSidebarMount(this, 'open');
             });
@@ -3469,7 +3440,7 @@
                     frame: mediaFoldersDebugState(this)
                 });
                 if (frameLabel === 'Post') {
-                    classicModalDebugLog('Post frame event: content:render:browse', getMediaFrameDebugMeta(this));
+                    classicModalDebugLog();
                 }
                 scheduleModalSidebarMount(this, 'content:render:browse');
             });
@@ -3480,7 +3451,7 @@
                     frame: mediaFoldersDebugState(this)
                 });
                 if (frameLabel === 'Post') {
-                    classicModalDebugLog('Post frame event: close', getMediaFrameDebugMeta(this));
+                    classicModalDebugLog();
                 }
                 clearModalSidebar(this);
             });
@@ -3488,8 +3459,7 @@
 
         Frame.prototype.__bwMfModalPatched = true;
         if (frameLabel === 'Post') {
-            window.BW_MF_PATCH_STATUS.postPatched = true;
-            classicModalDebugLog('Post frame patched');
+            classicModalDebugLog();
         }
         return true;
     }
@@ -3566,14 +3536,6 @@
     }
 
     function patchMediaFrameSelect() {
-        if (window.console && typeof console.log === 'function') {
-            console.log('[BW MF BOOT] patch pass start', {
-                run: mediaFramePatchRunCount + 1,
-                hasWpMedia: !!(window.wp && wp.media),
-                hasMediaFramePost: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Post),
-                hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select)
-            });
-        }
         mediaFoldersDebugLog('patchMediaFrameSelect invoked', {
             run: ++mediaFramePatchRunCount,
             state: {
@@ -3598,13 +3560,6 @@
             { key: 'Post', ref: wp.media.view.MediaFrame.Post },
             { key: 'FeaturedImage', ref: wp.media.view.MediaFrame.FeaturedImage }
         ];
-        if (window.console && typeof console.log === 'function') {
-            console.log('[BW MF BOOT] frame classes available', {
-                select: !!wp.media.view.MediaFrame.Select,
-                post: !!wp.media.view.MediaFrame.Post,
-                featuredImage: !!wp.media.view.MediaFrame.FeaturedImage
-            });
-        }
         var patchedAny = false;
 
         frameTypes.forEach(function (frameType) {
