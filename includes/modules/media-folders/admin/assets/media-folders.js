@@ -2452,7 +2452,7 @@
             renderDefaults();
             renderTree();
             if (isModalSidebarActive()) {
-                modalState.folders = state.folders.slice();
+                modalState.folders = state.folders;
                 modalState.counts = state.counts;
                 renderModalDefaults();
                 renderModalTree();
@@ -2881,7 +2881,7 @@
         if (!state.folders.length) {
             refreshTree();
         }
-        modalState.folders = state.folders.slice();
+        modalState.folders = state.folders;
         modalState.counts = state.counts;
         setModalSidebarCollapsed(modalState.sidebarCollapsed, { skipResize: true });
         updateMediaFoldersDiag({
