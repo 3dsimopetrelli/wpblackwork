@@ -287,28 +287,44 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-moda
     visibility: visible !important;
     opacity: 1 !important;
     position: absolute !important;
-    top: 8px !important;
-    left: 12px !important;
+    top: 50% !important;
+    left: 290px !important;
+    transform: translate(-50%, -50%) !important;
     z-index: 99999 !important;
     align-items: center;
     justify-content: center;
-    height: 28px !important;
-    padding: 0 10px !important;
+    min-height: 96px !important;
+    padding: 10px 6px !important;
     border: 1px solid #dcdcde !important;
-    border-radius: 4px !important;
-    background: #ffffff !important;
-    color: #1d2327 !important;
+    border-left: 0 !important;
+    border-radius: 0 8px 8px 0 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #3c434a !important;
     font-size: 12px !important;
-    line-height: 1;
-    box-shadow: none !important;
+    font-weight: 500 !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.02em;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
     cursor: pointer !important;
     white-space: nowrap !important;
-    max-width: calc(100% - 24px);
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease !important;
+}
+
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal:hover,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal:hover,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal:hover,
+.media-modal.bw-mf-modal-has-sidebar #bw-mf-collapse-tab-modal:hover {
+    background: #ffffff !important;
+    color: #111111 !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12) !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-mf-collapse-tab-modal,
 .media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-mf-collapse-tab-modal {
-    left: 12px !important;
+    left: 0 !important;
+    transform: translate(0, -50%) !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar.bw-mf-modal-sidebar-collapsed #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell,
