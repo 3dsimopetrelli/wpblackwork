@@ -1,8 +1,8 @@
 (function ($) {
 	'use strict';
 
-	var OPEN_MS = 380;
-	var CLOSE_MS = 300;
+	var OPEN_MS = 460;
+	var CLOSE_MS = 340;
 	var OPEN_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
 	var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
@@ -81,7 +81,7 @@
 			panelEl.offsetHeight;
 
 			var targetHeight = panelEl.scrollHeight;
-			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING + ', opacity 260ms ease';
+			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING + ', opacity 320ms ease';
 			panelEl.style.height = targetHeight + 'px';
 			panelEl.style.opacity = '1';
 
@@ -120,7 +120,7 @@
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
-			panelEl.style.transition = 'height ' + CLOSE_MS + 'ms ' + CLOSE_EASING + ', opacity 220ms ease';
+			panelEl.style.transition = 'height ' + CLOSE_MS + 'ms ' + CLOSE_EASING + ', opacity 280ms ease';
 			panelEl.style.height = '0px';
 			panelEl.style.opacity = '0';
 

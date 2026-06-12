@@ -375,8 +375,8 @@ class Widget_Bw_Accordion extends Widget_Base {
 				'range'   => [
 					'px' => [
 						'min'  => 1,
-						'max'  => 6,
-						'step' => 0.5,
+						'max'  => 4,
+						'step' => 0.25,
 					],
 				],
 				'default' => [

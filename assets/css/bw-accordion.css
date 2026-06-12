@@ -70,10 +70,12 @@
 	color: inherit !important;
 }
 
+.bw-accordion .bw-accordion__header:focus,
 .bw-accordion .bw-accordion__header:focus-visible,
+.bw-accordion button.bw-accordion__header:focus,
 .bw-accordion button.bw-accordion__header:focus-visible {
-	outline: 1px solid currentColor;
-	outline-offset: 4px;
+	outline: none !important;
+	box-shadow: none !important;
 }
 
 .bw-accordion__title {
@@ -128,7 +130,7 @@
 	height: var(--bw-accordion-divider-thickness);
 	background: var(--bw-accordion-divider-color);
 	margin-top: var(--bw-accordion-divider-spacing);
-	transition: opacity 160ms ease, transform 160ms ease;
+	transition: opacity 280ms ease, transform 280ms ease;
 }
 
 .bw-accordion__divider--bottom {
@@ -150,7 +152,7 @@
 	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	transition: height 380ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+	transition: height 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
 	will-change: height, opacity;
 }
 
@@ -163,6 +165,15 @@
 .bw-accordion__panel-inner {
 	padding: 16px 0 0;
 	color: var(--bw-accordion-content-color);
+	transform: translateY(-6px);
+	opacity: 0;
+	transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
+	will-change: transform, opacity;
+}
+
+.bw-accordion.is-open .bw-accordion__panel-inner {
+	transform: translateY(0);
+	opacity: 1;
 }
 
 .bw-accordion__content :where(p):first-child {
