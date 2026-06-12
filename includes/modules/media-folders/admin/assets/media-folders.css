@@ -400,6 +400,12 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .at
     -webkit-overflow-scrolling: touch;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments {
+    min-width: 900px !important;
+    width: max-content !important;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment {
     width: 112px !important;
