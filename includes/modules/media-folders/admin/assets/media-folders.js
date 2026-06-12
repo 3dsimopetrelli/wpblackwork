@@ -671,6 +671,66 @@
         return parsed > 0 ? parsed : 0;
     }
 
+    function resolveFolderIdFromNode(node) {
+        if (!node || !node.length) {
+            return 0;
+        }
+
+        var attrs = ['data-folder-id', 'data-folder', 'data-term-id', 'data-id'];
+        for (var i = 0; i < attrs.length; i += 1) {
+            var value = parseInt(node.attr(attrs[i]) || '0', 10);
+            if (value > 0) {
+                return value;
+            }
+        }
+
+        return 0;
+    }
+
+    function getModalMediaCollections(frame) {
+        var collections = [];
+
+        function addCollection(collection) {
+            if (!collection || !collection.props || typeof collection.props.set !== 'function') {
+                return;
+            }
+
+            if (collections.indexOf(collection) === -1) {
+                collections.push(collection);
+            }
+        }
+
+        try {
+            if (frame && typeof frame.state === 'function') {
+                var activeState = frame.state();
+                if (activeState && typeof activeState.get === 'function') {
+                    addCollection(activeState.get('library'));
+                }
+            }
+        } catch (err) {
+            // ignore modal state lookup errors
+        }
+
+        try {
+            if (frame && frame.content && typeof frame.content.get === 'function') {
+                var content = frame.content.get();
+                if (content) {
+                    addCollection(content.collection);
+                }
+            }
+        } catch (err2) {
+            // ignore content lookup errors
+        }
+
+        try {
+            addCollection(frame && frame.library ? frame.library : null);
+        } catch (err3) {
+            // ignore direct library lookup errors
+        }
+
+        return collections;
+    }
+
     function getQuickTypeDefinitions() {
         return [
             { key: 'video', label: 'Video' },
@@ -1753,16 +1813,10 @@
 
         try {
             var frame = modalActive ? modalState.frame : wp.media.frame;
-            if (!frame.content || !frame.content.get) {
+            var collections = getModalMediaCollections(frame);
+            if (!collections.length) {
                 return false;
             }
-
-            var content = frame.content.get();
-            if (!content || !content.collection || !content.collection.props || typeof content.collection.props.set !== 'function') {
-                return false;
-            }
-
-            var collection = content.collection;
 
             if (modalActive) {
                 modalState.activeFolder = folderId > 0 ? folderId : 0;
@@ -1772,13 +1826,15 @@
                 state.activeUnassigned = !!unassigned;
             }
 
-            setCollectionFilterProps(collection, folderId, unassigned);
-            if (typeof collection.reset === 'function') {
-                collection.reset();
-            }
-            if (typeof collection.more === 'function') {
-                collection.more();
-            }
+            collections.forEach(function (collection) {
+                setCollectionFilterProps(collection, folderId, unassigned);
+                if (typeof collection.reset === 'function') {
+                    collection.reset();
+                }
+                if (typeof collection.more === 'function') {
+                    collection.more();
+                }
+            });
 
             bindQuickTypeFilterObserver();
             scheduleBwMfRefresh('apply-grid-filter');
@@ -2784,7 +2840,7 @@
             if ($(e.target).closest('.bw-mf-folder-pencil').length) {
                 return;
             }
-            var folderId = parseInt($(this).closest('.bw-media-folder-node').attr('data-term-id') || $(this).closest('.bw-media-folder-node').attr('data-id') || '0', 10);
+            var folderId = resolveFolderIdFromNode($(this).closest('.bw-media-folder-node'));
             setModalGridFilter(folderId > 0 ? folderId : 0, false);
         });
 
@@ -2806,7 +2862,7 @@
             e.stopImmediatePropagation();
 
             var row = $(this).closest('.bw-media-folder-node');
-            var termId = parseInt(row.attr('data-term-id') || row.attr('data-id') || '0', 10);
+            var termId = resolveFolderIdFromNode(row);
             toggleFolderCollapsed(termId);
             syncModalTreeNodeVisibility();
         });
@@ -3083,7 +3139,7 @@
                 var frame = wp.media.frame;
                 if (frame.content && frame.content.get) {
                     var browser = frame.content.get();
-                    if (browser && browser.collection && typeof browser.collection.props === 'function') {
+                    if (browser && browser.collection && browser.collection.props && typeof browser.collection.props.set === 'function') {
                         browser.collection.props.set({
                             bw_media_folder: state.activeFolder > 0 ? state.activeFolder : undefined,
                             bw_media_unassigned: state.activeUnassigned ? '1' : undefined
