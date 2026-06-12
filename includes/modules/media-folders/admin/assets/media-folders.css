@@ -387,6 +387,17 @@ body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .a
     width: auto;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments {
+    top: 44px !important;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment {
     width: 112px !important;
@@ -412,8 +423,8 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__m
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main,
 .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__main,
 .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main {
-    min-height: 28px;
-    padding: 2px 2px 2px 4px;
+    min-height: 26px;
+    padding: 1px 2px 1px 4px;
     grid-template-columns: 1fr auto;
 }
 
@@ -421,8 +432,8 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-left,
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-left,
 .media-modal.bw-mf-modal-has-sidebar .bw-mf-left,
 .media-modal .bw-mf-modal-sidebar-shell .bw-mf-left {
-    grid-template-columns: 10px 16px minmax(0, 1fr);
-    column-gap: 3px;
+    grid-template-columns: 8px 16px minmax(0, 1fr);
+    column-gap: 2px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon,
@@ -458,6 +469,28 @@ body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node
     font-size: 11px;
     min-width: 20px;
     line-height: 1;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron {
+    width: 8px;
+    min-width: 8px;
+    height: 8px;
+    min-height: 8px;
+    margin-right: 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    opacity: 0.48;
+    font-size: 8px;
+    line-height: 1;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron:hover,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron:hover {
+    opacity: 0.75;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders__title,
