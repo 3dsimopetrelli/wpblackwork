@@ -209,6 +209,80 @@
         console.log(prefix);
     }
 
+    function classicModalDebugLog(message, payload) {
+        if (!isMediaFoldersDebugEnabled() || !window.console || typeof console.log !== 'function') {
+            return;
+        }
+
+        var prefix = '[BW MF Classic Modal] ' + message;
+        if (typeof payload !== 'undefined') {
+            console.log(prefix, payload);
+            return;
+        }
+
+        console.log(prefix);
+    }
+
+    function getMediaFrameLabel(frame) {
+        if (!frame || !window.wp || !wp.media || !wp.media.view || !wp.media.view.MediaFrame) {
+            return '';
+        }
+
+        try {
+            if (wp.media.view.MediaFrame.Post && frame instanceof wp.media.view.MediaFrame.Post) {
+                return 'Post';
+            }
+        } catch (e) {
+            // ignore instanceof errors
+        }
+
+        try {
+            if (wp.media.view.MediaFrame.FeaturedImage && frame instanceof wp.media.view.MediaFrame.FeaturedImage) {
+                return 'FeaturedImage';
+            }
+        } catch (e2) {
+            // ignore instanceof errors
+        }
+
+        try {
+            if (wp.media.view.MediaFrame.Select && frame instanceof wp.media.view.MediaFrame.Select) {
+                return 'Select';
+            }
+        } catch (e3) {
+            // ignore instanceof errors
+        }
+
+        if (frame.__bwMfFrameLabel) {
+            return String(frame.__bwMfFrameLabel);
+        }
+
+        if (frame.constructor && frame.constructor.name) {
+            return String(frame.constructor.name);
+        }
+
+        return '';
+    }
+
+    function getMediaFrameDebugMeta(frame) {
+        var state = null;
+
+        try {
+            state = frame && typeof frame.state === 'function' ? frame.state() : null;
+        } catch (e) {
+            state = null;
+        }
+
+        return {
+            frameType: getMediaFrameLabel(frame),
+            frameCid: frame && frame.cid ? String(frame.cid) : '',
+            stateId: state && state.id ? String(state.id) : '',
+            stateTitle: state && typeof state.get === 'function' ? String(state.get('title') || '') : '',
+            contentMode: frame && frame.content && typeof frame.content.mode === 'function' ? String(frame.content.mode() || '') : '',
+            hasAttachmentsBrowser: !!(frame && frame.$el && frame.$el.length && frame.$el.find('.attachments-browser').length),
+            hasInjectedRoot: !!getModalSidebarRoot().length
+        };
+    }
+
     function mediaFoldersDebugState(frame) {
         var frameEl = frame && frame.$el && frame.$el.length ? frame.$el : $();
         return {
@@ -2747,6 +2821,7 @@
         var attachmentsBrowserExists = !!attachmentsBrowser.length;
         var sidebarMarkup = getModalSidebarMarkup();
         var root = getModalSidebarRoot();
+        var frameLabel = getMediaFrameLabel(frame);
         mediaFoldersDebugLog('renderModalSidebar attempt', {
             attempt: attemptNumber || 0,
             modalExists: modalExists,
@@ -2757,6 +2832,13 @@
             modalDomFallbackUsed: modalDomFallbackUsed,
             modalRootSelector: modalRootSelector
         });
+        if (frameLabel === 'Post') {
+            classicModalDebugLog('renderModalSidebar attempt', {
+                attempt: attemptNumber || 0,
+                attachmentsBrowserExists: attachmentsBrowserExists,
+                frame: getMediaFrameDebugMeta(frame)
+            });
+        }
         updateMediaFoldersDiag({
             lastMountAttempt: attemptNumber || 0
             ,
@@ -2809,6 +2891,11 @@
                     lastMissingSelector: '.attachments-browser',
                     sidebarInjected: false
                 });
+                if (frameLabel === 'Post') {
+                    classicModalDebugLog('renderModalSidebar failed: missing attachments browser', {
+                        frame: getMediaFrameDebugMeta(frame)
+                    });
+                }
                 mediaFoldersDebugLog('renderModalSidebar failed: missing selector', {
                     attempt: attemptNumber || 0,
                     missing: '.attachments-browser'
@@ -2929,6 +3016,13 @@
         bindModalEvents();
         applyGridFilter(0, false);
         refreshModalLayout(frame);
+        if (frameLabel === 'Post') {
+            classicModalDebugLog('renderModalSidebar success', {
+                attempt: attemptNumber || 0,
+                injected: !!getModalSidebarRoot().length,
+                frame: getMediaFrameDebugMeta(frame)
+            });
+        }
         mediaFoldersDebugLog('renderModalSidebar success', {
             attempt: attemptNumber || 0,
             activeFolder: modalState.activeFolder,
@@ -2944,11 +3038,19 @@
 
         mediaModalMountAttempts += 1;
         var attemptNumber = mediaModalMountAttempts;
+        var frameLabel = getMediaFrameLabel(frame);
         mediaFoldersDebugLog('scheduleModalSidebarMount', {
             attempt: attemptNumber,
             source: source || '',
             state: mediaFoldersDebugState(frame)
         });
+        if (frameLabel === 'Post') {
+            classicModalDebugLog('scheduleModalSidebarMount', {
+                attempt: attemptNumber,
+                source: source || '',
+                frame: getMediaFrameDebugMeta(frame)
+            });
+        }
         updateMediaFoldersDiag({
             lastMountAttempt: attemptNumber,
             lastMountReason: source || '',
@@ -3190,12 +3292,20 @@
             return false;
         }
 
+        if (frameLabel === 'Post') {
+            classicModalDebugLog('applying Post frame patch');
+        }
+
         Frame.prototype.initialize = function () {
+            originalInitialize.apply(this, arguments);
+            this.__bwMfFrameLabel = frameLabel || '';
             mediaFoldersDebugLog('MediaFrame.initialize called', {
                 frameType: frameLabel || '',
                 frame: mediaFoldersDebugState(this)
             });
-            originalInitialize.apply(this, arguments);
+            if (frameLabel === 'Post') {
+                classicModalDebugLog('Post frame initialize', getMediaFrameDebugMeta(this));
+            }
 
             if (this.__bwMfModalInitBound) {
                 mediaFoldersDebugLog('MediaFrame.initialize skipped duplicate binding', {
@@ -3211,6 +3321,9 @@
                     frameType: frameLabel || '',
                     frame: mediaFoldersDebugState(this)
                 });
+                if (frameLabel === 'Post') {
+                    classicModalDebugLog('Post frame event: open', getMediaFrameDebugMeta(this));
+                }
                 scheduleModalSidebarMount(this, 'open');
             });
 
@@ -3219,6 +3332,9 @@
                     frameType: frameLabel || '',
                     frame: mediaFoldersDebugState(this)
                 });
+                if (frameLabel === 'Post') {
+                    classicModalDebugLog('Post frame event: content:render:browse', getMediaFrameDebugMeta(this));
+                }
                 scheduleModalSidebarMount(this, 'content:render:browse');
             });
 
@@ -3227,11 +3343,82 @@
                     frameType: frameLabel || '',
                     frame: mediaFoldersDebugState(this)
                 });
+                if (frameLabel === 'Post') {
+                    classicModalDebugLog('Post frame event: close', getMediaFrameDebugMeta(this));
+                }
                 clearModalSidebar(this);
             });
         };
 
         Frame.prototype.__bwMfModalPatched = true;
+        return true;
+    }
+
+    function bindExistingMediaFrameInstance(source) {
+        if (!window.wp || !wp.media || !wp.media.frame) {
+            return false;
+        }
+
+        var frame = wp.media.frame;
+        if (!frame || typeof frame.on !== 'function') {
+            return false;
+        }
+
+        if (frame.__bwMfModalInitBound) {
+            if (getMediaFrameLabel(frame) === 'Post') {
+                classicModalDebugLog('existing Post frame already bound', {
+                    source: source || '',
+                    frame: getMediaFrameDebugMeta(frame)
+                });
+            }
+            return true;
+        }
+
+        var frameLabel = getMediaFrameLabel(frame);
+        frame.__bwMfFrameLabel = frameLabel || '';
+
+        if (frameLabel === 'Post') {
+            classicModalDebugLog('binding existing Post frame instance', {
+                source: source || '',
+                frame: getMediaFrameDebugMeta(frame)
+            });
+        }
+
+        frame.__bwMfModalInitBound = true;
+
+        frame.on('open', function () {
+            mediaFoldersDebugLog('patched existing frame event: open', {
+                frameType: this.__bwMfFrameLabel || '',
+                frame: mediaFoldersDebugState(this)
+            });
+            if (this.__bwMfFrameLabel === 'Post') {
+                classicModalDebugLog('existing Post frame event: open', getMediaFrameDebugMeta(this));
+            }
+            scheduleModalSidebarMount(this, 'open');
+        });
+
+        frame.on('content:render:browse', function () {
+            mediaFoldersDebugLog('patched existing frame event: content:render:browse', {
+                frameType: this.__bwMfFrameLabel || '',
+                frame: mediaFoldersDebugState(this)
+            });
+            if (this.__bwMfFrameLabel === 'Post') {
+                classicModalDebugLog('existing Post frame event: content:render:browse', getMediaFrameDebugMeta(this));
+            }
+            scheduleModalSidebarMount(this, 'content:render:browse');
+        });
+
+        frame.on('close', function () {
+            mediaFoldersDebugLog('patched existing frame event: close', {
+                frameType: this.__bwMfFrameLabel || '',
+                frame: mediaFoldersDebugState(this)
+            });
+            if (this.__bwMfFrameLabel === 'Post') {
+                classicModalDebugLog('existing Post frame event: close', getMediaFrameDebugMeta(this));
+            }
+            clearModalSidebar(this);
+        });
+
         return true;
     }
 
@@ -3249,11 +3436,6 @@
             lastPatchAttempt: mediaFramePatchRunCount,
             patchApplied: !!mediaFrameModalPatched
         });
-
-        if (mediaFrameModalPatched) {
-            mediaFoldersDebugLog('patchMediaFrameSelect early exit: already patched');
-            return true;
-        }
 
         if (!window.wp || !wp.media || !wp.media.view || !wp.media.view.MediaFrame) {
             mediaFoldersDebugLog('patchMediaFrameSelect early exit: wp.media.view.MediaFrame unavailable');
@@ -3278,6 +3460,7 @@
             return false;
         }
 
+        bindExistingMediaFrameInstance('patch-pass');
         mediaFrameModalPatched = true;
         mediaFramePatchAttempts = 0;
         mediaFramePatchDeadline = 0;
@@ -3294,7 +3477,14 @@
     }
 
     function scheduleMediaFramePatchRetry(source) {
-        if (mediaFrameModalPatched) {
+        if (
+            mediaFrameModalPatched &&
+            window.wp &&
+            wp.media &&
+            wp.media.view &&
+            wp.media.view.MediaFrame &&
+            wp.media.view.MediaFrame.Post
+        ) {
             mediaFoldersDebugLog('scheduleMediaFramePatchRetry skipped: already patched');
             return;
         }
@@ -3350,7 +3540,10 @@
             }
         });
 
-        if (patchMediaFrameSelect()) {
+        var patched = patchMediaFrameSelect();
+        bindExistingMediaFrameInstance(source || 'ensure');
+
+        if (patched && window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Post) {
             return;
         }
 
@@ -3393,6 +3586,24 @@
                 mediaFoldersDebugLog('Elementor hook bound: ' + eventName);
             }
         });
+
+        if (window.jQuery && typeof jQuery !== 'undefined') {
+            jQuery(document).on(
+                'mousedown.bwMfMediaPatch click.bwMfMediaPatch',
+                '.insert-media, .add_media, #set-post-thumbnail, .set-post-thumbnail, .upload_image_button, .add_product_images, [href*="media-upload.php"]',
+                function () {
+                    mediaFramePatchSignalCount += 1;
+                    mediaFoldersDebugLog('classic media opener signal fired', {
+                        signalCount: mediaFramePatchSignalCount
+                    });
+                    ensureMediaFramePatch('classic-media-opener');
+                    window.setTimeout(function () {
+                        bindExistingMediaFrameInstance('classic-media-opener');
+                    }, 0);
+                }
+            );
+            mediaFoldersDebugLog('classic media opener signals bound');
+        }
 
         if (window.elementorFrontend && elementorFrontend.hooks && typeof elementorFrontend.hooks.addAction === 'function') {
             try {
