@@ -348,7 +348,21 @@ body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-fol
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap,
 .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap,
 .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap {
+    margin-top: 30px !important;
     margin-bottom: 8px;
+    width: 100% !important;
+}
+
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search,
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell input[type="search"],
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell input[type="search"],
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__search,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell input[type="search"],
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell input[type="search"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folders__defaults,
