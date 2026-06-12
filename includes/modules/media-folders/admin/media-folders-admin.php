@@ -105,6 +105,10 @@ if (!function_exists('bw_mf_admin_is_supported_list_screen')) {
 if (!function_exists('bw_mf_admin_should_enqueue_media_modal_assets')) {
     function bw_mf_admin_should_enqueue_media_modal_assets($hook_suffix = '')
     {
+        if (!is_admin() || !bw_mf_is_enabled()) {
+            return false;
+        }
+
         $current_hook = function_exists('current_filter') ? (string) current_filter() : '';
         $hook_suffix = sanitize_key((string) $hook_suffix);
 
@@ -119,24 +123,11 @@ if (!function_exists('bw_mf_admin_should_enqueue_media_modal_assets')) {
             return true;
         }
 
-        if ($hook_suffix === '') {
-            return false;
-        }
-
-        if (bw_mf_admin_is_supported_list_screen()) {
-            return true;
-        }
-
-        // Media modal entry points in wp-admin, including Elementor editor screens.
-        $modal_hooks = [
-            'post.php',
-            'post-new.php',
-            'upload.php',
-            'media-new.php',
-            'edit.php',
-        ];
-
-        if (in_array($hook_suffix, $modal_hooks, true)) {
+        // Keep Media Folders available across classic wp.media entry points in wp-admin.
+        // The JS bootstrap is admin-only and idempotent, while several classic modals
+        // can be opened from screens whose hook suffix is not reliably covered by a
+        // small whitelist.
+        if ($hook_suffix !== '') {
             return true;
         }
 
