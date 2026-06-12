@@ -550,6 +550,19 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron:hover,
     opacity: 0.75;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-mf-chevron,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-mf-chevron {
+    transform: rotate(0deg);
+    transition: transform 160ms ease, opacity 160ms ease;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-folder-node:not(.is-collapsed) > .bw-media-folder-node__main .bw-mf-chevron,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-mf-chevron[aria-expanded="true"],
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-folder-node:not(.is-collapsed) > .bw-media-folder-node__main .bw-mf-chevron,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-mf-chevron[aria-expanded="true"] {
+    transform: rotate(90deg);
+}
+
 .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-folder-node__main,
 .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-folder-node__name,
 .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-default,
