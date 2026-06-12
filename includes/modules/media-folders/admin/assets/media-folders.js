@@ -3147,20 +3147,20 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            if (row && row.length) {
-                row.toggleClass('is-collapsed');
-                $(this).toggleClass('is-collapsed');
-                var children = row.nextAll('.bw-media-folder-node[data-parent="' + termId + '"]');
-                children.toggleClass('bw-mf-hidden-by-collapse');
-                modalClickDebug('Chevron toggled direct', {
-                    termId: termId,
-                    collapsed: row.hasClass('is-collapsed'),
-                    hiddenChildren: children.length
-                });
-            } else {
-                toggleFolderCollapsed(termId);
+            if (!(termId > 0)) {
+                return;
             }
-            syncModalTreeNodeVisibility();
+
+            toggleFolderCollapsed(termId);
+            if (row && row.length) {
+                row.toggleClass('is-collapsed', !!folderCollapsedMap[termId]);
+            }
+            $(this).attr('aria-expanded', folderCollapsedMap[termId] ? 'false' : 'true')
+                .toggleClass('is-collapsed', !!folderCollapsedMap[termId]);
+            modalClickDebug('Chevron toggled via state', {
+                termId: termId,
+                collapsed: !!folderCollapsedMap[termId]
+            });
         });
     }
 
