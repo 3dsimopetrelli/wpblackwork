@@ -323,8 +323,12 @@ class Widget_Bw_Accordion extends Widget_Base {
 			$title = __( 'Accordion Title', 'bw' );
 		}
 
-		if ( class_exists( '\Elementor\Utils' ) ) {
-			$content = \Elementor\Utils::parse_text_editor( $content );
+		if (
+			class_exists( '\Elementor\Plugin' )
+			&& isset( \Elementor\Plugin::instance()->frontend )
+			&& method_exists( \Elementor\Plugin::instance()->frontend, 'parse_text_editor' )
+		) {
+			$content = \Elementor\Plugin::instance()->frontend->parse_text_editor( $content );
 		} else {
 			$content = wpautop( $content );
 		}
