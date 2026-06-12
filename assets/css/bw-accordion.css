@@ -15,20 +15,52 @@
 	box-sizing: border-box;
 }
 
-.bw-accordion__header {
+.bw-accordion .bw-accordion__header,
+.bw-accordion button.bw-accordion__header {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 12px;
 	width: 100%;
 	margin: 0;
 	padding: 0;
-	background: transparent;
-	border: 0;
+	min-width: 0;
+	min-height: 0;
+	background: transparent !important;
+	background-color: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	outline: none;
 	text-align: left;
-	color: inherit;
+	color: inherit !important;
+	font: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
+	text-transform: none;
+	text-decoration: none;
 	cursor: pointer;
 	-webkit-appearance: none;
 	appearance: none;
+}
+
+.bw-accordion .bw-accordion__header:hover,
+.bw-accordion .bw-accordion__header:focus,
+.bw-accordion .bw-accordion__header:active,
+.bw-accordion button.bw-accordion__header:hover,
+.bw-accordion button.bw-accordion__header:focus,
+.bw-accordion button.bw-accordion__header:active {
+	background: transparent !important;
+	background-color: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	color: inherit !important;
+}
+
+.bw-accordion .bw-accordion__header:focus-visible,
+.bw-accordion button.bw-accordion__header:focus-visible {
+	outline: 1px solid currentColor;
+	outline-offset: 4px;
 }
 
 .bw-accordion__title {
