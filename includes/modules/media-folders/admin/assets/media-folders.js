@@ -2,6 +2,8 @@
     'use strict';
 
     window.BW_MEDIA_FOLDERS_SCRIPT_LOADED = true;
+    window.BW_MF_LOADED_AT = Date.now();
+    window.BW_MF_PATCH_STATUS = window.BW_MF_PATCH_STATUS || {};
     window.BW_MEDIA_FOLDERS_DIAG = {
         scriptLoaded: true,
         wpMediaExists: !!(window.wp && wp.media),
@@ -22,6 +24,15 @@
         lastInjectionError: '',
         sidebarInjected: false
     };
+    if (window.console && typeof console.log === 'function') {
+        console.log('[BW MF BOOT]', {
+            loaded: true,
+            loadedAt: window.BW_MF_LOADED_AT,
+            hasWpMedia: !!(window.wp && wp.media),
+            hasMediaFramePost: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Post),
+            hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select)
+        });
+    }
 
     var cfg = window.bwMediaFolders || window.bwMF || {};
     function readSessionDebugFlag(key) {
@@ -163,6 +174,10 @@
     var mediaFramePatchRunCount = 0;
     var mediaFramePatchSignalCount = 0;
     var mediaFramePatchRetryCount = 0;
+    var classicModalBindTimer = null;
+    var classicModalBindDeadline = 0;
+    var classicModalObserverBound = false;
+    var lastKnownMediaFrame = null;
 
     function getModalRootElement() {
         var roots = document.querySelectorAll('.media-modal');
@@ -210,7 +225,7 @@
     }
 
     function classicModalDebugLog(message, payload) {
-        if (!isMediaFoldersDebugEnabled() || !window.console || typeof console.log !== 'function') {
+        if (!window.console || typeof console.log !== 'function') {
             return;
         }
 
@@ -281,6 +296,24 @@
             hasAttachmentsBrowser: !!(frame && frame.$el && frame.$el.length && frame.$el.find('.attachments-browser').length),
             hasInjectedRoot: !!getModalSidebarRoot().length
         };
+    }
+
+    function getPrototypeChainNames(obj) {
+        var names = [];
+        var cursor = obj;
+        var depth = 0;
+
+        while (cursor && depth < 8) {
+            if (cursor.constructor && cursor.constructor.name) {
+                names.push(String(cursor.constructor.name));
+            } else {
+                names.push('(anonymous)');
+            }
+            cursor = Object.getPrototypeOf(cursor);
+            depth += 1;
+        }
+
+        return names;
     }
 
     function mediaFoldersDebugState(frame) {
@@ -3036,6 +3069,7 @@
             window.clearTimeout(mediaModalMountTimer);
         }
 
+        lastKnownMediaFrame = frame || lastKnownMediaFrame;
         mediaModalMountAttempts += 1;
         var attemptNumber = mediaModalMountAttempts;
         var frameLabel = getMediaFrameLabel(frame);
@@ -3076,6 +3110,103 @@
                 }, 150);
             }
         }, 0);
+    }
+
+    function attemptClassicModalMount(source) {
+        var frame = (window.wp && wp.media && wp.media.frame) ? wp.media.frame : lastKnownMediaFrame;
+        if (!frame) {
+            classicModalDebugLog('attemptClassicModalMount skipped: no frame', {
+                source: source || ''
+            });
+            return false;
+        }
+
+        lastKnownMediaFrame = frame;
+        bindExistingMediaFrameInstance(source || 'classic-attempt');
+
+        var hasModal = !!document.querySelector('.media-modal');
+        var hasRoot = !!document.querySelector('#bw-media-folders-modal-root');
+        classicModalDebugLog('attemptClassicModalMount', {
+            source: source || '',
+            hasModal: hasModal,
+            hasRoot: hasRoot,
+            frame: getMediaFrameDebugMeta(frame),
+            prototypeChain: getPrototypeChainNames(frame)
+        });
+
+        if (hasModal && !hasRoot) {
+            scheduleModalSidebarMount(frame, source || 'classic-attempt');
+            window.setTimeout(function () {
+                if (!document.querySelector('#bw-media-folders-modal-root')) {
+                    renderModalSidebar(frame, 'classic-fallback');
+                }
+            }, 80);
+        }
+
+        return true;
+    }
+
+    function startClassicModalBindLoop(source) {
+        classicModalBindDeadline = Date.now() + 2000;
+
+        if (classicModalBindTimer) {
+            return;
+        }
+
+        classicModalDebugLog('startClassicModalBindLoop', {
+            source: source || '',
+            deadline: classicModalBindDeadline
+        });
+
+        classicModalBindTimer = window.setInterval(function () {
+            if (Date.now() > classicModalBindDeadline) {
+                window.clearInterval(classicModalBindTimer);
+                classicModalBindTimer = null;
+                classicModalDebugLog('classic bind loop finished', {
+                    source: source || ''
+                });
+                return;
+            }
+
+            attemptClassicModalMount(source || 'classic-bind-loop');
+        }, 100);
+    }
+
+    function bindClassicModalObserver() {
+        if (classicModalObserverBound || !window.MutationObserver || !document.body) {
+            return;
+        }
+
+        classicModalObserverBound = true;
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (!mutation.addedNodes || !mutation.addedNodes.length) {
+                    return;
+                }
+
+                Array.prototype.forEach.call(mutation.addedNodes, function (node) {
+                    if (!node || node.nodeType !== 1) {
+                        return;
+                    }
+
+                    if (
+                        (node.matches && node.matches('.media-modal')) ||
+                        (node.querySelector && node.querySelector('.media-modal'))
+                    ) {
+                        classicModalDebugLog('MutationObserver detected media modal', {
+                            hasRoot: !!document.querySelector('#bw-media-folders-modal-root')
+                        });
+                        attemptClassicModalMount('mutation-observer');
+                        startClassicModalBindLoop('mutation-observer');
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     }
 
     function bindModalEvents() {
@@ -3294,6 +3425,7 @@
 
         if (frameLabel === 'Post') {
             classicModalDebugLog('applying Post frame patch');
+            window.BW_MF_PATCH_STATUS.postFound = true;
         }
 
         Frame.prototype.initialize = function () {
@@ -3304,7 +3436,11 @@
                 frame: mediaFoldersDebugState(this)
             });
             if (frameLabel === 'Post') {
-                classicModalDebugLog('Post frame initialize', getMediaFrameDebugMeta(this));
+                window.BW_MF_PATCH_STATUS.postInitializeRan = true;
+                classicModalDebugLog('Post frame initialize', {
+                    frame: getMediaFrameDebugMeta(this),
+                    prototypeChain: getPrototypeChainNames(this)
+                });
             }
 
             if (this.__bwMfModalInitBound) {
@@ -3351,6 +3487,10 @@
         };
 
         Frame.prototype.__bwMfModalPatched = true;
+        if (frameLabel === 'Post') {
+            window.BW_MF_PATCH_STATUS.postPatched = true;
+            classicModalDebugLog('Post frame patched');
+        }
         return true;
     }
 
@@ -3360,6 +3500,7 @@
         }
 
         var frame = wp.media.frame;
+        lastKnownMediaFrame = frame || lastKnownMediaFrame;
         if (!frame || typeof frame.on !== 'function') {
             return false;
         }
@@ -3368,7 +3509,8 @@
             if (getMediaFrameLabel(frame) === 'Post') {
                 classicModalDebugLog('existing Post frame already bound', {
                     source: source || '',
-                    frame: getMediaFrameDebugMeta(frame)
+                    frame: getMediaFrameDebugMeta(frame),
+                    prototypeChain: getPrototypeChainNames(frame)
                 });
             }
             return true;
@@ -3380,7 +3522,8 @@
         if (frameLabel === 'Post') {
             classicModalDebugLog('binding existing Post frame instance', {
                 source: source || '',
-                frame: getMediaFrameDebugMeta(frame)
+                frame: getMediaFrameDebugMeta(frame),
+                prototypeChain: getPrototypeChainNames(frame)
             });
         }
 
@@ -3423,6 +3566,14 @@
     }
 
     function patchMediaFrameSelect() {
+        if (window.console && typeof console.log === 'function') {
+            console.log('[BW MF BOOT] patch pass start', {
+                run: mediaFramePatchRunCount + 1,
+                hasWpMedia: !!(window.wp && wp.media),
+                hasMediaFramePost: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Post),
+                hasMediaFrameSelect: !!(window.wp && wp.media && wp.media.view && wp.media.view.MediaFrame && wp.media.view.MediaFrame.Select)
+            });
+        }
         mediaFoldersDebugLog('patchMediaFrameSelect invoked', {
             run: ++mediaFramePatchRunCount,
             state: {
@@ -3447,6 +3598,13 @@
             { key: 'Post', ref: wp.media.view.MediaFrame.Post },
             { key: 'FeaturedImage', ref: wp.media.view.MediaFrame.FeaturedImage }
         ];
+        if (window.console && typeof console.log === 'function') {
+            console.log('[BW MF BOOT] frame classes available', {
+                select: !!wp.media.view.MediaFrame.Select,
+                post: !!wp.media.view.MediaFrame.Post,
+                featuredImage: !!wp.media.view.MediaFrame.FeaturedImage
+            });
+        }
         var patchedAny = false;
 
         frameTypes.forEach(function (frameType) {
@@ -3593,6 +3751,9 @@
                 '.insert-media, .add_media, #set-post-thumbnail, .set-post-thumbnail, .upload_image_button, .add_product_images, [href*="media-upload.php"]',
                 function () {
                     mediaFramePatchSignalCount += 1;
+                    classicModalDebugLog('classic media opener click', {
+                        signalCount: mediaFramePatchSignalCount
+                    });
                     mediaFoldersDebugLog('classic media opener signal fired', {
                         signalCount: mediaFramePatchSignalCount
                     });
@@ -3600,10 +3761,13 @@
                     window.setTimeout(function () {
                         bindExistingMediaFrameInstance('classic-media-opener');
                     }, 0);
+                    startClassicModalBindLoop('classic-media-opener');
                 }
             );
             mediaFoldersDebugLog('classic media opener signals bound');
         }
+
+        bindClassicModalObserver();
 
         if (window.elementorFrontend && elementorFrontend.hooks && typeof elementorFrontend.hooks.addAction === 'function') {
             try {
@@ -3624,11 +3788,15 @@
             mediaFoldersDebugLog('document readyState complete; scheduling immediate patch check');
             window.setTimeout(function () {
                 ensureMediaFramePatch('document-ready-complete');
+                bindExistingMediaFrameInstance('document-ready-complete');
+                startClassicModalBindLoop('document-ready-complete');
             }, 0);
         } else {
             window.addEventListener('load', function () {
                 mediaFoldersDebugLog('window load fired');
                 ensureMediaFramePatch('window-load');
+                bindExistingMediaFrameInstance('window-load');
+                startClassicModalBindLoop('window-load');
             }, { once: true });
         }
     }
