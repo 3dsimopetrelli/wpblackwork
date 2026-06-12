@@ -719,6 +719,13 @@ body.bw-mf-enabled .bw-media-folder-node.is-active .bw-mf-folder-icon {
     color: #111111;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node[data-icon-color] .bw-mf-folder-icon,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node[data-icon-color].is-active .bw-mf-folder-icon,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node[data-icon-color]:hover .bw-mf-folder-icon,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node[data-icon-color].bw-mf-folder-drop-hover .bw-mf-folder-icon {
+    color: var(--bw-mf-icon-color) !important;
+}
+
 body.bw-mf-enabled .bw-media-folder-node__name {
     flex: 1;
     min-width: 0;
