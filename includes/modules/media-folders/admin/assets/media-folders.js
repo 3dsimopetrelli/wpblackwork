@@ -2365,6 +2365,36 @@
         }
     }
 
+    function getModalTreeNodesByParent(parentId) {
+        return Array.prototype.slice.call(document.querySelectorAll('#bw-media-folders-modal-tree .bw-media-folder-node[data-parent="' + parentId + '"]'));
+    }
+
+    function setModalNodeVisibilityByParent(parentId, hidden) {
+        var nodes = getModalTreeNodesByParent(parentId);
+        nodes.forEach(function (node) {
+            if (hidden) {
+                $(node).hide();
+            } else {
+                $(node).show();
+            }
+            var chevron = node.querySelector('.bw-mf-chevron');
+            if (chevron) {
+                chevron.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+                chevron.classList.toggle('is-collapsed', !!hidden);
+            }
+
+            var childId = parseInt(node.getAttribute('data-id') || '0', 10);
+            if (childId > 0) {
+                var childCollapsed = !!folderCollapsedMap[childId];
+                if (hidden) {
+                    setModalNodeVisibilityByParent(childId, true);
+                } else {
+                    setModalNodeVisibilityByParent(childId, childCollapsed);
+                }
+            }
+        });
+    }
+
     function buildTreeRows(viewState) {
         var activeState = viewState || state;
         var byParent = {};
@@ -3147,19 +3177,29 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            if (!(termId > 0)) {
+            if (!(termId > 0) || !row.length) {
                 return;
             }
 
-            toggleFolderCollapsed(termId);
-            if (row && row.length) {
-                row.toggleClass('is-collapsed', !!folderCollapsedMap[termId]);
+            var collapsed = !row.hasClass('is-collapsed');
+            row.toggleClass('is-collapsed', collapsed);
+            row.attr('data-collapsed', collapsed ? '1' : '0');
+            $(this).attr('aria-expanded', collapsed ? 'false' : 'true')
+                .toggleClass('is-collapsed', collapsed);
+
+            folderCollapsedMap[termId] = collapsed;
+            if (!collapsed) {
+                delete folderCollapsedMap[termId];
             }
-            $(this).attr('aria-expanded', folderCollapsedMap[termId] ? 'false' : 'true')
-                .toggleClass('is-collapsed', !!folderCollapsedMap[termId]);
+            saveCollapsedState();
+
+            setModalNodeVisibilityByParent(termId, collapsed);
+            if (row && row.length) {
+                row.toggleClass('is-collapsed', collapsed);
+            }
             modalClickDebug('Chevron toggled via state', {
                 termId: termId,
-                collapsed: !!folderCollapsedMap[termId]
+                collapsed: collapsed
             });
         });
     }
