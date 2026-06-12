@@ -393,6 +393,13 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
     padding-bottom: 0 !important;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment {
     width: 112px !important;
