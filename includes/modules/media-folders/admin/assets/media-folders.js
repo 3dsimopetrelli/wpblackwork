@@ -770,7 +770,9 @@
         var collections = [];
 
         function addCollection(collection) {
-            if (!collection || !collection.props || typeof collection.props.set !== 'function') {
+            var hasProps = !!(collection && collection.props);
+            var hasShape = !!(collection && (Array.isArray(collection.models) || typeof collection.length === 'number'));
+            if (!collection || !hasProps || !hasShape) {
                 return;
             }
 
@@ -1892,6 +1894,22 @@
             // ignore query prop sync errors
         }
 
+        try {
+            if (typeof collection.fetch === 'function') {
+                modalClickDebug('setCollectionFilterProps calling fetch', {
+                    folderId: folderId,
+                    unassigned: !!unassigned
+                });
+                collection.fetch();
+            }
+        } catch (fetchErr) {
+            modalClickDebug('setCollectionFilterProps fetch failed', {
+                folderId: folderId,
+                unassigned: !!unassigned,
+                error: fetchErr && fetchErr.message ? String(fetchErr.message) : String(fetchErr)
+            });
+        }
+
         modalClickDebug('setCollectionFilterProps after', {
             folderId: folderId,
             unassigned: !!unassigned,
@@ -1943,23 +1961,23 @@
                 state.activeUnassigned = !!unassigned;
             }
 
-            collections.forEach(function (collection) {
-                setCollectionFilterProps(collection, folderId, unassigned);
-                if (typeof collection.reset === 'function') {
-                    modalClickDebug('applyGridFilter calling reset', {
+        collections.forEach(function (collection) {
+            setCollectionFilterProps(collection, folderId, unassigned);
+            if (typeof collection.reset === 'function') {
+                modalClickDebug('applyGridFilter calling reset', {
+                    folderId: folderId,
+                        unassigned: !!unassigned
+                });
+                collection.reset();
+            }
+            if (typeof collection.more === 'function') {
+                modalClickDebug('applyGridFilter calling more', {
                         folderId: folderId,
                         unassigned: !!unassigned
-                    });
-                    collection.reset();
-                }
-                if (typeof collection.more === 'function') {
-                    modalClickDebug('applyGridFilter calling more', {
-                        folderId: folderId,
-                        unassigned: !!unassigned
-                    });
-                    collection.more();
-                }
-            });
+                });
+                collection.more();
+            }
+        });
 
             bindQuickTypeFilterObserver();
             scheduleBwMfRefresh('apply-grid-filter');

@@ -550,6 +550,13 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron:hover,
     opacity: 0.75;
 }
 
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-folder-node__main,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-folder-node__name,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-media-default,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root .bw-mf-chevron {
+    cursor: pointer;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders__title,
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__title,
 .media-modal.bw-mf-modal-has-sidebar .bw-media-folders__title,
