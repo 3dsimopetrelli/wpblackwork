@@ -687,6 +687,26 @@
         return 0;
     }
 
+    function modalClickDebug(message, payload) {
+        if (!window.console || typeof console.log !== 'function') {
+            return;
+        }
+
+        console.log('[BW MF Modal Click] ' + message, payload || {});
+    }
+
+    function getCollectionPropsSnapshot(collection) {
+        try {
+            if (collection && collection.props && typeof collection.props.toJSON === 'function') {
+                return collection.props.toJSON();
+            }
+        } catch (err) {
+            return { error: err && err.message ? String(err.message) : String(err) };
+        }
+
+        return null;
+    }
+
     function getModalMediaCollections(frame) {
         var collections = [];
 
@@ -1770,12 +1790,23 @@
 
     function setCollectionFilterProps(collection, folderId, unassigned) {
         if (!collection || !collection.props || typeof collection.props.set !== 'function') {
+            modalClickDebug('setCollectionFilterProps skipped: invalid collection', {
+                folderId: folderId,
+                unassigned: !!unassigned,
+                collection: collection ? Object.keys(collection).slice(0, 12) : null
+            });
             return false;
         }
 
         var folderValue = folderId > 0 ? String(folderId) : '';
         var unassignedValue = unassigned ? '1' : '';
         var ignoreValue = String(+new Date());
+
+        modalClickDebug('setCollectionFilterProps before', {
+            folderId: folderId,
+            unassigned: !!unassigned,
+            propsBefore: getCollectionPropsSnapshot(collection)
+        });
 
         collection.props.set({
             bw_media_folder: folderValue,
@@ -1802,11 +1833,30 @@
             // ignore query prop sync errors
         }
 
+        modalClickDebug('setCollectionFilterProps after', {
+            folderId: folderId,
+            unassigned: !!unassigned,
+            propsAfter: getCollectionPropsSnapshot(collection),
+            queryAfter: (() => {
+                try {
+                    return collection.props.get('query');
+                } catch (err2) {
+                    return { error: err2 && err2.message ? String(err2.message) : String(err2) };
+                }
+            })()
+        });
+
         return true;
     }
 
     function applyGridFilter(folderId, unassigned) {
         var modalActive = isModalSidebarActive();
+        modalClickDebug('applyGridFilter invoked', {
+            folderId: folderId,
+            unassigned: !!unassigned,
+            modalActive: modalActive,
+            hasFrame: !!(modalActive ? modalState.frame : (window.wp && wp.media && wp.media.frame))
+        });
         if (!modalActive && (state.mode !== 'grid' || !window.wp || !wp.media || !wp.media.frame)) {
             return false;
         }
@@ -1814,6 +1864,14 @@
         try {
             var frame = modalActive ? modalState.frame : wp.media.frame;
             var collections = getModalMediaCollections(frame);
+            modalClickDebug('applyGridFilter collections resolved', {
+                folderId: folderId,
+                unassigned: !!unassigned,
+                collectionsFound: collections.length,
+                hasFrame: !!frame,
+                frameType: frame && frame.constructor && frame.constructor.name ? frame.constructor.name : '',
+                hasContentCollection: !!(frame && frame.content && frame.content.get && frame.content.get() && frame.content.get().collection)
+            });
             if (!collections.length) {
                 return false;
             }
@@ -1829,9 +1887,17 @@
             collections.forEach(function (collection) {
                 setCollectionFilterProps(collection, folderId, unassigned);
                 if (typeof collection.reset === 'function') {
+                    modalClickDebug('applyGridFilter calling reset', {
+                        folderId: folderId,
+                        unassigned: !!unassigned
+                    });
                     collection.reset();
                 }
                 if (typeof collection.more === 'function') {
+                    modalClickDebug('applyGridFilter calling more', {
+                        folderId: folderId,
+                        unassigned: !!unassigned
+                    });
                     collection.more();
                 }
             });
@@ -2817,7 +2883,17 @@
         }
         mediaModalEventsBound = true;
 
-        $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-media-default', function () {
+        $(document).on('click.bwMfModalSidebar', '#bw-media-folders-modal-root .bw-media-default', function (e) {
+            modalClickDebug('All Files / Unassigned click', {
+                element: this,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                dataType: $(this).attr('data-type') || '',
+                rootNode: $(this).closest('#bw-media-folders-modal-root')[0] || null
+            });
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             var type = $(this).attr('data-type');
             if (type === 'unassigned') {
                 setModalGridFilter(0, true);
@@ -2827,24 +2903,41 @@
             setModalGridFilter(0, false);
         });
 
-        $(document).on('click.bwMfModalSidebar', modalSelectors.collapseTab, function (e) {
+        $(document).on('click.bwMfModalSidebar', '#bw-mf-collapse-tab-modal', function (e) {
             e.preventDefault();
             e.stopImmediatePropagation();
             setModalSidebarCollapsed(!modalState.sidebarCollapsed);
         });
 
-        $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-media-folder-node__main', function (e) {
+        $(document).on('click.bwMfModalSidebar', '#bw-media-folders-modal-root .bw-media-folder-node__main', function (e) {
+            var row = $(this).closest('.bw-media-folder-node');
+            var folderId = resolveFolderIdFromNode(row);
+            modalClickDebug('Folder row click', {
+                element: this,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                row: row[0] || null,
+                resolvedFolderId: folderId,
+                frameExists: !!modalState.frame,
+                collectionsFound: getModalMediaCollections(modalState.frame).length,
+                propsBefore: (function () {
+                    var collections = getModalMediaCollections(modalState.frame);
+                    return collections.length ? getCollectionPropsSnapshot(collections[0]) : null;
+                })()
+            });
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             if ($(e.target).closest('.bw-mf-chevron').length) {
                 return;
             }
             if ($(e.target).closest('.bw-mf-folder-pencil').length) {
                 return;
             }
-            var folderId = resolveFolderIdFromNode($(this).closest('.bw-media-folder-node'));
             setModalGridFilter(folderId > 0 ? folderId : 0, false);
         });
 
-        $(document).on('keydown.bwMfModalSidebar', modalSelectors.root + ' .bw-media-folder-node__main', function (e) {
+        $(document).on('keydown.bwMfModalSidebar', '#bw-media-folders-modal-root .bw-media-folder-node__main', function (e) {
             if (e.key !== 'Enter' && e.key !== ' ') {
                 return;
             }
@@ -2852,17 +2945,23 @@
             $(this).trigger('click');
         });
 
-        $(document).on('input.bwMfModalSidebar', modalSelectors.search, function () {
+        $(document).on('input.bwMfModalSidebar', '#bw-mr-folder-search-modal', function () {
             syncModalTreeNodeVisibility();
         });
 
-        $(document).on('click.bwMfModalSidebar', modalSelectors.root + ' .bw-mf-chevron', function (e) {
+        $(document).on('click.bwMfModalSidebar', '#bw-media-folders-modal-root .bw-mf-chevron', function (e) {
+            var row = $(this).closest('.bw-media-folder-node');
+            var termId = resolveFolderIdFromNode(row);
+            modalClickDebug('Chevron click', {
+                element: this,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                row: row[0] || null,
+                resolvedFolderId: termId
+            });
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-
-            var row = $(this).closest('.bw-media-folder-node');
-            var termId = resolveFolderIdFromNode(row);
             toggleFolderCollapsed(termId);
             syncModalTreeNodeVisibility();
         });
