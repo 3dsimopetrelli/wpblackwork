@@ -233,7 +233,8 @@ body.bw-mf-enabled .bw-mf-folder-drop-hover .bw-mf-folder-icon {
     color: #0b0b0b !important;
 }
 
-body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell {
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell {
     display: flex !important;
     flex-direction: row !important;
     align-items: stretch !important;
@@ -243,7 +244,8 @@ body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-fol
     overflow: hidden !important;
 }
 
-body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root {
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root {
     flex: 0 0 290px !important;
     width: 290px !important;
     max-width: 290px !important;
@@ -255,7 +257,8 @@ body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-fol
     box-sizing: border-box;
 }
 
-body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser {
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     width: auto !important;
@@ -264,7 +267,9 @@ body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-fol
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell,
+.media-modal .bw-mf-modal-sidebar-shell {
     flex: 0 0 290px;
     width: 290px;
     max-width: 290px;
@@ -278,7 +283,9 @@ body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell {
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders {
     position: relative;
     top: auto;
     bottom: auto;
@@ -295,71 +302,100 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-she
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal,
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__header-actions,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__bulk,
+.media-modal .bw-mf-modal-sidebar-shell #bw-mf-collapse-tab-modal {
     display: none;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders__tree,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders__tree,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree {
     min-height: 0;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__search-wrap {
     margin-bottom: 8px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser,
 body.bw-mf-enabled .media-modal .media-frame-content.bw-mf-modal-has-sidebar > .attachments-browser,
-body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .attachments-browser {
+body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .attachments-browser,
+.media-modal.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser,
+.media-modal .media-frame-content.bw-mf-modal-has-sidebar > .attachments-browser,
+.media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .attachments-browser {
     flex: 1 1 0;
     min-width: 0;
     width: auto;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__main,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main,
+.media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__main,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main {
     padding: 4px 2px 4px 4px;
     grid-template-columns: 1fr auto;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-left,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-left {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-left,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-left,
+.media-modal .bw-mf-modal-sidebar-shell .bw-mf-left {
     grid-template-columns: 12px 18px minmax(0, 1fr);
     column-gap: 4px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon,
+.media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon {
     width: 18px;
     height: 18px;
     flex: 0 0 18px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon svg,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon svg {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon svg,
+.media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon svg,
+.media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon svg {
     width: 18px;
     height: 18px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__name,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__name {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__name,
+.media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__name,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__name {
     font-size: 13px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__count,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__count {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__count,
+.media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__count,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__count {
     font-size: 12px;
     min-width: 24px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders__title,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__title {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__title,
+.media-modal.bw-mf-modal-has-sidebar .bw-media-folders__title,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__title {
     font-size: 15px;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders__tree,
-body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree {
+body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree,
+.media-modal.bw-mf-modal-has-sidebar .bw-media-folders__tree,
+.media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__tree {
     overflow: auto;
     max-height: none;
 }
