@@ -238,11 +238,7 @@ body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .attachments-
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser {
     position: relative !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 300px !important;
-    grid-template-rows: auto minmax(0, 1fr) !important;
-    align-items: stretch !important;
-    padding-left: 0 !important;
+    padding-left: 270px !important;
     padding-right: 0 !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
@@ -258,8 +254,8 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-
     top: 0 !important;
     bottom: 0 !important;
     flex: 0 0 290px !important;
-    width: 290px !important;
-    max-width: 290px !important;
+    width: 270px !important;
+    max-width: 270px !important;
     min-width: 240px !important;
     height: 100% !important;
     overflow: hidden !important;
@@ -405,65 +401,41 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .up
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .uploader-inline {
     position: relative !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
+    left: 270px !important;
+    right: 300px !important;
+    width: calc(100% - 570px) !important;
     min-width: 0 !important;
-    max-width: 100% !important;
     box-sizing: border-box !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-toolbar,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-toolbar {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 12px !important;
-    padding: 0 16px 12px 0 !important;
-    margin: 0 !important;
-}
-
-body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .uploader-inline,
-.media-modal.bw-mf-modal-has-sidebar .attachments-browser .uploader-inline {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
+    display: block !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-sidebar,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-sidebar {
-    grid-column: 2 !important;
-    grid-row: 1 / span 2 !important;
     width: 300px !important;
     min-width: 300px !important;
     max-width: 300px !important;
     margin-left: 0 !important;
-    justify-self: end !important;
-    align-self: stretch !important;
     overflow: auto !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
     min-height: 0 !important;
     overflow: hidden !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
+    position: absolute !important;
+    top: 44px !important;
+    left: 270px !important;
+    right: 300px !important;
+    width: calc(100% - 570px) !important;
     min-width: 0 !important;
-    max-width: 100% !important;
-    padding: 0 16px 0 0 !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment,
