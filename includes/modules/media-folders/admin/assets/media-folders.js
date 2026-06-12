@@ -766,6 +766,27 @@
         return null;
     }
 
+    function setCollectionProp(collection, key, value) {
+        if (!collection || !collection.props) {
+            return;
+        }
+
+        if (typeof value === 'undefined' || value === null || value === '') {
+            if (typeof collection.props.unset === 'function') {
+                collection.props.unset(key);
+                return;
+            }
+            if (typeof collection.props.set === 'function') {
+                collection.props.set(key, value);
+            }
+            return;
+        }
+
+        if (typeof collection.props.set === 'function') {
+            collection.props.set(key, value);
+        }
+    }
+
     function getModalMediaCollections(frame) {
         var collections = [];
 
@@ -1859,7 +1880,7 @@
             return false;
         }
 
-        var folderValue = folderId > 0 ? String(folderId) : '';
+        var folderValue = folderId > 0 ? folderId : '';
         var unassignedValue = unassigned ? '1' : '';
         var ignoreValue = String(+new Date());
 
@@ -1869,30 +1890,10 @@
             propsBefore: getCollectionPropsSnapshot(collection)
         });
 
-        collection.props.set({
-            bw_media_folder: folderValue,
-            bw_media_unassigned: unassignedValue,
-            ignore: ignoreValue
-        });
-
-        try {
-            var queryProps = {};
-            if (typeof collection.props.get === 'function') {
-                var existingQuery = collection.props.get('query');
-                if (existingQuery && typeof existingQuery === 'object') {
-                    queryProps = $.extend({}, existingQuery);
-                }
-            }
-
-            queryProps.bw_media_folder = folderValue;
-            queryProps.bw_media_unassigned = unassignedValue;
-            queryProps.ignore = ignoreValue;
-            collection.props.set({
-                query: queryProps
-            });
-        } catch (err) {
-            // ignore query prop sync errors
-        }
+        setCollectionProp(collection, 'bw_media_folder', folderValue);
+        setCollectionProp(collection, 'bw_media_unassigned', unassignedValue);
+        setCollectionProp(collection, 'ignore', ignoreValue);
+        setCollectionProp(collection, 'paged', 1);
 
         try {
             if (typeof collection.fetch === 'function') {
@@ -1913,14 +1914,7 @@
         modalClickDebug('setCollectionFilterProps after', {
             folderId: folderId,
             unassigned: !!unassigned,
-            propsAfter: getCollectionPropsSnapshot(collection),
-            queryAfter: (() => {
-                try {
-                    return collection.props.get('query');
-                } catch (err2) {
-                    return { error: err2 && err2.message ? String(err2.message) : String(err2) };
-                }
-            })()
+            propsAfter: getCollectionPropsSnapshot(collection)
         });
 
         return true;
@@ -1940,16 +1934,33 @@
 
         try {
             var frame = modalActive ? modalState.frame : wp.media.frame;
-            var collections = getModalMediaCollections(frame);
-            modalClickDebug('applyGridFilter collections resolved', {
-                folderId: folderId,
-                unassigned: !!unassigned,
-                collectionsFound: collections.length,
-                hasFrame: !!frame,
-                frameType: frame && frame.constructor && frame.constructor.name ? frame.constructor.name : '',
-                hasContentCollection: !!(frame && frame.content && frame.content.get && frame.content.get() && frame.content.get().collection)
-            });
-            if (!collections.length) {
+            var collection = null;
+
+            if (modalActive) {
+                try {
+                    collection = frame && frame.state && frame.state() && frame.state().get ? frame.state().get('library') : null;
+                } catch (stateErr) {
+                    collection = null;
+                    modalClickDebug('applyGridFilter modal library lookup failed', {
+                        folderId: folderId,
+                        unassigned: !!unassigned,
+                        error: stateErr && stateErr.message ? String(stateErr.message) : String(stateErr)
+                    });
+                }
+            } else {
+                var collections = getModalMediaCollections(frame);
+                modalClickDebug('applyGridFilter collections resolved', {
+                    folderId: folderId,
+                    unassigned: !!unassigned,
+                    collectionsFound: collections.length,
+                    hasFrame: !!frame,
+                    frameType: frame && frame.constructor && frame.constructor.name ? frame.constructor.name : '',
+                    hasContentCollection: !!(frame && frame.content && frame.content.get && frame.content.get() && frame.content.get().collection)
+                });
+                collection = collections.length ? collections[0] : null;
+            }
+
+            if (!collection || !collection.props || typeof collection.props.set !== 'function') {
                 return false;
             }
 
@@ -1961,23 +1972,38 @@
                 state.activeUnassigned = !!unassigned;
             }
 
-        collections.forEach(function (collection) {
             setCollectionFilterProps(collection, folderId, unassigned);
+            if (modalActive) {
+                modalClickDebug('applyGridFilter modal collection resolved', {
+                    folderId: folderId,
+                    unassigned: !!unassigned,
+                    propsAfter: getCollectionPropsSnapshot(collection),
+                    hasFetch: typeof collection.fetch === 'function',
+                    hasMore: typeof collection.more === 'function',
+                    hasReset: typeof collection.reset === 'function'
+                });
+            }
+
             if (typeof collection.reset === 'function') {
                 modalClickDebug('applyGridFilter calling reset', {
                     folderId: folderId,
-                        unassigned: !!unassigned
+                    unassigned: !!unassigned
                 });
                 collection.reset();
             }
             if (typeof collection.more === 'function') {
                 modalClickDebug('applyGridFilter calling more', {
-                        folderId: folderId,
-                        unassigned: !!unassigned
+                    folderId: folderId,
+                    unassigned: !!unassigned
                 });
                 collection.more();
+            } else if (typeof collection.fetch === 'function') {
+                modalClickDebug('applyGridFilter calling fetch', {
+                    folderId: folderId,
+                    unassigned: !!unassigned
+                });
+                collection.fetch();
             }
-        });
 
             bindQuickTypeFilterObserver();
             scheduleBwMfRefresh('apply-grid-filter');
