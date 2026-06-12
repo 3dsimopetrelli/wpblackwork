@@ -1956,7 +1956,7 @@
         var isCollapsed = !!folderCollapsedMap[item.id];
         var hasChildren = !!(folderByParentMap[item.id] && folderByParentMap[item.id].length);
         var styles = ['padding-left:' + pad + 'px'];
-        var iconColor = item.icon_color ? String(item.icon_color) : '';
+        var iconColor = item.icon_color ? String(item.icon_color) : (item.color ? String(item.color) : '');
         var iconColorAttr = '';
         var pinnedAttr = item.pinned ? '1' : '0';
         var collapsedAttr = isCollapsed ? '1' : '0';
