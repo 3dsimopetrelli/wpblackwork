@@ -2997,13 +2997,58 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            var type = $(this).attr('data-type');
-            if (type === 'unassigned') {
-                setModalGridFilter(0, true);
+            var library = null;
+            try {
+                library = wp.media.frame.state().get('library');
+            } catch (err) {
+                library = null;
+            }
+
+            modalClickDebug('All Files / Unassigned library resolved', {
+                hasLibrary: !!library,
+                propsBefore: getCollectionPropsSnapshot(library)
+            });
+
+            if (!library || !library.props || typeof library.props.set !== 'function') {
+                modalClickDebug('All Files / Unassigned skipped: no library', {});
                 return;
             }
 
-            setModalGridFilter(0, false);
+            var type = $(this).attr('data-type');
+            if (type === 'unassigned') {
+                library.props.set({
+                    bw_media_unassigned: 1,
+                    paged: 1
+                });
+                if (typeof library.props.unset === 'function') {
+                    library.props.unset('bw_media_folder');
+                }
+                if (typeof library.reset === 'function') {
+                    library.reset();
+                }
+                if (typeof library.more === 'function') {
+                    library.more();
+                }
+                modalClickDebug('All Files / Unassigned applied unassigned', {
+                    propsAfter: getCollectionPropsSnapshot(library)
+                });
+                return;
+            }
+
+            if (typeof library.props.unset === 'function') {
+                library.props.unset('bw_media_folder');
+                library.props.unset('bw_media_unassigned');
+            }
+            library.props.set('paged', 1);
+            if (typeof library.reset === 'function') {
+                library.reset();
+            }
+            if (typeof library.more === 'function') {
+                library.more();
+            }
+            modalClickDebug('All Files applied all files', {
+                propsAfter: getCollectionPropsSnapshot(library)
+            });
         });
 
         $(document).on('click.bwMfModalSidebar', '#bw-mf-collapse-tab-modal', function (e) {
@@ -3037,7 +3082,44 @@
             if ($(e.target).closest('.bw-mf-folder-pencil').length) {
                 return;
             }
-            setModalGridFilter(folderId > 0 ? folderId : 0, false);
+
+            var library = null;
+            try {
+                library = wp.media.frame.state().get('library');
+            } catch (err2) {
+                library = null;
+            }
+
+            modalClickDebug('Folder row library resolved', {
+                hasLibrary: !!library,
+                propsBefore: getCollectionPropsSnapshot(library)
+            });
+
+            if (!library || !library.props || typeof library.props.set !== 'function') {
+                modalClickDebug('Folder row skipped: no library', {
+                    resolvedFolderId: folderId
+                });
+                return;
+            }
+
+            library.props.set({
+                bw_media_folder: folderId,
+                bw_media_unassigned: null,
+                paged: 1
+            });
+            if (typeof library.props.unset === 'function') {
+                library.props.unset('bw_media_unassigned');
+            }
+            if (typeof library.reset === 'function') {
+                library.reset();
+            }
+            if (typeof library.more === 'function') {
+                library.more();
+            }
+            modalClickDebug('Folder row applied folder', {
+                resolvedFolderId: folderId,
+                propsAfter: getCollectionPropsSnapshot(library)
+            });
         });
 
         $(document).on('keydown.bwMfModalSidebar', '#bw-media-folders-modal-root .bw-media-folder-node__main', function (e) {
@@ -3065,7 +3147,19 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            toggleFolderCollapsed(termId);
+            if (row && row.length) {
+                row.toggleClass('is-collapsed');
+                $(this).toggleClass('is-collapsed');
+                var children = row.nextAll('.bw-media-folder-node[data-parent="' + termId + '"]');
+                children.toggleClass('bw-mf-hidden-by-collapse');
+                modalClickDebug('Chevron toggled direct', {
+                    termId: termId,
+                    collapsed: row.hasClass('is-collapsed'),
+                    hiddenChildren: children.length
+                });
+            } else {
+                toggleFolderCollapsed(termId);
+            }
             syncModalTreeNodeVisibility();
         });
     }
