@@ -440,17 +440,22 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__m
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main,
 .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__main,
 .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__main {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     min-height: 26px;
     padding: 1px 2px 1px 4px;
-    grid-template-columns: 1fr auto;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-left,
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-left,
 .media-modal.bw-mf-modal-has-sidebar .bw-mf-left,
 .media-modal .bw-mf-modal-sidebar-shell .bw-mf-left {
-    grid-template-columns: 8px 16px minmax(0, 1fr);
-    column-gap: 2px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon,
@@ -460,6 +465,7 @@ body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-mf-folder-icon,
     width: 16px;
     height: 16px;
     flex: 0 0 16px;
+    margin-left: 0;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-folder-icon svg,
@@ -474,6 +480,9 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__n
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__name,
 .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__name,
 .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
     font-size: 12px;
     line-height: 1.25;
     letter-spacing: 0;
@@ -483,9 +492,11 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__c
 body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__count,
 .media-modal.bw-mf-modal-has-sidebar .bw-media-folder-node__count,
 .media-modal .bw-mf-modal-sidebar-shell .bw-media-folder-node__count {
+    margin-left: auto;
     font-size: 11px;
     min-width: 20px;
     line-height: 1;
+    text-align: right;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-chevron,
