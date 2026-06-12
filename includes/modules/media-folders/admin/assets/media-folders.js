@@ -2364,6 +2364,40 @@
         });
     }
 
+    function refreshModalLayout(frame) {
+        if (!frame || !frame.$el || !frame.$el.length) {
+            return;
+        }
+
+        var resizeFrame = function () {
+            try {
+                if (typeof frame.trigger === 'function') {
+                    frame.trigger('resize');
+                }
+            } catch (err) {
+                // ignore resize errors
+            }
+
+            try {
+                if (window.wp && wp.media && wp.media.frame && typeof wp.media.frame.trigger === 'function') {
+                    wp.media.frame.trigger('resize');
+                }
+            } catch (err2) {
+                // ignore resize errors
+            }
+
+            window.dispatchEvent(new Event('resize'));
+        };
+
+        if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(function () {
+                window.requestAnimationFrame(resizeFrame);
+            });
+        } else {
+            window.setTimeout(resizeFrame, 0);
+        }
+    }
+
     function renderModalSidebar(frame, attemptNumber) {
         if (!frame || !cfg.sidebarHtml) {
             mediaFoldersDebugLog('renderModalSidebar aborted: missing frame or sidebar html', {
@@ -2590,6 +2624,7 @@
         renderModalTree();
         bindModalEvents();
         applyGridFilter(0, false);
+        refreshModalLayout(frame);
         mediaFoldersDebugLog('renderModalSidebar success', {
             attempt: attemptNumber || 0,
             activeFolder: modalState.activeFolder,
