@@ -297,6 +297,33 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-
     margin-bottom: 8px;
 }
 
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folder-node__actions,
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-pencil,
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-rename-btn,
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-pin-indicator,
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-context-menu,
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-color-popover,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folder-node__actions,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-pencil,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-rename-btn,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-pin-indicator,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-context-menu,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-color-popover,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folder-node__actions,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-pencil,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-rename-btn,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-pin-indicator,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-context-menu,
+.media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-color-popover,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-media-folder-node__actions,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-pencil,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-folder-rename-btn,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-pin-indicator,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell .bw-mf-context-menu,
+.media-modal.bw-mf-modal-has-sidebar #bw-media-folders-modal-root.bw-mf-modal-sidebar-shell #bw-mf-color-popover {
+    display: none !important;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
 body.bw-mf-enabled .media-modal .media-frame-content.bw-mf-modal-has-sidebar > .attachments-browser,
 body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .attachments-browser,
