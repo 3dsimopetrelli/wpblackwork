@@ -399,8 +399,10 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .up
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-toolbar,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .uploader-inline {
-    margin-left: 290px !important;
-    width: calc(100% - 290px) !important;
+    position: relative !important;
+    left: 290px !important;
+    right: 300px !important;
+    width: calc(100% - 590px) !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
 }
@@ -410,9 +412,18 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .me
     margin-left: 290px !important;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper {
+    min-height: 0 !important;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments {
+    position: absolute !important;
     top: 44px !important;
+    left: 290px !important;
+    right: 300px !important;
+    width: calc(100% - 590px) !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment,
