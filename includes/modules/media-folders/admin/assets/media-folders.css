@@ -393,6 +393,23 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
     padding-bottom: 0 !important;
 }
 
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-toolbar,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .uploader-inline,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-toolbar,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .uploader-inline {
+    margin-left: 290px !important;
+    width: calc(100% - 290px) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-sidebar,
+.media-modal.bw-mf-modal-has-sidebar .attachments-browser .media-sidebar {
+    margin-left: 290px !important;
+}
+
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments {
     top: 44px !important;
