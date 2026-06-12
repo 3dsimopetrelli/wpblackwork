@@ -233,12 +233,34 @@ body.bw-mf-enabled .bw-mf-folder-drop-hover .bw-mf-folder-icon {
     color: #0b0b0b !important;
 }
 
-body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    min-width: 0;
-    width: 100%;
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar #bw-media-folders-modal-root {
+    flex: 0 0 290px !important;
+    width: 290px !important;
+    max-width: 290px !important;
+    min-width: 240px !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    border-right: 1px solid #dcdcde;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+body.bw-mf-enabled .media-modal.wp-core-ui.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: 100% !important;
+    overflow: auto !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-mf-modal-sidebar-shell,
