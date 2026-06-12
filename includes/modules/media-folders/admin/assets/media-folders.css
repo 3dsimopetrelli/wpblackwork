@@ -233,10 +233,7 @@ body.bw-mf-enabled .bw-mf-folder-drop-hover .bw-mf-folder-icon {
     color: #0b0b0b !important;
 }
 
-body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .media-frame-content,
-body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .media-frame-browse,
-body.bw-mf-enabled .media-modal .media-frame-content.bw-mf-modal-has-sidebar,
-body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar {
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell {
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -290,7 +287,7 @@ body.bw-mf-enabled .media-modal .bw-mf-modal-sidebar-shell .bw-media-folders__se
     margin-bottom: 8px;
 }
 
-body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
+body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .bw-media-folders-modal-shell > .attachments-browser,
 body.bw-mf-enabled .media-modal .media-frame-content.bw-mf-modal-has-sidebar > .attachments-browser,
 body.bw-mf-enabled .media-modal .media-frame-browse.bw-mf-modal-has-sidebar > .attachments-browser {
     flex: 1 1 0;

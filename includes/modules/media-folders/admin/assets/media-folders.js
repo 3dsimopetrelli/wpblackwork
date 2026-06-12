@@ -2527,6 +2527,24 @@
                     injected: !!root.length
                 });
             }
+
+            if (root.length && browser.length) {
+                try {
+                    root.add(browser).wrapAll('<div class="bw-media-folders-modal-shell"></div>');
+                    updateMediaFoldersDiag({
+                        lastInsertionTarget: '.bw-media-folders-modal-shell.wrapAll(.bw-mf-modal-sidebar-shell + .attachments-browser)'
+                    });
+                } catch (wrapErr) {
+                    updateMediaFoldersDiag({
+                        lastInjectionError: wrapErr && wrapErr.message ? String(wrapErr.message) : 'wrapAll failed',
+                        sidebarInjected: !!root.length
+                    });
+                    mediaFoldersDebugLog('renderModalSidebar failed: wrapAll error', {
+                        attempt: attemptNumber || 0,
+                        error: wrapErr && wrapErr.message ? String(wrapErr.message) : wrapErr
+                    });
+                }
+            }
         }
 
         if (!root.length) {
