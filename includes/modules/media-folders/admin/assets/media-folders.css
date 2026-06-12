@@ -433,15 +433,15 @@ body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser,
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments-wrapper {
-    overflow-x: auto !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments,
 .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments {
-    min-width: 900px !important;
-    width: max-content !important;
+    min-width: 0 !important;
+    width: auto !important;
 }
 
 body.bw-mf-enabled .media-modal.bw-mf-modal-has-sidebar .attachments-browser .attachments .attachment,
