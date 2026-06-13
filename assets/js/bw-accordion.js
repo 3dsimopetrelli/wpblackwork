@@ -19,11 +19,13 @@
 
 		var $header = $widget.find('> .bw-accordion__header');
 		var $panel = $widget.find('> .bw-accordion__body > .bw-accordion__panel');
+		var $panelInner = $panel.find('> .bw-accordion__panel-inner');
 		var panelEl = $panel[0];
+		var panelInnerEl = $panelInner[0];
 		var timer = null;
 		var activeCleanup = null;
 
-		if (!$header.length || !panelEl) {
+		if (!$header.length || !panelEl || !panelInnerEl) {
 			return;
 		}
 
@@ -116,15 +118,23 @@
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
-			var targetHeight = panelEl.scrollHeight;
+			var targetHeight = Math.ceil(panelInnerEl.getBoundingClientRect().height);
+			if (targetHeight <= 0) {
+				targetHeight = panelEl.scrollHeight;
+			}
 			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING;
 			panelEl.style.height = targetHeight + 'px';
 
 			onTransitionEnd(OPEN_MS, function () {
-				$widget.removeClass('is-collapsing').addClass('is-open');
-				panelEl.style.transition = '';
-				panelEl.style.height = 'auto';
-				panelEl.style.overflow = 'visible';
+				panelEl.style.height = targetHeight + 'px';
+				panelEl.style.overflow = 'hidden';
+
+				window.requestAnimationFrame(function () {
+					$widget.removeClass('is-collapsing').addClass('is-open');
+					panelEl.style.transition = '';
+					panelEl.style.height = 'auto';
+					panelEl.style.overflow = 'visible';
+				});
 			});
 		}
 
@@ -136,7 +146,7 @@
 			clearTimer();
 			clearTransitionHandler();
 
-			var currentHeight = panelEl.getBoundingClientRect().height;
+			var currentHeight = Math.ceil(panelEl.getBoundingClientRect().height);
 
 			panelEl.style.height = currentHeight + 'px';
 			panelEl.style.overflow = 'hidden';

@@ -201,6 +201,7 @@
 	opacity: 1;
 	transition: none;
 	will-change: height;
+	contain: layout;
 }
 
 .bw-accordion.is-collapsing .bw-accordion__panel {
@@ -214,27 +215,32 @@
 }
 
 .bw-accordion__panel-inner {
+	display: flow-root;
 	padding: 16px 0 0;
 	color: var(--bw-accordion-content-color);
-	opacity: 1;
-	transform: none;
-	transition: none;
-	will-change: transform;
+	opacity: 0.96;
+	transform: translateY(-2px);
+	transition: opacity 180ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+	will-change: opacity, transform;
 }
 
-.bw-accordion.is-collapsing .bw-accordion__panel-inner {
+.bw-accordion.is-collapsing .bw-accordion__panel-inner,
+.bw-accordion.is-open .bw-accordion__panel-inner {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.bw-accordion.is-closed .bw-accordion__panel-inner {
+	opacity: 0.96;
 	transform: translateY(-2px);
 }
 
-.bw-accordion.is-open .bw-accordion__panel-inner {
-	transform: translateY(0);
-	opacity: 1;
-}
-
+.bw-accordion__content > :first-child,
 .bw-accordion__content :where(p):first-child {
 	margin-top: 0;
 }
 
+.bw-accordion__content > :last-child,
 .bw-accordion__content :where(p):last-child {
 	margin-bottom: 0;
 }
