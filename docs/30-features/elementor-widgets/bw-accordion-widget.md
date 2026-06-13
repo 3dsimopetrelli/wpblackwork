@@ -44,6 +44,12 @@ It does **not** use nested Elementor inner widgets in this version.
 - `Closed by Default`
 - `Open by Default`
 
+### Icon Type
+- default: `Plus / X`
+- options: `Plus / X`, `Arrow`, `Custom SVG`
+- `Custom SVG` accepts sanitized inline SVG markup
+- custom SVG supports the same color and size controls, and rotates on toggle instead of morphing
+
 ## Style Controls
 
 ### Title
@@ -62,16 +68,19 @@ It does **not** use nested Elementor inner widgets in this version.
 - Divider Thickness
 - Divider Spacing
 
-### Arrow
-- Arrow Color
-- Arrow Size
-- Arrow Stroke Weight
+### Icon
+- Icon Color
+- Icon Size
+- Icon Stroke Weight
 
 ## Behavior Notes
 
 - Clicking the title row toggles the accordion open/closed
-- the arrow rotates smoothly with state changes
+- the default icon morphs from a plus to an X with a soft rotation transition
+- the arrow option rotates smoothly with state changes
 - the divider is shown under the title when closed and moves visually to the bottom of the block when open
+- the panel height expands smoothly while content fades in and slides down slightly
+- closing reverses the same motion without a hard jump
 - multiple accordion widgets on the same page work independently
 - the widget is initialized on both frontend and Elementor editor preview
 - the header uses a real button with `aria-expanded` and `aria-controls`
@@ -82,6 +91,9 @@ It does **not** use nested Elementor inner widgets in this version.
 - confirm the content renders correctly with paragraphs, links, bold, and simple HTML
 - confirm the title field is easier to edit as a textarea
 - confirm the title HTML tag control renders `h1` through `h6`, `div`, and `span`
+- confirm the default icon is `Plus / X`
+- confirm the `Arrow` option still rotates correctly
+- confirm sanitized `Custom SVG` renders without breaking the editor
 - confirm closed/open title colors and header backgrounds can be controlled independently
 - confirm the default state control works in both directions
 - confirm keyboard activation works on the header button

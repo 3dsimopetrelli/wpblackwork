@@ -104,6 +104,33 @@ class Widget_Bw_Accordion extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'icon_type',
+			[
+				'label'   => __( 'Icon Type', 'bw' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'plus_x',
+				'options' => [
+					'plus_x'    => __( 'Plus / X', 'bw' ),
+					'arrow'     => __( 'Arrow', 'bw' ),
+					'custom_svg' => __( 'Custom SVG', 'bw' ),
+				],
+			]
+		);
+
+		$this->add_control(
+			'custom_svg',
+			[
+				'label'       => __( 'Custom SVG', 'bw' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'placeholder' => __( '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">...</svg>', 'bw' ),
+				'rows'        => 6,
+				'condition'   => [
+					'icon_type' => 'custom_svg',
+				],
+			]
+		);
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
@@ -325,9 +352,9 @@ class Widget_Bw_Accordion extends Widget_Base {
 		$this->end_controls_section();
 
 		$this->start_controls_section(
-			'section_style_arrow',
+			'section_style_icon',
 			[
-				'label' => __( 'Arrow', 'bw' ),
+				'label' => __( 'Icon', 'bw' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -335,10 +362,10 @@ class Widget_Bw_Accordion extends Widget_Base {
 		$this->add_control(
 			'arrow_color',
 			[
-				'label'     => __( 'Arrow Color', 'bw' ),
+				'label'     => __( 'Icon Color', 'bw' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-arrow-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-icon-color: {{VALUE}};',
 				],
 			]
 		);
@@ -346,7 +373,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 		$this->add_responsive_control(
 			'arrow_size',
 			[
-				'label'      => __( 'Arrow Size', 'bw' ),
+				'label'      => __( 'Icon Size', 'bw' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => [ 'px' ],
 				'range'      => [
@@ -357,11 +384,11 @@ class Widget_Bw_Accordion extends Widget_Base {
 					],
 				],
 				'default'    => [
-					'size' => 16,
+					'size' => 20,
 					'unit' => 'px',
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-arrow-size: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-icon-size: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -369,7 +396,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 		$this->add_responsive_control(
 			'arrow_stroke_width',
 			[
-				'label'   => __( 'Arrow Stroke Weight', 'bw' ),
+				'label'   => __( 'Icon Stroke Weight', 'bw' ),
 				'type'    => Controls_Manager::SLIDER,
 				'size_units' => [ 'px' ],
 				'range'   => [
@@ -384,7 +411,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 					'unit' => 'px',
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-arrow-stroke-width: {{SIZE}};',
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-icon-stroke-width: {{SIZE}};',
 				],
 			]
 		);
@@ -394,15 +421,20 @@ class Widget_Bw_Accordion extends Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-		$title    = isset( $settings['accordion_title'] ) ? trim( (string) $settings['accordion_title'] ) : '';
+		$title     = isset( $settings['accordion_title'] ) ? trim( (string) $settings['accordion_title'] ) : '';
 		$title_tag = $this->get_allowed_title_tag( isset( $settings['title_html_tag'] ) ? $settings['title_html_tag'] : 'h3' );
-		$content  = isset( $settings['accordion_content'] ) ? (string) $settings['accordion_content'] : '';
-		$state    = isset( $settings['initial_state'] ) && 'open' === $settings['initial_state'] ? 'open' : 'closed';
-		$is_open  = 'open' === $state;
+		$content   = isset( $settings['accordion_content'] ) ? (string) $settings['accordion_content'] : '';
+		$state     = isset( $settings['initial_state'] ) && 'open' === $settings['initial_state'] ? 'open' : 'closed';
+		$is_open   = 'open' === $state;
+		$icon_type = isset( $settings['icon_type'] ) ? sanitize_key( (string) $settings['icon_type'] ) : 'plus_x';
 		$widget_id = $this->get_id();
 
 		if ( '' === $title ) {
 			$title = __( 'Accordion Title', 'bw' );
+		}
+
+		if ( ! in_array( $icon_type, [ 'plus_x', 'arrow', 'custom_svg' ], true ) ) {
+			$icon_type = 'plus_x';
 		}
 
 		if (
@@ -416,6 +448,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 		}
 
 		$content = wp_kses_post( $content );
+		$icon    = $this->get_icon_markup( $icon_type, isset( $settings['custom_svg'] ) ? (string) $settings['custom_svg'] : '' );
 
 		$this->add_render_attribute( 'wrapper', 'class', [
 			'bw-accordion',
@@ -440,11 +473,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); ?>>
 			<button <?php echo $this->get_render_attribute_string( 'header' ); ?>>
 				<<?php echo esc_attr( $title_tag ); ?> class="bw-accordion__title"><?php echo esc_html( $title ); ?></<?php echo esc_attr( $title_tag ); ?>>
-				<span class="bw-accordion__icon" aria-hidden="true">
-					<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-						<path d="m6 9 6 6 6-6" fill="none"></path>
-					</svg>
-				</span>
+				<?php echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</button>
 			<div class="bw-accordion__divider bw-accordion__divider--top" aria-hidden="true"></div>
 			<div <?php echo $this->get_render_attribute_string( 'panel' ); ?>>
@@ -464,5 +493,92 @@ class Widget_Bw_Accordion extends Widget_Base {
 		$tag          = sanitize_key( (string) $tag );
 
 		return in_array( $tag, $allowed_tags, true ) ? $tag : 'h3';
+	}
+
+	private function get_icon_markup( $icon_type, $custom_svg ) {
+		if ( 'custom_svg' === $icon_type ) {
+			$sanitized_svg = $this->sanitize_svg_markup( $custom_svg );
+
+			if ( '' !== $sanitized_svg ) {
+				return sprintf(
+					'<span class="bw-accordion__icon bw-accordion__icon--custom" aria-hidden="true"><span class="bw-accordion__icon-svg">%s</span></span>',
+					$sanitized_svg
+				);
+			}
+
+			$icon_type = 'arrow';
+		}
+
+		if ( 'arrow' === $icon_type ) {
+			return '<span class="bw-accordion__icon bw-accordion__icon--arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none"></path></svg></span>';
+		}
+
+		return '<span class="bw-accordion__icon bw-accordion__icon--plus-x" aria-hidden="true"></span>';
+	}
+
+	private function sanitize_svg_markup( $svg_content ) {
+		if ( empty( $svg_content ) || false === stripos( (string) $svg_content, '<svg' ) ) {
+			return '';
+		}
+
+		$allowed_tags = [
+			'svg'      => [
+				'class'                 => true,
+				'xmlns'                 => true,
+				'width'                 => true,
+				'height'                => true,
+				'viewbox'               => true,
+				'aria-hidden'           => true,
+				'role'                  => true,
+				'focusable'             => true,
+				'fill'                  => true,
+				'stroke'                => true,
+				'stroke-width'          => true,
+				'stroke-linecap'        => true,
+				'stroke-linejoin'       => true,
+				'stroke-miterlimit'     => true,
+				'preserveaspectratio'   => true,
+				'fill-rule'             => true,
+				'clip-rule'             => true,
+				'style'                 => true,
+			],
+			'g'        => [
+				'fill'             => true,
+				'stroke'           => true,
+				'stroke-width'     => true,
+				'stroke-linecap'   => true,
+				'stroke-linejoin'  => true,
+				'stroke-miterlimit'=> true,
+				'class'            => true,
+				'fill-rule'        => true,
+				'clip-rule'        => true,
+				'transform'        => true,
+				'style'            => true,
+			],
+			'path'     => [
+				'd'                => true,
+				'fill'             => true,
+				'stroke'           => true,
+				'stroke-width'     => true,
+				'stroke-linecap'   => true,
+				'stroke-linejoin'  => true,
+				'stroke-miterlimit'=> true,
+				'class'            => true,
+				'fill-rule'        => true,
+				'clip-rule'        => true,
+				'transform'        => true,
+				'style'            => true,
+			],
+			'circle'   => [ 'cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true, 'style' => true ],
+			'ellipse'  => [ 'cx' => true, 'cy' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true, 'style' => true ],
+			'rect'     => [ 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true, 'style' => true ],
+			'polygon'  => [ 'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true, 'style' => true ],
+			'polyline' => [ 'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'class' => true, 'style' => true ],
+			'line'     => [ 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'class' => true, 'style' => true ],
+			'title'    => [],
+			'desc'     => [],
+		];
+
+		return wp_kses( (string) $svg_content, $allowed_tags );
 	}
 }

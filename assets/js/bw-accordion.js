@@ -75,15 +75,14 @@
 			panelEl.style.transition = '';
 			panelEl.style.height = '0px';
 			panelEl.style.overflow = 'hidden';
-			panelEl.style.opacity = '0';
+			panelEl.style.opacity = '1';
 
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
 			var targetHeight = panelEl.scrollHeight;
-			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING + ', opacity 320ms ease';
+			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING;
 			panelEl.style.height = targetHeight + 'px';
-			panelEl.style.opacity = '1';
 
 			timer = setTimeout(function () {
 				if ($widget.hasClass('is-open')) {
@@ -120,13 +119,13 @@
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
-			panelEl.style.transition = 'height ' + CLOSE_MS + 'ms ' + CLOSE_EASING + ', opacity 280ms ease';
+			panelEl.style.transition = 'height ' + CLOSE_MS + 'ms ' + CLOSE_EASING;
 			panelEl.style.height = '0px';
-			panelEl.style.opacity = '0';
 
 			timer = setTimeout(function () {
 				panelEl.style.transition = '';
 				panelEl.style.overflow = 'hidden';
+				panelEl.style.opacity = '0';
 			}, CLOSE_MS + 60);
 		}
 
