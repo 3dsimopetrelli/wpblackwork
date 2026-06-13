@@ -112,9 +112,6 @@
 			$widget.removeClass('is-open').addClass('is-closed');
 			$header.attr('aria-expanded', 'false');
 			$panel.attr('aria-hidden', 'true');
-			if ('inert' in panelEl) {
-				panelEl.inert = true;
-			}
 
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
@@ -126,6 +123,9 @@
 				panelEl.style.transition = '';
 				panelEl.style.overflow = 'hidden';
 				panelEl.style.opacity = '0';
+				if ('inert' in panelEl) {
+					panelEl.inert = true;
+				}
 			}, CLOSE_MS + 60);
 		}
 
