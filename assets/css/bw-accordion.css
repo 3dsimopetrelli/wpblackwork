@@ -203,7 +203,7 @@
 	overflow: hidden;
 	height: 0;
 	opacity: 1;
-	transition: height 520ms cubic-bezier(0.16, 1, 0.3, 1);
+	transition: height 700ms cubic-bezier(0.22, 1, 0.36, 1);
 	will-change: height;
 }
 
@@ -218,13 +218,27 @@
 	color: var(--bw-accordion-content-color);
 	transform: translateY(-10px);
 	opacity: 0;
-	transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), opacity 340ms ease;
+	transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 420ms ease;
+	transition-delay: 0ms;
 	will-change: transform, opacity;
+}
+
+.bw-accordion.is-opening .bw-accordion__panel-inner {
+	transform: translateY(-6px);
+	opacity: 0;
+	transition-delay: 0ms;
 }
 
 .bw-accordion.is-open .bw-accordion__panel-inner {
 	transform: translateY(0);
 	opacity: 1;
+	transition-delay: 120ms;
+}
+
+.bw-accordion.is-closed .bw-accordion__panel-inner {
+	transform: translateY(-10px);
+	opacity: 0;
+	transition-delay: 0ms;
 }
 
 .bw-accordion__content :where(p):first-child {

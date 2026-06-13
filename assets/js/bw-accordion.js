@@ -1,10 +1,11 @@
 (function ($) {
 	'use strict';
 
-	var OPEN_MS = 520;
+	var OPEN_MS = 700;
 	var CLOSE_MS = 420;
-	var OPEN_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
+	var OPEN_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 	var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+	var OPEN_CONTENT_DELAY = 120;
 
 	function initAccordion($widget) {
 		if (!$widget || !$widget.length) {
@@ -39,6 +40,7 @@
 		}
 
 		function setStaticState(isOpen) {
+			$widget.removeClass('is-opening');
 			$widget.toggleClass('is-open', isOpen);
 			$widget.toggleClass('is-closed', !isOpen);
 			$header.attr('aria-expanded', isOpen ? 'true' : 'false');
@@ -59,13 +61,13 @@
 		}
 
 		function openAccordion() {
-			if ($widget.hasClass('is-open')) {
+			if ($widget.hasClass('is-open') || $widget.hasClass('is-opening')) {
 				return;
 			}
 
 			clearTimer();
 
-			$widget.addClass('is-open').removeClass('is-closed');
+			$widget.removeClass('is-closed').addClass('is-opening');
 			$header.attr('aria-expanded', 'true');
 			$panel.attr('aria-hidden', 'false');
 			if ('inert' in panelEl) {
@@ -84,8 +86,15 @@
 			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING;
 			panelEl.style.height = targetHeight + 'px';
 
+			window.setTimeout(function () {
+				if ($widget.hasClass('is-opening')) {
+					$widget.addClass('is-open');
+				}
+			}, OPEN_CONTENT_DELAY);
+
 			timer = setTimeout(function () {
-				if ($widget.hasClass('is-open')) {
+				if ($widget.hasClass('is-opening') || $widget.hasClass('is-open')) {
+					$widget.removeClass('is-opening').addClass('is-open');
 					panelEl.style.transition = '';
 					panelEl.style.height = 'auto';
 					panelEl.style.overflow = 'visible';
@@ -109,7 +118,7 @@
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
-			$widget.removeClass('is-open').addClass('is-closed');
+			$widget.removeClass('is-opening is-open').addClass('is-closed');
 			$header.attr('aria-expanded', 'false');
 			$panel.attr('aria-hidden', 'true');
 
