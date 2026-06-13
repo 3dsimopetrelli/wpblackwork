@@ -1,11 +1,10 @@
 (function ($) {
 	'use strict';
 
-	var OPEN_MS = 700;
+	var OPEN_MS = 720;
 	var CLOSE_MS = 420;
 	var OPEN_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 	var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
-	var OPEN_CONTENT_DELAY = 120;
 
 	function initAccordion($widget) {
 		if (!$widget || !$widget.length) {
@@ -40,7 +39,7 @@
 		}
 
 		function setStaticState(isOpen) {
-			$widget.removeClass('is-opening');
+			$widget.removeClass('is-opening is-closing');
 			$widget.toggleClass('is-open', isOpen);
 			$widget.toggleClass('is-closed', !isOpen);
 			$header.attr('aria-expanded', isOpen ? 'true' : 'false');
@@ -67,7 +66,7 @@
 
 			clearTimer();
 
-			$widget.removeClass('is-closed').addClass('is-opening');
+			$widget.removeClass('is-closed is-closing is-open').addClass('is-opening');
 			$header.attr('aria-expanded', 'true');
 			$panel.attr('aria-hidden', 'false');
 			if ('inert' in panelEl) {
@@ -86,11 +85,11 @@
 			panelEl.style.transition = 'height ' + OPEN_MS + 'ms ' + OPEN_EASING;
 			panelEl.style.height = targetHeight + 'px';
 
-			window.setTimeout(function () {
+			window.requestAnimationFrame(function () {
 				if ($widget.hasClass('is-opening')) {
 					$widget.addClass('is-open');
 				}
-			}, OPEN_CONTENT_DELAY);
+			});
 
 			timer = setTimeout(function () {
 				if ($widget.hasClass('is-opening') || $widget.hasClass('is-open')) {
@@ -103,7 +102,7 @@
 		}
 
 		function closeAccordion() {
-			if (!$widget.hasClass('is-open')) {
+			if (!$widget.hasClass('is-open') && !$widget.hasClass('is-opening')) {
 				return;
 			}
 
@@ -118,7 +117,7 @@
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
-			$widget.removeClass('is-opening is-open').addClass('is-closed');
+			$widget.removeClass('is-opening is-open is-closed').addClass('is-closing');
 			$header.attr('aria-expanded', 'false');
 			$panel.attr('aria-hidden', 'true');
 
@@ -129,6 +128,7 @@
 			panelEl.style.height = '0px';
 
 			timer = setTimeout(function () {
+				$widget.removeClass('is-closing').addClass('is-closed');
 				panelEl.style.transition = '';
 				panelEl.style.overflow = 'hidden';
 				panelEl.style.opacity = '0';
