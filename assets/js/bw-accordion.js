@@ -78,7 +78,7 @@
 			clearTimer();
 			clearTransitionHandler();
 
-			$widget.removeClass('is-collapsing');
+			$widget.removeClass('is-collapsing is-opening is-closing');
 			$widget.toggleClass('is-open', isOpen);
 			$widget.toggleClass('is-closed', !isOpen);
 			$header.attr('aria-expanded', isOpen ? 'true' : 'false');
@@ -102,7 +102,7 @@
 			clearTimer();
 			clearTransitionHandler();
 
-			$widget.removeClass('is-closed').addClass('is-collapsing');
+			$widget.removeClass('is-closed is-closing').addClass('is-collapsing is-opening');
 			$header.attr('aria-expanded', 'true');
 			$panel.attr('aria-hidden', 'false');
 
@@ -130,7 +130,7 @@
 				panelEl.style.overflow = 'hidden';
 
 				window.requestAnimationFrame(function () {
-					$widget.removeClass('is-collapsing').addClass('is-open');
+					$widget.removeClass('is-collapsing is-opening').addClass('is-open');
 					panelEl.style.transition = '';
 					panelEl.style.height = 'auto';
 					panelEl.style.overflow = 'visible';
@@ -156,7 +156,7 @@
 			// eslint-disable-next-line no-unused-expressions
 			panelEl.offsetHeight;
 
-			$widget.removeClass('is-open').addClass('is-collapsing');
+			$widget.removeClass('is-open is-opening').addClass('is-collapsing is-closing');
 			$header.attr('aria-expanded', 'false');
 			$panel.attr('aria-hidden', 'true');
 
@@ -164,7 +164,7 @@
 			panelEl.style.height = '0px';
 
 			onTransitionEnd(CLOSE_MS, function () {
-				$widget.removeClass('is-collapsing').addClass('is-closed');
+				$widget.removeClass('is-collapsing is-closing').addClass('is-closed');
 				panelEl.style.transition = '';
 				panelEl.style.height = '0px';
 				panelEl.style.overflow = 'hidden';
