@@ -466,7 +466,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 		$this->add_render_attribute( 'panel', 'aria-hidden', $is_open ? 'false' : 'true' );
 
 		if ( ! $is_open ) {
-			$this->add_render_attribute( 'panel', 'style', 'height:0;overflow:hidden;opacity:0;' );
+			$this->add_render_attribute( 'panel', 'style', 'height:0;overflow:hidden;' );
 		}
 
 		?>
