@@ -78,7 +78,7 @@ It does **not** use nested Elementor inner widgets in this version.
 - Clicking the title row toggles the accordion open/closed
 - the default icon morphs from a plus to an X with a soft rotation transition
 - the arrow option rotates smoothly with state changes
-- the divider is shown under the title when closed and moves visually to the bottom of the block when open
+- one real divider sits directly under the closed header and is physically pushed downward by the expanding panel when opened
 - the panel height expands smoothly while content fades in and slides down slightly
 - closing reverses the same motion without a hard jump
 - multiple accordion widgets on the same page work independently
@@ -94,6 +94,7 @@ It does **not** use nested Elementor inner widgets in this version.
 - confirm the default icon is `Plus / X`
 - confirm the `Arrow` option still rotates correctly
 - confirm sanitized `Custom SVG` renders without breaking the editor
+- confirm the divider does not fade-swap and instead visibly travels down/up with the animated panel
 - confirm closed/open title colors and header backgrounds can be controlled independently
 - confirm the default state control works in both directions
 - confirm keyboard activation works on the header button

@@ -475,14 +475,15 @@ class Widget_Bw_Accordion extends Widget_Base {
 				<<?php echo esc_attr( $title_tag ); ?> class="bw-accordion__title"><?php echo esc_html( $title ); ?></<?php echo esc_attr( $title_tag ); ?>>
 				<?php echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</button>
-			<div class="bw-accordion__divider bw-accordion__divider--top" aria-hidden="true"></div>
-			<div <?php echo $this->get_render_attribute_string( 'panel' ); ?>>
-				<div class="bw-accordion__panel-inner">
-					<div class="bw-accordion__content">
-						<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<div class="bw-accordion__body">
+				<div <?php echo $this->get_render_attribute_string( 'panel' ); ?>>
+					<div class="bw-accordion__panel-inner">
+						<div class="bw-accordion__content">
+							<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</div>
 					</div>
-					<div class="bw-accordion__divider bw-accordion__divider--bottom" aria-hidden="true"></div>
 				</div>
+				<div class="bw-accordion__divider" aria-hidden="true"></div>
 			</div>
 		</div>
 		<?php

@@ -1,8 +1,8 @@
 (function ($) {
 	'use strict';
 
-	var OPEN_MS = 460;
-	var CLOSE_MS = 340;
+	var OPEN_MS = 520;
+	var CLOSE_MS = 420;
 	var OPEN_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
 	var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
@@ -22,7 +22,7 @@
 		$widget.data('bwAccordionInit', true);
 
 		var $header = $widget.find('> .bw-accordion__header');
-		var $panel = $widget.find('> .bw-accordion__panel');
+		var $panel = $widget.find('> .bw-accordion__body > .bw-accordion__panel');
 		var panelEl = $panel[0];
 
 		if (!$header.length || !panelEl) {
