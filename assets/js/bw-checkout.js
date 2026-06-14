@@ -2249,7 +2249,7 @@
         var $ = window.jQuery;
 
         // Use global document delegation - much more robust for AJAX/Fragments
-        $(document).off('click.bwPolicy').on('click.bwPolicy', '.bw-policy-link', function (e) {
+        $(document).off('click.bwPolicy').on('click.bwPolicy', '.bw-policy-link, .bw-shipping-info-trigger', function (e) {
             e.preventDefault();
 
             var link = $(this);
@@ -2356,14 +2356,18 @@
         if (hasShippingInfo) {
             var trigger = document.createElement('button');
             trigger.type = 'button';
-            trigger.className = 'bw-policy-link bw-shipping-info-trigger';
+            trigger.className = 'bw-shipping-info-trigger';
             trigger.setAttribute('data-policy', 'shipping-info');
             trigger.setAttribute('data-title', shippingInfo.title || 'Shipping');
             trigger.setAttribute('data-subtitle', shippingInfo.subtitle || '');
             trigger.setAttribute('data-content', shippingInfo.content || '');
             trigger.setAttribute('aria-label', 'Shipping information');
             trigger.setAttribute('aria-haspopup', 'dialog');
-            trigger.textContent = '?';
+            var triggerMark = document.createElement('span');
+            triggerMark.className = 'bw-shipping-info-trigger__mark';
+            triggerMark.setAttribute('aria-hidden', 'true');
+            triggerMark.textContent = '?';
+            trigger.appendChild(triggerMark);
             headingCell.appendChild(trigger);
         }
     }

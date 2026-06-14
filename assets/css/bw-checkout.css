@@ -3076,13 +3076,28 @@ body.woocommerce-checkout .select2-results__option--selected {
     border: 1px solid rgba(0, 0, 0, 0.22);
     border-radius: 999px;
     background: transparent;
-    color: #777;
+    color: #777 !important;
+    font-size: 11px !important;
+    font-weight: 700;
+    line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    text-indent: 0;
+    overflow: visible;
+    white-space: nowrap;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.bw-shipping-info-trigger__mark {
+    display: block;
+    color: currentColor;
     font-size: 11px;
     font-weight: 700;
     line-height: 1;
-    cursor: pointer;
-    text-decoration: none;
-    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    text-indent: 0;
 }
 
 .bw-shipping-info-trigger:hover,
