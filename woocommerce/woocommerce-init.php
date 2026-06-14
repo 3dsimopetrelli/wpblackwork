@@ -2066,3 +2066,73 @@ function bw_mew_prepare_cart_layout()
     add_filter('woocommerce_shipping_calculator_enabled', '__return_false', 99);
     add_filter('woocommerce_cart_needs_shipping', '__return_false', 99);
 }
+
+/**
+ * Use a clean checkout-only shipping package heading.
+ *
+ * @param string $package_name Existing shipping package name.
+ * @return string
+ */
+function bw_mew_checkout_shipping_package_name($package_name)
+{
+    if (!function_exists('is_checkout') || !is_checkout() || (function_exists('is_order_received_page') && is_order_received_page())) {
+        return $package_name;
+    }
+
+    return __('Shipping', 'bw');
+}
+add_filter('woocommerce_shipping_package_name', 'bw_mew_checkout_shipping_package_name', 10, 4);
+
+/**
+ * Simplify the checkout shipping method label when WooCommerce exposes a single
+ * available rate. This preserves native amount formatting while avoiding
+ * duplicate "Flat rate" text in the right column.
+ *
+ * @param string           $label  Default WooCommerce label.
+ * @param WC_Shipping_Rate $method Shipping method object.
+ * @return string
+ */
+function bw_mew_checkout_shipping_method_full_label($label, $method)
+{
+    if (!function_exists('is_checkout') || !is_checkout() || (function_exists('is_order_received_page') && is_order_received_page())) {
+        return $label;
+    }
+
+    if (!class_exists('WC_Shipping_Rate') || !$method instanceof WC_Shipping_Rate) {
+        return $label;
+    }
+
+    $packages = WC()->shipping()->get_packages();
+    if (!is_array($packages) || 1 !== count($packages)) {
+        return $label;
+    }
+
+    $package = reset($packages);
+    $rates = isset($package['rates']) && is_array($package['rates']) ? $package['rates'] : [];
+
+    if (1 !== count($rates)) {
+        return $label;
+    }
+
+    $has_cost = 0 < (float) $method->cost;
+    $hide_cost = !$has_cost && in_array($method->get_method_id(), ['free_shipping', 'local_pickup'], true);
+
+    if ($has_cost && !$hide_cost) {
+        $display = WC()->cart->display_prices_including_tax()
+            ? wc_price($method->cost + $method->get_shipping_tax())
+            : wc_price($method->cost);
+
+        if ($method->get_shipping_tax() > 0) {
+            if (WC()->cart->display_prices_including_tax() && !wc_prices_include_tax()) {
+                $display .= ' <small class="tax_label">' . WC()->countries->inc_tax_or_vat() . '</small>';
+            } elseif (!WC()->cart->display_prices_including_tax() && wc_prices_include_tax()) {
+                $display .= ' <small class="tax_label">' . WC()->countries->ex_tax_or_vat() . '</small>';
+            }
+        }
+
+        return $display;
+    }
+
+    return $label;
+}
+add_filter('woocommerce_cart_shipping_method_full_label', 'bw_mew_checkout_shipping_method_full_label', 10, 2);

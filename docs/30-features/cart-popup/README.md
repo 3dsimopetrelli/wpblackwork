@@ -24,6 +24,7 @@
 - Option keys:
   - `bw_cart_shipping_notice_enabled`
   - `bw_cart_shipping_notice_url`
+  - `bw_checkout_shipping_info_popup_text`
 - Defaults:
   - notice enabled
   - URL fallback `/shipping/`
@@ -35,3 +36,6 @@
   - if disabled, the cart popup returns to normal WooCommerce-style display behavior:
     - shipping row is shown when WooCommerce reports shipping > 0
     - displayed total uses the native WooCommerce total
+  - the checkout Shipping info popup text field remains visible independently from the cart popup notice toggle
+  - when the checkout Shipping info popup text is empty, the `Shipping (?)` trigger is not rendered in checkout
+  - checkout shipping calculations remain fully WooCommerce-native

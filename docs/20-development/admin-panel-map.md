@@ -294,6 +294,7 @@ Current adoption:
 - Option keys:
   - `bw_cart_shipping_notice_enabled`
   - `bw_cart_shipping_notice_url`
+  - `bw_checkout_shipping_info_popup_text`
 - Frontend consumer:
   - `cart-popup/frontend/cart-popup-frontend.php`
 - Behavior:
@@ -302,6 +303,7 @@ Current adoption:
   - current notice copy: `Tax included. Final shipping confirmed at checkout.`
   - if enabled, the Cart Pop-up hides shipping as a line item and shows a display-only total without shipping
   - if disabled, the Cart Pop-up can show the WooCommerce shipping row and native WooCommerce total
+  - the Shipping tab also stores the checkout `Shipping (?)` popup body used in the checkout shipping row
 
 ## BW Coming Soon
 - Renderer: `bw_site_render_coming_soon_tab()`

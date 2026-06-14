@@ -190,6 +190,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
                 // Policy Footer and Modals (Left Column Placement)
                 $policy_keys = ['refund', 'shipping', 'privacy', 'terms', 'contact'];
                 $footer_policies = [];
+                $modal_policies = [];
 
                 foreach ($policy_keys as $key) {
                     $data = get_option("bw_checkout_policy_{$key}", []);
@@ -219,6 +220,20 @@ if (function_exists('bw_mew_render_checkout_header')) {
                         'content'  => $content,
                     ];
                 }
+
+                $modal_policies = $footer_policies;
+
+                $shipping_info_popup_text = function_exists( 'bw_get_checkout_shipping_info_popup_text' )
+                    ? wp_kses_post( bw_get_checkout_shipping_info_popup_text() )
+                    : '';
+
+                if ( '' !== trim( wp_strip_all_tags( $shipping_info_popup_text ) ) ) {
+                    $modal_policies['shipping-info'] = [
+                        'title'    => __( 'Shipping', 'bw' ),
+                        'subtitle' => '',
+                        'content'  => $shipping_info_popup_text,
+                    ];
+                }
                 ?>
 
                 <?php if (!empty($footer_policies)): ?>
@@ -233,8 +248,11 @@ if (function_exists('bw_mew_render_checkout_header')) {
                         <?php endforeach; ?>
                     </div>
 
+                <?php endif; ?>
+
+                <?php if ( ! empty( $modal_policies ) ) : ?>
                     <script>
-                            window.bwPolicyContent = <?php echo wp_json_encode($footer_policies); ?>;
+                            window.bwPolicyContent = <?php echo wp_json_encode($modal_policies); ?>;
                     </script>
                 <?php endif; ?>
             </div>
@@ -266,7 +284,7 @@ if (function_exists('bw_mew_render_checkout_header')) {
             </div>
         </div>
 
-        <?php if (!empty($footer_policies)): ?>
+        <?php if (!empty($modal_policies)): ?>
             <div id="bw-policy-modal" class="bw-policy-modal" style="display:none;">
                 <div class="bw-policy-modal__overlay"></div>
                 <div class="bw-policy-modal__container">

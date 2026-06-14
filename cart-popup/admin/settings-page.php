@@ -65,6 +65,16 @@ function bw_cart_popup_get_shipping_notice_url()
 }
 
 /**
+ * Returns the checkout shipping info popup content.
+ *
+ * @return string
+ */
+function bw_get_checkout_shipping_info_popup_text()
+{
+    return (string) get_option('bw_checkout_shipping_info_popup_text', '');
+}
+
+/**
  * Sanitizza l'SVG permettendo tutti i tag e attributi SVG necessari
  */
 function bw_cart_popup_sanitize_svg($svg)
@@ -348,6 +358,9 @@ function bw_cart_popup_save_settings()
 
     $shipping_notice_url = bw_cart_popup_sanitize_shipping_notice_url($post_value('bw_cart_shipping_notice_url', '/shipping/'));
     update_option('bw_cart_shipping_notice_url', $shipping_notice_url);
+
+    $checkout_shipping_info_popup_text = wp_kses_post((string) $post_value('bw_checkout_shipping_info_popup_text', ''));
+    update_option('bw_checkout_shipping_info_popup_text', $checkout_shipping_info_popup_text);
 
     return true;
 }

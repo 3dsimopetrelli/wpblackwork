@@ -2113,6 +2113,7 @@
             updateMobileTotals();
             initShippingToggleFix();
             initPolicyPopups();
+            initCheckoutShippingInfoRow();
 
             // Handle resize to initialize mobile accordion when switching views
             window.addEventListener('resize', function () {
@@ -2143,6 +2144,7 @@
         updateMobileTotals();
         initShippingToggleFix();
         initPolicyPopups();
+        initCheckoutShippingInfoRow();
         styleCheckoutCoupons();
     }
 
@@ -2316,6 +2318,56 @@
         });
     }
 
+    /**
+     * Normalize the checkout shipping row and append the Shipping info trigger
+     * when popup content is configured.
+     */
+    function initCheckoutShippingInfoRow() {
+        var shippingRow = document.querySelector('tr.woocommerce-shipping-totals.shipping');
+        if (!shippingRow) {
+            return;
+        }
+
+        var headingCell = shippingRow.querySelector('th');
+        if (!headingCell) {
+            return;
+        }
+
+        var policyMap = (window.bwPolicyContent && typeof window.bwPolicyContent === 'object')
+            ? window.bwPolicyContent
+            : {};
+        var shippingInfo = policyMap['shipping-info'] || null;
+        var hasShippingInfo = !!(
+            shippingInfo &&
+            (
+                (shippingInfo.title && String(shippingInfo.title).trim() !== '') ||
+                (shippingInfo.subtitle && String(shippingInfo.subtitle).trim() !== '') ||
+                (shippingInfo.content && String(shippingInfo.content).trim() !== '')
+            )
+        );
+
+        headingCell.textContent = '';
+
+        var label = document.createElement('span');
+        label.className = 'bw-checkout-shipping-label';
+        label.textContent = 'Shipping';
+        headingCell.appendChild(label);
+
+        if (hasShippingInfo) {
+            var trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'bw-policy-link bw-shipping-info-trigger';
+            trigger.setAttribute('data-policy', 'shipping-info');
+            trigger.setAttribute('data-title', shippingInfo.title || 'Shipping');
+            trigger.setAttribute('data-subtitle', shippingInfo.subtitle || '');
+            trigger.setAttribute('data-content', shippingInfo.content || '');
+            trigger.setAttribute('aria-label', 'Shipping information');
+            trigger.setAttribute('aria-haspopup', 'dialog');
+            trigger.textContent = '?';
+            headingCell.appendChild(trigger);
+        }
+    }
+
     // Re-initialize floating labels and detect free order after WooCommerce AJAX update
     if (window.jQuery) {
         jQuery(document.body).on('updated_checkout', function () {
@@ -2350,6 +2402,7 @@
                 updateMobileTotals();
                 styleCheckoutCoupons();
                 initPolicyPopups();
+                initCheckoutShippingInfoRow();
             }, 50);
         });
     }

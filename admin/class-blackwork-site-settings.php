@@ -6786,6 +6786,7 @@ function bw_site_render_shipping_tab()
 
     $shipping_notice_enabled = bw_cart_popup_get_shipping_notice_enabled();
     $shipping_notice_url = bw_cart_popup_get_shipping_notice_url();
+    $checkout_shipping_info_popup_text = bw_get_checkout_shipping_info_popup_text();
 
     ?>
     <?php if ($saved): ?>
@@ -6833,6 +6834,30 @@ function bw_site_render_shipping_tab()
                     />
                     <p class="description">
                         <?php esc_html_e('The page linked by the word “Shipping” in the cart pop-up notice. Relative internal URLs like /shipping/ are allowed.', 'bw'); ?>
+                    </p>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">
+                    <label for="bw_checkout_shipping_info_popup_text"><?php esc_html_e('Checkout shipping info popup text', 'bw'); ?></label>
+                </th>
+                <td>
+                    <?php
+                    wp_editor(
+                        $checkout_shipping_info_popup_text,
+                        'bw_checkout_shipping_info_popup_text',
+                        [
+                            'textarea_name' => 'bw_checkout_shipping_info_popup_text',
+                            'media_buttons' => true,
+                            'textarea_rows' => 8,
+                            'teeny' => false,
+                            'quicktags' => true,
+                        ]
+                    );
+                    ?>
+                    <p class="description">
+                        <?php esc_html_e('Text shown inside the checkout Shipping info popup opened from the question mark next to the Shipping row. Leave empty to hide the question mark.', 'bw'); ?>
                     </p>
                 </td>
             </tr>
