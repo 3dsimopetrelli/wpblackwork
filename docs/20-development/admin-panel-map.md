@@ -299,6 +299,8 @@ Current adoption:
 - Behavior:
   - controls the small shipping/tax notice rendered above the Cart Pop-up checkout CTA
   - empty or invalid links fall back to `/shipping/`
+  - current notice copy: `Tax included. Final shipping confirmed at checkout.`
+  - when WooCommerce cart totals include shipping, the Cart Pop-up totals area renders a dedicated `Shipping` row between `Subtotal` and `Total`
 
 ## BW Coming Soon
 - Renderer: `bw_site_render_coming_soon_tab()`

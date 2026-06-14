@@ -104,6 +104,24 @@ function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
 }
 
 /**
+ * Build the shipping amount displayed in Cart Pop-up totals.
+ *
+ * WooCommerce may split shipping base and shipping tax internally, while the
+ * popup total reflects the combined order total. We expose the same combined
+ * shipping amount here when present so totals remain understandable.
+ *
+ * @param WC_Cart $cart Cart instance.
+ * @return float
+ */
+function bw_cart_popup_get_shipping_display_total($cart)
+{
+    $shipping_total = is_callable([$cart, 'get_shipping_total']) ? (float) $cart->get_shipping_total() : 0.0;
+    $shipping_tax   = is_callable([$cart, 'get_shipping_tax']) ? (float) $cart->get_shipping_tax() : 0.0;
+
+    return max(0, $shipping_total + $shipping_tax);
+}
+
+/**
  * Build the shared totals + coupon payload used by all cart-mutating AJAX handlers.
  * Assumes $cart->calculate_totals() has already been called by the caller.
  *
@@ -113,6 +131,7 @@ function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
 function bw_cart_popup_build_totals_data($cart)
 {
     $subtotal   = $cart->get_subtotal();
+    $shipping   = bw_cart_popup_get_shipping_display_total($cart);
     $discount   = $cart->get_discount_total();
     $tax        = $cart->get_total_tax();
     $total      = $cart->get_total('');
@@ -136,6 +155,8 @@ function bw_cart_popup_build_totals_data($cart)
         'empty'           => $cart->is_empty(),
         'subtotal'        => wc_price($subtotal),
         'subtotal_raw'    => $subtotal,
+        'shipping'        => wc_price($shipping),
+        'shipping_raw'    => $shipping,
         'discount'        => wc_price($discount),
         'discount_raw'    => $discount,
         'tax'             => wc_price($tax),
@@ -278,6 +299,8 @@ function bw_cart_popup_render_panel()
     $shipping_notice_url = function_exists('bw_cart_popup_get_shipping_notice_url')
         ? bw_cart_popup_get_shipping_notice_url()
         : '/shipping/';
+    $cart_instance = bw_cart_popup_get_cart_instance();
+    $initial_shipping_total = $cart_instance ? bw_cart_popup_get_shipping_display_total($cart_instance) : 0.0;
 
     // Determina l'URL per continue shopping
     if (empty($continue_url)) {
@@ -391,6 +414,12 @@ function bw_cart_popup_render_panel()
                     <span class="label">Subtotal:</span>
                     <span class="value" data-price="0">€0.00</span>
                 </div>
+                <div class="bw-cart-popup-shipping" <?php echo $initial_shipping_total > 0 ? '' : 'style="display: none;"'; ?>>
+                    <span class="label">Shipping:</span>
+                    <span class="value" data-shipping="<?php echo esc_attr($initial_shipping_total); ?>">
+                        <?php echo $initial_shipping_total > 0 ? wp_kses_post(wc_price($initial_shipping_total)) : '€0.00'; ?>
+                    </span>
+                </div>
                 <div class="bw-cart-popup-discount" style="display: none;">
                     <span class="label">Discount:</span>
                     <span class="bw-cart-coupon-label" style="display: none;">
@@ -415,8 +444,9 @@ function bw_cart_popup_render_panel()
             <?php if ($shipping_notice_enabled) : ?>
                 <p class="bw-cart-popup__checkout-note">
                     <?php esc_html_e('Tax included.', 'bw'); ?>
-                    <a href="<?php echo esc_url($shipping_notice_url); ?>"><?php esc_html_e('Shipping', 'bw'); ?></a>
-                    <?php esc_html_e('calculated at checkout.', 'bw'); ?>
+                    <?php esc_html_e('Final', 'bw'); ?>
+                    <a href="<?php echo esc_url($shipping_notice_url); ?>"><?php esc_html_e('shipping', 'bw'); ?></a>
+                    <?php esc_html_e('confirmed at checkout.', 'bw'); ?>
                 </p>
             <?php endif; ?>
             <a href="<?php echo esc_url($checkout_url); ?>"
@@ -571,6 +601,7 @@ function bw_cart_popup_build_cart_data($cart)
 {
     $cart_items = [];
     $subtotal   = 0;
+    $shipping   = 0;
     $discount   = 0;
     $tax        = 0;
     $total      = 0;
@@ -606,6 +637,7 @@ function bw_cart_popup_build_cart_data($cart)
         }
 
         $subtotal   = $cart->get_subtotal();
+        $shipping   = bw_cart_popup_get_shipping_display_total($cart);
         $discount   = $cart->get_discount_total();
         $tax        = $cart->get_total_tax();
         $total      = $cart->get_total('');
@@ -631,6 +663,8 @@ function bw_cart_popup_build_cart_data($cart)
         'coupons'         => $detailed_coupons,
         'subtotal'        => wc_price($subtotal),
         'subtotal_raw'    => $subtotal,
+        'shipping'        => wc_price($shipping),
+        'shipping_raw'    => $shipping,
         'discount'        => wc_price($discount),
         'discount_raw'    => $discount,
         'tax'             => wc_price($tax),

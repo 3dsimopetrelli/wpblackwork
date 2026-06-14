@@ -6812,7 +6812,7 @@ function bw_site_render_shipping_tab()
                             <?php checked(1, $shipping_notice_enabled); ?>
                         />
                         <span class="description">
-                            <?php esc_html_e('Show the “Tax included. Shipping calculated at checkout.” notice above the cart pop-up checkout button.', 'bw'); ?>
+                            <?php esc_html_e('Show the “Tax included. Final shipping confirmed at checkout.” notice above the cart pop-up checkout button.', 'bw'); ?>
                         </span>
                     </label>
                 </td>

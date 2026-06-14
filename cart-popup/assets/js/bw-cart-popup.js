@@ -902,6 +902,16 @@
             // Subtotal
             $('.bw-cart-popup-subtotal .value').html(data.subtotal).attr('data-price', data.subtotal_raw);
 
+            const shippingRaw = Number(data.shipping_raw || 0);
+            const $shippingRow = $('.bw-cart-popup-shipping');
+            if (shippingRaw > 0) {
+                $shippingRow.show();
+                $shippingRow.find('.value').html(data.shipping).attr('data-shipping', shippingRaw);
+            } else {
+                $shippingRow.hide();
+                $shippingRow.find('.value').html('€0.00').attr('data-shipping', 0);
+            }
+
             // Hide default discount row structure as we will rebuild it dynamically
             var $discountContainer = $('.bw-cart-popup-discount');
             $discountContainer.find('.label, .value, .bw-cart-coupon-label').hide();
