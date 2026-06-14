@@ -75,8 +75,10 @@
     if (!cfg.ajaxUrl || !cfg.nonce) {
         return;
     }
-    var currentPostType = String(cfg.postType || 'attachment');
-    var currentScreenContext = String(cfg.screenContext || (currentPostType === 'attachment' ? 'upload' : currentPostType));
+    var currentPostType = typeof cfg.postType === 'string' ? String(cfg.postType) : '';
+    var currentScreenContext = typeof cfg.screenContext === 'string'
+        ? String(cfg.screenContext)
+        : (currentPostType === 'attachment' ? 'upload' : currentPostType);
 
     var state = {
         folders: [],

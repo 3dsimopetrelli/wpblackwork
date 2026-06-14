@@ -140,6 +140,25 @@ if (!function_exists('bw_mf_admin_should_enqueue_media_modal_assets')) {
     }
 }
 
+if (!function_exists('bw_mf_admin_is_media_library_screen')) {
+    function bw_mf_admin_is_media_library_screen()
+    {
+        if (!is_admin()) {
+            return false;
+        }
+
+        if (function_exists('get_current_screen')) {
+            $screen = get_current_screen();
+            if ($screen && $screen->id === 'upload') {
+                return true;
+            }
+        }
+
+        global $pagenow;
+        return $pagenow === 'upload.php';
+    }
+}
+
 if (!function_exists('bw_mf_get_active_filter_payload')) {
     function bw_mf_get_active_filter_payload($post_type)
     {
@@ -170,11 +189,14 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
         $corner_enabled = bw_mf_is_corner_indicator_enabled();
         $badge_tooltip_enabled = function_exists('bw_mf_get_badge_tooltip_enabled') ? bw_mf_get_badge_tooltip_enabled() : false;
         $is_list_screen = bw_mf_admin_is_supported_list_screen();
-        $post_type = $is_list_screen ? bw_mf_get_current_screen_post_type() : 'attachment';
+        $is_media_library_screen = bw_mf_admin_is_media_library_screen();
+        $post_type = $is_list_screen ? bw_mf_get_current_screen_post_type() : ($is_media_library_screen ? 'attachment' : '');
         if ($post_type === '') {
-            $post_type = 'attachment';
+            $post_type = $is_media_library_screen ? 'attachment' : '';
         }
-        $screen_context = $is_list_screen ? bw_mf_get_context_for_post_type($post_type) : 'upload';
+        $screen_context = $is_list_screen
+            ? bw_mf_get_context_for_post_type($post_type)
+            : ($is_media_library_screen ? 'upload' : '');
         $taxonomy = bw_mf_get_taxonomy_for_post_type($post_type);
         if ($taxonomy === '') {
             $taxonomy = bw_mf_get_taxonomy_for_post_type('attachment');
