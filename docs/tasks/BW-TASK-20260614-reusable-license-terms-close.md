@@ -15,6 +15,8 @@ Completed:
 - kept the frontend payload contract unchanged via `license_html`
 - kept `bw_get_variation_license_table_html( $variation_id )` as the compatibility resolver
 - completed the final cleanup audit and confirmed there is no safely removable inactive legacy code at this stage
+- fixed Media Folders admin-scope initialization so its toolbar and AJAX logic no longer leak onto unrelated CPT list screens such as `bw_template` and `bw_license`
+- confirmed the Media Folders feature still works on the intended Media Library/admin contexts after the scope guard update
 
 ## 2) Files Updated During the Task
 - `blackwork-core-plugin.php`
@@ -22,6 +24,8 @@ Completed:
 - `includes/modules/licenses/cpt/license-cpt.php`
 - `includes/modules/licenses/cpt/license-meta.php`
 - `metabox/variation-license-html-field.php`
+- `includes/modules/media-folders/admin/media-folders-admin.php`
+- `includes/modules/media-folders/admin/assets/media-folders.js`
 - `docs/30-features/licenses/README.md`
 - `docs/30-features/elementor-widgets/price-variation-widget.md`
 - `docs/20-development/admin-panel-map.md`
@@ -43,6 +47,8 @@ Completed:
 ## 4) Validation
 - `php -l includes/modules/licenses/cpt/license-meta.php` -> PASS
 - `php -l metabox/variation-license-html-field.php` -> PASS
+- `php -l includes/modules/media-folders/admin/media-folders-admin.php` -> PASS
+- `node --check includes/modules/media-folders/admin/assets/media-folders.js` -> PASS
 - `git diff --check` -> PASS
 - `composer run lint:main` -> could not be run because `composer` is not available on PATH in this environment
 - manual browser/admin QA -> previously completed and confirmed working
@@ -58,6 +64,11 @@ Completed:
 - frontend variation switching works
 - legacy fallback rendering is preserved
 - add to cart behavior remains unchanged
+- Media Folders toolbar no longer appears on All Templates or Licenses
+- refreshing All Templates no longer triggers `Request failed`
+- refreshing Licenses no longer triggers `Request failed`
+- Products / Posts / Pages stay clean
+- Media Library still works normally
 
 ## 6) Compatibility Notes
 - legacy fallback readers are intentionally kept:
@@ -77,6 +88,7 @@ Completed:
 - the variation “Show metakeys” helper may later be reduced or hidden after rollout if the admin UX is simplified
 - a future migration tool may be needed to convert legacy variation rows into reusable License records for existing catalogs
 - legacy `_bw_variation_license_col1/_col2` should remain until importer/exporter migration is complete
+- Media Folders modal/list-screen initialization remains intentionally broad in wp-admin where classic media flows rely on it; any future admin-scope refinement should be regression-tested against the media modal paths first
 
 ## 8) Recommended Next Task
 - add `_bw_variation_license_id` support to product import/export tooling
