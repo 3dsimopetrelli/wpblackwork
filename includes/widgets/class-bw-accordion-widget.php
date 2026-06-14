@@ -394,6 +394,39 @@ class Widget_Bw_Accordion extends Widget_Base {
 		);
 
 		$this->add_responsive_control(
+			'icon_gap',
+			[
+				'label'      => __( 'Title / Icon Gap', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', 'rem' ],
+				'range'      => [
+					'px' => [
+						'min'  => 8,
+						'max'  => 120,
+						'step' => 1,
+					],
+					'em' => [
+						'min'  => 0.5,
+						'max'  => 8,
+						'step' => 0.1,
+					],
+					'rem' => [
+						'min'  => 0.5,
+						'max'  => 8,
+						'step' => 0.1,
+					],
+				],
+				'default'    => [
+					'size' => 40,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-icon-gap: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
 			'arrow_stroke_width',
 			[
 				'label'   => __( 'Icon Stroke Weight', 'bw' ),

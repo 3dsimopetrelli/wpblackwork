@@ -71,6 +71,7 @@ It does **not** use nested Elementor inner widgets in this version.
 ### Icon
 - Icon Color
 - Icon Size
+- Title / Icon Gap
 - Icon Stroke Weight
 
 ## Behavior Notes
@@ -80,6 +81,7 @@ It does **not** use nested Elementor inner widgets in this version.
 - the arrow option rotates smoothly with state changes
 - one real divider sits directly under the closed header and is physically pushed downward by the expanding panel when opened
 - the panel height expands smoothly while content fades in and slides down slightly
+- long titles wrap before the icon column and the title/icon spacing can be adjusted responsively
 - closing reverses the same motion without a hard jump
 - multiple accordion widgets on the same page work independently
 - the widget is initialized on both frontend and Elementor editor preview

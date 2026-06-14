@@ -2,6 +2,7 @@
 	--bw-accordion-divider-color: #d9d9d9;
 	--bw-accordion-divider-thickness: 1px;
 	--bw-accordion-divider-spacing: 16px;
+	--bw-accordion-icon-gap: 40px;
 	--bw-accordion-title-color-closed: #080808;
 	--bw-accordion-title-color-open: #777777;
 	--bw-accordion-header-bg-closed: transparent;
@@ -23,10 +24,10 @@
 
 .bw-accordion .bw-accordion__header,
 .bw-accordion button.bw-accordion__header {
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
 	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
+	column-gap: var(--bw-accordion-icon-gap, 40px);
 	width: 100%;
 	margin: 0;
 	padding: 0;
@@ -82,11 +83,13 @@
 }
 
 .bw-accordion__title {
-	flex: 1 1 auto;
 	min-width: 0;
+	max-width: 100%;
 	margin: 0;
 	padding: 0;
 	color: var(--bw-accordion-title-color-closed, #080808);
+	overflow-wrap: anywhere;
+	word-break: normal;
 }
 
 .bw-accordion.is-open .bw-accordion__title {
@@ -102,6 +105,7 @@
 	align-items: center;
 	justify-content: center;
 	flex: 0 0 auto;
+	justify-self: end;
 	position: relative;
 	width: var(--bw-accordion-icon-size, var(--bw-accordion-arrow-size, 20px));
 	height: var(--bw-accordion-icon-size, var(--bw-accordion-arrow-size, 20px));
@@ -207,6 +211,9 @@
 	overflow: hidden;
 	opacity: 1;
 	transition: none;
+	transition-property: height;
+	transition-duration: 920ms;
+	transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 	will-change: height;
 	contain: layout;
 }
@@ -225,21 +232,25 @@
 	display: flow-root;
 	padding: 16px 0 0;
 	color: var(--bw-accordion-content-color);
-	opacity: 0.96;
-	transform: translateY(-2px);
-	transition: opacity 180ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+	opacity: 0.9;
+	transform: translateY(-3px);
+	transition: opacity 220ms ease, transform 420ms cubic-bezier(0.19, 1, 0.22, 1);
 	will-change: opacity, transform;
 }
 
-.bw-accordion.is-collapsing .bw-accordion__panel-inner,
+.bw-accordion.is-collapsing .bw-accordion__panel-inner {
+	opacity: 0.94;
+	transform: translateY(-2px);
+}
+
 .bw-accordion.is-open .bw-accordion__panel-inner {
 	opacity: 1;
 	transform: translateY(0);
 }
 
 .bw-accordion.is-closed .bw-accordion__panel-inner {
-	opacity: 0.96;
-	transform: translateY(-2px);
+	opacity: 0.9;
+	transform: translateY(-3px);
 }
 
 .bw-accordion__content > :first-child,

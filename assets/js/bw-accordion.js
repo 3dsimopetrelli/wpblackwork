@@ -1,9 +1,9 @@
 (function ($) {
 	'use strict';
 
-	var OPEN_MS = 720;
+	var OPEN_MS = 920;
 	var CLOSE_MS = 420;
-	var OPEN_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
+	var OPEN_EASING = 'cubic-bezier(0.19, 1, 0.22, 1)';
 	var CLOSE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
 	function initAccordion($widget) {
