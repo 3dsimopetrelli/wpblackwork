@@ -501,6 +501,11 @@ if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/reviews/reviews-mo
     require_once plugin_dir_path(__FILE__) . 'includes/modules/reviews/reviews-module.php';
 }
 
+// Licenses module (reusable license terms for variation disclosure)
+if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/licenses/licenses-module.php')) {
+    require_once plugin_dir_path(__FILE__) . 'includes/modules/licenses/licenses-module.php';
+}
+
 // Elementor Sticky Sidebar — JS-based sticky for container elements
 if (file_exists(plugin_dir_path(__FILE__) . 'includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php')) {
     require_once plugin_dir_path(__FILE__) . 'includes/modules/elementor-sticky-sidebar/elementor-sticky-sidebar-module.php';

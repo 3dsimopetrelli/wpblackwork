@@ -195,8 +195,13 @@ Controls:
 ## License Disclosure Box
 
 ### Current behavior
-- variation-specific license HTML is generated server-side from structured variation meta
-- the license content is embedded into the variation payload used by the widget runtime
+- variation-specific license HTML is generated server-side before being embedded into the widget variation payload
+- the widget continues to consume the same `license_html` payload key
+- the primary resolver is `bw_get_variation_license_table_html( $variation_id )`
+- reusable License records are preferred when the variation stores `_bw_variation_license_id`
+- if no reusable License is selected, the resolver falls back to legacy variation-local rows:
+  - `_bw_variation_license_col1`
+  - `_bw_variation_license_col2`
 - the license surface updates when the active variation changes
 - if accordion mode is enabled, the disclosure body opens and closes client-side without changing the active variation
 
@@ -215,6 +220,13 @@ Current runtime note:
 - license content must always reflect the active variation
 - future trust/content additions in this column must not break the one-state relationship between variation, price, CTA, and disclosure
 - empty-state behavior for license content must remain explicit and deterministic
+
+### Reusable License admin contract
+- reusable License records live under `Blackwork Site → Licenses`
+- CPT slug: `bw_license`
+- reusable row meta: `_bw_license_rows`
+- variation-selected reusable License meta: `_bw_variation_license_id`
+- frontend payload remains `license_html`
 
 ## Variation Model Constraint
 

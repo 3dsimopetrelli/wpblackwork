@@ -9,6 +9,7 @@ It consolidates the structural reality already audited in [`docs/50-ops/admin-pa
 ### 1.1 Menu registration
 - Main menu (`blackwork-site-settings`): registered with `add_menu_page(...)` in `admin/class-blackwork-site-settings.php`.
 - Main submenu alias (`blackwork-site-settings`): explicit `Site Settings` submenu registered with `add_submenu_page(...)` in `admin/class-blackwork-site-settings.php`.
+- Licenses CPT admin screen (`bw_license`): registered via `register_post_type(... show_in_menu => 'blackwork-site-settings' ...)` in `includes/modules/licenses/cpt/license-cpt.php`.
 - Header submenu (`bw-header-settings`): registered with `add_submenu_page(...)` in `includes/modules/header/admin/header-admin.php`.
 - Mail Marketing submenu (`blackwork-mail-marketing`): registered with `add_submenu_page(...)` in `includes/admin/checkout-subscribe/class-bw-checkout-subscribe-admin.php`.
 - Reviews submenu (`bw-reviews`): registered with `add_submenu_page(...)` in `includes/modules/reviews/admin/class-bw-reviews-admin.php`.
@@ -136,6 +137,7 @@ Current adoption:
 | Header | `admin.php?page=bw-header-settings` | `bw_header_render_admin_page` | `includes/modules/header/admin/header-admin.php` | Settings API (`options.php`) | `.bw-admin-root` |
 | Theme Builder Lite | `admin.php?page=bw-theme-builder-lite-settings` | `bw_tbl_render_admin_page` | `includes/modules/theme-builder-lite/admin/theme-builder-lite-admin.php` | Settings API + import nonce handler | `.bw-admin-root` |
 | All Templates | `edit.php?post_type=bw_template` | WP list table (`edit.php`) + UX wrapper JS | `includes/modules/theme-builder-lite/admin/bw-template-type-inline.js` | WP List Table native + inline ajax type update | `.bw-admin-root` (injected) |
+| Licenses | `edit.php?post_type=bw_license` | WP list table (`edit.php`) | `includes/modules/licenses/cpt/license-cpt.php` | WP post editor + License Terms metabox save handler | WP-native CPT screen |
 
 ### 1.6.1 2026-03-09 Theme Builder Lite Control Updates
 - Footer tab additions:
