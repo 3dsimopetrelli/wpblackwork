@@ -3066,46 +3066,56 @@ body.woocommerce-checkout .select2-results__option--selected {
     display: inline-block;
 }
 
-.bw-shipping-info-trigger {
+.woocommerce-checkout .bw-shipping-info-trigger {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    min-width: 16px;
+    max-width: 16px;
+    height: 16px;
+    min-height: 16px;
+    max-height: 16px;
+    flex: 0 0 16px;
+    aspect-ratio: 1 / 1;
+    margin-left: 5px;
     padding: 0;
-    border: 1px solid rgba(0, 0, 0, 0.22);
-    border-radius: 999px;
-    background: transparent;
+    box-sizing: border-box;
+    border: 1.5px solid #8a8a8a;
+    border-radius: 50%;
+    background: transparent !important;
     color: #777 !important;
-    font-size: 11px !important;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px !important;
     font-weight: 700;
     line-height: 1;
-    font-family: inherit;
+    text-align: center;
     cursor: pointer;
     text-decoration: none;
     text-indent: 0;
     overflow: visible;
     white-space: nowrap;
+    vertical-align: middle;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
     -webkit-appearance: none;
     appearance: none;
 }
 
-.bw-shipping-info-trigger__mark {
+.woocommerce-checkout .bw-shipping-info-trigger__mark {
     display: block;
     color: currentColor;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
     text-indent: 0;
 }
 
-.bw-shipping-info-trigger:hover,
-.bw-shipping-info-trigger:focus,
-.bw-shipping-info-trigger:active {
-    color: #111;
-    border-color: rgba(0, 0, 0, 0.45);
-    background: rgba(0, 0, 0, 0.04);
+.woocommerce-checkout .bw-shipping-info-trigger:hover,
+.woocommerce-checkout .bw-shipping-info-trigger:focus,
+.woocommerce-checkout .bw-shipping-info-trigger:active {
+    border-color: #080808;
+    color: #080808 !important;
+    background: transparent !important;
     outline: none;
 }
 
