@@ -36,13 +36,13 @@ if ( ! function_exists( 'bw_get_license_allowed_html' ) ) {
 
 if ( ! function_exists( 'bw_sanitize_license_row_label' ) ) {
 	function bw_sanitize_license_row_label( $label ) {
-		return sanitize_text_field( wp_unslash( (string) $label ) );
+		return sanitize_text_field( (string) $label );
 	}
 }
 
 if ( ! function_exists( 'bw_sanitize_license_row_value' ) ) {
 	function bw_sanitize_license_row_value( $value ) {
-		return wp_kses( wp_unslash( (string) $value ), bw_get_license_allowed_html(), wp_allowed_protocols() );
+		return wp_kses( (string) $value, bw_get_license_allowed_html(), wp_allowed_protocols() );
 	}
 }
 

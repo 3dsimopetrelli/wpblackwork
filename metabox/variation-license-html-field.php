@@ -60,7 +60,18 @@ if ( ! function_exists( 'bw_save_variation_license_selector_field' ) ) {
 			? absint( wp_unslash( $_POST['bw_variation_license_id'][ $i ] ) )
 			: 0;
 
-		if ( $selected_license_id > 0 ) {
+		if ( 0 === $selected_license_id ) {
+			delete_post_meta( $variation_id, '_bw_variation_license_id' );
+			return;
+		}
+
+		$license_post = get_post( $selected_license_id );
+
+		if (
+			$license_post
+			&& 'bw_license' === $license_post->post_type
+			&& 'publish' === $license_post->post_status
+		) {
 			update_post_meta( $variation_id, '_bw_variation_license_id', $selected_license_id );
 			return;
 		}
