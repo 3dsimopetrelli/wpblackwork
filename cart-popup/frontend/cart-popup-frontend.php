@@ -272,6 +272,12 @@ function bw_cart_popup_render_panel()
     $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
     $svg_black = get_option('bw_cart_popup_svg_black', 0);
     $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
+    $shipping_notice_enabled = function_exists('bw_cart_popup_get_shipping_notice_enabled')
+        ? (1 === (int) bw_cart_popup_get_shipping_notice_enabled())
+        : true;
+    $shipping_notice_url = function_exists('bw_cart_popup_get_shipping_notice_url')
+        ? bw_cart_popup_get_shipping_notice_url()
+        : '/shipping/';
 
     // Determina l'URL per continue shopping
     if (empty($continue_url)) {
@@ -406,6 +412,13 @@ function bw_cart_popup_render_panel()
 
         <!-- Footer con pulsanti -->
         <div class="bw-cart-popup-footer">
+            <?php if ($shipping_notice_enabled) : ?>
+                <p class="bw-cart-popup__checkout-note">
+                    <?php esc_html_e('Tax included.', 'bw'); ?>
+                    <a href="<?php echo esc_url($shipping_notice_url); ?>"><?php esc_html_e('Shipping', 'bw'); ?></a>
+                    <?php esc_html_e('calculated at checkout.', 'bw'); ?>
+                </p>
+            <?php endif; ?>
             <a href="<?php echo esc_url($checkout_url); ?>"
                 class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md"
                 data-base-text="<?php echo esc_attr($checkout_text); ?>">

@@ -287,6 +287,19 @@ Current adoption:
 - Dependencies:
   - WooCommerce cart runtime and related AJAX operations (`bw_cart_popup_*`).
 
+## Shipping
+- Renderer: `bw_site_render_shipping_tab()`
+- Save delegate: `bw_cart_popup_save_settings()` (`cart-popup/admin/settings-page.php`)
+- Nonce: `bw_cart_popup_save` (`bw_cart_popup_nonce`)
+- Option keys:
+  - `bw_cart_shipping_notice_enabled`
+  - `bw_cart_shipping_notice_url`
+- Frontend consumer:
+  - `cart-popup/frontend/cart-popup-frontend.php`
+- Behavior:
+  - controls the small shipping/tax notice rendered above the Cart Pop-up checkout CTA
+  - empty or invalid links fall back to `/shipping/`
+
 ## BW Coming Soon
 - Renderer: `bw_site_render_coming_soon_tab()`
 - Nonce: `bw_coming_soon_save`

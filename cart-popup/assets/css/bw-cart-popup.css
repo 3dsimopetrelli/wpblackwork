@@ -1252,6 +1252,20 @@ body.elementor-kit-7 .bw-cart-floating-badge {
     gap: 10px;
 }
 
+.bw-cart-popup__checkout-note {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.bw-cart-popup__checkout-note a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 /* Proceed to checkout */
 .bw-cart-popup-panel .bw-cart-popup-footer > .bw-cart-popup-checkout.elementor-button,
 .bw-cart-popup-panel .bw-cart-popup-footer > .bw-cart-popup-checkout {

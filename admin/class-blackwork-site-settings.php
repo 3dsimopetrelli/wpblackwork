@@ -217,6 +217,7 @@ function bw_site_settings_admin_assets($hook)
         'info',
         'layout',
         'cart-popup',
+        'shipping',
         'bw-coming-soon',
         'account-page',
         'my-account-page',
@@ -1216,7 +1217,7 @@ function bw_site_settings_page()
     }
 
     // Determina quale tab è attivo
-    $allowed_tabs = ['info', 'layout', 'cart-popup', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'loading'];
+    $allowed_tabs = ['info', 'layout', 'cart-popup', 'shipping', 'bw-coming-soon', 'account-page', 'my-account-page', 'checkout', 'redirect', 'loading'];
     $active_tab = $requested_tab;
     if (!in_array($active_tab, $allowed_tabs, true)) {
         $active_tab = 'info';
@@ -1225,6 +1226,7 @@ function bw_site_settings_page()
     $save_button_map = [
         'layout' => 'bw_layout_settings_submit',
         'cart-popup' => 'bw_cart_popup_submit',
+        'shipping' => 'bw_cart_shipping_submit',
         'bw-coming-soon' => 'bw_coming_soon_submit',
         'account-page' => 'bw_account_page_submit',
         'my-account-page' => 'bw_myaccount_content_submit',
@@ -1271,6 +1273,10 @@ function bw_site_settings_page()
                     class="nav-tab <?php echo $active_tab === 'cart-popup' ? 'nav-tab-active' : ''; ?>">
                     Cart Pop-up
                 </a>
+                <a href="?page=blackwork-site-settings&tab=shipping"
+                    class="nav-tab <?php echo $active_tab === 'shipping' ? 'nav-tab-active' : ''; ?>">
+                    Shipping
+                </a>
                 <a href="?page=blackwork-site-settings&tab=bw-coming-soon"
                     class="nav-tab <?php echo $active_tab === 'bw-coming-soon' ? 'nav-tab-active' : ''; ?>">
                     BW Coming Soon
@@ -1307,6 +1313,8 @@ function bw_site_settings_page()
                     bw_site_render_layout_tab();
                 } elseif ($active_tab === 'cart-popup') {
                     bw_site_render_cart_popup_tab();
+                } elseif ($active_tab === 'shipping') {
+                    bw_site_render_shipping_tab();
                 } elseif ($active_tab === 'bw-coming-soon') {
                     bw_site_render_coming_soon_tab();
                 } elseif ($active_tab === 'account-page') {
@@ -6764,6 +6772,79 @@ function bw_site_render_cart_popup_tab()
     </style>
     <?php
     // JavaScript for border toggle is now loaded via bw-border-toggle-admin.js
+}
+
+/**
+ * Render the Shipping settings tab.
+ */
+function bw_site_render_shipping_tab()
+{
+    $saved = false;
+    if (isset($_POST['bw_cart_shipping_submit'])) {
+        $saved = bw_cart_popup_save_settings();
+    }
+
+    $shipping_notice_enabled = bw_cart_popup_get_shipping_notice_enabled();
+    $shipping_notice_url = bw_cart_popup_get_shipping_notice_url();
+
+    ?>
+    <?php if ($saved): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><strong>Impostazioni salvate con successo!</strong></p>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" action="">
+        <?php wp_nonce_field('bw_cart_popup_save', 'bw_cart_popup_nonce'); ?>
+
+        <table class="form-table" role="presentation">
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_shipping_notice_enabled"><?php esc_html_e('Show cart shipping notice', 'bw'); ?></label>
+                </th>
+                <td>
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            id="bw_cart_shipping_notice_enabled"
+                            name="bw_cart_shipping_notice_enabled"
+                            value="1"
+                            <?php checked(1, $shipping_notice_enabled); ?>
+                        />
+                        <span class="description">
+                            <?php esc_html_e('Show the “Tax included. Shipping calculated at checkout.” notice above the cart pop-up checkout button.', 'bw'); ?>
+                        </span>
+                    </label>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">
+                    <label for="bw_cart_shipping_notice_url"><?php esc_html_e('Shipping page link', 'bw'); ?></label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        class="regular-text"
+                        id="bw_cart_shipping_notice_url"
+                        name="bw_cart_shipping_notice_url"
+                        value="<?php echo esc_attr($shipping_notice_url); ?>"
+                        placeholder="/shipping/"
+                    />
+                    <p class="description">
+                        <?php esc_html_e('The page linked by the word “Shipping” in the cart pop-up notice. Relative internal URLs like /shipping/ are allowed.', 'bw'); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+        <p class="submit">
+            <button type="submit" name="bw_cart_shipping_submit" class="button button-primary">
+                <?php esc_html_e('Save Shipping Settings', 'bw'); ?>
+            </button>
+        </p>
+    </form>
+    <?php
 }
 
 /**

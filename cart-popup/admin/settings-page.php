@@ -12,6 +12,59 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Returns whether the cart shipping notice is enabled.
+ *
+ * Defaults to enabled for backward-safe rollout.
+ *
+ * @return int
+ */
+function bw_cart_popup_get_shipping_notice_enabled()
+{
+    return (int) get_option('bw_cart_shipping_notice_enabled', 1);
+}
+
+/**
+ * Sanitize the configurable shipping notice URL.
+ *
+ * Relative internal paths such as /shipping/ are allowed. Invalid or empty
+ * values fall back to the default shipping page path.
+ *
+ * @param mixed $raw_url Raw submitted value.
+ * @return string
+ */
+function bw_cart_popup_sanitize_shipping_notice_url($raw_url)
+{
+    $raw_url = trim((string) $raw_url);
+
+    if ('' === $raw_url) {
+        return '/shipping/';
+    }
+
+    if ('/' === substr($raw_url, 0, 1)) {
+        $relative_url = wp_kses_bad_protocol($raw_url, ['http', 'https']);
+        $relative_url = preg_replace('/[\r\n\t]+/', '', (string) $relative_url);
+
+        return '' !== $relative_url ? $relative_url : '/shipping/';
+    }
+
+    $sanitized_url = esc_url_raw($raw_url, ['http', 'https']);
+
+    return '' !== $sanitized_url ? $sanitized_url : '/shipping/';
+}
+
+/**
+ * Returns the configured shipping notice URL with fallback.
+ *
+ * @return string
+ */
+function bw_cart_popup_get_shipping_notice_url()
+{
+    $saved_url = get_option('bw_cart_shipping_notice_url', '/shipping/');
+
+    return bw_cart_popup_sanitize_shipping_notice_url($saved_url);
+}
+
+/**
  * Sanitizza l'SVG permettendo tutti i tag e attributi SVG necessari
  */
 function bw_cart_popup_sanitize_svg($svg)
@@ -289,6 +342,12 @@ function bw_cart_popup_save_settings()
     // Return to shop link
     $return_shop_url = esc_url_raw((string) $post_value('bw_cart_popup_return_shop_url', ''));
     update_option('bw_cart_popup_return_shop_url', $return_shop_url);
+
+    // Shipping notice settings
+    update_option('bw_cart_shipping_notice_enabled', isset($_POST['bw_cart_shipping_notice_enabled']) ? 1 : 0);
+
+    $shipping_notice_url = bw_cart_popup_sanitize_shipping_notice_url($post_value('bw_cart_shipping_notice_url', '/shipping/'));
+    update_option('bw_cart_shipping_notice_url', $shipping_notice_url);
 
     return true;
 }
