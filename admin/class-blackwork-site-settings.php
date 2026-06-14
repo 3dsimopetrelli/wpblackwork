@@ -6818,7 +6818,7 @@ function bw_site_render_shipping_tab()
                 </td>
             </tr>
 
-            <tr>
+            <tr data-bw-shipping-link-row>
                 <th scope="row">
                     <label for="bw_cart_shipping_notice_url"><?php esc_html_e('Shipping page link', 'bw'); ?></label>
                 </th>
@@ -6844,6 +6844,28 @@ function bw_site_render_shipping_tab()
             </button>
         </p>
     </form>
+    <style>
+        .bw-admin-page-site-settings .bw-is-hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        (function () {
+            var toggle = document.getElementById('bw_cart_shipping_notice_enabled');
+            var linkRow = document.querySelector('[data-bw-shipping-link-row]');
+
+            if (!toggle || !linkRow) {
+                return;
+            }
+
+            function syncShippingLinkVisibility() {
+                linkRow.classList.toggle('bw-is-hidden', !toggle.checked);
+            }
+
+            syncShippingLinkVisibility();
+            toggle.addEventListener('change', syncShippingLinkVisibility);
+        }());
+    </script>
     <?php
 }
 

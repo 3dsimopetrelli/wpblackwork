@@ -29,6 +29,7 @@
   - URL fallback `/shipping/`
 - Behavior:
   - if disabled, the notice is not rendered
+  - the Shipping page link field is shown only when the cart shipping notice is enabled
   - if the URL is empty or invalid, frontend falls back to `/shipping/`
   - if enabled, the cart popup hides the shipping row and shows a display-only total that excludes shipping because final shipping is destination-dependent and confirmed at checkout
   - if disabled, the cart popup returns to normal WooCommerce-style display behavior:
