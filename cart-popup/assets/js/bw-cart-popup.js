@@ -902,9 +902,11 @@
             // Subtotal
             $('.bw-cart-popup-subtotal .value').html(data.subtotal).attr('data-price', data.subtotal_raw);
 
+            const showShippingRow = !!data.show_shipping_row;
             const shippingRaw = Number(data.shipping_raw || 0);
             const $shippingRow = $('.bw-cart-popup-shipping');
-            if (shippingRaw > 0) {
+
+            if (showShippingRow && shippingRaw > 0) {
                 $shippingRow.show();
                 $shippingRow.find('.value').html(data.shipping).attr('data-shipping', shippingRaw);
             } else {

@@ -300,7 +300,8 @@ Current adoption:
   - controls the small shipping/tax notice rendered above the Cart Pop-up checkout CTA
   - empty or invalid links fall back to `/shipping/`
   - current notice copy: `Tax included. Final shipping confirmed at checkout.`
-  - when WooCommerce cart totals include shipping, the Cart Pop-up totals area renders a dedicated `Shipping` row between `Subtotal` and `Total`
+  - if enabled, the Cart Pop-up hides shipping as a line item and shows a display-only total without shipping
+  - if disabled, the Cart Pop-up can show the WooCommerce shipping row and native WooCommerce total
 
 ## BW Coming Soon
 - Renderer: `bw_site_render_coming_soon_tab()`

@@ -1266,6 +1266,12 @@ body.elementor-kit-7 .bw-cart-floating-badge {
     text-underline-offset: 3px;
 }
 
+.bw-cart-popup__checkout-note a:hover,
+.bw-cart-popup__checkout-note a:focus,
+.bw-cart-popup__checkout-note a:active {
+    color: #fff;
+}
+
 /* Proceed to checkout */
 .bw-cart-popup-panel .bw-cart-popup-footer > .bw-cart-popup-checkout.elementor-button,
 .bw-cart-popup-panel .bw-cart-popup-footer > .bw-cart-popup-checkout {

@@ -104,24 +104,6 @@ function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
 }
 
 /**
- * Build the shipping amount displayed in Cart Pop-up totals.
- *
- * WooCommerce may split shipping base and shipping tax internally, while the
- * popup total reflects the combined order total. We expose the same combined
- * shipping amount here when present so totals remain understandable.
- *
- * @param WC_Cart $cart Cart instance.
- * @return float
- */
-function bw_cart_popup_get_shipping_display_total($cart)
-{
-    $shipping_total = is_callable([$cart, 'get_shipping_total']) ? (float) $cart->get_shipping_total() : 0.0;
-    $shipping_tax   = is_callable([$cart, 'get_shipping_tax']) ? (float) $cart->get_shipping_tax() : 0.0;
-
-    return max(0, $shipping_total + $shipping_tax);
-}
-
-/**
  * Build the shared totals + coupon payload used by all cart-mutating AJAX handlers.
  * Assumes $cart->calculate_totals() has already been called by the caller.
  *
@@ -131,11 +113,11 @@ function bw_cart_popup_get_shipping_display_total($cart)
 function bw_cart_popup_build_totals_data($cart)
 {
     $subtotal   = $cart->get_subtotal();
-    $shipping   = bw_cart_popup_get_shipping_display_total($cart);
     $discount   = $cart->get_discount_total();
     $tax        = $cart->get_total_tax();
-    $total      = $cart->get_total('');
+    $total      = (float) $cart->get_total('');
     $item_count = $cart->get_cart_contents_count();
+    $display_context = bw_cart_popup_get_display_totals_context($cart, $subtotal, $total);
 
     $applied_coupons = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
     $coupon_amounts  = is_callable([$cart, 'get_coupon_discount_amounts']) ? $cart->get_coupon_discount_amounts() : [];
@@ -155,16 +137,56 @@ function bw_cart_popup_build_totals_data($cart)
         'empty'           => $cart->is_empty(),
         'subtotal'        => wc_price($subtotal),
         'subtotal_raw'    => $subtotal,
-        'shipping'        => wc_price($shipping),
-        'shipping_raw'    => $shipping,
+        'shipping'        => wc_price($display_context['shipping_raw']),
+        'shipping_raw'    => $display_context['shipping_raw'],
+        'show_shipping_row' => $display_context['show_shipping_row'],
         'discount'        => wc_price($discount),
         'discount_raw'    => $discount,
         'tax'             => wc_price($tax),
         'tax_raw'         => $tax,
-        'total'           => wc_price($total),
-        'total_raw'       => $total,
+        'total'           => wc_price($display_context['display_total_raw']),
+        'total_raw'       => $display_context['display_total_raw'],
+        'native_total'    => wc_price($total),
+        'native_total_raw'=> $total,
         'applied_coupons' => $applied_coupons,
         'coupons'         => $detailed_coupons,
+    ];
+}
+
+/**
+ * Build Cart Pop-up display totals context without changing WooCommerce totals.
+ *
+ * When the shipping notice is enabled, shipping remains a checkout-confirmed
+ * value, so the popup hides the shipping row and excludes shipping from the
+ * displayed total. When disabled, the popup falls back to normal WooCommerce
+ * totals presentation.
+ *
+ * @param WC_Cart $cart Cart instance.
+ * @param float   $subtotal Cart subtotal.
+ * @param float   $native_total Native WooCommerce total.
+ * @return array<string, mixed>
+ */
+function bw_cart_popup_get_display_totals_context($cart, $subtotal, $native_total)
+{
+    $shipping_total = is_callable([$cart, 'get_shipping_total']) ? (float) $cart->get_shipping_total() : 0.0;
+    $shipping_tax   = is_callable([$cart, 'get_shipping_tax']) ? (float) $cart->get_shipping_tax() : 0.0;
+    $shipping_raw   = max(0, $shipping_total + $shipping_tax);
+    $shipping_notice_enabled = function_exists('bw_cart_popup_get_shipping_notice_enabled')
+        ? (1 === (int) bw_cart_popup_get_shipping_notice_enabled())
+        : true;
+
+    if ($shipping_notice_enabled) {
+        return [
+            'shipping_raw' => 0.0,
+            'show_shipping_row' => false,
+            'display_total_raw' => max(0, (float) $native_total - $shipping_raw),
+        ];
+    }
+
+    return [
+        'shipping_raw' => $shipping_raw,
+        'show_shipping_row' => $shipping_raw > 0,
+        'display_total_raw' => (float) $native_total,
     ];
 }
 
@@ -300,7 +322,17 @@ function bw_cart_popup_render_panel()
         ? bw_cart_popup_get_shipping_notice_url()
         : '/shipping/';
     $cart_instance = bw_cart_popup_get_cart_instance();
-    $initial_shipping_total = $cart_instance ? bw_cart_popup_get_shipping_display_total($cart_instance) : 0.0;
+    $initial_shipping_display_context = $cart_instance
+        ? bw_cart_popup_get_display_totals_context(
+            $cart_instance,
+            (float) $cart_instance->get_subtotal(),
+            (float) $cart_instance->get_total('')
+        )
+        : [
+            'shipping_raw' => 0.0,
+            'show_shipping_row' => false,
+            'display_total_raw' => 0.0,
+        ];
 
     // Determina l'URL per continue shopping
     if (empty($continue_url)) {
@@ -414,10 +446,10 @@ function bw_cart_popup_render_panel()
                     <span class="label">Subtotal:</span>
                     <span class="value" data-price="0">€0.00</span>
                 </div>
-                <div class="bw-cart-popup-shipping" <?php echo $initial_shipping_total > 0 ? '' : 'style="display: none;"'; ?>>
+                <div class="bw-cart-popup-shipping" <?php echo $initial_shipping_display_context['show_shipping_row'] ? '' : 'style="display: none;"'; ?>>
                     <span class="label">Shipping:</span>
-                    <span class="value" data-shipping="<?php echo esc_attr($initial_shipping_total); ?>">
-                        <?php echo $initial_shipping_total > 0 ? wp_kses_post(wc_price($initial_shipping_total)) : '€0.00'; ?>
+                    <span class="value" data-shipping="<?php echo esc_attr($initial_shipping_display_context['shipping_raw']); ?>">
+                        <?php echo $initial_shipping_display_context['show_shipping_row'] ? wp_kses_post(wc_price($initial_shipping_display_context['shipping_raw'])) : '€0.00'; ?>
                     </span>
                 </div>
                 <div class="bw-cart-popup-discount" style="display: none;">
@@ -601,11 +633,15 @@ function bw_cart_popup_build_cart_data($cart)
 {
     $cart_items = [];
     $subtotal   = 0;
-    $shipping   = 0;
     $discount   = 0;
     $tax        = 0;
     $total      = 0;
     $item_count = 0;
+    $display_context = [
+        'shipping_raw' => 0.0,
+        'show_shipping_row' => false,
+        'display_total_raw' => 0.0,
+    ];
 
     if (!$cart->is_empty()) {
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
@@ -637,11 +673,11 @@ function bw_cart_popup_build_cart_data($cart)
         }
 
         $subtotal   = $cart->get_subtotal();
-        $shipping   = bw_cart_popup_get_shipping_display_total($cart);
         $discount   = $cart->get_discount_total();
         $tax        = $cart->get_total_tax();
-        $total      = $cart->get_total('');
+        $total      = (float) $cart->get_total('');
         $item_count = $cart->get_cart_contents_count();
+        $display_context = bw_cart_popup_get_display_totals_context($cart, $subtotal, $total);
     }
 
     $raw_coupons    = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
@@ -663,14 +699,17 @@ function bw_cart_popup_build_cart_data($cart)
         'coupons'         => $detailed_coupons,
         'subtotal'        => wc_price($subtotal),
         'subtotal_raw'    => $subtotal,
-        'shipping'        => wc_price($shipping),
-        'shipping_raw'    => $shipping,
+        'shipping'        => wc_price($display_context['shipping_raw']),
+        'shipping_raw'    => $display_context['shipping_raw'],
+        'show_shipping_row' => $display_context['show_shipping_row'],
         'discount'        => wc_price($discount),
         'discount_raw'    => $discount,
         'tax'             => wc_price($tax),
         'tax_raw'         => $tax,
-        'total'           => wc_price($total),
-        'total_raw'       => $total,
+        'total'           => wc_price($display_context['display_total_raw']),
+        'total_raw'       => $display_context['display_total_raw'],
+        'native_total'    => wc_price($total),
+        'native_total_raw'=> $total,
         'empty'           => $cart->is_empty(),
         'applied_coupons' => $raw_coupons,
     ];

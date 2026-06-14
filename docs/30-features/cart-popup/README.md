@@ -15,7 +15,7 @@
   - text: `Tax included. Final shipping confirmed at checkout.`
   - only the `shipping` word is linked
   - frontend render is PHP-based in the cart popup footer so the notice survives normal cart refreshes without a separate JS contract
-  - when WooCommerce cart totals already include shipping, the popup also renders a dedicated `Shipping` totals row between `Subtotal` and `Total`
+  - the popup does not render a shipping amount row because shipping may vary by destination and is confirmed at checkout
   - popup total remains the native WooCommerce total; no manual recalculation is applied
 
 ## Shipping Notice Settings
@@ -30,4 +30,7 @@
 - Behavior:
   - if disabled, the notice is not rendered
   - if the URL is empty or invalid, frontend falls back to `/shipping/`
-  - the totals area shows a `Shipping` row only when WooCommerce reports a shipping amount greater than zero
+  - if enabled, the cart popup hides the shipping row and shows a display-only total that excludes shipping because final shipping is destination-dependent and confirmed at checkout
+  - if disabled, the cart popup returns to normal WooCommerce-style display behavior:
+    - shipping row is shown when WooCommerce reports shipping > 0
+    - displayed total uses the native WooCommerce total
