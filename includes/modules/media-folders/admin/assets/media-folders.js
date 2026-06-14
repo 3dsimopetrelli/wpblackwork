@@ -79,6 +79,13 @@
     var currentScreenContext = typeof cfg.screenContext === 'string'
         ? String(cfg.screenContext)
         : (currentPostType === 'attachment' ? 'upload' : currentPostType);
+    var supportedListScreen = parseInt(cfg.isListScreen, 10) === 1;
+    var mediaLibraryScreen = parseInt(cfg.isMediaLibraryScreen, 10) === 1;
+    var modalFeaturesAvailable = !!(window.wp && wp.media);
+
+    if (!supportedListScreen && !modalFeaturesAvailable) {
+        return;
+    }
 
     var state = {
         folders: [],
@@ -318,11 +325,7 @@
     }
 
     function isSupportedListScreen() {
-        if (!document.body || !document.body.classList) {
-            return false;
-        }
-
-        return document.body.classList.contains('upload-php') || document.body.classList.contains('edit-php');
+        return supportedListScreen;
     }
 
     function isMediaPostType() {
@@ -521,6 +524,10 @@
     function request(action, payload, onDone, options) {
         var opts = options || {};
         if (!action || !cfg.ajaxUrl || !cfg.nonce) {
+            return;
+        }
+
+        if (!isSupportedListScreen() && !isModalSidebarActive() && !modalFeaturesAvailable) {
             return;
         }
 
@@ -2562,6 +2569,10 @@
     }
 
     function refreshTree() {
+        if (!isSupportedListScreen() && !modalFeaturesAvailable) {
+            return;
+        }
+
         request('bw_media_get_folders_tree', {}, function (data) {
             state.folders = Array.isArray(data.folders) ? data.folders : [];
             state.counts = data.counts || { all: 0, unassigned: 0 };
@@ -4618,7 +4629,7 @@
             }
         }
 
-        if (isSupportedListScreen() || (window.wp && wp.media)) {
+        if (isSupportedListScreen() || modalFeaturesAvailable || mediaLibraryScreen) {
             refreshTree();
         }
         if (isModalSidebarActive()) {

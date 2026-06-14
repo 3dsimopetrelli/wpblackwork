@@ -123,6 +123,13 @@ if (!function_exists('bw_mf_admin_should_enqueue_media_modal_assets')) {
             return true;
         }
 
+        if (function_exists('get_current_screen')) {
+            $screen = get_current_screen();
+            if ($screen && $screen->base === 'edit' && $screen->id !== 'upload' && !bw_mf_admin_is_supported_list_screen()) {
+                return false;
+            }
+        }
+
         // Keep Media Folders available across classic wp.media entry points in wp-admin.
         // The JS bootstrap is admin-only and idempotent, while several classic modals
         // can be opened from screens whose hook suffix is not reliably covered by a
@@ -237,6 +244,7 @@ if (!function_exists('bw_mf_admin_enqueue_assets')) {
                 ],
                 'badgeTooltipEnabled' => ($post_type === 'attachment' && $corner_enabled && $badge_tooltip_enabled) ? 1 : 0,
                 'isListScreen' => $is_list_screen ? 1 : 0,
+                'isMediaLibraryScreen' => $is_media_library_screen ? 1 : 0,
                 'sidebarHtml' => bw_mf_get_sidebar_markup(),
                 'text' => [
                     'newFolderPrompt' => __('Folder name', 'bw'),
