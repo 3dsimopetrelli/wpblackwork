@@ -2249,7 +2249,7 @@
         var $ = window.jQuery;
 
         // Use global document delegation - much more robust for AJAX/Fragments
-        $(document).off('click.bwPolicy').on('click.bwPolicy', '.bw-policy-link, .bw-shipping-info-trigger', function (e) {
+        $(document).off('click.bwPolicy').on('click.bwPolicy', '.bw-policy-link, [data-bw-policy-open]', function (e) {
             e.preventDefault();
 
             var link = $(this);
@@ -2260,7 +2260,7 @@
                 return;
             }
 
-            var policyKey = link.attr('data-policy');
+            var policyKey = link.attr('data-bw-policy-open') || link.attr('data-policy');
             var policyMap = (window.bwPolicyContent && typeof window.bwPolicyContent === 'object')
                 ? window.bwPolicyContent
                 : {};
@@ -2356,18 +2356,14 @@
         if (hasShippingInfo) {
             var trigger = document.createElement('button');
             trigger.type = 'button';
-            trigger.className = 'bw-shipping-info-trigger';
-            trigger.setAttribute('data-policy', 'shipping-info');
+            trigger.className = 'bw-checkout-shipping-info-trigger';
+            trigger.setAttribute('data-bw-policy-open', 'shipping-info');
             trigger.setAttribute('data-title', shippingInfo.title || 'Shipping');
             trigger.setAttribute('data-subtitle', shippingInfo.subtitle || '');
             trigger.setAttribute('data-content', shippingInfo.content || '');
             trigger.setAttribute('aria-label', 'Shipping information');
             trigger.setAttribute('aria-haspopup', 'dialog');
-            var triggerMark = document.createElement('span');
-            triggerMark.className = 'bw-shipping-info-trigger__mark';
-            triggerMark.setAttribute('aria-hidden', 'true');
-            triggerMark.textContent = '?';
-            trigger.appendChild(triggerMark);
+            trigger.textContent = '?';
             headingCell.appendChild(trigger);
         }
     }
