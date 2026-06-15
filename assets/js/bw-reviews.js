@@ -11,7 +11,8 @@
         grid: '[data-review-grid]',
         footer: '[data-review-footer]',
         loadMore: '[data-review-load-more]',
-        writeButton: '[data-review-open="create"]',
+        writeButton: '.bw-reviews__write[data-review-open="create"]',
+        writeSummaryButton: '[data-review-open-summary="create"]',
         editButton: '[data-review-edit]',
         summaryTrigger: '[data-review-summary-trigger]',
         breakdown: '[data-review-breakdown]',
@@ -743,7 +744,7 @@
                 this.loadReviews(true);
             });
 
-            this.$root.on('click' + this.namespace, SELECTORS.writeButton, (event) => {
+            this.$root.on('click' + this.namespace, SELECTORS.writeButton + ', ' + SELECTORS.writeSummaryButton, (event) => {
                 event.preventDefault();
                 const modalController = window.BWReviews && typeof window.BWReviews.ensureModalController === 'function'
                     ? window.BWReviews.ensureModalController()

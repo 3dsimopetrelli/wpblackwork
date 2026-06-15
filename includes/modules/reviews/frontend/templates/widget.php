@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <button
                         type="button"
                         class="bw-reviews-summary__trigger bw-reviews-summary__trigger--cta"
-                        data-review-open="create"
+                        data-review-open-summary="create"
                         aria-label="<?php esc_attr_e( 'Write the first review', 'bw' ); ?>"
                         aria-expanded="false"
                     >
