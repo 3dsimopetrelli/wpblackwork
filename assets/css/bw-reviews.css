@@ -188,6 +188,12 @@
     transform: rotate(180deg) !important;
 }
 
+.elementor-widget-bw-reviews .bw-reviews-summary__trigger--cta,
+.bw-reviews-summary__trigger--cta {
+    cursor: pointer !important;
+    padding-right: 0 !important;
+}
+
 .elementor-widget-bw-reviews .bw-reviews-summary__chevron svg,
 .bw-reviews-summary__chevron svg {
     width: 100% !important;

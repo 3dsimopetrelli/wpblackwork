@@ -27,21 +27,15 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div class="bw-reviews-summary">
                     <button
                         type="button"
-                        class="bw-reviews-summary__trigger is-static"
-                        data-review-summary-trigger
+                        class="bw-reviews-summary__trigger bw-reviews-summary__trigger--cta"
+                        data-review-open="create"
+                        aria-label="<?php esc_attr_e( 'Write the first review', 'bw' ); ?>"
                         aria-expanded="false"
-                        aria-controls="bw-reviews-breakdown-<?php echo esc_attr( (string) $view['instance_id'] ); ?>"
-                        disabled
                     >
                         <span class="bw-reviews-summary__stars" aria-hidden="true">
                             <?php echo wp_kses_post( (string) $view['summary_stars_html'] ); ?>
                         </span>
                         <span class="bw-reviews-summary__count"><?php echo esc_html( (string) $view['zero_review_summary_label'] ); ?></span>
-                        <span class="bw-reviews-summary__chevron" aria-hidden="true">
-                            <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
-                                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
                     </button>
                 </div>
 
