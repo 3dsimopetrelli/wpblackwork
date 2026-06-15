@@ -40,6 +40,10 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 return '';
             }
 
+            if ( ! empty( $view['hide_widget'] ) && empty( $view['is_editor'] ) ) {
+                return '';
+            }
+
             $view['render_modal'] = true;
 
             ob_start();
@@ -102,6 +106,11 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'owned_review_id'     => is_array( $owned_review ) ? absint( $owned_review['id'] ) : 0,
                 'show_product_context' => 'global' === $review_source,
             ];
+            $has_reviews     = absint( $summary['approved_count'] ) > 0;
+            $can_write_review = $this->can_write_reviews();
+            $is_editor        = $this->is_elementor_editor();
+            $show_compact_zero_state = ! $has_reviews && $can_write_review;
+            $hide_widget      = ! $has_reviews && ! $can_write_review;
 
             $config = [
                 'instanceId'          => (string) $widget_id,
@@ -110,7 +119,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
                 'nonce'               => wp_create_nonce( 'bw_reviews_submit' ),
                 'isLoggedIn'          => $is_logged_in,
-                'canWriteReview'      => $this->can_write_reviews(),
+                'canWriteReview'      => $can_write_review,
                 'canEditOwnReview'    => $can_edit_own,
                 'sortDefault'         => $sort,
                 'initialVisibleCount' => $limit,
@@ -186,20 +195,25 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'show_breakdown'       => ! empty( $display['show_rating_breakdown'] ),
                 'show_dates'           => ! empty( $display['show_dates'] ),
                 'show_verified_badge'  => ! empty( $display['show_verified_badge'] ),
-                'can_write_review'     => $this->can_write_reviews(),
-                'has_reviews'          => absint( $summary['approved_count'] ) > 0,
+                'can_write_review'     => $can_write_review,
+                'has_reviews'          => $has_reviews,
                 'has_more'             => $summary['approved_count'] > $shown,
                 'load_more_label'      => __( 'Show more reviews', 'bw' ),
                 'write_review_label'   => __( 'Write a review', 'bw' ),
                 'sort_label'           => __( 'Featured', 'bw' ),
                 'sort_options'         => $this->get_sort_options(),
-                'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && absint( $summary['approved_count'] ) > 0,
+                'breakdown_interactive' => ! empty( $display['show_rating_breakdown'] ) && $has_reviews,
                 'review_source'        => $review_source,
                 'config'               => $config,
                 'modal_title_create'   => __( 'Write a review', 'bw' ),
                 'modal_title_edit'     => __( 'Edit your review', 'bw' ),
                 'empty_title'          => __( 'No reviews yet', 'bw' ),
                 'empty_message'        => __( 'Be the first to share your experience with this piece.', 'bw' ),
+                'is_zero_review_state' => ! $has_reviews,
+                'show_compact_zero_state' => $show_compact_zero_state,
+                'hide_widget'          => $hide_widget,
+                'is_editor'            => $is_editor,
+                'editor_empty_notice'  => __( 'BW Reviews: no reviews available for this product.', 'bw' ),
                 'terms_url'            => $this->get_terms_url(),
                 'privacy_url'          => function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '',
             ];
@@ -441,6 +455,19 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                 'approved_count' => 0,
                 'breakdown'      => [],
             ];
+        }
+
+        /**
+         * Whether Elementor editor mode is active.
+         *
+         * @return bool
+         */
+        private function is_elementor_editor() {
+            return class_exists( '\Elementor\Plugin' )
+                && isset( \Elementor\Plugin::$instance->editor )
+                && \Elementor\Plugin::$instance->editor
+                && method_exists( \Elementor\Plugin::$instance->editor, 'is_edit_mode' )
+                && \Elementor\Plugin::$instance->editor->is_edit_mode();
         }
 
         /**
