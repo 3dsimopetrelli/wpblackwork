@@ -187,6 +187,7 @@ if ( ! class_exists( 'BW_Reviews_Widget_Renderer' ) ) {
                     _n( '%d Review', '%d Reviews', absint( $summary['approved_count'] ), 'bw' ),
                     absint( $summary['approved_count'] )
                 ),
+                'zero_review_summary_label' => __( 'Reviews', 'bw' ),
                 'breakdown'            => is_array( $summary['breakdown'] ) ? $summary['breakdown'] : [],
                 'reviews_html'         => $this->render_reviews_html(
                     $reviews,

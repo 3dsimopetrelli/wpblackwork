@@ -815,6 +815,11 @@
     padding-top: 0 !important;
 }
 
+.elementor-widget-bw-reviews .bw-reviews__header--compact-empty,
+.bw-reviews__header--compact-empty {
+    margin-bottom: 0 !important;
+}
+
 .elementor-widget-bw-reviews .bw-reviews__editor-empty-note,
 .bw-reviews__editor-empty-note {
     padding: 12px 14px !important;

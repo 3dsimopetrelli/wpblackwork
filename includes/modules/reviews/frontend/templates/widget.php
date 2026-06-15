@@ -23,11 +23,52 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     <?php elseif ( ! empty( $view['show_compact_zero_state'] ) ) : ?>
         <div class="bw-reviews__shell is-empty is-compact-empty">
-            <div class="bw-reviews__compact-empty">
-                <button type="button" class="bw-reviews__write" data-review-open="create">
-                    <?php echo esc_html( (string) $view['write_review_label'] ); ?>
-                </button>
-            </div>
+            <header class="bw-reviews__header bw-reviews__header--compact-empty">
+                <div class="bw-reviews-summary">
+                    <button
+                        type="button"
+                        class="bw-reviews-summary__trigger is-static"
+                        data-review-summary-trigger
+                        aria-expanded="false"
+                        aria-controls="bw-reviews-breakdown-<?php echo esc_attr( (string) $view['instance_id'] ); ?>"
+                        disabled
+                    >
+                        <span class="bw-reviews-summary__stars" aria-hidden="true">
+                            <?php echo wp_kses_post( (string) $view['summary_stars_html'] ); ?>
+                        </span>
+                        <span class="bw-reviews-summary__count"><?php echo esc_html( (string) $view['zero_review_summary_label'] ); ?></span>
+                        <span class="bw-reviews-summary__chevron" aria-hidden="true">
+                            <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+                                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="bw-reviews-controls">
+                    <button type="button" class="bw-reviews__write" data-review-open="create">
+                        <?php echo esc_html( (string) $view['write_review_label'] ); ?>
+                    </button>
+
+                    <div class="bw-reviews-sort">
+                        <button
+                            type="button"
+                            class="bw-reviews-sort__trigger"
+                            data-review-sort-trigger
+                            aria-expanded="false"
+                            aria-label="<?php esc_attr_e( 'Sort reviews', 'bw' ); ?>"
+                            disabled
+                        >
+                            <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+                                <path d="M4 5h12M7 10h9M10 15h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <circle cx="6" cy="5" r="1.5" fill="currentColor"/>
+                                <circle cx="9" cy="10" r="1.5" fill="currentColor"/>
+                                <circle cx="12" cy="15" r="1.5" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </header>
         </div>
     <?php elseif ( empty( $view['hide_widget'] ) ) : ?>
         <div class="bw-reviews__shell<?php echo empty( $view['has_reviews'] ) ? ' is-empty' : ''; ?>">
