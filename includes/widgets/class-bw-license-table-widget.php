@@ -102,7 +102,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			[
 				'label'       => __( 'Permission Text', 'bw' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => __( '✓ Allowed', 'bw' ),
+				'default'     => '✓',
 				'label_block' => true,
 			]
 		);
@@ -126,7 +126,7 @@ class BW_License_Table_Widget extends Widget_Base {
 				'label_on'     => __( 'On', 'bw' ),
 				'label_off'    => __( 'Off', 'bw' ),
 				'return_value' => 'yes',
-				'default'      => '',
+				'default'      => 'yes',
 				'description'  => __( 'When enabled, the explanation is shown in a tooltip on desktop and inline on mobile.', 'bw' ),
 			]
 		);
@@ -527,6 +527,63 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'tooltip_trigger_color',
+			[
+				'label'     => __( 'Tooltip Trigger Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#666666',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'tooltip_trigger_size',
+			[
+				'label'      => __( 'Tooltip Trigger Size', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'rem' ],
+				'range'      => [
+					'px' => [
+						'min' => 10,
+						'max' => 40,
+					],
+				],
+				'default'    => [
+					'size' => 15,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-size: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'tooltip_trigger_background',
+			[
+				'label'     => __( 'Tooltip Trigger Background', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-bg: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'tooltip_trigger_border_radius',
+			[
+				'label'      => __( 'Tooltip Trigger Border Radius', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
 		$this->add_responsive_control(
 			'tooltip_border_radius',
 			[
@@ -718,9 +775,14 @@ class BW_License_Table_Widget extends Widget_Base {
 					<?php
 					$row_classes = [ 'bw-license-table-widget__row' ];
 					$tooltip_id  = sprintf( 'bw-license-table-tooltip-%1$s-%2$d', esc_attr( $this->get_id() ), (int) $index );
+					$is_symbol_permission = in_array( $row['permission_text'], [ '✓', '✕' ], true );
 
 					if ( 'yes' === $row['use_tooltip'] && '' !== $row['explanation_text'] ) {
 						$row_classes[] = 'bw-license-table-widget__row--tooltip';
+					}
+
+					if ( $is_symbol_permission ) {
+						$row_classes[] = 'bw-license-table-widget__row--symbol-permission';
 					}
 					?>
 					<div class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
@@ -745,7 +807,7 @@ class BW_License_Table_Widget extends Widget_Base {
 										aria-label="<?php echo esc_attr( sprintf( __( 'Show explanation for %s', 'bw' ), $row['feature_title'] ) ); ?>"
 										aria-describedby="<?php echo esc_attr( $tooltip_id ); ?>"
 									>
-										<span aria-hidden="true">i</span>
+										<span aria-hidden="true">?</span>
 									</button>
 									<span
 										id="<?php echo esc_attr( $tooltip_id ); ?>"
@@ -776,87 +838,87 @@ class BW_License_Table_Widget extends Widget_Base {
 		return [
 			[
 				'feature_title'    => __( 'Commercial Use', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Use Blackwork assets in professional or business projects such as websites, brochures, advertising campaigns, presentations, or company materials.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Client Work', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Create projects for paying clients, including branding, packaging, editorial layouts, websites, and marketing materials.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Advertising & Marketing', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Use assets in social media campaigns, newsletters, online advertising, flyers, banners, and promotional content.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Websites & Social Media', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Publish assets on websites, blogs, e-commerce stores, newsletters, Instagram, Facebook, LinkedIn, and other platforms.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Books & Editorial Projects', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Use illustrations within books, magazines, newspapers, journals, reports, and editorial publications.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Educational Projects', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Use assets for teaching, research, museum content, academic publications, presentations, and educational materials.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Branding & Packaging', 'bw' ),
-				'permission_text'  => __( '✓ Allowed', 'bw' ),
+				'permission_text'  => '✓',
 				'explanation_text' => __( 'Include assets in visual identities, labels, packaging, and commercial brand materials.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Print Runs', 'bw' ),
 				'permission_text'  => __( '✓ Up to 5,000 Units', 'bw' ),
 				'explanation_text' => __( 'Produce up to 5,000 physical copies such as books, brochures, magazines, catalogs, or packaging materials where the artwork supports a larger finished work.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Products for Sale', 'bw' ),
-				'permission_text'  => __( '✕ Not Allowed', 'bw' ),
+				'permission_text'  => '✕',
 				'explanation_text' => __( 'The artwork may not be used as the main value of products being sold, such as posters, notebooks, art prints, calendars, card decks, or digital products.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Merchandise', 'bw' ),
-				'permission_text'  => __( '✕ Not Allowed', 'bw' ),
+				'permission_text'  => '✕',
 				'explanation_text' => __( 'Merchandise featuring the artwork is prohibited, including apparel, mugs, tote bags, stickers, postcards, and similar products.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Print-on-Demand', 'bw' ),
-				'permission_text'  => __( '✕ Not Allowed', 'bw' ),
+				'permission_text'  => '✕',
 				'explanation_text' => __( 'Print-on-demand services such as Printful, Printify, Gelato, Shopify POD, Etsy POD, or similar services are not permitted.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Resale of Original Files', 'bw' ),
-				'permission_text'  => __( '✕ Not Allowed', 'bw' ),
+				'permission_text'  => '✕',
 				'explanation_text' => __( 'Original files may not be sold through Etsy, Gumroad, Creative Market, marketplaces, stock libraries, digital asset stores, or similar platforms.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'Redistribution of Files', 'bw' ),
-				'permission_text'  => __( '✕ Not Allowed', 'bw' ),
+				'permission_text'  => '✕',
 				'explanation_text' => __( 'Original files may not be shared through bundles, memberships, resource libraries, archives, download services, client downloads, or third-party file access.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 			[
 				'feature_title'    => __( 'AI Training', 'bw' ),
-				'permission_text'  => __( '✕ Not Allowed', 'bw' ),
+				'permission_text'  => '✕',
 				'explanation_text' => __( 'AI training, machine learning, dataset creation, fine-tuning, embedding generation, computer vision, and model development are excluded and require a separate license.', 'bw' ),
-				'use_tooltip'      => '',
+				'use_tooltip'      => 'yes',
 			],
 		];
 	}

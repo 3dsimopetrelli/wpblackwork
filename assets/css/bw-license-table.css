@@ -25,6 +25,10 @@
 	--bw-license-table-tooltip-color: #ffffff;
 	--bw-license-table-tooltip-radius: 10px;
 	--bw-license-table-tooltip-width: 280px;
+	--bw-license-table-tooltip-trigger-color: #666666;
+	--bw-license-table-tooltip-trigger-size: 15px;
+	--bw-license-table-tooltip-trigger-bg: transparent;
+	--bw-license-table-tooltip-trigger-radius: 999px;
 	background: var(--bw-license-table-card-bg);
 	display: block;
 }
@@ -58,10 +62,14 @@
 	background: var(--bw-license-table-row-bg);
 	border-radius: var(--bw-license-table-row-radius);
 	display: grid;
-	grid-template-columns: minmax(0, 30%) minmax(0, 20%) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1.6fr) minmax(64px, auto) minmax(180px, 1fr);
 	gap: var(--bw-license-table-column-gap);
 	padding: var(--bw-license-table-row-padding);
-	align-items: start;
+	align-items: center;
+}
+
+.bw-license-table-widget__row--tooltip {
+	grid-template-columns: minmax(0, 1.8fr) minmax(64px, auto) minmax(20px, max-content);
 }
 
 .bw-license-table-widget--alternate-rows .bw-license-table-widget__row:nth-child(even) {
@@ -87,6 +95,7 @@
 	background: var(--bw-license-table-feature-bg);
 	padding: var(--bw-license-table-feature-padding);
 	border-radius: var(--bw-license-table-feature-radius);
+	align-self: center;
 }
 
 .bw-license-table-widget__permission {
@@ -94,10 +103,15 @@
 	background: var(--bw-license-table-permission-bg);
 	padding: var(--bw-license-table-permission-padding);
 	border-radius: var(--bw-license-table-permission-radius);
+	align-self: center;
 }
 
 .bw-license-table-widget__permission-text {
 	font-weight: 500;
+}
+
+.bw-license-table-widget__row--symbol-permission .bw-license-table-widget__permission {
+	text-align: center;
 }
 
 .bw-license-table-widget__example {
@@ -105,6 +119,12 @@
 	background: var(--bw-license-table-example-bg);
 	padding: var(--bw-license-table-example-padding);
 	border-radius: var(--bw-license-table-example-radius);
+	align-self: center;
+}
+
+.bw-license-table-widget__row--tooltip .bw-license-table-widget__example {
+	justify-self: end;
+	width: auto;
 }
 
 .bw-license-table-widget__example-text,
@@ -118,33 +138,59 @@
 	display: inline-flex;
 	align-items: center;
 	max-width: 100%;
+	justify-content: flex-end;
 }
 
-.bw-license-table-widget__tooltip-trigger {
+.bw-license-table-widget .bw-license-table-widget__tooltip-trigger,
+.bw-license-table-widget button.bw-license-table-widget__tooltip-trigger {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 24px;
-	height: 24px;
+	width: var(--bw-license-table-tooltip-trigger-size);
+	min-width: var(--bw-license-table-tooltip-trigger-size);
+	max-width: var(--bw-license-table-tooltip-trigger-size);
+	height: var(--bw-license-table-tooltip-trigger-size);
+	min-height: var(--bw-license-table-tooltip-trigger-size);
+	max-height: var(--bw-license-table-tooltip-trigger-size);
+	flex: 0 0 var(--bw-license-table-tooltip-trigger-size);
+	margin: 0;
 	padding: 0;
-	border: 1px solid currentColor;
-	border-radius: 50%;
-	background: transparent;
-	color: var(--bw-license-table-example-color);
-	font: inherit;
-	font-size: 13px;
+	border: 0 !important;
+	border-radius: var(--bw-license-table-tooltip-trigger-radius) !important;
+	background: var(--bw-license-table-tooltip-trigger-bg) !important;
+	background-color: var(--bw-license-table-tooltip-trigger-bg) !important;
+	box-shadow: none !important;
+	color: var(--bw-license-table-tooltip-trigger-color) !important;
+	font-family: inherit;
+	font-size: var(--bw-license-table-tooltip-trigger-size);
 	font-weight: 600;
 	line-height: 1;
-	cursor: help;
+	text-transform: none;
+	text-decoration: none;
+	letter-spacing: normal;
+	cursor: pointer;
+	vertical-align: middle;
+	min-height: 0;
+	min-width: 0;
 	appearance: none;
 	-webkit-appearance: none;
 }
 
-.bw-license-table-widget__tooltip-trigger:hover,
-.bw-license-table-widget__tooltip-trigger:focus,
-.bw-license-table-widget__tooltip-trigger:focus-visible {
-	outline: none;
-	box-shadow: none;
+.bw-license-table-widget .bw-license-table-widget__tooltip-trigger:hover,
+.bw-license-table-widget .bw-license-table-widget__tooltip-trigger:active {
+	background: var(--bw-license-table-tooltip-trigger-bg) !important;
+	background-color: var(--bw-license-table-tooltip-trigger-bg) !important;
+	border: 0 !important;
+	box-shadow: none !important;
+}
+
+.bw-license-table-widget .bw-license-table-widget__tooltip-trigger:focus,
+.bw-license-table-widget .bw-license-table-widget__tooltip-trigger:focus-visible {
+	outline: 1px solid currentColor;
+	outline-offset: 2px;
+	box-shadow: none !important;
+	background: var(--bw-license-table-tooltip-trigger-bg) !important;
+	background-color: var(--bw-license-table-tooltip-trigger-bg) !important;
 }
 
 .bw-license-table-widget__tooltip {
@@ -180,6 +226,7 @@
 @media (max-width: 767px) {
 	.bw-license-table-widget__row {
 		grid-template-columns: minmax(0, 1fr);
+		align-items: start;
 	}
 
 	.bw-license-table-widget__mobile-label {
@@ -195,6 +242,6 @@
 	}
 
 	.bw-license-table-widget__tooltip-trigger {
-		cursor: pointer;
+		display: none !important;
 	}
 }
