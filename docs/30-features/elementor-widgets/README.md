@@ -35,6 +35,7 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `rationalization-policy.md`: keep/merge/rebuild/delete decisions and deprecation policy
 - `migration-sequence.md`: gradual migration sequence and ops/regression alignment
 - `editor-panel-widget-families.md`: editor-only widget card family colors, slug/title mapping rules, and deprecated-card hiding behavior inside the Elementor panel
+- `license-table-widget.md`: `BW License Table` — reusable responsive licensing/comparison card with repeater-driven rows and per-row tooltip/inline explanation mode
 - `newsletter-subscription-widget.md`: fixed-design Mail Marketing/Brevo widget contract for Elementor surfaces
 - `bw-accordion-widget.md`: `BW Accordion` - standalone accessible accordion with WYSIWYG content and no nested-widget surface in V1
 - `product-details-widget.md`: `BW-SP Product Details` — single-product details/compatibility/info-box widget backed by the existing WooCommerce Product Details metabox
@@ -66,6 +67,9 @@ This directory is the governed documentation baseline for the audit/rebuild prog
 - `bw-presentation-slide` -> specialized presentation/gallery slider
 - `bw-showcase-slide` -> implemented Embla-based showcase slider driven by showcase metabox content
   - current runtime keeps the overlay above the image through an explicit widget-local stacking contract (`image z-index: 0`, overlay `z-index: 1`)
+- `bw-license-table` -> canonical reusable license/comparison table widget
+  - current contract is self-contained and repeater-driven
+  - each row can render explanation content inline or as a desktop tooltip with automatic mobile inline fallback
 - `bw-basic-slide` -> implemented lightweight generic image-gallery widget
   - current contract is dual-mode:
     - `Slide`: Embla carousel with autoplay, touch/mouse drag, breakpoint repeater, optional proportional-width strips, and `Start Offset Left`

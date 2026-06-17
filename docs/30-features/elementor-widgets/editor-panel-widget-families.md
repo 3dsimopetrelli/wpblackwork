@@ -83,6 +83,7 @@ If matched, the card is hidden from the panel.
 - `bw-newsletter-subscription` -> `bw-family-ui`
 - `bw-product-grid` -> `bw-family-ui`
 - `bw-presentation-slide` -> `bw-family-ui-ps`
+- `BW License Table` -> `bw-family-ui` via exact visible-title map
 
 This slug map is the key refactor point.
 It allows exact per-widget color assignment without depending only on visible editor titles.

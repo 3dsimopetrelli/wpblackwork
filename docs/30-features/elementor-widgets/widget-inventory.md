@@ -17,6 +17,7 @@ Canonical transition note:
 | `bw-basic-slide` | `includes/widgets/class-bw-basic-slide-widget.php` | Gallery / Slider | dual-mode image widget: Embla `Slide` mode or responsive `Wall` mode with optional bottom gradient |
 | `bw-psychadelic-banner` | `includes/widgets/class-bw-psychadelic-banner-widget.php` | Content/UI | CSS-only psychedelic label-loop banner with responsive central PNG art, viewport-driven label sizing, and optional marquee motion |
 | `bw-big-text` | `includes/widgets/class-bw-big-text-widget.php` | Editorial Typography | premium statement widget with auto-balance, controlled-width, and manual editorial line grouping |
+| `bw-license-table` | `includes/widgets/class-bw-license-table-widget.php` | Pricing / Licensing | standalone responsive license/comparison card with repeater rows and per-row tooltip mode |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
 | `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants; status `Almost ready`, quality `~9.5/10`, phase `Final manual validation` |
@@ -49,6 +50,7 @@ Canonical transition note:
 - `bw-product-breadcrumbs` -> `BW-SP Product Breadcrumbs` (visible title)
 - `bw-product-description` -> `BW-SP Product Description` (visible title)
 - `bw-title-product` -> `BW Title Product` (visible title)
+- `bw-license-table` -> `BW License Table` (visible title)
 - Internal slugs above remain the runtime authority.
 
 ## Elementor panel family-color mapping (current)
@@ -58,6 +60,7 @@ Canonical transition note:
 - `bw-reviews` -> SP family (`bw-family-sp`) via explicit slug map/title exception
 - `bw-go-to-app` -> UI family (`bw-family-ui`)
 - `bw-newsletter-subscription` -> UI family (`bw-family-ui`)
+- `bw-license-table` -> UI family (`bw-family-ui`) via explicit title map
 - `bw-showcase-slide` -> UI family (`bw-family-ui`) via the `BW-UI ...` visible title prefix
 
 Important runtime note:

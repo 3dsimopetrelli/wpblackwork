@@ -1,0 +1,200 @@
+.bw-license-table-widget {
+	--bw-license-table-card-bg: #ffffff;
+	--bw-license-table-title-color: #080808;
+	--bw-license-table-description-color: #666666;
+	--bw-license-table-header-spacing: 20px;
+	--bw-license-table-row-gap: 12px;
+	--bw-license-table-row-bg: #ffffff;
+	--bw-license-table-row-alt-bg: #f7f7f7;
+	--bw-license-table-row-radius: 12px;
+	--bw-license-table-row-padding: 18px 18px 18px 18px;
+	--bw-license-table-column-gap: 16px;
+	--bw-license-table-feature-color: #080808;
+	--bw-license-table-feature-bg: transparent;
+	--bw-license-table-feature-padding: 0;
+	--bw-license-table-feature-radius: 0;
+	--bw-license-table-permission-color: #080808;
+	--bw-license-table-permission-bg: transparent;
+	--bw-license-table-permission-padding: 0;
+	--bw-license-table-permission-radius: 0;
+	--bw-license-table-example-color: #444444;
+	--bw-license-table-example-bg: transparent;
+	--bw-license-table-example-padding: 0;
+	--bw-license-table-example-radius: 0;
+	--bw-license-table-tooltip-bg: #080808;
+	--bw-license-table-tooltip-color: #ffffff;
+	--bw-license-table-tooltip-radius: 10px;
+	--bw-license-table-tooltip-width: 280px;
+	background: var(--bw-license-table-card-bg);
+	display: block;
+}
+
+.bw-license-table-widget,
+.bw-license-table-widget * {
+	box-sizing: border-box;
+}
+
+.bw-license-table-widget__header {
+	margin-bottom: var(--bw-license-table-header-spacing);
+}
+
+.bw-license-table-widget__title {
+	margin: 0;
+	color: var(--bw-license-table-title-color);
+}
+
+.bw-license-table-widget__description {
+	margin-top: 8px;
+	color: var(--bw-license-table-description-color);
+}
+
+.bw-license-table-widget__rows {
+	display: flex;
+	flex-direction: column;
+	gap: var(--bw-license-table-row-gap);
+}
+
+.bw-license-table-widget__row {
+	background: var(--bw-license-table-row-bg);
+	border-radius: var(--bw-license-table-row-radius);
+	display: grid;
+	grid-template-columns: minmax(0, 30%) minmax(0, 20%) minmax(0, 1fr);
+	gap: var(--bw-license-table-column-gap);
+	padding: var(--bw-license-table-row-padding);
+	align-items: start;
+}
+
+.bw-license-table-widget--alternate-rows .bw-license-table-widget__row:nth-child(even) {
+	background: var(--bw-license-table-row-alt-bg);
+}
+
+.bw-license-table-widget__cell {
+	min-width: 0;
+}
+
+.bw-license-table-widget__mobile-label {
+	display: none;
+	margin-bottom: 6px;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #8a8a8a;
+}
+
+.bw-license-table-widget__feature {
+	color: var(--bw-license-table-feature-color);
+	background: var(--bw-license-table-feature-bg);
+	padding: var(--bw-license-table-feature-padding);
+	border-radius: var(--bw-license-table-feature-radius);
+}
+
+.bw-license-table-widget__permission {
+	color: var(--bw-license-table-permission-color);
+	background: var(--bw-license-table-permission-bg);
+	padding: var(--bw-license-table-permission-padding);
+	border-radius: var(--bw-license-table-permission-radius);
+}
+
+.bw-license-table-widget__permission-text {
+	font-weight: 500;
+}
+
+.bw-license-table-widget__example {
+	color: var(--bw-license-table-example-color);
+	background: var(--bw-license-table-example-bg);
+	padding: var(--bw-license-table-example-padding);
+	border-radius: var(--bw-license-table-example-radius);
+}
+
+.bw-license-table-widget__example-text,
+.bw-license-table-widget__tooltip-mobile,
+.bw-license-table-widget__tooltip {
+	line-height: 1.55;
+}
+
+.bw-license-table-widget__tooltip-wrap {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	max-width: 100%;
+}
+
+.bw-license-table-widget__tooltip-trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid currentColor;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--bw-license-table-example-color);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: help;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.bw-license-table-widget__tooltip-trigger:hover,
+.bw-license-table-widget__tooltip-trigger:focus,
+.bw-license-table-widget__tooltip-trigger:focus-visible {
+	outline: none;
+	box-shadow: none;
+}
+
+.bw-license-table-widget__tooltip {
+	position: absolute;
+	left: 0;
+	top: calc(100% + 10px);
+	z-index: 10;
+	width: min(var(--bw-license-table-tooltip-width), 80vw);
+	padding: 12px 14px;
+	border-radius: var(--bw-license-table-tooltip-radius);
+	background: var(--bw-license-table-tooltip-bg);
+	color: var(--bw-license-table-tooltip-color);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(4px);
+	transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+	pointer-events: none;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+}
+
+.bw-license-table-widget__tooltip-wrap:hover .bw-license-table-widget__tooltip,
+.bw-license-table-widget__tooltip-wrap:focus-within .bw-license-table-widget__tooltip {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+}
+
+.bw-license-table-widget__tooltip-mobile {
+	display: none;
+	margin-top: 10px;
+}
+
+@media (max-width: 767px) {
+	.bw-license-table-widget__row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.bw-license-table-widget__mobile-label {
+		display: inline-block;
+	}
+
+	.bw-license-table-widget__tooltip {
+		display: none;
+	}
+
+	.bw-license-table-widget__tooltip-mobile {
+		display: block;
+	}
+
+	.bw-license-table-widget__tooltip-trigger {
+		cursor: pointer;
+	}
+}
