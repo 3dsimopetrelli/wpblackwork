@@ -328,17 +328,27 @@
 
 @media (max-width: 767px) {
 	.bw-license-table-widget__row {
-		grid-template-columns: minmax(0, 1fr);
-		align-items: start;
-	}
-
-	.bw-license-table-widget__mobile-label {
-		display: inline-block;
+		grid-template-columns: minmax(0, 1.45fr) minmax(42px, auto) minmax(24px, max-content);
+		align-items: center;
 	}
 
 	.bw-license-table-widget__tooltip {
 		width: min(var(--bw-license-table-tooltip-width), calc(100vw - 32px));
 		max-width: calc(100vw - 32px);
+	}
+
+	.bw-license-table-widget__row:not(.bw-license-table-widget__row--tooltip) {
+		grid-template-columns: minmax(0, 1.2fr) minmax(42px, auto) minmax(0, 1fr);
+	}
+
+	.bw-license-table-widget__feature,
+	.bw-license-table-widget__permission,
+	.bw-license-table-widget__example {
+		align-self: center;
+	}
+
+	.bw-license-table-widget__row--symbol-permission .bw-license-table-widget__permission {
+		text-align: center;
 	}
 
 	.bw-license-table-widget__tooltip-trigger {
