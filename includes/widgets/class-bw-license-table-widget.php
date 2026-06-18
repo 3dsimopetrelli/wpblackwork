@@ -29,15 +29,19 @@ class BW_License_Table_Widget extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		if ( function_exists( 'bw_register_widget_assets' ) && ! wp_style_is( 'bw-license-table-style', 'registered' ) ) {
-			bw_register_widget_assets( 'license-table', [], false );
+		if ( function_exists( 'bw_register_widget_assets' ) && ( ! wp_style_is( 'bw-license-table-style', 'registered' ) || ! wp_script_is( 'bw-license-table-script', 'registered' ) ) ) {
+			bw_register_widget_assets( 'license-table' );
 		}
 
 		return [ 'bw-license-table-style' ];
 	}
 
 	public function get_script_depends() {
-		return [];
+		if ( function_exists( 'bw_register_widget_assets' ) && ( ! wp_style_is( 'bw-license-table-style', 'registered' ) || ! wp_script_is( 'bw-license-table-script', 'registered' ) ) ) {
+			bw_register_widget_assets( 'license-table' );
+		}
+
+		return [ 'bw-license-table-script' ];
 	}
 
 	protected function register_controls() {
@@ -312,6 +316,19 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_responsive_control(
+			'header_title_padding',
+			[
+				'label'      => __( 'Title Padding', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-title-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			[
@@ -360,6 +377,19 @@ class BW_License_Table_Widget extends Widget_Base {
 				'selectors' => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-description-align: {{VALUE}};',
 					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__description' => 'text-align: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'header_description_padding',
+			[
+				'label'      => __( 'Description Padding', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-description-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -892,8 +922,9 @@ class BW_License_Table_Widget extends Widget_Base {
 									</button>
 									<span
 										id="<?php echo esc_attr( $tooltip_id ); ?>"
-										class="bw-license-table-widget__tooltip"
+										class="bw-license-table-widget__tooltip is-hidden"
 										role="tooltip"
+										hidden
 									><?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?></span>
 									<div class="bw-license-table-widget__tooltip-mobile">
 										<?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?>
