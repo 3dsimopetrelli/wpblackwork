@@ -85,6 +85,20 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'rows_preset',
+			[
+				'label'       => __( 'Starting Rows', 'bw' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => 'commercial',
+				'options'     => [
+					'commercial' => __( 'Commercial License Defaults', 'bw' ),
+					'empty'      => __( 'Empty Table / Clear Default Rows', 'bw' ),
+				],
+				'description' => __( 'Use the default Commercial preset or switch to an empty table and add your own rows manually.', 'bw' ),
+			]
+		);
+
 		$repeater = new Repeater();
 
 		$repeater->add_control(
@@ -262,6 +276,38 @@ class BW_License_Table_Widget extends Widget_Base {
 				'default'   => '#080808',
 				'selectors' => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-title-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__title' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'header_title_alignment',
+			[
+				'label'     => __( 'Title Alignment', 'bw' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => [
+					'left'    => [
+						'title' => __( 'Left', 'bw' ),
+						'icon'  => 'eicon-text-align-left',
+					],
+					'center'  => [
+						'title' => __( 'Center', 'bw' ),
+						'icon'  => 'eicon-text-align-center',
+					],
+					'right'   => [
+						'title' => __( 'Right', 'bw' ),
+						'icon'  => 'eicon-text-align-right',
+					],
+					'justify' => [
+						'title' => __( 'Justify', 'bw' ),
+						'icon'  => 'eicon-text-align-justify',
+					],
+				],
+				'default'   => 'left',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-title-align: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__title' => 'text-align: {{VALUE}};',
 				],
 			]
 		);
@@ -282,6 +328,38 @@ class BW_License_Table_Widget extends Widget_Base {
 				'default'   => '#666666',
 				'selectors' => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-description-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__description' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'header_description_alignment',
+			[
+				'label'     => __( 'Description Alignment', 'bw' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => [
+					'left'    => [
+						'title' => __( 'Left', 'bw' ),
+						'icon'  => 'eicon-text-align-left',
+					],
+					'center'  => [
+						'title' => __( 'Center', 'bw' ),
+						'icon'  => 'eicon-text-align-center',
+					],
+					'right'   => [
+						'title' => __( 'Right', 'bw' ),
+						'icon'  => 'eicon-text-align-right',
+					],
+					'justify' => [
+						'title' => __( 'Justify', 'bw' ),
+						'icon'  => 'eicon-text-align-justify',
+					],
+				],
+				'default'   => 'left',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-description-align: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__description' => 'text-align: {{VALUE}};',
 				],
 			]
 		);
@@ -334,6 +412,7 @@ class BW_License_Table_Widget extends Widget_Base {
 				'default'   => '#080808',
 				'selectors' => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-feature-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__feature, {{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__feature *' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -399,6 +478,7 @@ class BW_License_Table_Widget extends Widget_Base {
 				'default'   => '#080808',
 				'selectors' => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-permission-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__permission, {{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__permission *' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -463,7 +543,8 @@ class BW_License_Table_Widget extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '#444444',
 				'selectors' => [
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-example-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-example-color: {{VALUE}}; --bw-license-table-tooltip-trigger-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__example, {{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__example *' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -734,7 +815,7 @@ class BW_License_Table_Widget extends Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-		$rows     = $this->normalize_rows( isset( $settings['license_rows'] ) ? $settings['license_rows'] : [] );
+		$rows     = $this->get_effective_rows( $settings );
 
 		if ( empty( $rows ) ) {
 			return;
@@ -957,5 +1038,63 @@ class BW_License_Table_Widget extends Widget_Base {
 		}
 
 		return $normalized;
+	}
+
+	/**
+	 * Resolve rows for output while preserving backward compatibility.
+	 *
+	 * Default instances keep the Commercial preset. If the editor explicitly
+	 * switches to the empty-table mode, untouched preset rows are ignored and
+	 * only user-added / user-edited rows remain.
+	 *
+	 * @param array<string, mixed> $settings Widget settings.
+	 * @return array<int, array<string, string>>
+	 */
+	private function get_effective_rows( $settings ) {
+		$rows       = $this->normalize_rows( isset( $settings['license_rows'] ) ? $settings['license_rows'] : [] );
+		$rows_preset = isset( $settings['rows_preset'] ) ? (string) $settings['rows_preset'] : 'commercial';
+
+		if ( 'empty' !== $rows_preset ) {
+			return $rows;
+		}
+
+		$default_rows = $this->get_default_rows();
+
+		return array_values(
+			array_filter(
+				$rows,
+				function ( $row ) use ( $default_rows ) {
+					foreach ( $default_rows as $default_row ) {
+						if ( $this->rows_match( $row, $default_row ) ) {
+							return false;
+						}
+					}
+
+					return true;
+				}
+			)
+		);
+	}
+
+	/**
+	 * Compare normalized repeater rows.
+	 *
+	 * @param array<string, string> $row         Runtime row.
+	 * @param array<string, string> $default_row Default preset row.
+	 * @return bool
+	 */
+	private function rows_match( $row, $default_row ) {
+		$keys = [ 'feature_title', 'permission_text', 'explanation_text', 'use_tooltip' ];
+
+		foreach ( $keys as $key ) {
+			$row_value         = isset( $row[ $key ] ) ? (string) $row[ $key ] : '';
+			$default_row_value = isset( $default_row[ $key ] ) ? (string) $default_row[ $key ] : '';
+
+			if ( $row_value !== $default_row_value ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

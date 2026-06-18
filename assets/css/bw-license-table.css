@@ -1,7 +1,9 @@
 .bw-license-table-widget {
 	--bw-license-table-card-bg: #ffffff;
 	--bw-license-table-title-color: #080808;
+	--bw-license-table-title-align: left;
 	--bw-license-table-description-color: #666666;
+	--bw-license-table-description-align: left;
 	--bw-license-table-header-spacing: 20px;
 	--bw-license-table-row-gap: 12px;
 	--bw-license-table-row-bg: #ffffff;
@@ -42,14 +44,16 @@
 	margin-bottom: var(--bw-license-table-header-spacing);
 }
 
-.bw-license-table-widget__title {
+.bw-license-table-widget .bw-license-table-widget__title {
 	margin: 0;
 	color: var(--bw-license-table-title-color);
+	text-align: var(--bw-license-table-title-align);
 }
 
-.bw-license-table-widget__description {
+.bw-license-table-widget .bw-license-table-widget__description {
 	margin-top: 8px;
 	color: var(--bw-license-table-description-color);
+	text-align: var(--bw-license-table-description-align);
 }
 
 .bw-license-table-widget__rows {
@@ -90,7 +94,7 @@
 	color: #8a8a8a;
 }
 
-.bw-license-table-widget__feature {
+.bw-license-table-widget .bw-license-table-widget__feature {
 	color: var(--bw-license-table-feature-color);
 	background: var(--bw-license-table-feature-bg);
 	padding: var(--bw-license-table-feature-padding);
@@ -98,7 +102,7 @@
 	align-self: center;
 }
 
-.bw-license-table-widget__permission {
+.bw-license-table-widget .bw-license-table-widget__permission {
 	color: var(--bw-license-table-permission-color);
 	background: var(--bw-license-table-permission-bg);
 	padding: var(--bw-license-table-permission-padding);
@@ -106,7 +110,7 @@
 	align-self: center;
 }
 
-.bw-license-table-widget__permission-text {
+.bw-license-table-widget .bw-license-table-widget__permission-text {
 	font-weight: 500;
 }
 
@@ -114,7 +118,7 @@
 	text-align: center;
 }
 
-.bw-license-table-widget__example {
+.bw-license-table-widget .bw-license-table-widget__example {
 	color: var(--bw-license-table-example-color);
 	background: var(--bw-license-table-example-bg);
 	padding: var(--bw-license-table-example-padding);
@@ -125,6 +129,13 @@
 .bw-license-table-widget__row--tooltip .bw-license-table-widget__example {
 	justify-self: end;
 	width: auto;
+}
+
+.bw-license-table-widget .bw-license-table-widget__feature-text,
+.bw-license-table-widget .bw-license-table-widget__permission-text,
+.bw-license-table-widget .bw-license-table-widget__example-text,
+.bw-license-table-widget .bw-license-table-widget__tooltip-mobile {
+	color: inherit;
 }
 
 .bw-license-table-widget__example-text,
