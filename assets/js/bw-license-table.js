@@ -3,6 +3,7 @@
 
 	var ACTIVE_WRAPS = [];
 	var RESIZE_BOUND = false;
+	var OPEN_WRAP = null;
 
 	function clearClasses($wrap) {
 		if (!$wrap || !$wrap.length) {
@@ -46,6 +47,47 @@
 		});
 	}
 
+	function hideTooltip($wrap) {
+		if (!$wrap || !$wrap.length) {
+			return;
+		}
+
+		$wrap.removeClass('is-active');
+		unregisterActiveWrap($wrap[0]);
+
+		if (OPEN_WRAP === $wrap[0]) {
+			OPEN_WRAP = null;
+		}
+
+		clearClasses($wrap);
+	}
+
+	function hideAllTooltips(exceptWrapEl) {
+		$('.bw-license-table-widget__tooltip-wrap.is-active').each(function () {
+			if (exceptWrapEl && this === exceptWrapEl) {
+				return;
+			}
+
+			hideTooltip($(this));
+		});
+	}
+
+	function showTooltip($wrap, persistActive) {
+		if (!$wrap || !$wrap.length) {
+			return;
+		}
+
+		hideAllTooltips($wrap[0]);
+		prepareTooltip($wrap);
+		registerActiveWrap($wrap[0]);
+		applyTooltipPosition($wrap);
+
+		if (persistActive) {
+			$wrap.addClass('is-active');
+			OPEN_WRAP = $wrap[0];
+		}
+	}
+
 	function applyTooltipPosition($wrap) {
 		if (!$wrap || !$wrap.length) {
 			return;
@@ -56,11 +98,6 @@
 		var $trigger = $wrap.find('.bw-license-table-widget__tooltip-trigger').first();
 
 		if (!$tooltip.length || !$trigger.length) {
-			return;
-		}
-
-		if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
-			clearClasses($wrap);
 			return;
 		}
 
@@ -128,21 +165,62 @@
 			return;
 		}
 
+		function isMobileViewport() {
+			return !!(window.matchMedia && window.matchMedia('(max-width: 767px)').matches);
+		}
+
 		function activate() {
-			prepareTooltip($wrap);
-			registerActiveWrap(wrapEl);
-			applyTooltipPosition($wrap);
+			showTooltip($wrap, false);
 		}
 
 		function deactivate() {
+			if ($wrap.hasClass('is-active')) {
+				return;
+			}
+
 			unregisterActiveWrap(wrapEl);
 			clearClasses($wrap);
 		}
 
-		$wrap.on('mouseenter.bwLicenseTooltip', activate);
-		$wrap.on('mouseleave.bwLicenseTooltip', deactivate);
-		$trigger.on('focus.bwLicenseTooltip', activate);
-		$trigger.on('blur.bwLicenseTooltip', deactivate);
+		$wrap.on('mouseenter.bwLicenseTooltip', function () {
+			if (isMobileViewport()) {
+				return;
+			}
+
+			activate();
+		});
+
+		$wrap.on('mouseleave.bwLicenseTooltip', function () {
+			if (isMobileViewport()) {
+				return;
+			}
+
+			deactivate();
+		});
+
+		$trigger.on('focus.bwLicenseTooltip', function () {
+			activate();
+		});
+
+		$trigger.on('blur.bwLicenseTooltip', function () {
+			if (isMobileViewport()) {
+				return;
+			}
+
+			deactivate();
+		});
+
+		$trigger.on('click.bwLicenseTooltip', function (event) {
+			event.preventDefault();
+			event.stopPropagation();
+
+			if ($wrap.hasClass('is-active')) {
+				hideTooltip($wrap);
+				return;
+			}
+
+			showTooltip($wrap, true);
+		});
 	}
 
 	function initLicenseTable($scope) {
@@ -163,9 +241,29 @@
 		RESIZE_BOUND = true;
 
 		$(window).on('resize.bwLicenseTooltip', function () {
+			hideAllTooltips();
+
 			ACTIVE_WRAPS.forEach(function (wrapEl) {
 				applyTooltipPosition($(wrapEl));
 			});
+		});
+
+		$(document).on('click.bwLicenseTooltipOutside touchstart.bwLicenseTooltipOutside', function (event) {
+			var $target = $(event.target);
+
+			if ($target.closest('.bw-license-table-widget__tooltip-wrap').length) {
+				return;
+			}
+
+			hideAllTooltips();
+		});
+
+		$(document).on('keydown.bwLicenseTooltipEscape', function (event) {
+			if ('Escape' !== event.key) {
+				return;
+			}
+
+			hideAllTooltips();
 		});
 	}
 

@@ -393,7 +393,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			[
 				'label'      => __( 'Title Padding', 'bw' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', 'rem' ],
+				'size_units' => [ 'px', '%', 'em', 'rem' ],
 				'selectors'  => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-title-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
@@ -458,7 +458,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			[
 				'label'      => __( 'Description Padding', 'bw' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', 'rem' ],
+				'size_units' => [ 'px', '%', 'em', 'rem' ],
 				'selectors'  => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-description-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
