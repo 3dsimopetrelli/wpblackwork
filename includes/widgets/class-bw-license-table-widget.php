@@ -103,59 +103,131 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
-		$repeater = new Repeater();
+		$allowed_repeater    = $this->build_license_rows_repeater(
+			__( 'Commercial Use', 'bw' ),
+			'✓',
+			__( 'Use Blackwork assets in professional or business projects such as websites, brochures, advertising campaigns, presentations, or company materials.', 'bw' )
+		);
+		$restricted_repeater = $this->build_license_rows_repeater(
+			__( 'Products for Sale', 'bw' ),
+			'✕',
+			__( 'The artwork may not be used as the main value of products being sold, such as posters, notebooks, art prints, calendars, card decks, or digital products.', 'bw' )
+		);
 
-		$repeater->add_control(
-			'feature_title',
+		$this->add_control(
+			'allowed_license_rows_heading',
 			[
-				'label'       => __( 'Feature Title', 'bw' ),
-				'type'        => Controls_Manager::TEXT,
-				'default'     => __( 'Commercial Use', 'bw' ),
-				'label_block' => true,
+				'label' => __( 'Allowed License Rows', 'bw' ),
+				'type'  => Controls_Manager::HEADING,
 			]
 		);
 
-		$repeater->add_control(
-			'permission_text',
+		$this->add_control(
+			'allowed_license_rows',
 			[
-				'label'       => __( 'Permission Text', 'bw' ),
-				'type'        => Controls_Manager::TEXT,
-				'default'     => '✓',
-				'label_block' => true,
+				'label'       => __( 'Allowed License Rows', 'bw' ),
+				'type'        => Controls_Manager::REPEATER,
+				'fields'      => $allowed_repeater->get_controls(),
+				'default'     => [],
+				'title_field' => '{{{ feature_title }}}',
 			]
 		);
 
-		$repeater->add_control(
-			'explanation_text',
+		$this->add_control(
+			'show_allowed_divider',
 			[
-				'label'       => __( 'Example / Explanation', 'bw' ),
-				'type'        => Controls_Manager::TEXTAREA,
-				'default'     => __( 'Use Blackwork assets in professional or business projects such as websites, brochures, advertising campaigns, presentations, or company materials.', 'bw' ),
-				'rows'        => 4,
-				'placeholder' => __( 'Describe how this permission works in practice.', 'bw' ),
-			]
-		);
-
-		$repeater->add_control(
-			'use_tooltip',
-			[
-				'label'        => __( 'Tooltip Mode', 'bw' ),
+				'label'        => __( 'Show Allowed Divider', 'bw' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'On', 'bw' ),
 				'label_off'    => __( 'Off', 'bw' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-				'description'  => __( 'When enabled, the explanation is shown in a tooltip on desktop and inline on mobile.', 'bw' ),
+			]
+		);
+
+		$this->add_control(
+			'allowed_divider_text',
+			[
+				'label'       => __( 'Divider Text', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => __( 'Allowed Uses', 'bw' ),
+				'label_block' => true,
+				'condition'   => [
+					'show_allowed_divider' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'restricted_license_rows_heading',
+			[
+				'label'     => __( 'Restricted License Rows', 'bw' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_control(
+			'restricted_license_rows',
+			[
+				'label'       => __( 'Restricted License Rows', 'bw' ),
+				'type'        => Controls_Manager::REPEATER,
+				'fields'      => $restricted_repeater->get_controls(),
+				'default'     => [],
+				'title_field' => '{{{ feature_title }}}',
+			]
+		);
+
+		$this->add_control(
+			'show_restricted_divider',
+			[
+				'label'        => __( 'Show Restricted Divider', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			]
+		);
+
+		$this->add_control(
+			'restricted_divider_text',
+			[
+				'label'       => __( 'Restricted Section Title', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => __( 'Cannot Be Used For', 'bw' ),
+				'label_block' => true,
+				'condition'   => [
+					'show_restricted_divider' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'legacy_rows_heading',
+			[
+				'label'     => __( 'Legacy Rows (Backward Compatibility)', 'bw' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_control(
+			'legacy_rows_notice',
+			[
+				'type'            => Controls_Manager::RAW_HTML,
+				'raw'             => esc_html__( 'Existing BW License Table instances that still use the old single repeater will continue rendering from these rows until you rebuild them with the new Allowed / Restricted sections.', 'bw' ),
+				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
 			]
 		);
 
 		$this->add_control(
 			'license_rows',
 			[
-				'label'       => __( 'Rows', 'bw' ),
+				'label'       => __( 'Legacy Rows', 'bw' ),
 				'type'        => Controls_Manager::REPEATER,
-				'fields'      => $repeater->get_controls(),
-				'default'     => $this->get_default_rows(),
+				'fields'      => $allowed_repeater->get_controls(),
+				'default'     => [],
 				'title_field' => '{{{ feature_title }}}',
 			]
 		);
@@ -412,6 +484,201 @@ class BW_License_Table_Widget extends Widget_Base {
 				],
 				'selectors'  => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-header-spacing: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_divider_style',
+			[
+				'label' => __( 'Divider', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'divider_typography',
+				'selector' => '{{WRAPPER}} .bw-license-table-widget__divider-label',
+			]
+		);
+
+		$this->add_control(
+			'divider_text_color',
+			[
+				'label'     => __( 'Text Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#080808',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__divider-label' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'divider_alignment',
+			[
+				'label'     => __( 'Alignment', 'bw' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => [
+					'left'    => [
+						'title' => __( 'Left', 'bw' ),
+						'icon'  => 'eicon-text-align-left',
+					],
+					'center'  => [
+						'title' => __( 'Center', 'bw' ),
+						'icon'  => 'eicon-text-align-center',
+					],
+					'right'   => [
+						'title' => __( 'Right', 'bw' ),
+						'icon'  => 'eicon-text-align-right',
+					],
+					'justify' => [
+						'title' => __( 'Justify', 'bw' ),
+						'icon'  => 'eicon-text-align-justify',
+					],
+				],
+				'default'   => 'left',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-align: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__divider' => 'text-align: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'divider_padding',
+			[
+				'label'      => __( 'Padding', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__divider' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'divider_margin',
+			[
+				'label'      => __( 'Margin', 'bw' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem' ],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__divider' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'divider_line_enabled',
+			[
+				'label'        => __( 'Divider Line', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			]
+		);
+
+		$this->add_control(
+			'divider_line_top_enabled',
+			[
+				'label'        => __( 'Top Line', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => [
+					'divider_line_enabled' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'divider_line_bottom_enabled',
+			[
+				'label'        => __( 'Bottom Line', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => [
+					'divider_line_enabled' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'divider_line_color',
+			[
+				'label'     => __( 'Divider Line Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#dddddd',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-line-color: {{VALUE}};',
+				],
+				'condition' => [
+					'divider_line_enabled' => 'yes',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'divider_line_thickness',
+			[
+				'label'      => __( 'Divider Thickness', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [
+					'px' => [
+						'min' => 1,
+						'max' => 8,
+					],
+				],
+				'default'    => [
+					'size' => 1,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-line-thickness: {{SIZE}}{{UNIT}};',
+				],
+				'condition'  => [
+					'divider_line_enabled' => 'yes',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'divider_line_spacing',
+			[
+				'label'      => __( 'Divider Spacing', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'rem' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 40,
+					],
+				],
+				'default'    => [
+					'size' => 10,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-line-spacing: {{SIZE}}{{UNIT}};',
+				],
+				'condition'  => [
+					'divider_line_enabled' => 'yes',
 				],
 			]
 		);
@@ -845,9 +1112,11 @@ class BW_License_Table_Widget extends Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-		$rows     = $this->get_effective_rows( $settings );
+		$sections = $this->get_effective_sections( $settings );
+		$allowed_rows = $sections['allowed'];
+		$restricted_rows = $sections['restricted'];
 
-		if ( empty( $rows ) ) {
+		if ( empty( $allowed_rows ) && empty( $restricted_rows ) ) {
 			return;
 		}
 
@@ -866,6 +1135,11 @@ class BW_License_Table_Widget extends Widget_Base {
 
 		$title       = isset( $settings['license_title'] ) ? trim( (string) $settings['license_title'] ) : '';
 		$description = isset( $settings['license_description'] ) ? trim( (string) $settings['license_description'] ) : '';
+		$show_allowed_divider    = isset( $settings['show_allowed_divider'] ) && 'yes' === $settings['show_allowed_divider'];
+		$show_restricted_divider = isset( $settings['show_restricted_divider'] ) && 'yes' === $settings['show_restricted_divider'];
+		$allowed_divider_text    = isset( $settings['allowed_divider_text'] ) ? trim( (string) $settings['allowed_divider_text'] ) : '';
+		$restricted_divider_text = isset( $settings['restricted_divider_text'] ) ? trim( (string) $settings['restricted_divider_text'] ) : '';
+		$divider_classes         = $this->get_divider_classes( $settings );
 
 		?>
 		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
@@ -881,64 +1155,31 @@ class BW_License_Table_Widget extends Widget_Base {
 				</div>
 			<?php endif; ?>
 
-			<div class="bw-license-table-widget__rows">
-				<?php foreach ( $rows as $index => $row ) : ?>
-					<?php
-					$row_classes = [ 'bw-license-table-widget__row' ];
-					$tooltip_id  = sprintf( 'bw-license-table-tooltip-%1$s-%2$d', esc_attr( $this->get_id() ), (int) $index );
-					$is_symbol_permission = in_array( $row['permission_text'], [ '✓', '✕' ], true );
-
-					if ( 'yes' === $row['use_tooltip'] && '' !== $row['explanation_text'] ) {
-						$row_classes[] = 'bw-license-table-widget__row--tooltip';
-					}
-
-					if ( $is_symbol_permission ) {
-						$row_classes[] = 'bw-license-table-widget__row--symbol-permission';
-					}
-					?>
-					<div class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
-						<div class="bw-license-table-widget__cell bw-license-table-widget__feature">
-							<span class="bw-license-table-widget__mobile-label"><?php esc_html_e( 'Feature', 'bw' ); ?></span>
-							<div class="bw-license-table-widget__feature-text"><?php echo wp_kses_post( nl2br( esc_html( $row['feature_title'] ) ) ); ?></div>
+			<?php if ( ! empty( $allowed_rows ) ) : ?>
+				<div class="bw-license-table-widget__section bw-license-table-widget__section--allowed">
+					<?php if ( $show_allowed_divider && '' !== $allowed_divider_text ) : ?>
+						<div class="<?php echo esc_attr( implode( ' ', $divider_classes ) ); ?>">
+							<span class="bw-license-table-widget__divider-label"><?php echo esc_html( $allowed_divider_text ); ?></span>
 						</div>
-
-						<div class="bw-license-table-widget__cell bw-license-table-widget__permission">
-							<span class="bw-license-table-widget__mobile-label"><?php esc_html_e( 'Permission', 'bw' ); ?></span>
-							<div class="bw-license-table-widget__permission-text"><?php echo wp_kses_post( nl2br( esc_html( $row['permission_text'] ) ) ); ?></div>
-						</div>
-
-						<div class="bw-license-table-widget__cell bw-license-table-widget__example">
-							<span class="bw-license-table-widget__mobile-label"><?php esc_html_e( 'Details', 'bw' ); ?></span>
-
-							<?php if ( 'yes' === $row['use_tooltip'] && '' !== $row['explanation_text'] ) : ?>
-								<div class="bw-license-table-widget__tooltip-wrap">
-									<button
-										type="button"
-										class="bw-license-table-widget__tooltip-trigger"
-										aria-label="<?php echo esc_attr( sprintf( __( 'Show explanation for %s', 'bw' ), $row['feature_title'] ) ); ?>"
-										aria-describedby="<?php echo esc_attr( $tooltip_id ); ?>"
-									>
-										<span aria-hidden="true">?</span>
-									</button>
-									<span
-										id="<?php echo esc_attr( $tooltip_id ); ?>"
-										class="bw-license-table-widget__tooltip is-hidden"
-										role="tooltip"
-										hidden
-									><?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?></span>
-									<div class="bw-license-table-widget__tooltip-mobile">
-										<?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?>
-									</div>
-								</div>
-							<?php else : ?>
-								<div class="bw-license-table-widget__example-text">
-									<?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?>
-								</div>
-							<?php endif; ?>
-						</div>
+					<?php endif; ?>
+					<div class="bw-license-table-widget__rows">
+						<?php $this->render_rows_markup( $allowed_rows, 'allowed' ); ?>
 					</div>
-				<?php endforeach; ?>
-			</div>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $restricted_rows ) ) : ?>
+				<div class="bw-license-table-widget__section bw-license-table-widget__section--restricted">
+					<?php if ( $show_restricted_divider && '' !== $restricted_divider_text ) : ?>
+						<div class="<?php echo esc_attr( implode( ' ', $divider_classes ) ); ?>">
+							<span class="bw-license-table-widget__divider-label"><?php echo esc_html( $restricted_divider_text ); ?></span>
+						</div>
+					<?php endif; ?>
+					<div class="bw-license-table-widget__rows">
+						<?php $this->render_rows_markup( $restricted_rows, 'restricted' ); ?>
+					</div>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -946,7 +1187,7 @@ class BW_License_Table_Widget extends Widget_Base {
 	/**
 	 * @return array<int, array<string, string>>
 	 */
-	private function get_default_rows() {
+	private function get_default_allowed_rows() {
 		return [
 			[
 				'feature_title'    => __( 'Commercial Use', 'bw' ),
@@ -996,6 +1237,14 @@ class BW_License_Table_Widget extends Widget_Base {
 				'explanation_text' => __( 'Produce up to 5,000 physical copies such as books, brochures, magazines, catalogs, or packaging materials where the artwork supports a larger finished work.', 'bw' ),
 				'use_tooltip'      => 'yes',
 			],
+		];
+	}
+
+	/**
+	 * @return array<int, array<string, string>>
+	 */
+	private function get_default_restricted_rows() {
+		return [
 			[
 				'feature_title'    => __( 'Products for Sale', 'bw' ),
 				'permission_text'  => '✕',
@@ -1033,6 +1282,13 @@ class BW_License_Table_Widget extends Widget_Base {
 				'use_tooltip'      => 'yes',
 			],
 		];
+	}
+
+	/**
+	 * @return array<int, array<string, string>>
+	 */
+	private function get_default_rows() {
+		return array_merge( $this->get_default_allowed_rows(), $this->get_default_restricted_rows() );
 	}
 
 	/**
@@ -1108,6 +1364,44 @@ class BW_License_Table_Widget extends Widget_Base {
 	}
 
 	/**
+	 * @param array<string, mixed> $settings Widget settings.
+	 * @return array{allowed: array<int, array<string, string>>, restricted: array<int, array<string, string>>}
+	 */
+	private function get_effective_sections( $settings ) {
+		$rows_preset        = isset( $settings['rows_preset'] ) ? (string) $settings['rows_preset'] : 'commercial';
+		$allowed_rows       = $this->normalize_rows( isset( $settings['allowed_license_rows'] ) ? $settings['allowed_license_rows'] : [] );
+		$restricted_rows    = $this->normalize_rows( isset( $settings['restricted_license_rows'] ) ? $settings['restricted_license_rows'] : [] );
+		$legacy_rows        = $this->get_effective_rows( $settings );
+		$has_new_structure  = ! empty( $allowed_rows ) || ! empty( $restricted_rows );
+
+		if ( $has_new_structure ) {
+			return [
+				'allowed'    => $allowed_rows,
+				'restricted' => $restricted_rows,
+			];
+		}
+
+		if ( ! empty( $legacy_rows ) ) {
+			return [
+				'allowed'    => $legacy_rows,
+				'restricted' => [],
+			];
+		}
+
+		if ( 'empty' === $rows_preset ) {
+			return [
+				'allowed'    => [],
+				'restricted' => [],
+			];
+		}
+
+		return [
+			'allowed'    => $this->get_default_allowed_rows(),
+			'restricted' => $this->get_default_restricted_rows(),
+		];
+	}
+
+	/**
 	 * Compare normalized repeater rows.
 	 *
 	 * @param array<string, string> $row         Runtime row.
@@ -1127,5 +1421,148 @@ class BW_License_Table_Widget extends Widget_Base {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @param string $feature_default Default feature title.
+	 * @param string $permission_default Default permission text.
+	 * @param string $explanation_default Default explanation.
+	 * @return Repeater
+	 */
+	private function build_license_rows_repeater( $feature_default, $permission_default, $explanation_default ) {
+		$repeater = new Repeater();
+
+		$repeater->add_control(
+			'feature_title',
+			[
+				'label'       => __( 'Feature Title', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => $feature_default,
+				'label_block' => true,
+			]
+		);
+
+		$repeater->add_control(
+			'permission_text',
+			[
+				'label'       => __( 'Permission Text', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => $permission_default,
+				'label_block' => true,
+			]
+		);
+
+		$repeater->add_control(
+			'explanation_text',
+			[
+				'label'       => __( 'Example / Explanation', 'bw' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'default'     => $explanation_default,
+				'rows'        => 4,
+				'placeholder' => __( 'Describe how this permission works in practice.', 'bw' ),
+			]
+		);
+
+		$repeater->add_control(
+			'use_tooltip',
+			[
+				'label'        => __( 'Tooltip Mode', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'description'  => __( 'When enabled, the explanation is shown in a tooltip on desktop and inline on mobile.', 'bw' ),
+			]
+		);
+
+		return $repeater;
+	}
+
+	/**
+	 * @param array<string, mixed> $settings Widget settings.
+	 * @return array<int, string>
+	 */
+	private function get_divider_classes( $settings ) {
+		$classes = [ 'bw-license-table-widget__divider' ];
+		$lines_enabled = isset( $settings['divider_line_enabled'] ) && 'yes' === $settings['divider_line_enabled'];
+
+		if ( ! $lines_enabled ) {
+			return $classes;
+		}
+
+		if ( isset( $settings['divider_line_top_enabled'] ) && 'yes' === $settings['divider_line_top_enabled'] ) {
+			$classes[] = 'bw-license-table-widget__divider--top-line';
+		}
+
+		if ( isset( $settings['divider_line_bottom_enabled'] ) && 'yes' === $settings['divider_line_bottom_enabled'] ) {
+			$classes[] = 'bw-license-table-widget__divider--bottom-line';
+		}
+
+		return $classes;
+	}
+
+	/**
+	 * @param array<int, array<string, string>> $rows Section rows.
+	 * @param string                            $section_key Section key.
+	 * @return void
+	 */
+	private function render_rows_markup( $rows, $section_key ) {
+		foreach ( $rows as $index => $row ) {
+			$row_classes          = [ 'bw-license-table-widget__row' ];
+			$tooltip_id           = sprintf( 'bw-license-table-tooltip-%1$s-%2$s-%3$d', esc_attr( $this->get_id() ), esc_attr( $section_key ), (int) $index );
+			$is_symbol_permission = in_array( $row['permission_text'], [ '✓', '✕' ], true );
+
+			if ( 'yes' === $row['use_tooltip'] && '' !== $row['explanation_text'] ) {
+				$row_classes[] = 'bw-license-table-widget__row--tooltip';
+			}
+
+			if ( $is_symbol_permission ) {
+				$row_classes[] = 'bw-license-table-widget__row--symbol-permission';
+			}
+			?>
+			<div class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
+				<div class="bw-license-table-widget__cell bw-license-table-widget__feature">
+					<span class="bw-license-table-widget__mobile-label"><?php esc_html_e( 'Feature', 'bw' ); ?></span>
+					<div class="bw-license-table-widget__feature-text"><?php echo wp_kses_post( nl2br( esc_html( $row['feature_title'] ) ) ); ?></div>
+				</div>
+
+				<div class="bw-license-table-widget__cell bw-license-table-widget__permission">
+					<span class="bw-license-table-widget__mobile-label"><?php esc_html_e( 'Permission', 'bw' ); ?></span>
+					<div class="bw-license-table-widget__permission-text"><?php echo wp_kses_post( nl2br( esc_html( $row['permission_text'] ) ) ); ?></div>
+				</div>
+
+				<div class="bw-license-table-widget__cell bw-license-table-widget__example">
+					<span class="bw-license-table-widget__mobile-label"><?php esc_html_e( 'Details', 'bw' ); ?></span>
+
+					<?php if ( 'yes' === $row['use_tooltip'] && '' !== $row['explanation_text'] ) : ?>
+						<div class="bw-license-table-widget__tooltip-wrap">
+							<button
+								type="button"
+								class="bw-license-table-widget__tooltip-trigger"
+								aria-label="<?php echo esc_attr( sprintf( __( 'Show explanation for %s', 'bw' ), $row['feature_title'] ) ); ?>"
+								aria-describedby="<?php echo esc_attr( $tooltip_id ); ?>"
+							>
+								<span aria-hidden="true">?</span>
+							</button>
+							<span
+								id="<?php echo esc_attr( $tooltip_id ); ?>"
+								class="bw-license-table-widget__tooltip is-hidden"
+								role="tooltip"
+								hidden
+							><?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?></span>
+							<div class="bw-license-table-widget__tooltip-mobile">
+								<?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?>
+							</div>
+						</div>
+					<?php else : ?>
+						<div class="bw-license-table-widget__example-text">
+							<?php echo wp_kses_post( nl2br( esc_html( $row['explanation_text'] ) ) ); ?>
+						</div>
+					<?php endif; ?>
+				</div>
+			</div>
+			<?php
+		}
 	}
 }

@@ -7,6 +7,13 @@
 	--bw-license-table-description-align: left;
 	--bw-license-table-description-padding: 0;
 	--bw-license-table-header-spacing: 20px;
+	--bw-license-table-divider-color: #080808;
+	--bw-license-table-divider-align: left;
+	--bw-license-table-divider-padding: 0;
+	--bw-license-table-divider-margin: 0 0 16px 0;
+	--bw-license-table-divider-line-color: #dddddd;
+	--bw-license-table-divider-line-thickness: 1px;
+	--bw-license-table-divider-line-spacing: 10px;
 	--bw-license-table-row-gap: 12px;
 	--bw-license-table-row-bg: #ffffff;
 	--bw-license-table-row-alt-bg: #f7f7f7;
@@ -66,6 +73,38 @@
 	flex-direction: column;
 	gap: var(--bw-license-table-row-gap);
 	overflow: visible;
+}
+
+.bw-license-table-widget__section + .bw-license-table-widget__section {
+	margin-top: 24px;
+}
+
+.bw-license-table-widget__divider {
+	display: flex;
+	flex-direction: column;
+	gap: var(--bw-license-table-divider-line-spacing);
+	margin: var(--bw-license-table-divider-margin);
+	padding: var(--bw-license-table-divider-padding);
+	text-align: var(--bw-license-table-divider-align);
+}
+
+.bw-license-table-widget__divider::before,
+.bw-license-table-widget__divider::after {
+	content: "";
+	display: none;
+	width: 100%;
+	height: var(--bw-license-table-divider-line-thickness);
+	background: var(--bw-license-table-divider-line-color);
+	border-radius: 999px;
+}
+
+.bw-license-table-widget__divider--top-line::before,
+.bw-license-table-widget__divider--bottom-line::after {
+	display: block;
+}
+
+.bw-license-table-widget .bw-license-table-widget__divider-label {
+	color: var(--bw-license-table-divider-color);
 }
 
 .bw-license-table-widget__row {
