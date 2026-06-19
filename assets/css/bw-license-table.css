@@ -14,6 +14,7 @@
 	--bw-license-table-divider-line-color: #dddddd;
 	--bw-license-table-divider-line-thickness: 1px;
 	--bw-license-table-divider-line-spacing: 10px;
+	--bw-license-table-restricted-divider-margin-top: 24px;
 	--bw-license-table-row-gap: 12px;
 	--bw-license-table-row-bg: #ffffff;
 	--bw-license-table-row-alt-bg: #f7f7f7;
@@ -40,6 +41,13 @@
 	--bw-license-table-tooltip-trigger-size: 15px;
 	--bw-license-table-tooltip-trigger-bg: transparent;
 	--bw-license-table-tooltip-trigger-radius: 999px;
+	--bw-license-table-footer-color: #080808;
+	--bw-license-table-footer-hover-color: #666666;
+	--bw-license-table-footer-align: left;
+	--bw-license-table-footer-padding-top: 20px;
+	--bw-license-table-footer-padding-bottom: 0;
+	--bw-license-table-footer-divider-color: #dddddd;
+	--bw-license-table-footer-divider-thickness: 1px;
 	background: var(--bw-license-table-card-bg);
 	display: block;
 	overflow: visible;
@@ -79,6 +87,10 @@
 	margin-top: 24px;
 }
 
+.bw-license-table-widget__section--restricted > .bw-license-table-widget__divider {
+	margin-top: var(--bw-license-table-restricted-divider-margin-top);
+}
+
 .bw-license-table-widget__divider {
 	display: flex;
 	flex-direction: column;
@@ -105,6 +117,31 @@
 
 .bw-license-table-widget .bw-license-table-widget__divider-label {
 	color: var(--bw-license-table-divider-color);
+}
+
+.bw-license-table-widget__footer {
+	margin-top: 24px;
+	padding-top: var(--bw-license-table-footer-padding-top);
+	padding-bottom: var(--bw-license-table-footer-padding-bottom);
+	border-top: var(--bw-license-table-footer-divider-thickness) solid var(--bw-license-table-footer-divider-color);
+	text-align: var(--bw-license-table-footer-align);
+}
+
+.bw-license-table-widget .bw-license-table-widget__footer-link,
+.bw-license-table-widget .bw-license-table-widget__footer-text {
+	color: var(--bw-license-table-footer-color);
+}
+
+.bw-license-table-widget .bw-license-table-widget__footer-link {
+	text-decoration: underline;
+	text-underline-offset: 0.12em;
+	transition: color 160ms ease;
+}
+
+.bw-license-table-widget .bw-license-table-widget__footer-link:hover,
+.bw-license-table-widget .bw-license-table-widget__footer-link:focus,
+.bw-license-table-widget .bw-license-table-widget__footer-link:active {
+	color: var(--bw-license-table-footer-hover-color);
 }
 
 .bw-license-table-widget__row {

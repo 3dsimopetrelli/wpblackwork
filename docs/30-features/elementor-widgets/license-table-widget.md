@@ -31,32 +31,48 @@ It is designed to work as:
 - Short Description
 
 ### License Rows
-- Elementor repeater
-- Each row includes:
+- `Allowed License Rows` repeater
+- `Restricted License Rows` repeater
+- legacy `License Rows` repeater remains available only for backward compatibility
+- each row includes:
   - `Feature Title`
   - `Permission Text`
   - `Example / Explanation`
   - `Tooltip Mode`
 
-Default content ships with the Commercial License preset.
+Default content ships with:
+- an Allowed preset
+- a Restricted preset
+- legacy widget instances continue rendering their old single repeater as the Allowed section until manually rebuilt
+
+### Section Labels
+- `Show Allowed Divider`
+- `Divider Text`
+- `Show Restricted Divider`
+- `Restricted Section Title`
+
+### Footer CTA
+- `Show Footer CTA`
+- `Footer Text`
+- `Footer Link URL`
+- `Open In New Tab`
 
 ## Layout Contract
 
 ### Desktop
 - single card/table surface
 - header block at top
-- rows below in a 3-column grid
+- allowed section and restricted section render in sequence
+- optional footer CTA renders below all license rows
+- rows render in a 3-column grid
 - default balance:
   - feature: ~30%
   - permission: ~20%
   - explanation: ~50%
 
 ### Mobile
-- each row stacks into a compact card
-- order:
-  - Feature
-  - Permission
-  - Details
+- each row remains a compact multi-column row
+- repeated per-row labels are not shown
 - no horizontal overflow
 
 ## Tooltip System
@@ -65,13 +81,15 @@ Default content ships with the Commercial License preset.
 - Tooltip mode `OFF`:
   - explanation renders directly in the third column
 - Tooltip mode `ON`:
-  - desktop/tablet: explanation is shown in a scoped CSS tooltip triggered by hover/focus on a small info button
-  - mobile: explanation automatically falls back to inline rendering
+  - desktop/tablet: explanation is shown in a scoped tooltip triggered by hover/focus on a small `?` button
+  - mobile: explanation stays hidden until the same `?` trigger is tapped
+  - outside tap and `Escape` close the active tooltip
+  - only one tooltip is open at a time on the page
 
 Architecture choice:
-- no dedicated widget JS was added
-- tooltip interaction is CSS-only to keep runtime light and avoid duplicate bindings when many widgets exist on the same page
-- mobile fallback avoids brittle tap-state logic
+- lightweight widget-scoped JS is used only for tooltip positioning and tap-state handling
+- no global tooltip framework was introduced
+- cold-load safety still comes from hidden-by-default markup + CSS, not from JS
 
 ## Style Controls
 
@@ -87,6 +105,15 @@ Architecture choice:
 - title typography / color
 - description typography / color
 - header spacing
+- title padding
+- description padding
+
+### Divider
+- divider typography / color
+- divider alignment
+- divider margin / padding
+- optional top / bottom lines
+- restricted title top spacing
 
 ### Feature Column
 - typography
@@ -121,6 +148,16 @@ Architecture choice:
 - padding
 - internal column gap
 
+### Footer CTA
+- typography
+- text color
+- hover color
+- alignment
+- top padding
+- bottom padding
+- divider color
+- divider thickness
+
 ## Architecture Notes
 
 - follows the standard BW widget loader path:
@@ -131,6 +168,7 @@ Architecture choice:
 - no new global tooltip framework was introduced
 - all runtime styling is widget-scoped under `.bw-license-table-widget`
 - dynamic style controls use Elementor selectors and CSS-variable output, matching the current BW widget direction
+- footer CTA follows the same widget-scoped CSS-variable pattern as the header/divider/row systems
 
 ## Extension Points
 

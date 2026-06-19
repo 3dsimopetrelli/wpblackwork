@@ -233,6 +233,72 @@ class BW_License_Table_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_footer_cta',
+			[
+				'label' => __( 'Footer CTA', 'bw' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
+			]
+		);
+
+		$this->add_control(
+			'show_footer_cta',
+			[
+				'label'        => __( 'Show Footer CTA', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			]
+		);
+
+		$this->add_control(
+			'footer_cta_text',
+			[
+				'label'       => __( 'Footer Text', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => __( 'Need a custom license?', 'bw' ),
+				'label_block' => true,
+				'condition'   => [
+					'show_footer_cta' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'footer_cta_url',
+			[
+				'label'         => __( 'Footer Link URL', 'bw' ),
+				'type'          => Controls_Manager::URL,
+				'placeholder'   => __( 'https://your-link.com', 'bw' ),
+				'show_external' => false,
+				'default'       => [
+					'url' => '',
+				],
+				'condition'     => [
+					'show_footer_cta' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'footer_cta_new_tab',
+			[
+				'label'        => __( 'Open In New Tab', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw' ),
+				'label_off'    => __( 'No', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => [
+					'show_footer_cta' => 'yes',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	private function register_style_controls() {
@@ -572,6 +638,29 @@ class BW_License_Table_Widget extends Widget_Base {
 				'selectors'  => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__divider' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'restricted_title_margin_top',
+			[
+				'label'      => __( 'Restricted Title Margin Top', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'rem', 'em' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 120,
+					],
+				],
+				'default'    => [
+					'size' => 24,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-restricted-divider-margin-top: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__section--restricted > .bw-license-table-widget__divider' => 'margin-top: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -1108,6 +1197,158 @@ class BW_License_Table_Widget extends Widget_Base {
 		);
 
 		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_footer_style',
+			[
+				'label' => __( 'Footer CTA', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'footer_typography',
+				'selector' => '{{WRAPPER}} .bw-license-table-widget__footer-link, {{WRAPPER}} .bw-license-table-widget__footer-text',
+			]
+		);
+
+		$this->add_control(
+			'footer_text_color',
+			[
+				'label'     => __( 'Footer Text Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#080808',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__footer-link, {{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__footer-text' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'footer_hover_color',
+			[
+				'label'     => __( 'Footer Hover Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#666666',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-hover-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'footer_alignment',
+			[
+				'label'     => __( 'Footer Alignment', 'bw' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => [
+					'left'    => [
+						'title' => __( 'Left', 'bw' ),
+						'icon'  => 'eicon-text-align-left',
+					],
+					'center'  => [
+						'title' => __( 'Center', 'bw' ),
+						'icon'  => 'eicon-text-align-center',
+					],
+					'right'   => [
+						'title' => __( 'Right', 'bw' ),
+						'icon'  => 'eicon-text-align-right',
+					],
+					'justify' => [
+						'title' => __( 'Justify', 'bw' ),
+						'icon'  => 'eicon-text-align-justify',
+					],
+				],
+				'default'   => 'left',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-align: {{VALUE}};',
+					'{{WRAPPER}} .bw-license-table-widget .bw-license-table-widget__footer' => 'text-align: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'footer_top_padding',
+			[
+				'label'      => __( 'Footer Top Padding', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'rem', 'em' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 120,
+					],
+				],
+				'default'    => [
+					'size' => 20,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-padding-top: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'footer_bottom_padding',
+			[
+				'label'      => __( 'Footer Bottom Padding', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'rem', 'em' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 120,
+					],
+				],
+				'default'    => [
+					'size' => 0,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-padding-bottom: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'footer_divider_color',
+			[
+				'label'     => __( 'Footer Divider Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#dddddd',
+				'selectors' => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-divider-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'footer_divider_thickness',
+			[
+				'label'      => __( 'Footer Divider Thickness', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 8,
+					],
+				],
+				'default'    => [
+					'size' => 1,
+					'unit' => 'px',
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-divider-thickness: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	protected function render() {
@@ -1140,6 +1381,10 @@ class BW_License_Table_Widget extends Widget_Base {
 		$allowed_divider_text    = isset( $settings['allowed_divider_text'] ) ? trim( (string) $settings['allowed_divider_text'] ) : '';
 		$restricted_divider_text = isset( $settings['restricted_divider_text'] ) ? trim( (string) $settings['restricted_divider_text'] ) : '';
 		$divider_classes         = $this->get_divider_classes( $settings );
+		$show_footer_cta         = isset( $settings['show_footer_cta'] ) && 'yes' === $settings['show_footer_cta'];
+		$footer_cta_text         = isset( $settings['footer_cta_text'] ) ? trim( (string) $settings['footer_cta_text'] ) : '';
+		$footer_cta_url          = isset( $settings['footer_cta_url']['url'] ) ? trim( (string) $settings['footer_cta_url']['url'] ) : '';
+		$footer_new_tab          = isset( $settings['footer_cta_new_tab'] ) && 'yes' === $settings['footer_cta_new_tab'];
 
 		?>
 		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
@@ -1178,6 +1423,22 @@ class BW_License_Table_Widget extends Widget_Base {
 					<div class="bw-license-table-widget__rows">
 						<?php $this->render_rows_markup( $restricted_rows, 'restricted' ); ?>
 					</div>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( $show_footer_cta && '' !== $footer_cta_text ) : ?>
+				<div class="bw-license-table-widget__footer">
+					<?php if ( '' !== $footer_cta_url ) : ?>
+						<a
+							class="bw-license-table-widget__footer-link"
+							href="<?php echo esc_url( $footer_cta_url ); ?>"
+							<?php if ( $footer_new_tab ) : ?>
+								target="_blank" rel="noopener noreferrer"
+							<?php endif; ?>
+						><?php echo esc_html( $footer_cta_text ); ?></a>
+					<?php else : ?>
+						<span class="bw-license-table-widget__footer-text"><?php echo esc_html( $footer_cta_text ); ?></span>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 		</div>
