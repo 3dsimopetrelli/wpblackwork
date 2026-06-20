@@ -8,6 +8,18 @@
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-widget,
 .bw-newsletter-subscription-widget {
     --bw-ns-label-bg: #ffffff;
+    --bw-ns-button-text-color: #080808;
+    --bw-ns-button-text-color-hover: var(--bw-ns-button-text-color);
+    --bw-ns-button-bg: #80fd03;
+    --bw-ns-button-bg-hover: var(--bw-ns-button-bg);
+    --bw-ns-button-border-color: #080808;
+    --bw-ns-button-border-color-hover: var(--bw-ns-button-border-color);
+    --bw-ns-button-border-width: 1px;
+    --bw-ns-button-border-radius: 999px;
+    --bw-ns-button-padding-top: 12px;
+    --bw-ns-button-padding-right: 26px;
+    --bw-ns-button-padding-bottom: 12px;
+    --bw-ns-button-padding-left: 26px;
     color: var(--bw-ns-widget-color, #181a20);
     width: 100% !important;
     max-width: 100% !important;
@@ -149,13 +161,13 @@
     height: 100% !important;
     min-width: 0 !important;
     min-height: 42px !important;
-    padding: 0 16px !important;
-    border: 1px solid #000 !important;
-    border-radius: 50px !important;
-    background-color: #80fd03 !important;
-    color: #080808 !important;
-    font-size: 16px !important;
-    font-weight: 400 !important;
+    padding: var(--bw-ns-button-padding-top) var(--bw-ns-button-padding-right) var(--bw-ns-button-padding-bottom) var(--bw-ns-button-padding-left) !important;
+    border-width: var(--bw-ns-button-border-width) !important;
+    border-style: solid !important;
+    border-color: var(--bw-ns-button-border-color) !important;
+    border-radius: var(--bw-ns-button-border-radius) !important;
+    background-color: var(--bw-ns-button-bg) !important;
+    color: var(--bw-ns-button-text-color) !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-footer-copy,
@@ -472,17 +484,6 @@ input.bw-newsletter-subscription-input:focus {
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button,
 .bw-newsletter-subscription-button {
-    --bw-search-button-bg: #80fd03;
-    --bw-search-button-bg-hover: var(--bw-search-button-bg);
-    --bw-search-button-border-color: #080808;
-    --bw-search-button-border-color-hover: var(--bw-search-button-border-color);
-    --bw-search-button-border-width: 1px;
-    --bw-search-button-border-radius: 999px;
-    --bw-search-button-padding-top: 12px;
-    --bw-search-button-padding-right: 26px;
-    --bw-search-button-padding-bottom: 12px;
-    --bw-search-button-padding-left: 26px;
-
     align-self: flex-start !important;
     width: auto !important;
     margin: 0 !important;
@@ -490,9 +491,7 @@ input.bw-newsletter-subscription-input:focus {
     border: none !important;
     background: none !important;
     box-shadow: none !important;
-    color: #080808 !important;
-    font-size: 18px !important;
-    font-weight: 500 !important;
+    color: var(--bw-ns-button-text-color) !important;
     cursor: pointer !important;
 }
 
@@ -511,48 +510,43 @@ input.bw-newsletter-subscription-input:focus {
     gap: 8px !important;
     min-width: 180px !important;
     min-height: 60px !important;
-    padding: var(--bw-search-button-padding-top) var(--bw-search-button-padding-right) var(--bw-search-button-padding-bottom) var(--bw-search-button-padding-left) !important;
-    border: var(--bw-search-button-border-width) solid var(--bw-search-button-border-color) !important;
-    border-radius: var(--bw-search-button-border-radius) !important;
-    background-color: var(--bw-search-button-bg) !important;
-    color: inherit !important;
+    padding: var(--bw-ns-button-padding-top) var(--bw-ns-button-padding-right) var(--bw-ns-button-padding-bottom) var(--bw-ns-button-padding-left) !important;
+    border: var(--bw-ns-button-border-width) solid var(--bw-ns-button-border-color) !important;
+    border-radius: var(--bw-ns-button-border-radius) !important;
+    background-color: var(--bw-ns-button-bg) !important;
+    color: var(--bw-ns-button-text-color) !important;
+    box-sizing: border-box !important;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-button__label {
     min-width: 170px !important;
     min-height: 56px !important;
-    padding: 0 26px !important;
-    border-color: #80fd03 !important;
-    background-color: #80fd03 !important;
-    color: #080808 !important;
-    font-size: 15px !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:hover,
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:focus,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:focus-visible,
 .bw-newsletter-subscription-button:hover,
-.bw-newsletter-subscription-button:focus {
+.bw-newsletter-subscription-button:focus,
+.bw-newsletter-subscription-button:focus-visible {
     outline: none !important;
+    box-shadow: none !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:hover .bw-newsletter-subscription-button__label,
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:focus-visible .bw-newsletter-subscription-button__label,
 .bw-newsletter-subscription-button:hover .bw-newsletter-subscription-button__label,
-.bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label {
-    background-color: var(--bw-search-button-bg-hover) !important;
-    border-color: var(--bw-search-button-border-color-hover) !important;
+.bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label,
+.bw-newsletter-subscription-button:focus-visible .bw-newsletter-subscription-button__label {
+    background-color: var(--bw-ns-button-bg-hover) !important;
+    border-color: var(--bw-ns-button-border-color-hover) !important;
+    color: var(--bw-ns-button-text-color-hover) !important;
 }
 
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-button:hover .bw-newsletter-subscription-button__label,
-.bw-newsletter-subscription-widget--section .bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label {
-    background-color: #93ff2a !important;
-    border-color: #93ff2a !important;
-}
-
-.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button:hover .bw-newsletter-subscription-button__label,
-.bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button:focus .bw-newsletter-subscription-button__label {
-    background-color: #80fd03 !important;
-    border-color: #fff !important;
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button:focus-visible .bw-newsletter-subscription-button__label,
+.bw-newsletter-subscription-button:focus-visible .bw-newsletter-subscription-button__label {
+    box-shadow: 0 0 0 3px rgba(8, 8, 8, 0.12) !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-button[disabled],
@@ -705,8 +699,7 @@ input.bw-newsletter-subscription-input:focus {
 
     .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button__label {
         min-height: 40px !important;
-        border: 3px solid #fff !important;
-        border-radius: 50px !important;
+        border-radius: var(--bw-ns-button-border-radius) !important;
     }
 
     .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input,

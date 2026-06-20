@@ -62,6 +62,7 @@ Purpose:
 Controls:
 - `Style` = `Style Footer`
 - `Show name field`
+- `Subscribe Button Text`
 
 ### `Style Section`
 Purpose:
@@ -71,6 +72,7 @@ Purpose:
 Content controls:
 - `Style` = `Style Section`
 - `Show name field`
+- `Subscribe Button Text`
 - `Title`
 - `Subtitle`
 - `Background Color`
@@ -91,10 +93,23 @@ Style-tab controls:
 - `Glow Color`
 - `Overlay Opacity`
 
+Shared button style controls:
+- `Subscribe Button Typography`
+- `Button Text Color`
+- `Button Text Hover Color`
+- `Button Background Color`
+- `Button Background Hover Color`
+- `Button Border Color`
+- `Button Border Hover Color`
+- `Button Border Width`
+- `Button Border Radius`
+- `Button Padding`
+
 Implementation note:
 - `Style Section` changes only layout/visual treatment
 - the form still submits through the exact same AJAX action and consent flow as `Style Footer`
 - the name field now uses one canonical control model with legacy saved-value compatibility preserved in render
+- button copy is now widget-controlled per instance, with `Subscribe` as the default fallback
 
 ## Rendering Behavior
 Common runtime output:

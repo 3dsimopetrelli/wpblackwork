@@ -82,6 +82,16 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'subscribe_button_text',
+            [
+                'label'       => __( 'Subscribe Button Text', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => __( 'Subscribe', 'bw' ),
+                'placeholder' => __( 'Subscribe', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
             'privacy_custom_text_enabled',
             [
                 'label'        => __( 'Custom privacy text', 'bw' ),
@@ -461,6 +471,134 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         );
 
         $this->end_controls_section();
+
+        $this->start_controls_section(
+            'section_style_button',
+            [
+                'label' => __( 'Subscribe Button', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'button_typography',
+                'label'    => __( 'Typography', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription-button__label',
+            ]
+        );
+
+        $this->add_control(
+            'button_text_color',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-button-text-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_text_hover_color',
+            [
+                'label'     => __( 'Text Hover Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-button-text-color-hover: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-button-bg: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_background_hover_color',
+            [
+                'label'     => __( 'Background Hover Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-button-bg-hover: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-button-border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_border_hover_color',
+            [
+                'label'     => __( 'Border Hover Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-button-border-color-hover: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 12,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-button-border-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em', 'rem' ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-button-border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_padding',
+            [
+                'label'      => __( 'Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%', 'em', 'rem' ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-button-padding-top: {{TOP}}{{UNIT}}; --bw-ns-button-padding-right: {{RIGHT}}{{UNIT}}; --bw-ns-button-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-ns-button-padding-left: {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     protected function render() {
@@ -513,7 +651,10 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $widget_id = 'bw-mm-subscription-' . esc_attr( $this->get_id() );
         $message_id = $widget_id . '-message';
         $consent_id = $widget_id . '-privacy';
-        $button_text = ! empty( $settings['button_text'] ) ? $settings['button_text'] : __( 'Subscribe', 'bw' );
+        $button_text = isset( $widget_settings['subscribe_button_text'] ) ? trim( (string) $widget_settings['subscribe_button_text'] ) : '';
+        if ( '' === $button_text ) {
+            $button_text = __( 'Subscribe', 'bw' );
+        }
         $footer_title = isset( $widget_settings['footer_title'] ) ? wp_kses_post( $widget_settings['footer_title'] ) : __( 'PRIVATE ACCESS TO NEW RELEASES', 'bw' );
         $footer_subtitle = isset( $widget_settings['footer_subtitle'] ) ? wp_kses_post( $widget_settings['footer_subtitle'] ) : __( 'Early access to rare books, prints, and curated selections. No noise. Only what matters.', 'bw' );
         $section_title = isset( $widget_settings['section_title'] ) ? wp_kses_post( $widget_settings['section_title'] ) : __( 'Step Inside the Archive', 'bw' );
