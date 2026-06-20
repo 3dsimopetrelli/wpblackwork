@@ -506,7 +506,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}}' => '--bw-ns-input-text-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -517,7 +517,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Placeholder Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}}' => '--bw-ns-input-placeholder-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email::placeholder' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email::-webkit-input-placeholder' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -528,7 +529,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Background Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}}' => '--bw-ns-input-bg: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'background: {{VALUE}};',
                 ],
             ]
         );
@@ -539,7 +540,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}}' => '--bw-ns-input-border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -550,7 +551,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Hover Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}}' => '--bw-ns-input-border-hover-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:hover' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -561,7 +562,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Focus Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}}' => '--bw-ns-input-border-focus-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 3px {{VALUE}};',
                 ],
             ]
         );
@@ -580,7 +581,26 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     ],
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}}' => '--bw-ns-input-border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'border-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'input_border_focus_width',
+            [
+                'label'      => __( 'Focus Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 12,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -592,7 +612,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', '%' ],
                 'selectors'  => [
-                    '{{WRAPPER}}' => '--bw-ns-input-border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -604,7 +624,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', 'rem', '%' ],
                 'selectors'  => [
-                    '{{WRAPPER}}' => '--bw-ns-input-padding-top: {{TOP}}{{UNIT}}; --bw-ns-input-padding-right: {{RIGHT}}{{UNIT}}; --bw-ns-input-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-ns-input-padding-left: {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'padding: {{TOP}}{{UNIT}} calc({{RIGHT}}{{UNIT}} + var(--bw-ns-input-padding-right-inline-offset, 0px)) {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -633,7 +653,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     ],
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}}' => '--bw-ns-input-height: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
