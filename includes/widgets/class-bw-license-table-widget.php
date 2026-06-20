@@ -392,6 +392,47 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_responsive_control(
+			'card_minimum_height',
+			[
+				'label'      => __( 'Card Minimum Height', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', '%', 'vh' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 1600,
+					],
+					'%'  => [
+						'min' => 0,
+						'max' => 100,
+					],
+					'vh' => [
+						'min' => 0,
+						'max' => 100,
+					],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-min-height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'stretch_content',
+			[
+				'label'        => __( 'Stretch Content', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'selectors'    => [
+					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-stretch-content: 1;',
+				],
+			]
+		);
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(

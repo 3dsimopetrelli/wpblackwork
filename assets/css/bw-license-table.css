@@ -48,9 +48,23 @@
 	--bw-license-table-footer-padding-bottom: 0;
 	--bw-license-table-footer-divider-color: #dddddd;
 	--bw-license-table-footer-divider-thickness: 1px;
+	--bw-license-table-min-height: auto;
+	--bw-license-table-stretch-content: 0;
 	background: var(--bw-license-table-card-bg);
 	display: block;
+	min-height: var(--bw-license-table-min-height);
 	overflow: visible;
+}
+
+.bw-license-table-widget[style*="--bw-license-table-stretch-content: 1"],
+.bw-license-table-widget[style*="--bw-license-table-stretch-content:1"] {
+	display: flex;
+	flex-direction: column;
+}
+
+.bw-license-table-widget[style*="--bw-license-table-stretch-content: 1"] .bw-license-table-widget__footer,
+.bw-license-table-widget[style*="--bw-license-table-stretch-content:1"] .bw-license-table-widget__footer {
+	margin-top: auto;
 }
 
 .bw-license-table-widget,
