@@ -203,35 +203,6 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'legacy_rows_heading',
-			[
-				'label'     => __( 'Legacy Rows (Backward Compatibility)', 'bw' ),
-				'type'      => Controls_Manager::HEADING,
-				'separator' => 'before',
-			]
-		);
-
-		$this->add_control(
-			'legacy_rows_notice',
-			[
-				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => esc_html__( 'Existing BW License Table instances that still use the old single repeater will continue rendering from these rows until you rebuild them with the new Allowed / Restricted sections.', 'bw' ),
-				'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
-			]
-		);
-
-		$this->add_control(
-			'license_rows',
-			[
-				'label'       => __( 'Legacy Rows', 'bw' ),
-				'type'        => Controls_Manager::REPEATER,
-				'fields'      => $allowed_repeater->get_controls(),
-				'default'     => [],
-				'title_field' => '{{{ feature_title }}}',
-			]
-		);
-
 		$this->end_controls_section();
 
 		$this->start_controls_section(
