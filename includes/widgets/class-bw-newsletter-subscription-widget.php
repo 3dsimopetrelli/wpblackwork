@@ -496,7 +496,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             [
                 'name'     => 'input_typography',
                 'label'    => __( 'Typography', 'bw' ),
-                'selector' => '{{WRAPPER}} .bw-newsletter-subscription-input',
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription__input--email, {{WRAPPER}} .bw-newsletter-subscription__input--email::placeholder',
             ]
         );
 
@@ -643,7 +643,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             [
                 'name'     => 'input_box_shadow',
                 'label'    => __( 'Box Shadow', 'bw' ),
-                'selector' => '{{WRAPPER}} .bw-newsletter-subscription-input',
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription__input--email',
             ]
         );
 
@@ -980,7 +980,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                 </label>
                                 <input
                                     id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
-                                    class="bw-newsletter-subscription-input"
+                                    class="bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email"
                                     type="email"
                                     name="email"
                                     autocomplete="email"
@@ -1003,7 +1003,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                             </label>
                             <input
                                 id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
-                                class="bw-newsletter-subscription-input"
+                                class="bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email"
                                 type="email"
                                 name="email"
                                 autocomplete="email"

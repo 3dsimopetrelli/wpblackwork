@@ -160,11 +160,6 @@
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-field--email .bw-newsletter-subscription-input {
     height: 100% !important;
     min-height: 42px !important;
-    padding: 0 18px !important;
-    border: none !important;
-    border-radius: 50px !important;
-    background: transparent !important;
-    box-shadow: none !important;
 }
 
 .bw-newsletter-subscription-form.is-button-inline .bw-newsletter-subscription-button {
@@ -318,49 +313,66 @@ input.bw-newsletter-subscription-input {
     border-radius: var(--bw-ns-input-border-radius) !important;
     background: var(--bw-ns-input-bg) !important;
     color: var(--bw-ns-input-text-color) !important;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.2;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     appearance: none !important;
     -webkit-appearance: none !important;
     box-sizing: border-box !important;
     outline: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease !important;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input,
 .bw-newsletter-subscription-widget--section input.bw-newsletter-subscription-input {
-    box-shadow: none !important;
+    box-shadow: none;
 }
 
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input::placeholder,
-.bw-newsletter-subscription-input::placeholder,
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input::-webkit-input-placeholder,
-.bw-newsletter-subscription-input::-webkit-input-placeholder {
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email,
+.elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email,
+.bw-newsletter-subscription__input--email,
+input.bw-newsletter-subscription__input--email {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-style: solid !important;
+    box-sizing: border-box !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email::placeholder,
+.bw-newsletter-subscription__input--email::placeholder,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email::-webkit-input-placeholder,
+.bw-newsletter-subscription__input--email::-webkit-input-placeholder {
     opacity: 0.82 !important;
     color: var(--bw-ns-input-placeholder-color) !important;
     font: inherit !important;
     transition: opacity 0.18s ease, color 0.18s ease !important;
 }
 
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder,
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-input::placeholder,
-.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::placeholder,
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::-webkit-input-placeholder,
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription-input::-webkit-input-placeholder,
-.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription-input::-webkit-input-placeholder {
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::placeholder,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription__input--email::placeholder,
+.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::placeholder,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::-webkit-input-placeholder,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription__input--email::-webkit-input-placeholder,
+.bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::-webkit-input-placeholder {
     opacity: 0 !important;
     color: transparent !important;
 }
 
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input:hover,
-.elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription-input:hover,
-.bw-newsletter-subscription-input:hover,
-input.bw-newsletter-subscription-input:hover {
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email:hover,
+.elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email:hover,
+.bw-newsletter-subscription__input--email:hover,
+input.bw-newsletter-subscription__input--email:hover {
     border-color: var(--bw-ns-input-border-hover-color) !important;
 }
 
-.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-input:focus,
-.elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription-input:focus,
-.bw-newsletter-subscription-input:focus,
-input.bw-newsletter-subscription-input:focus {
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email:focus,
+.elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email:focus,
+.bw-newsletter-subscription__input--email:focus,
+input.bw-newsletter-subscription__input--email:focus {
     border-color: var(--bw-ns-input-border-focus-color) !important;
     box-shadow: 0 0 0 3px var(--bw-ns-input-border-focus-color) !important;
 }
