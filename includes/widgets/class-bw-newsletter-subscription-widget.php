@@ -1,5 +1,6 @@
 <?php
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
@@ -88,6 +89,16 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'type'        => Controls_Manager::TEXT,
                 'default'     => __( 'Subscribe', 'bw' ),
                 'placeholder' => __( 'Subscribe', 'bw' ),
+            ]
+        );
+
+        $this->add_control(
+            'email_placeholder_text',
+            [
+                'label'       => __( 'Email Placeholder Text', 'bw' ),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => __( 'Your email', 'bw' ),
+                'placeholder' => __( 'Your email', 'bw' ),
             ]
         );
 
@@ -473,6 +484,172 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $this->end_controls_section();
 
         $this->start_controls_section(
+            'section_style_input',
+            [
+                'label' => __( 'Input Field', 'bw' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'input_typography',
+                'label'    => __( 'Typography', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription-input',
+            ]
+        );
+
+        $this->add_control(
+            'input_text_color',
+            [
+                'label'     => __( 'Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-input-text-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'input_placeholder_color',
+            [
+                'label'     => __( 'Placeholder Text Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-input-placeholder-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'input_background_color',
+            [
+                'label'     => __( 'Background Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-input-bg: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'input_border_color',
+            [
+                'label'     => __( 'Border Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-input-border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'input_border_hover_color',
+            [
+                'label'     => __( 'Border Hover Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-input-border-hover-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'input_border_focus_color',
+            [
+                'label'     => __( 'Border Focus Color', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-input-border-focus-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'input_border_width',
+            [
+                'label'      => __( 'Border Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 12,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-input-border-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'input_border_radius',
+            [
+                'label'      => __( 'Border Radius', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-input-border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'input_padding',
+            [
+                'label'      => __( 'Padding', 'bw' ),
+                'type'       => Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', 'rem', '%' ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-input-padding-top: {{TOP}}{{UNIT}}; --bw-ns-input-padding-right: {{RIGHT}}{{UNIT}}; --bw-ns-input-padding-bottom: {{BOTTOM}}{{UNIT}}; --bw-ns-input-padding-left: {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'input_height',
+            [
+                'label'      => __( 'Height', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', 'em', 'rem' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 24,
+                        'max'  => 120,
+                        'step' => 1,
+                    ],
+                    'em' => [
+                        'min'  => 1,
+                        'max'  => 8,
+                        'step' => 0.1,
+                    ],
+                    'rem' => [
+                        'min'  => 1,
+                        'max'  => 8,
+                        'step' => 0.1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-input-height: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Box_Shadow::get_type(),
+            [
+                'name'     => 'input_box_shadow',
+                'label'    => __( 'Box Shadow', 'bw' ),
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription-input',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
             'section_style_button',
             [
                 'label' => __( 'Subscribe Button', 'bw' ),
@@ -629,6 +806,10 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         }
         $name_label   = ! empty( $settings['name_label'] ) ? $settings['name_label'] : __( 'Name', 'bw' );
         $email_label  = ! empty( $settings['email_label'] ) ? $settings['email_label'] : __( 'Email address', 'bw' );
+        $email_placeholder = isset( $widget_settings['email_placeholder_text'] ) ? trim( (string) $widget_settings['email_placeholder_text'] ) : '';
+        if ( '' === $email_placeholder ) {
+            $email_placeholder = __( 'Your email', 'bw' );
+        }
         $consent_text = ! empty( $settings['consent_prefix'] ) ? $settings['consent_prefix'] : __( 'I agree to the', 'bw' );
         $consent_required = ! isset( $settings['consent_required'] ) || ! empty( $settings['consent_required'] );
 
@@ -803,7 +984,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                     type="email"
                                     name="email"
                                     autocomplete="email"
-                                    placeholder="<?php echo esc_attr( $email_label ); ?>"
+                                    placeholder="<?php echo esc_attr( $email_placeholder ); ?>"
                                     aria-label="<?php echo esc_attr( $email_label ); ?>"
                                     aria-describedby="<?php echo esc_attr( $message_id ); ?>"
                                     aria-invalid="false"
@@ -826,7 +1007,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                 type="email"
                                 name="email"
                                 autocomplete="email"
-                                placeholder="<?php echo esc_attr( $email_label ); ?>"
+                                placeholder="<?php echo esc_attr( $email_placeholder ); ?>"
                                 aria-label="<?php echo esc_attr( $email_label ); ?>"
                                 aria-describedby="<?php echo esc_attr( $message_id ); ?>"
                                 aria-invalid="false"

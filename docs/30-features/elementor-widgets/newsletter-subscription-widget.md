@@ -63,6 +63,7 @@ Controls:
 - `Style` = `Style Footer`
 - `Show name field`
 - `Subscribe Button Text`
+- `Email Placeholder Text`
 
 ### `Style Section`
 Purpose:
@@ -73,6 +74,7 @@ Content controls:
 - `Style` = `Style Section`
 - `Show name field`
 - `Subscribe Button Text`
+- `Email Placeholder Text`
 - `Title`
 - `Subtitle`
 - `Background Color`
@@ -92,6 +94,20 @@ Style-tab controls:
 - `Overlay Color`
 - `Glow Color`
 - `Overlay Opacity`
+
+Shared input style controls:
+- `Input Typography`
+- `Input Text Color`
+- `Placeholder Text Color`
+- `Input Background Color`
+- `Input Border Color`
+- `Input Border Hover Color`
+- `Input Border Focus Color`
+- `Input Border Width`
+- `Input Border Radius`
+- `Input Padding`
+- `Input Height`
+- `Input Box Shadow`
 
 Shared button style controls:
 - `Subscribe Button Typography`
