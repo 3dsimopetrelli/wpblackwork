@@ -1369,10 +1369,6 @@ class BW_License_Table_Widget extends Widget_Base {
 		$allowed_rows = $sections['allowed'];
 		$restricted_rows = $sections['restricted'];
 
-		if ( empty( $allowed_rows ) && empty( $restricted_rows ) ) {
-			return;
-		}
-
 		$wrapper_classes = [ 'bw-license-table-widget' ];
 
 		if ( 'yes' === ( isset( $settings['enable_alternate_rows'] ) ? $settings['enable_alternate_rows'] : '' ) ) {
@@ -1401,11 +1397,18 @@ class BW_License_Table_Widget extends Widget_Base {
 		$footer_cta_text         = isset( $settings['footer_cta_text'] ) ? trim( (string) $settings['footer_cta_text'] ) : '';
 		$footer_cta_url          = isset( $settings['footer_cta_url']['url'] ) ? trim( (string) $settings['footer_cta_url']['url'] ) : '';
 		$footer_new_tab          = isset( $settings['footer_cta_new_tab'] ) && 'yes' === $settings['footer_cta_new_tab'];
+		$has_header_content      = '' !== $title || '' !== $description;
+		$has_footer_content      = $show_footer_cta && '' !== $footer_cta_text;
+		$has_rows_content        = ! empty( $allowed_rows ) || ! empty( $restricted_rows );
+
+		if ( ! $has_header_content && ! $has_footer_content && ! $has_rows_content ) {
+			return;
+		}
 
 		?>
 		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<div class="bw-license-table-widget__body">
-				<?php if ( '' !== $title || '' !== $description ) : ?>
+				<?php if ( $has_header_content ) : ?>
 					<div class="bw-license-table-widget__header">
 						<?php if ( '' !== $title ) : ?>
 							<h3 class="bw-license-table-widget__title"><?php echo esc_html( $title ); ?></h3>
@@ -1444,7 +1447,7 @@ class BW_License_Table_Widget extends Widget_Base {
 				<?php endif; ?>
 			</div>
 
-			<?php if ( $show_footer_cta && '' !== $footer_cta_text ) : ?>
+			<?php if ( $has_footer_content ) : ?>
 				<div class="bw-license-table-widget__footer">
 					<?php if ( '' !== $footer_cta_url ) : ?>
 						<a
@@ -1652,6 +1655,45 @@ class BW_License_Table_Widget extends Widget_Base {
 		$restricted_rows    = $this->normalize_rows( isset( $settings['restricted_license_rows'] ) ? $settings['restricted_license_rows'] : [] );
 		$legacy_rows        = $this->get_effective_rows( $settings );
 		$has_new_structure  = ! empty( $allowed_rows ) || ! empty( $restricted_rows );
+		$default_allowed    = $this->get_default_allowed_rows();
+		$default_restricted = $this->get_default_restricted_rows();
+
+		if ( 'empty' === $rows_preset ) {
+			$allowed_rows = array_values(
+				array_filter(
+					$allowed_rows,
+					function ( $row ) use ( $default_allowed ) {
+						foreach ( $default_allowed as $default_row ) {
+							if ( $this->rows_match( $row, $default_row ) ) {
+								return false;
+							}
+						}
+
+						return true;
+					}
+				)
+			);
+
+			$restricted_rows = array_values(
+				array_filter(
+					$restricted_rows,
+					function ( $row ) use ( $default_restricted ) {
+						foreach ( $default_restricted as $default_row ) {
+							if ( $this->rows_match( $row, $default_row ) ) {
+								return false;
+							}
+						}
+
+						return true;
+					}
+				)
+			);
+
+			return [
+				'allowed'    => $allowed_rows,
+				'restricted' => $restricted_rows,
+			];
+		}
 
 		if ( $has_new_structure ) {
 			return [
@@ -1663,13 +1705,6 @@ class BW_License_Table_Widget extends Widget_Base {
 		if ( ! empty( $legacy_rows ) ) {
 			return [
 				'allowed'    => $legacy_rows,
-				'restricted' => [],
-			];
-		}
-
-		if ( 'empty' === $rows_preset ) {
-			return [
-				'allowed'    => [],
 				'restricted' => [],
 			];
 		}
