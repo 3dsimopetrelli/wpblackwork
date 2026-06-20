@@ -269,6 +269,21 @@ class BW_License_Table_Widget extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'stick_footer_cta_to_bottom',
+			[
+				'label'        => __( 'Stick Footer CTA To Bottom', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => [
+					'show_footer_cta' => 'yes',
+				],
+			]
+		);
+
 		$this->end_controls_section();
 	}
 
@@ -385,21 +400,6 @@ class BW_License_Table_Widget extends Widget_Base {
 				],
 				'selectors'  => [
 					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-min-height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}};',
-				],
-			]
-		);
-
-		$this->add_control(
-			'stretch_content',
-			[
-				'label'        => __( 'Stretch Content', 'bw' ),
-				'type'         => Controls_Manager::SWITCHER,
-				'label_on'     => __( 'On', 'bw' ),
-				'label_off'    => __( 'Off', 'bw' ),
-				'return_value' => 'yes',
-				'default'      => '',
-				'selectors'    => [
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-stretch-content: 1;',
 				],
 			]
 		);
@@ -1379,6 +1379,10 @@ class BW_License_Table_Widget extends Widget_Base {
 			$wrapper_classes[] = 'bw-license-table-widget--alternate-rows';
 		}
 
+		if ( isset( $settings['stick_footer_cta_to_bottom'] ) && 'yes' === $settings['stick_footer_cta_to_bottom'] ) {
+			$wrapper_classes[] = 'bw-license-table-widget--footer-sticky';
+		}
+
 		$this->add_render_attribute(
 			'wrapper',
 			[
@@ -1400,43 +1404,45 @@ class BW_License_Table_Widget extends Widget_Base {
 
 		?>
 		<div <?php echo $this->get_render_attribute_string( 'wrapper' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-			<?php if ( '' !== $title || '' !== $description ) : ?>
-				<div class="bw-license-table-widget__header">
-					<?php if ( '' !== $title ) : ?>
-						<h3 class="bw-license-table-widget__title"><?php echo esc_html( $title ); ?></h3>
-					<?php endif; ?>
+			<div class="bw-license-table-widget__body">
+				<?php if ( '' !== $title || '' !== $description ) : ?>
+					<div class="bw-license-table-widget__header">
+						<?php if ( '' !== $title ) : ?>
+							<h3 class="bw-license-table-widget__title"><?php echo esc_html( $title ); ?></h3>
+						<?php endif; ?>
 
-					<?php if ( '' !== $description ) : ?>
-						<div class="bw-license-table-widget__description"><?php echo wp_kses_post( nl2br( esc_html( $description ) ) ); ?></div>
-					<?php endif; ?>
-				</div>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $allowed_rows ) ) : ?>
-				<div class="bw-license-table-widget__section bw-license-table-widget__section--allowed">
-					<?php if ( $show_allowed_divider && '' !== $allowed_divider_text ) : ?>
-						<div class="<?php echo esc_attr( implode( ' ', $divider_classes ) ); ?>">
-							<span class="bw-license-table-widget__divider-label"><?php echo esc_html( $allowed_divider_text ); ?></span>
-						</div>
-					<?php endif; ?>
-					<div class="bw-license-table-widget__rows">
-						<?php $this->render_rows_markup( $allowed_rows, 'allowed' ); ?>
+						<?php if ( '' !== $description ) : ?>
+							<div class="bw-license-table-widget__description"><?php echo wp_kses_post( nl2br( esc_html( $description ) ) ); ?></div>
+						<?php endif; ?>
 					</div>
-				</div>
-			<?php endif; ?>
+				<?php endif; ?>
 
-			<?php if ( ! empty( $restricted_rows ) ) : ?>
-				<div class="bw-license-table-widget__section bw-license-table-widget__section--restricted">
-					<?php if ( $show_restricted_divider && '' !== $restricted_divider_text ) : ?>
-						<div class="<?php echo esc_attr( implode( ' ', $divider_classes ) ); ?>">
-							<span class="bw-license-table-widget__divider-label"><?php echo esc_html( $restricted_divider_text ); ?></span>
+				<?php if ( ! empty( $allowed_rows ) ) : ?>
+					<div class="bw-license-table-widget__section bw-license-table-widget__section--allowed">
+						<?php if ( $show_allowed_divider && '' !== $allowed_divider_text ) : ?>
+							<div class="<?php echo esc_attr( implode( ' ', $divider_classes ) ); ?>">
+								<span class="bw-license-table-widget__divider-label"><?php echo esc_html( $allowed_divider_text ); ?></span>
+							</div>
+						<?php endif; ?>
+						<div class="bw-license-table-widget__rows">
+							<?php $this->render_rows_markup( $allowed_rows, 'allowed' ); ?>
 						</div>
-					<?php endif; ?>
-					<div class="bw-license-table-widget__rows">
-						<?php $this->render_rows_markup( $restricted_rows, 'restricted' ); ?>
 					</div>
-				</div>
-			<?php endif; ?>
+				<?php endif; ?>
+
+				<?php if ( ! empty( $restricted_rows ) ) : ?>
+					<div class="bw-license-table-widget__section bw-license-table-widget__section--restricted">
+						<?php if ( $show_restricted_divider && '' !== $restricted_divider_text ) : ?>
+							<div class="<?php echo esc_attr( implode( ' ', $divider_classes ) ); ?>">
+								<span class="bw-license-table-widget__divider-label"><?php echo esc_html( $restricted_divider_text ); ?></span>
+							</div>
+						<?php endif; ?>
+						<div class="bw-license-table-widget__rows">
+							<?php $this->render_rows_markup( $restricted_rows, 'restricted' ); ?>
+						</div>
+					</div>
+				<?php endif; ?>
+			</div>
 
 			<?php if ( $show_footer_cta && '' !== $footer_cta_text ) : ?>
 				<div class="bw-license-table-widget__footer">
