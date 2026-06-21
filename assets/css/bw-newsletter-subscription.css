@@ -305,14 +305,14 @@ input.bw-newsletter-subscription-input {
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
-    height: var(--bw-ns-input-height) !important;
-    min-height: var(--bw-ns-input-height) !important;
+    height: var(--bw-ns-input-height);
+    min-height: var(--bw-ns-input-height);
     margin: 0 !important;
-    padding: var(--bw-ns-input-padding-top) calc(var(--bw-ns-input-padding-right) + var(--bw-ns-input-padding-right-inline-offset, 0px)) var(--bw-ns-input-padding-bottom) var(--bw-ns-input-padding-left) !important;
-    border: var(--bw-ns-input-border-width) solid var(--bw-ns-input-border-color) !important;
-    border-radius: var(--bw-ns-input-border-radius) !important;
-    background: var(--bw-ns-input-bg) !important;
-    color: var(--bw-ns-input-text-color) !important;
+    padding: var(--bw-ns-input-padding-top) calc(var(--bw-ns-input-padding-right) + var(--bw-ns-input-padding-right-inline-offset, 0px)) var(--bw-ns-input-padding-bottom) var(--bw-ns-input-padding-left);
+    border: var(--bw-ns-input-border-width) solid var(--bw-ns-input-border-color);
+    border-radius: var(--bw-ns-input-border-radius);
+    background: var(--bw-ns-input-bg);
+    color: var(--bw-ns-input-text-color);
     font-size: 16px;
     font-weight: 400;
     line-height: 1.2;
@@ -322,7 +322,7 @@ input.bw-newsletter-subscription-input {
     box-sizing: border-box !important;
     outline: none !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription-input,
@@ -346,10 +346,10 @@ input.bw-newsletter-subscription__input--email {
 .bw-newsletter-subscription__input--email::placeholder,
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email::-webkit-input-placeholder,
 .bw-newsletter-subscription__input--email::-webkit-input-placeholder {
-    opacity: 0.82 !important;
-    color: var(--bw-ns-input-placeholder-color) !important;
-    font: inherit !important;
-    transition: opacity 0.18s ease, color 0.18s ease !important;
+    opacity: 0.82;
+    color: var(--bw-ns-input-placeholder-color);
+    font: inherit;
+    transition: opacity 0.18s ease, color 0.18s ease;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::placeholder,
@@ -358,23 +358,23 @@ input.bw-newsletter-subscription__input--email {
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::-webkit-input-placeholder,
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-field:focus-within .bw-newsletter-subscription__input--email::-webkit-input-placeholder,
 .bw-newsletter-subscription-field.is-filled .bw-newsletter-subscription__input--email::-webkit-input-placeholder {
-    opacity: 0 !important;
-    color: transparent !important;
+    opacity: 0;
+    color: transparent;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email:hover,
 .elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email:hover,
 .bw-newsletter-subscription__input--email:hover,
 input.bw-newsletter-subscription__input--email:hover {
-    border-color: var(--bw-ns-input-border-hover-color) !important;
+    border-color: var(--bw-ns-input-border-hover-color);
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email:focus,
 .elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email:focus,
 .bw-newsletter-subscription__input--email:focus,
 input.bw-newsletter-subscription__input--email:focus {
-    border-color: var(--bw-ns-input-border-focus-color) !important;
-    box-shadow: 0 0 0 3px var(--bw-ns-input-border-focus-color) !important;
+    border-color: var(--bw-ns-input-border-focus-color);
+    box-shadow: 0 0 0 3px var(--bw-ns-input-border-focus-color);
 }
 
 /* Placeholder fade on focus or input fill.
