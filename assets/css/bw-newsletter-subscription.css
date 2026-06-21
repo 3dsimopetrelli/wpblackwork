@@ -371,10 +371,15 @@ input.bw-newsletter-subscription__input--email:hover {
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email:focus,
 .elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email:focus,
+.elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription__input--email:focus-visible,
+.elementor-widget-bw-newsletter-subscription input.bw-newsletter-subscription__input--email:focus-visible,
 .bw-newsletter-subscription__input--email:focus,
-input.bw-newsletter-subscription__input--email:focus {
+input.bw-newsletter-subscription__input--email:focus,
+.bw-newsletter-subscription__input--email:focus-visible,
+input.bw-newsletter-subscription__input--email:focus-visible {
     border-color: var(--bw-ns-input-border-focus-color);
-    box-shadow: 0 0 0 3px var(--bw-ns-input-border-focus-color);
+    box-shadow: none;
+    outline: none;
 }
 
 /* Placeholder fade on focus or input fill.

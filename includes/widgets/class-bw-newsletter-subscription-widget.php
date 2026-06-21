@@ -562,7 +562,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Focus Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-color: {{VALUE}}; box-shadow: 0 0 0 3px {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus-visible' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -601,6 +602,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 ],
                 'selectors'  => [
                     '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus-visible' => 'border-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
