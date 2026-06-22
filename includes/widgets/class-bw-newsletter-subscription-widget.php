@@ -484,6 +484,137 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $this->end_controls_section();
 
         $this->start_controls_section(
+            'section_style_section_form',
+            [
+                'label'     => __( 'Section Form Width', 'bw' ),
+                'tab'       => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_form_width',
+            [
+                'label'      => __( 'Form Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1600,
+                        'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-section-form-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_form_max_width',
+            [
+                'label'      => __( 'Form Max Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1600,
+                        'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-section-form-max-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_form_min_width',
+            [
+                'label'      => __( 'Form Min Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1600,
+                        'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-section-form-min-width: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_form_alignment',
+            [
+                'label'   => __( 'Form Alignment', 'bw' ),
+                'type'    => Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => __( 'Left', 'bw' ),
+                        'icon'  => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __( 'Center', 'bw' ),
+                        'icon'  => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => __( 'Right', 'bw' ),
+                        'icon'  => 'eicon-text-align-right',
+                    ],
+                ],
+                'default' => 'center',
+                'selectors_dictionary' => [
+                    'left'   => '--bw-ns-section-form-margin-left: 0; --bw-ns-section-form-margin-right: auto;',
+                    'center' => '--bw-ns-section-form-margin-left: auto; --bw-ns-section-form-margin-right: auto;',
+                    'right'  => '--bw-ns-section-form-margin-left: auto; --bw-ns-section-form-margin-right: 0;',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}}' => '{{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
             'section_style_input',
             [
                 'label' => __( 'Input Field', 'bw' ),
@@ -954,7 +1085,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 <?php endif; ?>
 
                 <form
-                    class="<?php echo esc_attr( 'bw-newsletter-subscription-form' . ( $button_inside_email_field ? ' is-button-inline' : '' ) ); ?>"
+                    class="<?php echo esc_attr( 'bw-newsletter-subscription-form bw-newsletter-subscription__form-wrap' . ( $button_inside_email_field ? ' is-button-inline' : '' ) ); ?>"
                     method="post"
                     novalidate
                     data-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_mail_marketing_subscription_submit' ) ); ?>"
