@@ -217,12 +217,169 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         );
 
         $this->add_control(
+            'section_content_layout_heading',
+            [
+                'label'     => __( 'Section Content Layout', 'bw' ),
+                'type'      => Controls_Manager::HEADING,
+                'condition' => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_content_width',
+            [
+                'label'      => __( 'Content Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1600,
+                        'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-section-content-width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'   => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_content_max_width',
+            [
+                'label'      => __( 'Content Max Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1600,
+                        'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-section-content-max-width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'   => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_content_min_width',
+            [
+                'label'      => __( 'Content Min Width', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'px', '%', 'vw' ],
+                'range'      => [
+                    'px' => [
+                        'min'  => 0,
+                        'max'  => 1600,
+                        'step' => 1,
+                    ],
+                    '%' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                    'vw' => [
+                        'min'  => 0,
+                        'max'  => 100,
+                        'step' => 1,
+                    ],
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-section-content-min-width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'   => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'section_content_alignment',
+            [
+                'label'   => __( 'Content Alignment', 'bw' ),
+                'type'    => Controls_Manager::CHOOSE,
+                'options' => [
+                    'left' => [
+                        'title' => __( 'Left', 'bw' ),
+                        'icon'  => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __( 'Center', 'bw' ),
+                        'icon'  => 'eicon-text-align-center',
+                    ],
+                    'right' => [
+                        'title' => __( 'Right', 'bw' ),
+                        'icon'  => 'eicon-text-align-right',
+                    ],
+                ],
+                'default' => 'center',
+                'selectors_dictionary' => [
+                    'left'   => '--bw-ns-section-content-margin-left: 0; --bw-ns-section-content-margin-right: auto;',
+                    'center' => '--bw-ns-section-content-margin-left: auto; --bw-ns-section-content-margin-right: auto;',
+                    'right'  => '--bw-ns-section-content-margin-left: auto; --bw-ns-section-content-margin-right: 0;',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}}' => '{{VALUE}}',
+                ],
+                'condition' => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_enable_background_image',
+            [
+                'label'        => __( 'Enable Background Image', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => '',
+                'condition'    => [
+                    'style_variant' => 'section',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'section_background_image',
             [
                 'label'     => __( 'Background Image', 'bw' ),
                 'type'      => Controls_Manager::MEDIA,
                 'condition' => [
-                    'style_variant' => 'section',
+                    'style_variant'                 => 'section',
+                    'section_enable_background_image' => 'yes',
                 ],
             ]
         );
@@ -239,7 +396,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     'right'  => __( 'Right', 'bw' ),
                 ],
                 'condition' => [
-                    'style_variant' => 'section',
+                    'style_variant'                 => 'section',
+                    'section_enable_background_image' => 'yes',
                 ],
             ]
         );
@@ -255,6 +413,41 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     'cover'   => __( 'Cover', 'bw' ),
                 ],
                 'condition' => [
+                    'style_variant'                 => 'section',
+                    'section_enable_background_image' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_background_image_repeat',
+            [
+                'label'     => __( 'Background Image Repeat', 'bw' ),
+                'type'      => Controls_Manager::SELECT,
+                'default'   => 'no-repeat',
+                'options'   => [
+                    'no-repeat' => __( 'No Repeat', 'bw' ),
+                    'repeat'    => __( 'Repeat', 'bw' ),
+                    'repeat-x'  => __( 'Repeat Horizontally', 'bw' ),
+                    'repeat-y'  => __( 'Repeat Vertically', 'bw' ),
+                ],
+                'condition' => [
+                    'style_variant'                 => 'section',
+                    'section_enable_background_image' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_enable_gradient_overlay',
+            [
+                'label'        => __( 'Enable Gradient Overlay', 'bw' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'label_on'     => __( 'On', 'bw' ),
+                'label_off'    => __( 'Off', 'bw' ),
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'condition'    => [
                     'style_variant' => 'section',
                 ],
             ]
@@ -444,11 +637,58 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $this->add_control(
             'section_overlay_color',
             [
-                'label'     => __( 'Overlay Color', 'bw' ),
+                'label'     => __( 'Gradient Color 1', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'default'   => 'rgba(8, 8, 8, 0.82)',
                 'selectors' => [
                     '{{WRAPPER}}' => '--bw-ns-overlay-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'style_variant'                  => 'section',
+                    'section_enable_gradient_overlay' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_overlay_secondary_color',
+            [
+                'label'     => __( 'Gradient Color 2', 'bw' ),
+                'type'      => Controls_Manager::COLOR,
+                'default'   => 'rgba(8, 8, 8, 0.12)',
+                'selectors' => [
+                    '{{WRAPPER}}' => '--bw-ns-overlay-color-secondary: {{VALUE}};',
+                ],
+                'condition' => [
+                    'style_variant'                  => 'section',
+                    'section_enable_gradient_overlay' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_overlay_angle',
+            [
+                'label'      => __( 'Gradient Angle', 'bw' ),
+                'type'       => Controls_Manager::SLIDER,
+                'size_units' => [ 'deg' ],
+                'range'      => [
+                    'deg' => [
+                        'min'  => 0,
+                        'max'  => 360,
+                        'step' => 1,
+                    ],
+                ],
+                'default'    => [
+                    'size' => 135,
+                    'unit' => 'deg',
+                ],
+                'selectors'  => [
+                    '{{WRAPPER}}' => '--bw-ns-overlay-angle: {{SIZE}}{{UNIT}};',
+                ],
+                'condition'  => [
+                    'style_variant'                  => 'section',
+                    'section_enable_gradient_overlay' => 'yes',
                 ],
             ]
         );
@@ -461,6 +701,10 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'default'   => 'rgba(128, 253, 3, 0.16)',
                 'selectors' => [
                     '{{WRAPPER}}' => '--bw-ns-glow-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'style_variant'                  => 'section',
+                    'section_enable_gradient_overlay' => 'yes',
                 ],
             ]
         );
@@ -477,6 +721,10 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}}'                                           => '--bw-ns-overlay-opacity: {{VALUE}};',
                     '{{WRAPPER}} .bw-newsletter-subscription-section-overlay' => 'opacity: {{VALUE}};',
+                ],
+                'condition' => [
+                    'style_variant'                  => 'section',
+                    'section_enable_gradient_overlay' => 'yes',
                 ],
             ]
         );
@@ -1007,6 +1255,11 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         if ( ! empty( $widget_settings['section_background_image']['url'] ) ) {
             $section_background_image = esc_url_raw( $widget_settings['section_background_image']['url'] );
         }
+        $background_image_toggle_set = array_key_exists( 'section_enable_background_image', $raw_widget_settings );
+        $background_image_enabled = $this->is_widget_switch_enabled( $widget_settings['section_enable_background_image'] ?? '' );
+        if ( ! $background_image_toggle_set && '' !== $section_background_image ) {
+            $background_image_enabled = true;
+        }
 
         $section_image_position = isset( $widget_settings['section_background_image_position'] ) ? sanitize_key( $widget_settings['section_background_image_position'] ) : 'left';
         if ( ! in_array( $section_image_position, [ 'left', 'center', 'right' ], true ) ) {
@@ -1016,6 +1269,17 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $section_image_fit = isset( $widget_settings['section_background_image_fit'] ) ? sanitize_key( $widget_settings['section_background_image_fit'] ) : 'contain';
         if ( ! in_array( $section_image_fit, [ 'contain', 'cover' ], true ) ) {
             $section_image_fit = 'contain';
+        }
+
+        $section_image_repeat = isset( $widget_settings['section_background_image_repeat'] ) ? sanitize_key( $widget_settings['section_background_image_repeat'] ) : 'no-repeat';
+        if ( ! in_array( $section_image_repeat, [ 'no-repeat', 'repeat', 'repeat-x', 'repeat-y' ], true ) ) {
+            $section_image_repeat = 'no-repeat';
+        }
+
+        $gradient_overlay_toggle_set = array_key_exists( 'section_enable_gradient_overlay', $raw_widget_settings );
+        $gradient_overlay_enabled = $this->is_widget_switch_enabled( $widget_settings['section_enable_gradient_overlay'] ?? 'yes' );
+        if ( ! $gradient_overlay_toggle_set ) {
+            $gradient_overlay_enabled = true;
         }
 
         $section_content_position = isset( $widget_settings['section_content_position'] ) ? sanitize_key( $widget_settings['section_content_position'] ) : 'center';
@@ -1034,10 +1298,11 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
         $widget_style = '';
         if ( 'section' === $style_variant ) {
             $widget_style = sprintf(
-                '--bw-ns-section-bg:%1$s; --bw-ns-section-height:%2$dvh; --bw-ns-section-image-fit:%3$s;',
+                '--bw-ns-section-bg:%1$s; --bw-ns-section-height:%2$dvh; --bw-ns-section-image-fit:%3$s; --bw-ns-section-image-repeat:%4$s;',
                 esc_attr( $section_background_color ?: '#050505' ),
                 $section_height,
-                esc_attr( $section_image_fit )
+                esc_attr( $section_image_fit ),
+                esc_attr( $section_image_repeat )
             );
         }
 
@@ -1064,11 +1329,11 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     </div>
                 <?php endif; ?>
 
-                <?php if ( 'section' === $style_variant && '' !== $section_background_image ) : ?>
+                <?php if ( 'section' === $style_variant && $background_image_enabled && '' !== $section_background_image ) : ?>
                     <div class="bw-newsletter-subscription-section-art" aria-hidden="true" style="<?php echo esc_attr( $art_style ); ?>"></div>
                 <?php endif; ?>
 
-                <?php if ( 'section' === $style_variant ) : ?>
+                <?php if ( 'section' === $style_variant && $gradient_overlay_enabled ) : ?>
                     <div class="bw-newsletter-subscription-section-overlay" aria-hidden="true"></div>
                 <?php endif; ?>
 
@@ -1091,44 +1356,75 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     data-nonce="<?php echo esc_attr( wp_create_nonce( 'bw_mail_marketing_subscription_submit' ) ); ?>"
                     data-consent-required="<?php echo $consent_required ? '1' : '0'; ?>"
                 >
-                    <noscript>
-                        <p class="bw-newsletter-subscription-noscript">
-                            <?php esc_html_e( 'JavaScript is required to submit this form.', 'bw' ); ?>
-                        </p>
-                    </noscript>
-
-                    <?php if ( 'section' === $style_variant && ( '' !== trim( wp_strip_all_tags( $section_title ) ) || '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) ) : ?>
-                        <div class="bw-newsletter-subscription-section-copy">
-                            <?php if ( '' !== trim( wp_strip_all_tags( $section_title ) ) ) : ?>
-                                <h2 class="bw-newsletter-subscription-section-title"><?php echo wp_kses_post( $section_title ); ?></h2>
-                            <?php endif; ?>
-
-                            <?php if ( '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) : ?>
-                                <div class="bw-newsletter-subscription-section-subtitle"><?php echo wpautop( wp_kses_post( $section_subtitle ) ); ?></div>
-                            <?php endif; ?>
-                        </div>
+                    <?php if ( 'section' === $style_variant ) : ?>
+                        <div class="bw-newsletter-subscription__section-content">
                     <?php endif; ?>
 
-                    <?php if ( $show_name_field ) : ?>
-                        <div class="bw-newsletter-subscription-field">
-                            <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
-                                <?php echo esc_html( $name_label ); ?>
-                            </label>
-                            <input
-                                id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
-                                class="bw-newsletter-subscription-input"
-                                type="text"
-                                name="name"
-                                autocomplete="name"
-                                placeholder="<?php echo esc_attr( $name_label ); ?>"
-                                aria-label="<?php echo esc_attr( $name_label ); ?>"
-                            />
-                        </div>
-                    <?php endif; ?>
+                        <noscript>
+                            <p class="bw-newsletter-subscription-noscript">
+                                <?php esc_html_e( 'JavaScript is required to submit this form.', 'bw' ); ?>
+                            </p>
+                        </noscript>
 
-                    <?php if ( 'section' === $style_variant || $button_inside_email_field ) : ?>
-                        <div class="bw-newsletter-subscription-inline">
-                            <div class="bw-newsletter-subscription-field bw-newsletter-subscription-field--email">
+                        <?php if ( 'section' === $style_variant && ( '' !== trim( wp_strip_all_tags( $section_title ) ) || '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) ) : ?>
+                            <div class="bw-newsletter-subscription-section-copy">
+                                <?php if ( '' !== trim( wp_strip_all_tags( $section_title ) ) ) : ?>
+                                    <h2 class="bw-newsletter-subscription-section-title"><?php echo wp_kses_post( $section_title ); ?></h2>
+                                <?php endif; ?>
+
+                                <?php if ( '' !== trim( wp_strip_all_tags( $section_subtitle ) ) ) : ?>
+                                    <div class="bw-newsletter-subscription-section-subtitle"><?php echo wpautop( wp_kses_post( $section_subtitle ) ); ?></div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ( 'section' === $style_variant ) : ?>
+                            <div class="bw-newsletter-subscription__section-form-area">
+                        <?php endif; ?>
+
+                        <?php if ( $show_name_field ) : ?>
+                            <div class="bw-newsletter-subscription-field">
+                                <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-name' ); ?>">
+                                    <?php echo esc_html( $name_label ); ?>
+                                </label>
+                                <input
+                                    id="<?php echo esc_attr( $widget_id . '-name' ); ?>"
+                                    class="bw-newsletter-subscription-input"
+                                    type="text"
+                                    name="name"
+                                    autocomplete="name"
+                                    placeholder="<?php echo esc_attr( $name_label ); ?>"
+                                    aria-label="<?php echo esc_attr( $name_label ); ?>"
+                                />
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ( 'section' === $style_variant || $button_inside_email_field ) : ?>
+                            <div class="bw-newsletter-subscription-inline">
+                                <div class="bw-newsletter-subscription-field bw-newsletter-subscription-field--email">
+                                    <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
+                                        <?php echo esc_html( $email_label ); ?>
+                                    </label>
+                                    <input
+                                        id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
+                                        class="<?php echo esc_attr( 'bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email ' . $email_input_variant_class ); ?>"
+                                        type="email"
+                                        name="email"
+                                        autocomplete="email"
+                                        placeholder="<?php echo esc_attr( $email_placeholder ); ?>"
+                                        aria-label="<?php echo esc_attr( $email_label ); ?>"
+                                        aria-describedby="<?php echo esc_attr( $message_id ); ?>"
+                                        aria-invalid="false"
+                                        required
+                                    />
+                                </div>
+
+                                <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
+                                    <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
+                                </button>
+                            </div>
+                        <?php else : ?>
+                            <div class="bw-newsletter-subscription-field">
                                 <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
                                     <?php echo esc_html( $email_label ); ?>
                                 </label>
@@ -1145,82 +1441,67 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                     required
                                 />
                             </div>
+                        <?php endif; ?>
 
+                        <?php if ( 'section' === $style_variant ) : ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="bw-newsletter-subscription-consent">
+                            <input
+                                id="<?php echo esc_attr( $consent_id ); ?>"
+                                class="bw-newsletter-subscription-consent__checkbox"
+                                type="checkbox"
+                                name="privacy"
+                                value="1"
+                                aria-describedby="<?php echo esc_attr( $message_id ); ?>"
+                                aria-invalid="false"
+                                <?php echo $consent_required ? 'required' : ''; ?>
+                            />
+                            <?php if ( '' !== $privacy_custom_text ) : ?>
+                                <span class="bw-newsletter-subscription-consent__text bw-newsletter-subscription-consent__text--custom">
+                                    <?php echo wp_kses_post( $privacy_custom_text ); ?>
+                                </span>
+                            <?php else : ?>
+                                <span class="bw-newsletter-subscription-consent__text">
+                                    <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
+                                        <?php echo esc_html( $consent_text ); ?>
+                                    </label>
+                                    <?php
+                                    $privacy_link_label = ! empty( $settings['privacy_link_label'] )
+                                        ? $settings['privacy_link_label']
+                                        : __( 'Privacy Policy', 'bw' );
+                                    ?>
+                                    <?php if ( ! empty( $privacy_url ) ) : ?>
+                                        <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                            <?php echo esc_html( $privacy_link_label ); ?>
+                                        </a>
+                                    <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
+                                        <span class="bw-newsletter-subscription-consent__link">
+                                            <?php echo esc_html( $privacy_link_label ); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if ( 'footer' === $style_variant && ! $button_inside_email_field ) : ?>
                             <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
                                 <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
                             </button>
-                        </div>
-                    <?php else : ?>
-                        <div class="bw-newsletter-subscription-field">
-                            <label class="bw-newsletter-subscription-label" for="<?php echo esc_attr( $widget_id . '-email' ); ?>">
-                                <?php echo esc_html( $email_label ); ?>
-                            </label>
-                            <input
-                                id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
-                                class="<?php echo esc_attr( 'bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email ' . $email_input_variant_class ); ?>"
-                                type="email"
-                                name="email"
-                                autocomplete="email"
-                                placeholder="<?php echo esc_attr( $email_placeholder ); ?>"
-                                aria-label="<?php echo esc_attr( $email_label ); ?>"
-                                aria-describedby="<?php echo esc_attr( $message_id ); ?>"
-                                aria-invalid="false"
-                                required
-                            />
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="bw-newsletter-subscription-consent">
-                        <input
-                            id="<?php echo esc_attr( $consent_id ); ?>"
-                            class="bw-newsletter-subscription-consent__checkbox"
-                            type="checkbox"
-                            name="privacy"
-                            value="1"
-                            aria-describedby="<?php echo esc_attr( $message_id ); ?>"
-                            aria-invalid="false"
-                            <?php echo $consent_required ? 'required' : ''; ?>
-                        />
-                        <?php if ( '' !== $privacy_custom_text ) : ?>
-                            <span class="bw-newsletter-subscription-consent__text bw-newsletter-subscription-consent__text--custom">
-                                <?php echo wp_kses_post( $privacy_custom_text ); ?>
-                            </span>
-                        <?php else : ?>
-                            <span class="bw-newsletter-subscription-consent__text">
-                                <label class="bw-newsletter-subscription-consent__label" for="<?php echo esc_attr( $consent_id ); ?>">
-                                    <?php echo esc_html( $consent_text ); ?>
-                                </label>
-                                <?php
-                                $privacy_link_label = ! empty( $settings['privacy_link_label'] )
-                                    ? $settings['privacy_link_label']
-                                    : __( 'Privacy Policy', 'bw' );
-                                ?>
-                                <?php if ( ! empty( $privacy_url ) ) : ?>
-                                    <a class="bw-newsletter-subscription-consent__link" href="<?php echo esc_url( $privacy_url ); ?>" target="_blank" rel="noopener noreferrer">
-                                        <?php echo esc_html( $privacy_link_label ); ?>
-                                    </a>
-                                <?php elseif ( ! empty( $privacy_link_label ) ) : ?>
-                                    <span class="bw-newsletter-subscription-consent__link">
-                                        <?php echo esc_html( $privacy_link_label ); ?>
-                                    </span>
-                                <?php endif; ?>
-                            </span>
                         <?php endif; ?>
-                    </div>
 
-                    <?php if ( 'footer' === $style_variant && ! $button_inside_email_field ) : ?>
-                        <button class="bw-newsletter-subscription-button" type="submit" aria-disabled="false">
-                            <span class="bw-newsletter-subscription-button__label"><?php echo esc_html( $button_text ); ?></span>
-                        </button>
+                        <div
+                            id="<?php echo esc_attr( $message_id ); ?>"
+                            class="bw-newsletter-subscription-message"
+                            aria-live="polite"
+                            aria-atomic="true"
+                            role="status"
+                        ></div>
+
+                    <?php if ( 'section' === $style_variant ) : ?>
+                        </div>
                     <?php endif; ?>
-
-                    <div
-                        id="<?php echo esc_attr( $message_id ); ?>"
-                        class="bw-newsletter-subscription-message"
-                        aria-live="polite"
-                        aria-atomic="true"
-                        role="status"
-                    ></div>
                 </form>
             </div>
         </div>

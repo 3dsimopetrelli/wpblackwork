@@ -104,6 +104,7 @@ Shared input style controls:
 - `Input Border Hover Color`
 - `Input Border Focus Color`
 - `Input Border Width`
+- `Focus Border Width`
 - `Input Border Radius`
 - `Input Padding`
 - `Input Height`
@@ -121,11 +122,18 @@ Shared button style controls:
 - `Button Border Radius`
 - `Button Padding`
 
+Section-only form layout controls:
+- `Form Width`
+- `Form Max Width`
+- `Form Min Width`
+- `Form Alignment`
+
 Implementation note:
 - `Style Section` changes only layout/visual treatment
 - the form still submits through the exact same AJAX action and consent flow as `Style Footer`
 - the name field now uses one canonical control model with legacy saved-value compatibility preserved in render
 - button copy is now widget-controlled per instance, with `Subscribe` as the default fallback
+- input field style controls are shared across `Style Footer` and `Style Section`, but Section-only width/layout controls must not alter Footer behavior
 
 ## Rendering Behavior
 Common runtime output:
@@ -144,6 +152,7 @@ Common runtime output:
 - uses a dark section shell with configurable background color and optional art image
 - adds an internal overlay/glow layer above the art and below the content
 - integrates the submit button into the email row on desktop
+- exposes dedicated inner-form width/layout controls so the section form can shrink, expand, and align independently of the outer section container
 - keeps the same input names, nonce, consent checkbox, and message region as the footer style
 
 When the channel is disabled:
@@ -218,6 +227,53 @@ Stable response codes:
 - `generic_failure`
 
 These response codes are shared across both style variants.
+
+## Styling Contract
+Stable input selectors:
+- `.bw-newsletter-subscription__input--email`
+- `.bw-newsletter-subscription__input--footer`
+- `.bw-newsletter-subscription__input--section`
+
+Stable form wrapper selector for Section layout width controls:
+- `.bw-newsletter-subscription__form-wrap`
+
+Important behavior notes:
+- input field controls are expected to affect the real email input in both variants
+- `Focus Border Width = 0` should remove the visible focus border/ring for the widget input
+- Section layout width constraints are governed by widget-scoped CSS variables, not by global form CSS
+- Footer layout must remain visually unchanged when editing Section-only layout controls
+
+## QA Checklist
+- `Style Footer` still renders and styles exactly as before
+- `Style Section` responds to:
+  - `Form Width`
+  - `Form Max Width`
+  - `Form Min Width`
+  - `Form Alignment`
+- input controls visibly affect the real email input in both variants:
+  - typography
+  - text color
+  - placeholder color
+  - background color
+  - border color / hover / focus
+  - border width
+  - focus border width
+  - border radius
+  - padding
+  - height
+  - box shadow
+- button controls visibly affect only the subscribe button:
+  - button text
+  - typography
+  - text color / hover text color
+  - background / hover background
+  - border color / hover border color
+  - border width
+  - border radius
+  - padding
+- desktop / tablet / mobile responsive values work
+- Elementor live preview matches frontend output
+- no regressions in shared submit flow, validation, or consent behavior
 
 ## Accessibility Baseline
 Implemented:

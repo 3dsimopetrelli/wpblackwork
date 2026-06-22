@@ -20,7 +20,7 @@ Canonical transition note:
 | `bw-license-table` | `includes/widgets/class-bw-license-table-widget.php` | Pricing / Licensing | standalone responsive license/comparison card with repeater rows and per-row tooltip mode |
 | `bw-button` | `includes/widgets/class-bw-button-widget.php` | UI Utility | non-product |
 | `bw-divider` | `includes/widgets/class-bw-divider-widget.php` | UI Utility | non-product |
-| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants; status `Almost ready`, quality `~9.5/10`, phase `Final manual validation` |
+| `bw-newsletter-subscription` | `includes/widgets/class-bw-newsletter-subscription-widget.php` | Marketing / Lead Capture | governed Brevo subscription widget with `Style Footer` and `Style Section` variants; shared input/button style controls, Section-only form width/layout controls, and status `Almost ready`, quality `~9.5/10`, phase `Final manual validation` |
 | `bw-reviews` | `includes/widgets/class-bw-reviews-widget.php` | Product Reviews / Trust | thin adapter over the custom Reviews module; premium product-review widget for single-product surfaces; status `Almost ready`, quality `~9/10`, phase `Final manual validation` |
 | `bw-product-breadcrumbs` | `includes/widgets/class-bw-product-breadcrumbs-widget.php` | Product Utility | single-product breadcrumb widget |
 | `bw-product-description` | `includes/widgets/class-bw-product-description-widget.php` | Product Utility | single-product description widget |
@@ -243,6 +243,39 @@ Important runtime note:
   - governed widget with two presentation variants: `Style Footer` and `Style Section`
   - `Style Footer` keeps the minimal legacy footer surface
   - `Style Section` adds hero-style content/media controls plus a dedicated conditional Style tab for typography, colors, overlay, glow, and content positioning
+  - shared input field controls now cover:
+    - `Email Placeholder Text`
+    - `Input Typography`
+    - `Input Text Color`
+    - `Placeholder Text Color`
+    - `Input Background Color`
+    - `Input Border Color`
+    - `Input Border Hover Color`
+    - `Input Border Focus Color`
+    - `Input Border Width`
+    - `Focus Border Width`
+    - `Input Border Radius`
+    - `Input Padding`
+    - `Input Height`
+    - `Input Box Shadow`
+  - shared subscribe-button controls now cover:
+    - `Subscribe Button Text`
+    - `Subscribe Button Typography`
+    - `Button Text Color`
+    - `Button Text Hover Color`
+    - `Button Background Color`
+    - `Button Background Hover Color`
+    - `Button Border Color`
+    - `Button Border Hover Color`
+    - `Button Border Width`
+    - `Button Border Radius`
+    - `Button Padding`
+  - `Style Section` additionally exposes:
+    - `Form Width`
+    - `Form Max Width`
+    - `Form Min Width`
+    - `Form Alignment`
+  - Footer variant is the styling regression baseline and must not change when editing Section-only form layout controls
   - business copy/list/opt-in behavior delegated to `Blackwork Site -> Mail Marketing -> Subscription`
   - public submit handled through nonce-protected server-side AJAX endpoint
   - completed hardening/cleanup wave:

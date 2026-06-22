@@ -60,19 +60,27 @@
     --bw-ns-input-border-focus-color: #80fd03;
     --bw-ns-input-border-radius: 999px;
     --bw-ns-input-padding-right-inline-offset: 0px;
-    --bw-ns-section-form-width: min(100%, 640px);
+    --bw-ns-section-content-width: min(100%, 640px);
+    --bw-ns-section-content-max-width: 100%;
+    --bw-ns-section-content-min-width: 0;
+    --bw-ns-section-content-margin-left: auto;
+    --bw-ns-section-content-margin-right: auto;
+    --bw-ns-section-form-width: 100%;
     --bw-ns-section-form-max-width: 100%;
     --bw-ns-section-form-min-width: 0;
-    --bw-ns-section-form-margin-left: auto;
-    --bw-ns-section-form-margin-right: auto;
+    --bw-ns-section-form-margin-left: 0;
+    --bw-ns-section-form-margin-right: 0;
     --bw-ns-section-title-color: #f7f7f2;
     --bw-ns-section-subtitle-color: rgba(247, 247, 242, 0.86);
     --bw-ns-section-privacy-color: rgba(247, 247, 242, 0.84);
     --bw-ns-section-message-color: rgba(247, 247, 242, 0.88);
     --bw-ns-section-preview-color: rgba(247, 247, 242, 0.8);
     --bw-ns-overlay-color: rgba(8, 8, 8, 0.82);
+    --bw-ns-overlay-color-secondary: rgba(8, 8, 8, 0.12);
+    --bw-ns-overlay-angle: 135deg;
     --bw-ns-glow-color: rgba(128, 253, 3, 0.16);
     --bw-ns-overlay-opacity: 1;
+    --bw-ns-section-image-repeat: no-repeat;
     position: relative !important;
     overflow: hidden !important;
     display: flex !important;
@@ -90,7 +98,7 @@
     position: absolute !important;
     inset-block: 0 !important;
     width: min(34vw, 460px) !important;
-    background-repeat: no-repeat !important;
+    background-repeat: var(--bw-ns-section-image-repeat, no-repeat) !important;
     background-position: center bottom !important;
     background-size: var(--bw-ns-section-image-fit, contain) !important;
     opacity: 1 !important;
@@ -107,8 +115,12 @@
     pointer-events: none !important;
     background:
         radial-gradient(circle at center, var(--bw-ns-glow-color, rgba(128, 253, 3, 0.16)) 0%, transparent 42%),
-        linear-gradient(135deg, rgba(0, 0, 0, 0.92) 0%, transparent 34%, rgba(0, 0, 0, 0.76) 100%),
-        var(--bw-ns-overlay-color, rgba(8, 8, 8, 0.82)) !important;
+        linear-gradient(
+            var(--bw-ns-overlay-angle, 135deg),
+            var(--bw-ns-overlay-color, rgba(8, 8, 8, 0.82)) 0%,
+            var(--bw-ns-overlay-color-secondary, rgba(8, 8, 8, 0.12)) 52%,
+            transparent 100%
+        ) !important;
 }
 
 .bw-newsletter-subscription-widget--section[data-section-art-position="left"] .bw-newsletter-subscription-section-art {
@@ -228,24 +240,38 @@
 .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__form-wrap {
     position: relative !important;
     z-index: 2 !important;
-    width: var(--bw-ns-section-form-width, min(100%, 640px)) !important;
-    max-width: var(--bw-ns-section-form-max-width, 100%) !important;
-    min-width: var(--bw-ns-section-form-min-width, 0) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+}
+
+.bw-newsletter-subscription-widget--section .bw-newsletter-subscription__section-content {
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 18px !important;
+    width: var(--bw-ns-section-content-width, min(100%, 640px)) !important;
+    max-width: min(100%, var(--bw-ns-section-content-max-width, 100%)) !important;
+    min-width: var(--bw-ns-section-content-min-width, 0) !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-    margin-left: var(--bw-ns-section-form-margin-left, auto) !important;
-    margin-right: var(--bw-ns-section-form-margin-right, auto) !important;
+    margin-left: var(--bw-ns-section-content-margin-left, auto) !important;
+    margin-right: var(--bw-ns-section-content-margin-right, auto) !important;
+}
+
+.bw-newsletter-subscription-widget--section .bw-newsletter-subscription__section-form-area {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
     gap: 18px !important;
-}
-
-.bw-newsletter-subscription-widget--section[data-section-content-position="left"] {
-    --bw-ns-section-form-margin-left: 0;
-    --bw-ns-section-form-margin-right: auto;
-}
-
-.bw-newsletter-subscription-widget--section[data-section-content-position="right"] {
-    --bw-ns-section-form-margin-left: auto;
-    --bw-ns-section-form-margin-right: 0;
+    width: var(--bw-ns-section-form-width, 100%) !important;
+    max-width: min(100%, var(--bw-ns-section-form-max-width, 100%)) !important;
+    min-width: var(--bw-ns-section-form-min-width, 0) !important;
+    margin-left: var(--bw-ns-section-form-margin-left, 0) !important;
+    margin-right: var(--bw-ns-section-form-margin-right, 0) !important;
 }
 
 .elementor-widget-bw-newsletter-subscription .bw-newsletter-subscription-section-copy,
@@ -695,7 +721,8 @@ input.bw-newsletter-subscription__input--email:focus-visible {
         gap: 14px !important;
     }
 
-    .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__form-wrap {
+    .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__section-content,
+    .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__section-form-area {
         gap: 16px !important;
     }
 
