@@ -496,7 +496,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             [
                 'name'     => 'input_typography',
                 'label'    => __( 'Typography', 'bw' ),
-                'selector' => '{{WRAPPER}} .bw-newsletter-subscription__input--email, {{WRAPPER}} .bw-newsletter-subscription__input--email::placeholder',
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section, {{WRAPPER}} .bw-newsletter-subscription__input--footer::placeholder, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section::placeholder',
             ]
         );
 
@@ -506,7 +506,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -517,8 +517,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Placeholder Text Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email::placeholder' => 'color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email::-webkit-input-placeholder' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer::placeholder, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section::placeholder' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer::-webkit-input-placeholder, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section::-webkit-input-placeholder' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -529,7 +529,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Background Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'background: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'background: {{VALUE}};',
                 ],
             ]
         );
@@ -540,7 +540,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -551,7 +551,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Hover Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:hover' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer:hover, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section:hover' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -562,8 +562,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'label'     => __( 'Border Focus Color', 'bw' ),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus-visible' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer:focus, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section:focus' => 'border-color: {{VALUE}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer:focus-visible, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section:focus-visible' => 'border-color: {{VALUE}};',
                 ],
             ]
         );
@@ -582,7 +582,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     ],
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'border-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -601,8 +601,8 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     ],
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus' => 'border-width: {{SIZE}}{{UNIT}};',
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email:focus-visible' => 'border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer:focus, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section:focus' => 'border-width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer:focus-visible, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section:focus-visible' => 'border-width: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -614,7 +614,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', '%' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -626,7 +626,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => [ 'px', 'em', 'rem', '%' ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'padding: {{TOP}}{{UNIT}} calc({{RIGHT}}{{UNIT}} + var(--bw-ns-input-padding-right-inline-offset, 0px)) {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'padding: {{TOP}}{{UNIT}} calc({{RIGHT}}{{UNIT}} + var(--bw-ns-input-padding-right-inline-offset, 0px)) {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -655,7 +655,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                     ],
                 ],
                 'selectors'  => [
-                    '{{WRAPPER}} .bw-newsletter-subscription__input--email' => 'height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -665,7 +665,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
             [
                 'name'     => 'input_box_shadow',
                 'label'    => __( 'Box Shadow', 'bw' ),
-                'selector' => '{{WRAPPER}} .bw-newsletter-subscription__input--email',
+                'selector' => '{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section',
             ]
         );
 
@@ -821,6 +821,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 
         $show_name_field = $this->resolve_show_name_field_visibility( $widget_settings, $raw_widget_settings, $style_variant );
         $button_inside_email_field = 'footer' === $style_variant && $this->is_widget_switch_enabled( $widget_settings['button_inside_email_field'] ?? '' );
+        $email_input_variant_class = 'section' === $style_variant ? 'bw-newsletter-subscription__input--section' : 'bw-newsletter-subscription__input--footer';
         $privacy_custom_text_enabled = $this->is_widget_switch_enabled( $widget_settings['privacy_custom_text_enabled'] ?? '' );
         $privacy_custom_text = '';
         if ( $privacy_custom_text_enabled && ! empty( $widget_settings['privacy_custom_text'] ) ) {
@@ -1002,7 +1003,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                                 </label>
                                 <input
                                     id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
-                                    class="bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email"
+                                    class="<?php echo esc_attr( 'bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email ' . $email_input_variant_class ); ?>"
                                     type="email"
                                     name="email"
                                     autocomplete="email"
@@ -1025,7 +1026,7 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
                             </label>
                             <input
                                 id="<?php echo esc_attr( $widget_id . '-email' ); ?>"
-                                class="bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email"
+                                class="<?php echo esc_attr( 'bw-newsletter-subscription-input bw-newsletter-subscription__input bw-newsletter-subscription__input--email ' . $email_input_variant_class ); ?>"
                                 type="email"
                                 name="email"
                                 autocomplete="email"
