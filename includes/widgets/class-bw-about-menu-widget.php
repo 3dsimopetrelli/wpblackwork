@@ -4,463 +4,457 @@ use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class BW_About_Menu_Widget extends Widget_Base {
-    /**
-     * Holds the menu identifier used while filtering link attributes.
-     *
-     * @var int|string|null
-     */
-    private $current_menu_for_filter = null;
+	/**
+	 * Holds the menu identifier used while filtering link attributes.
+	 *
+	 * @var int|string|null
+	 */
+	private $current_menu_for_filter = null;
 
-    public function get_name() {
-        return 'bw-about-menu';
-    }
+	public function get_name() {
+		return 'bw-about-menu';
+	}
 
-    public function get_title() {
-        return __( 'BW-UI About Menu', 'bw' );
-    }
+	public function get_title() {
+		return __( 'BW-UI About Menu', 'bw' );
+	}
 
-    public function get_icon() {
-        return 'eicon-nav-menu';
-    }
+	public function get_icon() {
+		return 'eicon-nav-menu';
+	}
 
-    public function get_categories() {
-        return [ 'blackwork' ];
-    }
+	public function get_categories() {
+		return array( 'blackwork' );
+	}
 
-    public function get_style_depends() {
-        if ( function_exists( 'bw_register_about_menu_widget_assets' ) && ! wp_style_is( 'bw-about-menu-style', 'registered' ) ) {
-            bw_register_about_menu_widget_assets();
-        }
+	public function get_style_depends() {
+		if ( function_exists( 'bw_register_about_menu_widget_assets' ) && ! wp_style_is( 'bw-about-menu-style', 'registered' ) ) {
+			bw_register_about_menu_widget_assets();
+		}
 
-        return wp_style_is( 'bw-about-menu-style', 'registered' ) ? [ 'bw-about-menu-style' ] : [];
-    }
+		return wp_style_is( 'bw-about-menu-style', 'registered' ) ? array( 'bw-about-menu-style' ) : array();
+	}
 
-    public function get_script_depends() {
-        if ( function_exists( 'bw_register_about_menu_widget_assets' ) && ! wp_script_is( 'bw-about-menu-script', 'registered' ) ) {
-            bw_register_about_menu_widget_assets();
-        }
+	public function get_script_depends() {
+		if ( function_exists( 'bw_register_about_menu_widget_assets' ) && ! wp_script_is( 'bw-about-menu-script', 'registered' ) ) {
+			bw_register_about_menu_widget_assets();
+		}
 
-        return wp_script_is( 'bw-about-menu-script', 'registered' ) ? [ 'bw-about-menu-script' ] : [];
-    }
+		return wp_script_is( 'bw-about-menu-script', 'registered' ) ? array( 'bw-about-menu-script' ) : array();
+	}
 
-    protected function register_controls() {
-        $this->register_content_controls();
-        $this->register_style_container_controls();
-        $this->register_style_spotlight_controls();
-        $this->register_style_items_controls();
-    }
+	protected function register_controls() {
+		$this->register_content_controls();
+		$this->register_style_container_controls();
+		$this->register_style_spotlight_controls();
+		$this->register_style_items_controls();
+	}
 
-    private function register_content_controls() {
-        $this->start_controls_section(
-            'section_content',
-            [
-                'label' => __( 'Content', 'bw' ),
-            ]
-        );
+	private function register_content_controls() {
+		$this->start_controls_section(
+			'section_content',
+			array(
+				'label' => __( 'Content', 'bw' ),
+			)
+		);
 
-        $this->add_control(
-            'menu_id',
-            [
-                'label'       => __( 'Menu', 'bw' ),
-                'type'        => Controls_Manager::SELECT,
-                'label_block' => true,
-                'options'     => $this->get_available_menus(),
-                'description' => __( 'Select a WordPress menu to display.', 'bw' ),
-                'render_type' => 'template',
-            ]
-        );
+		$this->add_control(
+			'menu_id',
+			array(
+				'label'       => __( 'Menu', 'bw' ),
+				'type'        => Controls_Manager::SELECT,
+				'label_block' => true,
+				'options'     => $this->get_available_menus(),
+				'description' => __( 'Select a WordPress menu to display.', 'bw' ),
+				'render_type' => 'template',
+			)
+		);
 
-        $this->add_responsive_control(
-            'alignment',
-            [
-                'label'        => __( 'Alignment', 'bw' ),
-                'type'         => Controls_Manager::CHOOSE,
-                'options'      => [
-                    'flex-start' => [
-                        'title' => __( 'Left', 'bw' ),
-                        'icon'  => 'eicon-text-align-left',
-                    ],
-                    'center'     => [
-                        'title' => __( 'Center', 'bw' ),
-                        'icon'  => 'eicon-text-align-center',
-                    ],
-                    'flex-end'   => [
-                        'title' => __( 'Right', 'bw' ),
-                        'icon'  => 'eicon-text-align-right',
-                    ],
-                ],
-                'default'      => 'center',
-                'selectors'    => [
-                    '{{WRAPPER}}'                      => 'display: flex; justify-content: {{VALUE}};',
-                    '{{WRAPPER}} .bw-about-menu__list' => 'justify-content: {{VALUE}};',
-                ],
-                'toggle'       => true,
-                'render_type'  => 'ui',
-            ]
-        );
+		$this->add_responsive_control(
+			'alignment',
+			array(
+				'label'       => __( 'Alignment', 'bw' ),
+				'type'        => Controls_Manager::CHOOSE,
+				'options'     => array(
+					'flex-start' => array(
+						'title' => __( 'Left', 'bw' ),
+						'icon'  => 'eicon-text-align-left',
+					),
+					'center'     => array(
+						'title' => __( 'Center', 'bw' ),
+						'icon'  => 'eicon-text-align-center',
+					),
+					'flex-end'   => array(
+						'title' => __( 'Right', 'bw' ),
+						'icon'  => 'eicon-text-align-right',
+					),
+				),
+				'default'     => 'center',
+				'selectors'   => array(
+					'{{WRAPPER}}'                      => 'display: flex; justify-content: {{VALUE}};',
+					'{{WRAPPER}} .bw-about-menu__list' => 'justify-content: {{VALUE}};',
+				),
+				'toggle'      => true,
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->end_controls_section();
-    }
+		$this->end_controls_section();
+	}
 
-    private function register_style_container_controls() {
-        $this->start_controls_section(
-            'section_style_container',
-            [
-                'label' => __( 'Menu Container', 'bw' ),
-                'tab'   => Controls_Manager::TAB_STYLE,
-            ]
-        );
+	private function register_style_container_controls() {
+		$this->start_controls_section(
+			'section_style_container',
+			array(
+				'label' => __( 'Menu Container', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-        $this->add_control(
-            'container_border_color',
-            [
-                'label'     => __( 'Border Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu' => 'border-color: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'container_border_color',
+			array(
+				'label'       => __( 'Border Color', 'bw' ),
+				'type'        => Controls_Manager::COLOR,
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu' => 'border-color: {{VALUE}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_responsive_control(
-            'container_border_width',
-            [
-                'label'      => __( 'Border Width', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 10,
-                    ],
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu' => 'border-width: {{SIZE}}{{UNIT}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_responsive_control(
+			'container_border_width',
+			array(
+				'label'       => __( 'Border Width', 'bw' ),
+				'type'        => Controls_Manager::SLIDER,
+				'size_units'  => array( 'px' ),
+				'range'       => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 10,
+					),
+				),
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu' => 'border-width: {{SIZE}}{{UNIT}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_responsive_control(
-            'container_border_radius',
-            [
-                'label'      => __( 'Border Radius', 'bw' ),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', '%' ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
+			'container_border_radius',
+			__( 'Border Radius', 'bw' ),
+			'{{WRAPPER}} .bw-about-menu',
+			'border-radius',
+			array( 'px', '%' ),
+			null,
+			array( 'render_type' => 'ui' )
+		);
 
-        $this->add_control(
-            'container_background_color',
-            [
-                'label'     => __( 'Background Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu' => 'background-color: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'container_background_color',
+			array(
+				'label'       => __( 'Background Color', 'bw' ),
+				'type'        => Controls_Manager::COLOR,
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu' => 'background-color: {{VALUE}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_responsive_control(
-            'container_padding',
-            [
-                'label'      => __( 'Padding', 'bw' ),
-                'type'       => Controls_Manager::DIMENSIONS,
-                'size_units' => [ 'px', 'em', '%' ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
+			'container_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-about-menu',
+			'padding',
+			array( 'px', 'em', '%' ),
+			null,
+			array( 'render_type' => 'ui' )
+		);
 
-        $this->end_controls_section();
-    }
+		$this->end_controls_section();
+	}
 
-    private function register_style_spotlight_controls() {
-        $this->start_controls_section(
-            'section_spotlight_style',
-            [
-                'label' => __( 'Spotlight Effect', 'bw' ),
-                'tab'   => Controls_Manager::TAB_STYLE,
-            ]
-        );
+	private function register_style_spotlight_controls() {
+		$this->start_controls_section(
+			'section_spotlight_style',
+			array(
+				'label' => __( 'Spotlight Effect', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-        $this->add_control(
-            'spotlight_size',
-            [
-                'label'       => __( 'Spotlight Size', 'bw' ),
-                'type'        => Controls_Manager::SLIDER,
-                'range'       => [
-                    'px' => [
-                        'min' => 20,
-                        'max' => 400,
-                    ],
-                ],
-                'default'     => [
-                    'size' => 120,
-                    'unit' => 'px',
-                ],
-                'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-size: {{SIZE}}{{UNIT}};',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'width: {{SIZE}}{{UNIT}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'spotlight_size',
+			array(
+				'label'       => __( 'Spotlight Size', 'bw' ),
+				'type'        => Controls_Manager::SLIDER,
+				'range'       => array(
+					'px' => array(
+						'min' => 20,
+						'max' => 400,
+					),
+				),
+				'default'     => array(
+					'size' => 120,
+					'unit' => 'px',
+				),
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu'         => '--spotlight-size: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bw-about-menu::before' => 'width: {{SIZE}}{{UNIT}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_control(
-            'spotlight_opacity',
-            [
-                'label'       => __( 'Spotlight Opacity', 'bw' ),
-                'type'        => Controls_Manager::SLIDER,
-                'range'       => [
-                    'min'  => 0,
-                    'max'  => 1,
-                    'step' => 0.05,
-                ],
-                'default'     => [
-                    'size' => 0.4,
-                ],
-                'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-opacity: {{SIZE}};',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'opacity: {{SIZE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'spotlight_opacity',
+			array(
+				'label'       => __( 'Spotlight Opacity', 'bw' ),
+				'type'        => Controls_Manager::SLIDER,
+				'range'       => array(
+					'min'  => 0,
+					'max'  => 1,
+					'step' => 0.05,
+				),
+				'default'     => array(
+					'size' => 0.4,
+				),
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu'         => '--spotlight-opacity: {{SIZE}};',
+					'{{WRAPPER}} .bw-about-menu::before' => 'opacity: {{SIZE}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_control(
-            'spotlight_color',
-            [
-                'label'       => __( 'Spotlight Color', 'bw' ),
-                'type'        => Controls_Manager::COLOR,
-                'default'     => '#80FD03',
-                'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, {{VALUE}} 0%, transparent var(--spotlight-strength, 70%));',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'spotlight_color',
+			array(
+				'label'       => __( 'Spotlight Color', 'bw' ),
+				'type'        => Controls_Manager::COLOR,
+				'default'     => '#80FD03',
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu'         => '--spotlight-color: {{VALUE}};',
+					'{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, {{VALUE}} 0%, transparent var(--spotlight-strength, 70%));',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_control(
-            'spotlight_strength',
-            [
-                'label'       => __( 'Spotlight Strength', 'bw' ),
-                'type'        => Controls_Manager::SLIDER,
-                'range'       => [
-                    'min' => 0,
-                    'max' => 100,
-                ],
-                'default'     => [
-                    'size' => 70,
-                ],
-                'selectors'   => [
-                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-strength: {{SIZE}}%;',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, var(--spotlight-color, #80FD03) 0%, transparent {{SIZE}}%);',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'spotlight_strength',
+			array(
+				'label'       => __( 'Spotlight Strength', 'bw' ),
+				'type'        => Controls_Manager::SLIDER,
+				'range'       => array(
+					'min' => 0,
+					'max' => 100,
+				),
+				'default'     => array(
+					'size' => 70,
+				),
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu'         => '--spotlight-strength: {{SIZE}}%;',
+					'{{WRAPPER}} .bw-about-menu::before' => 'background: radial-gradient(circle at center, var(--spotlight-color, #80FD03) 0%, transparent {{SIZE}}%);',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_control(
-            'spotlight_transition_speed',
-            [
-                'label' => __( 'Spotlight Transition Speed', 'bw' ),
-                'type'  => Controls_Manager::SLIDER,
-                'range' => [
-                    'min'  => 0.1,
-                    'max'  => 3,
-                    'step' => 0.1,
-                ],
-                'default'   => [ 'size' => 0.6 ],
-                'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu'        => '--spotlight-speed: {{SIZE}}s;',
-                    '{{WRAPPER}} .bw-about-menu::before' => 'transition: transform {{SIZE}}s ease-in-out, opacity 0.3s ease;',
-                ],
-                'render_type' => 'ui', // aggiornamento live in anteprima Elementor
-            ]
-        );
+		$this->add_control(
+			'spotlight_transition_speed',
+			array(
+				'label'       => __( 'Spotlight Transition Speed', 'bw' ),
+				'type'        => Controls_Manager::SLIDER,
+				'range'       => array(
+					'min'  => 0.1,
+					'max'  => 3,
+					'step' => 0.1,
+				),
+				'default'     => array( 'size' => 0.6 ),
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu'         => '--spotlight-speed: {{SIZE}}s;',
+					'{{WRAPPER}} .bw-about-menu::before' => 'transition: transform {{SIZE}}s ease-in-out, opacity 0.3s ease;',
+				),
+				'render_type' => 'ui', // aggiornamento live in anteprima Elementor
+			)
+		);
 
-        $this->end_controls_section();
-    }
+		$this->end_controls_section();
+	}
 
-    private function register_style_items_controls() {
-        $this->start_controls_section(
-            'section_style_items',
-            [
-                'label' => __( 'Menu Items', 'bw' ),
-                'tab'   => Controls_Manager::TAB_STYLE,
-            ]
-        );
+	private function register_style_items_controls() {
+		$this->start_controls_section(
+			'section_style_items',
+			array(
+				'label' => __( 'Menu Items', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-        $this->add_control(
-            'items_text_color',
-            [
-                'label'     => __( 'Text Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu__list' => 'color: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'items_text_color',
+			array(
+				'label'       => __( 'Text Color', 'bw' ),
+				'type'        => Controls_Manager::COLOR,
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu__list' => 'color: {{VALUE}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'     => 'items_typography',
-                'selector' => '{{WRAPPER}} .bw-about-menu__link',
-                'render_type' => 'ui',
-            ]
-        );
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'items_typography',
+			'{{WRAPPER}} .bw-about-menu__link',
+			array( 'render_type' => 'ui' )
+		);
 
-        $this->add_responsive_control(
-            'items_spacing',
-            [
-                'label'      => __( 'Spacing', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px', '%', 'em' ],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 120,
-                    ],
-                    '%'  => [
-                        'min' => 0,
-                        'max' => 10,
-                    ],
-                    'em' => [
-                        'min' => 0,
-                        'max' => 6,
-                    ],
-                ],
-                'default'    => [
-                    'unit' => 'px',
-                    'size' => 40,
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-about-menu__list' => 'gap: {{SIZE}}{{UNIT}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_responsive_control(
+			'items_spacing',
+			array(
+				'label'       => __( 'Spacing', 'bw' ),
+				'type'        => Controls_Manager::SLIDER,
+				'size_units'  => array( 'px', '%', 'em' ),
+				'range'       => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 120,
+					),
+					'%'  => array(
+						'min' => 0,
+						'max' => 10,
+					),
+					'em' => array(
+						'min' => 0,
+						'max' => 6,
+					),
+				),
+				'default'     => array(
+					'unit' => 'px',
+					'size' => 40,
+				),
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu__list' => 'gap: {{SIZE}}{{UNIT}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->add_control(
-            'items_hover_color',
-            [
-                'label'     => __( 'Hover Text Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-about-menu__list .menu-item:hover > .bw-about-menu__link' => 'color: {{VALUE}};',
-                    '{{WRAPPER}} .bw-about-menu__list .menu-item:focus-within > .bw-about-menu__link' => 'color: {{VALUE}};',
-                ],
-                'render_type' => 'ui',
-            ]
-        );
+		$this->add_control(
+			'items_hover_color',
+			array(
+				'label'       => __( 'Hover Text Color', 'bw' ),
+				'type'        => Controls_Manager::COLOR,
+				'selectors'   => array(
+					'{{WRAPPER}} .bw-about-menu__list .menu-item:hover > .bw-about-menu__link' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .bw-about-menu__list .menu-item:focus-within > .bw-about-menu__link' => 'color: {{VALUE}};',
+				),
+				'render_type' => 'ui',
+			)
+		);
 
-        $this->end_controls_section();
-    }
+		$this->end_controls_section();
+	}
 
-    protected function render() {
-        $settings = $this->get_settings_for_display();
-        $menu_id  = isset( $settings['menu_id'] ) ? $settings['menu_id'] : '';
+	protected function render() {
+		$settings = $this->get_settings_for_display();
+		$menu_id  = isset( $settings['menu_id'] ) ? $settings['menu_id'] : '';
 
-        if ( empty( $menu_id ) ) {
-            echo '<div class="bw-about-menu bw-about-menu--empty">' . esc_html__( 'Select a menu to display.', 'bw' ) . '</div>';
-            return;
-        }
+		if ( empty( $menu_id ) ) {
+			echo '<div class="bw-about-menu bw-about-menu--empty">' . esc_html__( 'Select a menu to display.', 'bw' ) . '</div>';
+			return;
+		}
 
-        $this->current_menu_for_filter = $menu_id;
-        add_filter( 'nav_menu_link_attributes', [ $this, 'filter_nav_menu_link_attributes' ], 10, 3 );
+		$this->current_menu_for_filter = $menu_id;
+		add_filter( 'nav_menu_link_attributes', array( $this, 'filter_nav_menu_link_attributes' ), 10, 3 );
 
-        $menu = wp_nav_menu(
-            [
-                'menu'        => (int) $menu_id,
-                'menu_class'  => 'bw-about-menu__list',
-                'container'   => false,
-                'fallback_cb' => '__return_empty_string',
-                'echo'        => false,
-                'depth'       => 1,
-            ]
-        );
+		$menu = wp_nav_menu(
+			array(
+				'menu'        => (int) $menu_id,
+				'menu_class'  => 'bw-about-menu__list',
+				'container'   => false,
+				'fallback_cb' => '__return_empty_string',
+				'echo'        => false,
+				'depth'       => 1,
+			)
+		);
 
-        remove_filter( 'nav_menu_link_attributes', [ $this, 'filter_nav_menu_link_attributes' ], 10 );
-        $this->current_menu_for_filter = null;
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'filter_nav_menu_link_attributes' ), 10 );
+		$this->current_menu_for_filter = null;
 
-        if ( empty( $menu ) ) {
-            echo '<div class="bw-about-menu bw-about-menu--empty">' . esc_html__( 'No menu items found.', 'bw' ) . '</div>';
-            return;
-        }
+		if ( empty( $menu ) ) {
+			echo '<div class="bw-about-menu bw-about-menu--empty">' . esc_html__( 'No menu items found.', 'bw' ) . '</div>';
+			return;
+		}
 
-        echo '<div class="bw-about-menu">' . $menu . '</div>';
-    }
+		echo '<div class="bw-about-menu">' . $menu . '</div>';
+	}
 
-    private function get_available_menus() {
-        $menus = wp_get_nav_menus();
+	private function get_available_menus() {
+		$menus = wp_get_nav_menus();
 
-        if ( empty( $menus ) || is_wp_error( $menus ) ) {
-            return [ '' => __( 'No menus found', 'bw' ) ];
-        }
+		if ( empty( $menus ) || is_wp_error( $menus ) ) {
+			return array( '' => __( 'No menus found', 'bw' ) );
+		}
 
-        $options = [ '' => __( 'Select a menu', 'bw' ) ];
+		$options = array( '' => __( 'Select a menu', 'bw' ) );
 
-        foreach ( $menus as $menu ) {
-            $options[ $menu->term_id ] = $menu->name;
-        }
+		foreach ( $menus as $menu ) {
+			$options[ $menu->term_id ] = $menu->name;
+		}
 
-        return $options;
-    }
+		return $options;
+	}
 
-    /**
-     * Adds the widget specific class to menu links when rendering through wp_nav_menu.
-     *
-     * @param array   $atts Link attributes.
-     * @param \WP_Post $item Menu item data.
-     * @param stdClass $args Menu arguments.
-     *
-     * @return array
-     */
-    public function filter_nav_menu_link_attributes( $atts, $item, $args ) {
-        if ( empty( $this->current_menu_for_filter ) ) {
-            return $atts;
-        }
+	/**
+	 * Adds the widget specific class to menu links when rendering through wp_nav_menu.
+	 *
+	 * @param array    $atts Link attributes.
+	 * @param \WP_Post $item Menu item data.
+	 * @param stdClass $args Menu arguments.
+	 *
+	 * @return array
+	 */
+	public function filter_nav_menu_link_attributes( $atts, $item, $args ) {
+		if ( empty( $this->current_menu_for_filter ) ) {
+			return $atts;
+		}
 
-        $current_menu = (string) $this->current_menu_for_filter;
+		$current_menu = (string) $this->current_menu_for_filter;
 
-        $menu_arg = $args->menu ?? '';
+		$menu_arg = $args->menu ?? '';
 
-        if ( $menu_arg instanceof \WP_Term ) {
-            $menu_arg = (string) $menu_arg->term_id;
-        } elseif ( is_object( $menu_arg ) && isset( $menu_arg->term_id ) ) {
-            $menu_arg = (string) $menu_arg->term_id;
-        } else {
-            $menu_arg = (string) $menu_arg;
-        }
+		if ( $menu_arg instanceof \WP_Term ) {
+			$menu_arg = (string) $menu_arg->term_id;
+		} elseif ( is_object( $menu_arg ) && isset( $menu_arg->term_id ) ) {
+			$menu_arg = (string) $menu_arg->term_id;
+		} else {
+			$menu_arg = (string) $menu_arg;
+		}
 
-        if ( '' !== $menu_arg && $menu_arg !== $current_menu ) {
-            return $atts;
-        }
+		if ( '' !== $menu_arg && $menu_arg !== $current_menu ) {
+			return $atts;
+		}
 
-        if ( isset( $atts['class'] ) && ! empty( $atts['class'] ) ) {
-            $atts['class'] .= ' bw-about-menu__link';
-        } else {
-            $atts['class'] = 'bw-about-menu__link';
-        }
+		if ( isset( $atts['class'] ) && ! empty( $atts['class'] ) ) {
+			$atts['class'] .= ' bw-about-menu__link';
+		} else {
+			$atts['class'] = 'bw-about-menu__link';
+		}
 
-        $atts['class'] = trim( $atts['class'] );
+		$atts['class'] = trim( $atts['class'] );
 
-        return $atts;
-    }
+		return $atts;
+	}
 }
