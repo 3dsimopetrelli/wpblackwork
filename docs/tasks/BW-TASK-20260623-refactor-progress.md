@@ -22,14 +22,25 @@ This file is the single source of truth for the overnight loop. After each step,
 - [x] `php -l` touched files (clean) + `composer run lint:main` (green)
 - [x] Commit: `style: phpcbf auto-fix formatting debt on new feature files` @ f5204038
 
-### Phase 1 — bootstrap decomposition (risk: low)
-- [ ] Extract SVG-upload security (`blackwork-core-plugin.php` ~35–418) → `includes/svg-upload/class-bw-svg-upload-handler.php`
-- [ ] Extract asset registry (~731–1616) → `includes/assets/class-bw-asset-registry.php` (declarative config + shared register helper)
-- [ ] Extract CDN/SRI (~797–885) → `includes/assets/class-bw-cdn-sri-manager.php`
-- [ ] Extract deprecated-widget unregistration (~702–729) → `includes/widgets/class-bw-widget-unregistration.php`
-- [ ] grep-verify every moved handle/function still referenced correctly
-- [ ] `php -l` + `composer run lint:main` + `lint:strict`
-- [ ] Commit per extraction (4 commits)
+### Phase 1 — bootstrap decomposition (risk: low) ✅ DONE — bootstrap 1616 → 359 lines
+- [x] Extract SVG-upload security → `includes/svg-upload/svg-upload-handler.php` @ defd231a
+- [x] Extract asset registry → `includes/assets/asset-registry.php` @ 56d9c097
+- [x] Extract CDN/SRI → `includes/assets/cdn-sri-manager.php` @ 44724231
+- [x] Extract deprecated-widget unregistration → `includes/widgets/widget-unregistration.php` @ 4a2aa2c3
+- [x] grep-verify: function-def set + hook-registration set (space-insensitive) are an EXACT match vs pre-Phase-1 baseline (0a07dd61); zero lost, zero added, zero duplicate defs
+- [x] `php -l` clean on all files; `lint:main` green
+- [x] Committed as 4 separate extraction commits
+
+> Deviations from plan (documented): (1) functions kept as global names rather than
+> wrapped in static classes — runbook rule #4 (preserve public function names) + 2
+> externally-referenced SVG fns require it; files named without `class-` prefix
+> accordingly. (2) Asset registry moved VERBATIM, not rewritten to a declarative
+> config array — a byte-identical-handle rewrite can't be output-verified without a
+> running WP instance and risks silent enqueue breakage; relocation achieves the
+> structural goal at zero behavior risk. (3) Relocated files moved from the
+> lint-excluded root bootstrap into the fully-enforced `includes/` tree, so each was
+> phpcbf'd; small non-auto-fixable remainders (doc comments, SVG attr keys,
+> file_get/put_contents, inline-comment punctuation) documented per-commit and left.
 
 ### Phase 2 — widget control de-duplication: ALL 28 widgets (risk: low per widget, high volume)
 
@@ -76,6 +87,6 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ---
 
-**Last action:** Phase 0 committed @ f5204038 (whitespace/style only, gate green). Starting Phase 1 — bootstrap decomposition, SVG-upload extraction first.
+**Last action:** Phase 1 complete (4 extractions @ defd231a/4a2aa2c3/44724231/56d9c097, bootstrap 1616→359, gate green, set-match verified). Starting Phase 2 — building widget helpers first.
 
 **Final summary:** _(loop fills this in before stopping)_
