@@ -29,17 +29,13 @@ class BW_License_Table_Widget extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		if ( function_exists( 'bw_register_widget_assets' ) && ( ! wp_style_is( 'bw-license-table-style', 'registered' ) || ! wp_script_is( 'bw-license-table-script', 'registered' ) ) ) {
-			bw_register_widget_assets( 'license-table' );
-		}
+		BW_Widget_Helper::register_widget_dependencies( 'license-table' );
 
 		return array( 'bw-license-table-style' );
 	}
 
 	public function get_script_depends() {
-		if ( function_exists( 'bw_register_widget_assets' ) && ( ! wp_style_is( 'bw-license-table-style', 'registered' ) || ! wp_script_is( 'bw-license-table-script', 'registered' ) ) ) {
-			bw_register_widget_assets( 'license-table' );
-		}
+		BW_Widget_Helper::register_widget_dependencies( 'license-table' );
 
 		return array( 'bw-license-table-script' );
 	}
@@ -296,17 +292,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'wrapper_background_color',
-			array(
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-card-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'wrapper_background_color', __( 'Background Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-card-bg', '#ffffff' );
 
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
@@ -316,35 +302,22 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
-			'wrapper_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'wrapper_border_radius', __( 'Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', 'border-radius', array( 'px', '%' ) );
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'wrapper_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-license-table-widget',
+			'padding',
+			array( 'px', 'em', 'rem' ),
 			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem' ),
-				'default'    => array(
-					'top'      => 24,
-					'right'    => 24,
-					'bottom'   => 24,
-					'left'     => 24,
-					'unit'     => 'px',
-					'isLinked' => false,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
+				'top'      => 24,
+				'right'    => 24,
+				'bottom'   => 24,
+				'left'     => 24,
+				'unit'     => 'px',
+				'isLinked' => false,
 			)
 		);
 
@@ -414,13 +387,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'header_title_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__title',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'header_title_typography', '{{WRAPPER}} .bw-license-table-widget__title' );
 
 		$this->add_control(
 			'header_title_color',
@@ -479,13 +446,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'header_description_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__description',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'header_description_typography', '{{WRAPPER}} .bw-license-table-widget__description' );
 
 		$this->add_control(
 			'header_description_color',
@@ -576,13 +537,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'divider_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__divider-label',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'divider_typography', '{{WRAPPER}} .bw-license-table-widget__divider-label' );
 
 		$this->add_control(
 			'divider_text_color',
@@ -719,15 +674,14 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'divider_line_color',
+			__( 'Divider Line Color', 'bw' ),
+			'{{WRAPPER}} .bw-license-table-widget',
+			'--bw-license-table-divider-line-color',
+			'#dddddd',
 			array(
-				'label'     => __( 'Divider Line Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#dddddd',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-divider-line-color: {{VALUE}};',
-				),
 				'condition' => array(
 					'divider_line_enabled' => 'yes',
 				),
@@ -794,13 +748,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'feature_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__feature',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'feature_typography', '{{WRAPPER}} .bw-license-table-widget__feature' );
 
 		$this->add_control(
 			'feature_text_color',
@@ -815,40 +763,11 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'feature_background_color',
-			array(
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-feature-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'feature_background_color', __( 'Background Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-feature-bg' );
 
-		$this->add_responsive_control(
-			'feature_padding',
-			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-feature-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'feature_padding', __( 'Padding', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-feature-padding', array( 'px', 'em', 'rem' ) );
 
-		$this->add_responsive_control(
-			'feature_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-feature-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'feature_border_radius', __( 'Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-feature-radius', array( 'px', '%' ) );
 
 		$this->end_controls_section();
 
@@ -860,13 +779,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'permission_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__permission',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'permission_typography', '{{WRAPPER}} .bw-license-table-widget__permission' );
 
 		$this->add_control(
 			'permission_text_color',
@@ -881,40 +794,11 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'permission_background_color',
-			array(
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-permission-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'permission_background_color', __( 'Background Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-permission-bg' );
 
-		$this->add_responsive_control(
-			'permission_padding',
-			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-permission-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'permission_padding', __( 'Padding', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-permission-padding', array( 'px', 'em', 'rem' ) );
 
-		$this->add_responsive_control(
-			'permission_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-permission-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'permission_border_radius', __( 'Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-permission-radius', array( 'px', '%' ) );
 
 		$this->end_controls_section();
 
@@ -926,13 +810,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'example_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__example, {{WRAPPER}} .bw-license-table-widget__tooltip, {{WRAPPER}} .bw-license-table-widget__tooltip-mobile',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'example_typography', '{{WRAPPER}} .bw-license-table-widget__example, {{WRAPPER}} .bw-license-table-widget__tooltip, {{WRAPPER}} .bw-license-table-widget__tooltip-mobile' );
 
 		$this->add_control(
 			'example_text_color',
@@ -947,76 +825,17 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'example_background_color',
-			array(
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-example-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'example_background_color', __( 'Background Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-example-bg' );
 
-		$this->add_responsive_control(
-			'example_padding',
-			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-example-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'example_padding', __( 'Padding', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-example-padding', array( 'px', 'em', 'rem' ) );
 
-		$this->add_responsive_control(
-			'example_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-example-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'example_border_radius', __( 'Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-example-radius', array( 'px', '%' ) );
 
-		$this->add_control(
-			'tooltip_background_color',
-			array(
-				'label'     => __( 'Tooltip Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#080808',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'tooltip_background_color', __( 'Tooltip Background Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-tooltip-bg', '#080808' );
 
-		$this->add_control(
-			'tooltip_text_color',
-			array(
-				'label'     => __( 'Tooltip Text Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'tooltip_text_color', __( 'Tooltip Text Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-tooltip-color', '#ffffff' );
 
-		$this->add_control(
-			'tooltip_trigger_color',
-			array(
-				'label'     => __( 'Tooltip Trigger Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#666666',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'tooltip_trigger_color', __( 'Tooltip Trigger Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-tooltip-trigger-color', '#666666' );
 
 		$this->add_responsive_control(
 			'tooltip_trigger_size',
@@ -1040,40 +859,11 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'tooltip_trigger_background',
-			array(
-				'label'     => __( 'Tooltip Trigger Background', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'tooltip_trigger_background', __( 'Tooltip Trigger Background', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-tooltip-trigger-bg' );
 
-		$this->add_responsive_control(
-			'tooltip_trigger_border_radius',
-			array(
-				'label'      => __( 'Tooltip Trigger Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-trigger-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'tooltip_trigger_border_radius', __( 'Tooltip Trigger Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-tooltip-trigger-radius', array( 'px', '%' ) );
 
-		$this->add_responsive_control(
-			'tooltip_border_radius',
-			array(
-				'label'      => __( 'Tooltip Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-tooltip-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'tooltip_border_radius', __( 'Tooltip Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-tooltip-radius', array( 'px', '%' ) );
 
 		$this->add_responsive_control(
 			'tooltip_width',
@@ -1107,17 +897,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'row_background_color',
-			array(
-				'label'     => __( 'Row Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#ffffff',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-row-bg: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'row_background_color', __( 'Row Background Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-row-bg', '#ffffff' );
 
 		$this->add_control(
 			'enable_alternate_rows',
@@ -1131,15 +911,14 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'alternate_row_background_color',
+			__( 'Alternate Row Color', 'bw' ),
+			'{{WRAPPER}} .bw-license-table-widget',
+			'--bw-license-table-row-alt-bg',
+			'#f7f7f7',
 			array(
-				'label'     => __( 'Alternate Row Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#f7f7f7',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-row-alt-bg: {{VALUE}};',
-				),
 				'condition' => array(
 					'enable_alternate_rows' => 'yes',
 				),
@@ -1154,35 +933,22 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
-			'row_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-row-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_dimensions_control( $this, 'row_border_radius', __( 'Border Radius', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-row-radius', array( 'px', '%' ) );
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'row_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-license-table-widget',
+			'--bw-license-table-row-padding',
+			array( 'px', 'em', 'rem' ),
 			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem' ),
-				'default'    => array(
-					'top'      => 18,
-					'right'    => 18,
-					'bottom'   => 18,
-					'left'     => 18,
-					'unit'     => 'px',
-					'isLinked' => false,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-row-padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
+				'top'      => 18,
+				'right'    => 18,
+				'bottom'   => 18,
+				'left'     => 18,
+				'unit'     => 'px',
+				'isLinked' => false,
 			)
 		);
 
@@ -1218,13 +984,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'footer_typography',
-				'selector' => '{{WRAPPER}} .bw-license-table-widget__footer-link, {{WRAPPER}} .bw-license-table-widget__footer-text',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'footer_typography', '{{WRAPPER}} .bw-license-table-widget__footer-link, {{WRAPPER}} .bw-license-table-widget__footer-text' );
 
 		$this->add_control(
 			'footer_text_color',
@@ -1239,17 +999,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'footer_hover_color',
-			array(
-				'label'     => __( 'Footer Hover Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#666666',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-hover-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'footer_hover_color', __( 'Footer Hover Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-footer-hover-color', '#666666' );
 
 		$this->add_responsive_control(
 			'footer_alignment',
@@ -1326,17 +1076,7 @@ class BW_License_Table_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'footer_divider_color',
-			array(
-				'label'     => __( 'Footer Divider Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#dddddd',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-license-table-widget' => '--bw-license-table-footer-divider-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'footer_divider_color', __( 'Footer Divider Color', 'bw' ), '{{WRAPPER}} .bw-license-table-widget', '--bw-license-table-footer-divider-color', '#dddddd' );
 
 		$this->add_responsive_control(
 			'footer_divider_thickness',
