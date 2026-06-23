@@ -4,291 +4,291 @@ use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class BW_Tags_Widget extends Widget_Base {
-    public function get_name() {
-        return 'bw-tags';
-    }
+	public function get_name() {
+		return 'bw-tags';
+	}
 
-    public function get_title() {
-        return __( 'BW-UI Tags', 'bw' );
-    }
+	public function get_title() {
+		return __( 'BW-UI Tags', 'bw' );
+	}
 
-    public function get_icon() {
-        return 'eicon-tag';
-    }
+	public function get_icon() {
+		return 'eicon-tag';
+	}
 
-    public function get_categories() {
-        return [ 'blackwork' ];
-    }
+	public function get_categories() {
+		return array( 'blackwork' );
+	}
 
-    public function get_style_depends() {
-        $handle      = 'bw-tags-style';
-        $style_file  = BW_MEW_PATH . 'assets/css/bw-tags.css';
-        $style_url   = BW_MEW_URL . 'assets/css/bw-tags.css';
-        $version     = file_exists( $style_file ) ? filemtime( $style_file ) : false;
+	public function get_style_depends() {
+		$handle     = 'bw-tags-style';
+		$style_file = BW_MEW_PATH . 'assets/css/bw-tags.css';
+		$style_url  = BW_MEW_URL . 'assets/css/bw-tags.css';
+		$version    = file_exists( $style_file ) ? filemtime( $style_file ) : false;
 
-        if ( ! wp_style_is( $handle, 'registered' ) ) {
-            wp_register_style( $handle, $style_url, [], $version );
-        }
+		if ( ! wp_style_is( $handle, 'registered' ) ) {
+			wp_register_style( $handle, $style_url, array(), $version );
+		}
 
-        return [ $handle ];
-    }
+		return array( $handle );
+	}
 
-    protected function register_controls() {
-        $this->start_controls_section(
-            'section_style_tags',
-            [
-                'label' => __( 'Tags', 'bw' ),
-                'tab'   => Controls_Manager::TAB_STYLE,
-            ]
-        );
+	protected function register_controls() {
+		$this->start_controls_section(
+			'section_style_tags',
+			array(
+				'label' => __( 'Tags', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-        $this->add_group_control(
-            Group_Control_Typography::get_type(),
-            [
-                'name'     => 'tags_typography',
-                'selector' => '{{WRAPPER}} .bw-tags__link',
-                'fields_options' => [
-                    'typography' => [
-                        'default' => 'yes',
-                    ],
-                    'font_size'  => [
-                        'default' => [
-                            'unit' => 'px',
-                            'size' => 16,
-                        ],
-                    ],
-                ],
-            ]
-        );
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'tags_typography',
+			'{{WRAPPER}} .bw-tags__link',
+			array(
+				'fields_options' => array(
+					'typography' => array(
+						'default' => 'yes',
+					),
+					'font_size'  => array(
+						'default' => array(
+							'unit' => 'px',
+							'size' => 16,
+						),
+					),
+				),
+			)
+		);
 
-        $this->start_controls_tabs( 'tabs_tags_colors' );
+		$this->start_controls_tabs( 'tabs_tags_colors' );
 
-        $this->start_controls_tab(
-            'tab_tags_colors_normal',
-            [
-                'label' => __( 'Normal', 'bw' ),
-            ]
-        );
+		$this->start_controls_tab(
+			'tab_tags_colors_normal',
+			array(
+				'label' => __( 'Normal', 'bw' ),
+			)
+		);
 
-        $this->add_control(
-            'tags_text_color',
-            [
-                'label'     => __( 'Text Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#000000',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-tags__link' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_text_color',
+			array(
+				'label'     => __( 'Text Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#000000',
+				'selectors' => array(
+					'{{WRAPPER}} .bw-tags__link' => 'color: {{VALUE}};',
+				),
+			)
+		);
 
-        $this->add_control(
-            'tags_background_color',
-            [
-                'label'     => __( 'Background Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#ffffff',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-tags__link' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_background_color',
+			array(
+				'label'     => __( 'Background Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#ffffff',
+				'selectors' => array(
+					'{{WRAPPER}} .bw-tags__link' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
 
-        $this->add_control(
-            'tags_border_toggle',
-            [
-                'label'        => __( 'Border', 'bw' ),
-                'type'         => Controls_Manager::SWITCHER,
-                'label_on'     => __( 'On', 'bw' ),
-                'label_off'    => __( 'Off', 'bw' ),
-                'return_value' => 'yes',
-                'default'      => 'yes',
-                'selectors'    => [
-                    '{{WRAPPER}} .bw-tags__link' => 'border-style: {{VALUE}};',
-                ],
-                'selectors_dictionary' => [
-                    'yes' => 'solid',
-                    ''    => 'none',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_border_toggle',
+			array(
+				'label'                => __( 'Border', 'bw' ),
+				'type'                 => Controls_Manager::SWITCHER,
+				'label_on'             => __( 'On', 'bw' ),
+				'label_off'            => __( 'Off', 'bw' ),
+				'return_value'         => 'yes',
+				'default'              => 'yes',
+				'selectors'            => array(
+					'{{WRAPPER}} .bw-tags__link' => 'border-style: {{VALUE}};',
+				),
+				'selectors_dictionary' => array(
+					'yes' => 'solid',
+					''    => 'none',
+				),
+			)
+		);
 
-        $this->add_control(
-            'tags_border_width',
-            [
-                'label'      => __( 'Border Width', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 10,
-                    ],
-                ],
-                'default'    => [
-                    'unit' => 'px',
-                    'size' => 1,
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-tags__link' => 'border-width: {{SIZE}}{{UNIT}};',
-                ],
-                'condition'  => [
-                    'tags_border_toggle' => 'yes',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_border_width',
+			array(
+				'label'      => __( 'Border Width', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 10,
+					),
+				),
+				'default'    => array(
+					'unit' => 'px',
+					'size' => 1,
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-tags__link' => 'border-width: {{SIZE}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'tags_border_toggle' => 'yes',
+				),
+			)
+		);
 
-        $this->add_control(
-            'tags_border_color',
-            [
-                'label'     => __( 'Border Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'default'   => '#000000',
-                'selectors' => [
-                    '{{WRAPPER}} .bw-tags__link' => 'border-color: {{VALUE}};',
-                ],
-                'condition' => [
-                    'tags_border_toggle' => 'yes',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_border_color',
+			array(
+				'label'     => __( 'Border Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#000000',
+				'selectors' => array(
+					'{{WRAPPER}} .bw-tags__link' => 'border-color: {{VALUE}};',
+				),
+				'condition' => array(
+					'tags_border_toggle' => 'yes',
+				),
+			)
+		);
 
-        $this->end_controls_tab();
+		$this->end_controls_tab();
 
-        $this->start_controls_tab(
-            'tab_tags_colors_hover',
-            [
-                'label' => __( 'Hover', 'bw' ),
-            ]
-        );
+		$this->start_controls_tab(
+			'tab_tags_colors_hover',
+			array(
+				'label' => __( 'Hover', 'bw' ),
+			)
+		);
 
-        $this->add_control(
-            'tags_text_color_hover',
-            [
-                'label'     => __( 'Text Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-tags__link:hover' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_text_color_hover',
+			array(
+				'label'     => __( 'Text Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-tags__link:hover' => 'color: {{VALUE}};',
+				),
+			)
+		);
 
-        $this->add_control(
-            'tags_background_color_hover',
-            [
-                'label'     => __( 'Background Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-tags__link:hover' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_background_color_hover',
+			array(
+				'label'     => __( 'Background Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-tags__link:hover' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
 
-        $this->add_control(
-            'tags_border_color_hover',
-            [
-                'label'     => __( 'Border Color', 'bw' ),
-                'type'      => Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .bw-tags__link:hover' => 'border-color: {{VALUE}};',
-                ],
-                'condition' => [
-                    'tags_border_toggle' => 'yes',
-                ],
-            ]
-        );
+		$this->add_control(
+			'tags_border_color_hover',
+			array(
+				'label'     => __( 'Border Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-tags__link:hover' => 'border-color: {{VALUE}};',
+				),
+				'condition' => array(
+					'tags_border_toggle' => 'yes',
+				),
+			)
+		);
 
-        $this->end_controls_tab();
-        $this->end_controls_tabs();
+		$this->end_controls_tab();
+		$this->end_controls_tabs();
 
-        $this->add_responsive_control(
-            'tags_horizontal_gap',
-            [
-                'label'      => __( 'Horizontal Gap', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 50,
-                    ],
-                ],
-                'default'    => [
-                    'unit' => 'px',
-                    'size' => 8,
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-tags__list' => 'column-gap: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
+		$this->add_responsive_control(
+			'tags_horizontal_gap',
+			array(
+				'label'      => __( 'Horizontal Gap', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 50,
+					),
+				),
+				'default'    => array(
+					'unit' => 'px',
+					'size' => 8,
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-tags__list' => 'column-gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
 
-        $this->add_responsive_control(
-            'tags_vertical_gap',
-            [
-                'label'      => __( 'Vertical Gap', 'bw' ),
-                'type'       => Controls_Manager::SLIDER,
-                'size_units' => [ 'px' ],
-                'range'      => [
-                    'px' => [
-                        'min' => 0,
-                        'max' => 50,
-                    ],
-                ],
-                'default'    => [
-                    'unit' => 'px',
-                    'size' => 8,
-                ],
-                'selectors'  => [
-                    '{{WRAPPER}} .bw-tags__list' => 'row-gap: {{SIZE}}{{UNIT}};',
-                ],
-            ]
-        );
+		$this->add_responsive_control(
+			'tags_vertical_gap',
+			array(
+				'label'      => __( 'Vertical Gap', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 50,
+					),
+				),
+				'default'    => array(
+					'unit' => 'px',
+					'size' => 8,
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-tags__list' => 'row-gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
 
-        $this->end_controls_section();
-    }
+		$this->end_controls_section();
+	}
 
-    protected function render() {
-        if ( ! function_exists( 'wc_get_product' ) ) {
-            return;
-        }
+	protected function render() {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
 
-        $resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
-            ? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
-            : [ 'id' => absint( get_queried_object_id() ) ];
-        $product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
-        $product = $product_id > 0 ? wc_get_product( $product_id ) : null;
+		$resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
+			? bw_tbl_resolve_product_context_id( array( '__widget_class' => __CLASS__ ) )
+			: array( 'id' => absint( get_queried_object_id() ) );
+		$product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
+		$product    = $product_id > 0 ? wc_get_product( $product_id ) : null;
 
-        if ( ! $product ) {
-            return;
-        }
+		if ( ! $product ) {
+			return;
+		}
 
-        $tags = get_the_terms( $product->get_id(), 'product_tag' );
+		$tags = get_the_terms( $product->get_id(), 'product_tag' );
 
-        if ( empty( $tags ) || is_wp_error( $tags ) ) {
-            return;
-        }
+		if ( empty( $tags ) || is_wp_error( $tags ) ) {
+			return;
+		}
 
-        echo '<div class="bw-tags"><ul class="bw-tags__list">';
+		echo '<div class="bw-tags"><ul class="bw-tags__list">';
 
-        foreach ( $tags as $tag ) {
-            $link = get_term_link( $tag );
+		foreach ( $tags as $tag ) {
+			$link = get_term_link( $tag );
 
-            if ( is_wp_error( $link ) ) {
-                continue;
-            }
+			if ( is_wp_error( $link ) ) {
+				continue;
+			}
 
-            printf(
-                '<li class="bw-tags__item"><a class="bw-tags__link" href="%1$s">%2$s</a></li>',
-                esc_url( $link ),
-                esc_html( $tag->name )
-            );
-        }
+			printf(
+				'<li class="bw-tags__item"><a class="bw-tags__link" href="%1$s">%2$s</a></li>',
+				esc_url( $link ),
+				esc_html( $tag->name )
+			);
+		}
 
-        echo '</ul></div>';
-    }
+		echo '</ul></div>';
+	}
 }
