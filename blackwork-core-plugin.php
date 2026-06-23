@@ -308,44 +308,13 @@ add_action('init', 'bw_register_mosaic_slider_widget_assets');
 add_action('init', 'bw_register_hero_slide_widget_assets');
 add_action('init', 'bw_register_product_details_widget_assets');
 add_action('init', 'bw_register_reviews_widget_assets');
-add_action('elementor/widgets/register', 'bw_unregister_removed_blackwork_widgets', 999);
-add_action('elementor/widgets/widgets_registered', 'bw_unregister_removed_blackwork_widgets', 999);
 
 /**
- * Defensive cleanup for removed widgets that may still be registered by stale caches/flows.
+ * Deprecated-widget unregistration (function + hook registrations).
  *
- * @param mixed $widgets_manager Elementor widgets manager when provided by hook.
- *
- * @return void
+ * Extracted to includes/widgets/widget-unregistration.php (Phase 1).
  */
-function bw_unregister_removed_blackwork_widgets($widgets_manager = null)
-{
-    if (null === $widgets_manager && class_exists('\Elementor\Plugin')) {
-        $widgets_manager = \Elementor\Plugin::instance()->widgets_manager;
-    }
-
-    if (!is_object($widgets_manager)) {
-        return;
-    }
-
-    $removed_widgets = [
-        'bw-add-to-cart',
-        'bw-add-to-cart-variation',
-        'bw-wallpost',
-        'bw-slick-slider',
-    ];
-
-    foreach ($removed_widgets as $widget_slug) {
-        if (method_exists($widgets_manager, 'unregister')) {
-            $widgets_manager->unregister($widget_slug);
-            continue;
-        }
-
-        if (method_exists($widgets_manager, 'unregister_widget_type')) {
-            $widgets_manager->unregister_widget_type($widget_slug);
-        }
-    }
-}
+require_once plugin_dir_path(__FILE__) . 'includes/widgets/widget-unregistration.php';
 
 function bw_register_embla_assets()
 {
