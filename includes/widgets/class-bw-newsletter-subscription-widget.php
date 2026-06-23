@@ -463,65 +463,54 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'widget_padding',
-			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem', 'vw', 'vh' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-newsletter-subscription-shell' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-newsletter-subscription-shell',
+			'padding',
+			array( 'px', '%', 'em', 'rem', 'vw', 'vh' )
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'widget_text_color',
-			array(
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-widget-bg: {{VALUE}};',
-				),
-			)
+			__( 'Background Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-widget-bg'
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'widget_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem', 'vw', 'vh' ),
-				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-ns-widget-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Border Radius', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-widget-radius',
+			array( 'px', '%', 'em', 'rem', 'vw', 'vh' )
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'footer_title_color',
+			__( 'Title Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-footer-title-color',
+			'rgba(111, 111, 111, 0.11)',
 			array(
-				'label'     => __( 'Title Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(111, 111, 111, 0.11)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-footer-title-color: {{VALUE}};',
-				),
 				'condition' => array(
 					'style_variant' => 'footer',
 				),
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'footer_subtitle_color',
+			__( 'Description Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-footer-subtitle-color',
+			'#080808',
 			array(
-				'label'     => __( 'Description Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#080808',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-footer-subtitle-color: {{VALUE}};',
-				),
 				'condition' => array(
 					'style_variant' => 'footer',
 				),
@@ -572,16 +561,13 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'section_title_color',
-			array(
-				'label'     => __( 'Title Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#F7F7F2',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-section-title-color: {{VALUE}};',
-				),
-			)
+			__( 'Title Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-section-title-color',
+			'#F7F7F2'
 		);
 
 		$this->add_group_control(
@@ -601,16 +587,13 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'section_subtitle_color',
-			array(
-				'label'     => __( 'Subtitle Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(247, 247, 242, 0.86)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-section-subtitle-color: {{VALUE}};',
-				),
-			)
+			__( 'Subtitle Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-section-subtitle-color',
+			'rgba(247, 247, 242, 0.86)'
 		);
 
 		$this->add_group_control(
@@ -622,27 +605,23 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'section_privacy_color',
-			array(
-				'label'     => __( 'Privacy Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(247, 247, 242, 0.84)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-section-privacy-color: {{VALUE}};',
-				),
-			)
+			__( 'Privacy Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-section-privacy-color',
+			'rgba(247, 247, 242, 0.84)'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'section_overlay_color',
+			__( 'Gradient Color 1', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-overlay-color',
+			'rgba(8, 8, 8, 0.82)',
 			array(
-				'label'     => __( 'Gradient Color 1', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(8, 8, 8, 0.82)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-overlay-color: {{VALUE}};',
-				),
 				'condition' => array(
 					'style_variant'                   => 'section',
 					'section_enable_gradient_overlay' => 'yes',
@@ -650,15 +629,14 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'section_overlay_secondary_color',
+			__( 'Gradient Color 2', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-overlay-color-secondary',
+			'rgba(8, 8, 8, 0.12)',
 			array(
-				'label'     => __( 'Gradient Color 2', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(8, 8, 8, 0.12)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-overlay-color-secondary: {{VALUE}};',
-				),
 				'condition' => array(
 					'style_variant'                   => 'section',
 					'section_enable_gradient_overlay' => 'yes',
@@ -693,15 +671,14 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'section_glow_color',
+			__( 'Glow Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-glow-color',
+			'rgba(128, 253, 3, 0.16)',
 			array(
-				'label'     => __( 'Glow Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(128, 253, 3, 0.16)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-glow-color: {{VALUE}};',
-				),
 				'condition' => array(
 					'style_variant'                   => 'section',
 					'section_enable_gradient_overlay' => 'yes',
@@ -986,16 +963,13 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'input_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Border Radius', 'bw' ),
+			'{{WRAPPER}} .bw-newsletter-subscription__input--footer, {{WRAPPER}} .bw-newsletter-subscription-widget--section .bw-newsletter-subscription__input--section',
+			'border-radius',
+			array( 'px', '%' )
 		);
 
 		$this->add_responsive_control(
@@ -1067,70 +1041,52 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'button_text_color',
-			array(
-				'label'     => __( 'Text Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-button-text-color: {{VALUE}};',
-				),
-			)
+			__( 'Text Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-text-color'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'button_text_hover_color',
-			array(
-				'label'     => __( 'Text Hover Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-button-text-color-hover: {{VALUE}};',
-				),
-			)
+			__( 'Text Hover Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-text-color-hover'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'button_background_color',
-			array(
-				'label'     => __( 'Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-button-bg: {{VALUE}};',
-				),
-			)
+			__( 'Background Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-bg'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'button_background_hover_color',
-			array(
-				'label'     => __( 'Background Hover Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-button-bg-hover: {{VALUE}};',
-				),
-			)
+			__( 'Background Hover Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-bg-hover'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'button_border_color',
-			array(
-				'label'     => __( 'Border Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-button-border-color: {{VALUE}};',
-				),
-			)
+			__( 'Border Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-border-color'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'button_border_hover_color',
-			array(
-				'label'     => __( 'Border Hover Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-ns-button-border-color-hover: {{VALUE}};',
-				),
-			)
+			__( 'Border Hover Color', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-border-color-hover'
 		);
 
 		$this->add_responsive_control(
@@ -1152,16 +1108,13 @@ class BW_Newsletter_Subscription_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'button_border_radius',
-			array(
-				'label'      => __( 'Border Radius', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}}' => '--bw-ns-button-border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Border Radius', 'bw' ),
+			'{{WRAPPER}}',
+			'--bw-ns-button-border-radius',
+			array( 'px', '%', 'em', 'rem' )
 		);
 
 		$this->add_responsive_control(
