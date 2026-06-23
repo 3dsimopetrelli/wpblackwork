@@ -5,2008 +5,2164 @@ use Elementor\Repeater;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class BW_Product_Grid_Widget extends Widget_Base {
 
-    public function get_name() {
-        return 'bw-product-grid';
-    }
-
-    public function get_title() {
-        return esc_html__( 'BW Product Grid', 'bw-elementor-widgets' );
-    }
-
-    public function get_icon() {
-        return 'eicon-posts-grid';
-    }
-
-    public function get_categories() {
-        return [ 'blackwork' ];
-    }
-
-    public function get_script_depends() {
-        return [ 'imagesloaded', 'masonry', 'bw-product-grid-js' ];
-    }
-
-    public function get_style_depends() {
-        return [ 'bw-wallpost-style', 'bw-product-card-style', 'bw-product-grid-style' ];
-    }
-
-    protected function register_controls() {
-        $this->register_filter_controls();
-        $this->register_query_controls();
-        $this->register_rebuild_layout_controls();
-        $this->register_grid_controls();
-        $this->register_style_controls();
-    }
-
-    private function get_filter_category_options() {
-        $category_options = [ 'all' => __( 'All Categories', 'bw-elementor-widgets' ) ];
-
-        $product_categories = get_terms(
-            [
-                'taxonomy'   => 'product_cat',
-                'hide_empty' => false,
-                'parent'     => 0,
-            ]
-        );
-
-        if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
-            foreach ( $product_categories as $category ) {
-                $category_options[ $category->term_id ] = $category->name;
-            }
-        }
-
-        return $category_options;
-    }
-
-    private function register_rebuild_layout_controls() {
-        $this->start_controls_section( 'layout_rebuild_section', [
-            'label' => __( 'Layout', 'bw-elementor-widgets' ),
-            'tab'   => Controls_Manager::TAB_CONTENT,
-        ] );
-
-        $this->add_control( 'infinite_scroll', [
-            'label'        => __( 'Infinite Scroll', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'initial_items', [
-            'label'       => __( 'Initial Items', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::NUMBER,
-            'min'         => -1,
-            'max'         => 100,
-            'step'        => 1,
-            'default'     => 12,
-            'description' => __( 'Use -1 to render all items and disable infinite loading.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'load_batch_size', [
-            'label'     => __( 'Load Batch Size', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::NUMBER,
-            'min'       => 1,
-            'max'       => 100,
-            'step'      => 1,
-            'default'   => 12,
-            'condition' => [
-                'infinite_scroll' => 'yes',
-            ],
-        ] );
-
-        $this->add_control( 'desktop_columns', [
-            'label'   => __( 'Desktop Columns', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'default' => '4',
-            'options' => [
-                '3' => '3',
-                '4' => '4',
-                '5' => '5',
-                '6' => '6',
-            ],
-        ] );
-
-        $this->add_control( 'container_max_width', [
-            'label'       => __( 'Container Max Width (px)', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::NUMBER,
-            'default'     => 2000,
-            'min'         => 800,
-            'max'         => 4000,
-            'step'        => 10,
-            'description' => __( 'Full-width container with this max width cap.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'masonry_effect', [
-            'label'        => __( 'Masonry Effect', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'show_title', [
-            'label'        => __( 'Show Title', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'show_description', [
-            'label'        => __( 'Show Description', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'show_price', [
-            'label'        => __( 'Show Price', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'show_hover_buttons', [
-            'label'        => __( 'Show Hover Buttons', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'No', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-        ] );
-
-        $this->add_control( 'disable_hover_on_touch', [
-            'label'        => __( 'Disable Hover Actions on Tablet & Mobile', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => '',
-            'description'  => __( 'Hide hover overlays and secondary hover media below desktop widths.', 'bw-elementor-widgets' ),
-            'condition'    => [
-                'show_hover_buttons' => 'yes',
-            ],
-        ] );
-
-        $this->end_controls_section();
-    }
-
-    private function register_grid_controls() {
-        $this->start_controls_section( 'layout_grid_section', [
-            'label' => __( 'Grid', 'bw-elementor-widgets' ),
-            'tab'   => Controls_Manager::TAB_CONTENT,
-        ] );
-
-        $this->add_responsive_control( 'grid_horizontal_gap', [
-            'label'          => __( 'Post Gap Horizontal', 'bw-elementor-widgets' ),
-            'type'           => Controls_Manager::SLIDER,
-            'size_units'     => [ 'px' ],
-            'range'          => [
-                'px' => [
-                    'min'  => 0,
-                    'max'  => 80,
-                    'step' => 1,
-                ],
-            ],
-            'default'        => [
-                'size' => 10,
-                'unit' => 'px',
-            ],
-            'tablet_default' => [
-                'size' => 10,
-                'unit' => 'px',
-            ],
-            'mobile_default' => [
-                'size' => 10,
-                'unit' => 'px',
-            ],
-        ] );
-
-        $this->add_responsive_control( 'grid_vertical_gap', [
-            'label'          => __( 'Post Gap Vertical', 'bw-elementor-widgets' ),
-            'type'           => Controls_Manager::SLIDER,
-            'size_units'     => [ 'px' ],
-            'range'          => [
-                'px' => [
-                    'min'  => 0,
-                    'max'  => 80,
-                    'step' => 1,
-                ],
-            ],
-            'default'        => [
-                'size' => 10,
-                'unit' => 'px',
-            ],
-            'tablet_default' => [
-                'size' => 10,
-                'unit' => 'px',
-            ],
-            'mobile_default' => [
-                'size' => 10,
-                'unit' => 'px',
-            ],
-        ] );
-
-        $this->end_controls_section();
-    }
-
-    private function register_style_controls() {
-        $this->start_controls_section( 'style_media_section', [
-            'label' => __( 'Image', 'bw-elementor-widgets' ),
-            'tab'   => Controls_Manager::TAB_STYLE,
-        ] );
-
-        $this->add_control( 'product_image_background_color', [
-            'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-product-card .bw-slider-image-container, {{WRAPPER}} .bw-product-card .bw-wallpost-media, {{WRAPPER}} .bw-product-card .bw-ss__media' => 'background-color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->end_controls_section();
-
-        $this->start_controls_section( 'style_text_section', [
-            'label' => __( 'Text', 'bw-elementor-widgets' ),
-            'tab'   => Controls_Manager::TAB_STYLE,
-        ] );
-
-        $this->add_control( 'content_gap_heading', [
-            'label' => __( 'Content Stack', 'bw-elementor-widgets' ),
-            'type'  => Controls_Manager::HEADING,
-        ] );
-
-        $this->add_responsive_control( 'content_gap', [
-            'label'      => __( 'Gap', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::SLIDER,
-            'size_units' => [ 'px' ],
-            'range'      => [
-                'px' => [
-                    'min'  => 0,
-                    'max'  => 60,
-                    'step' => 1,
-                ],
-            ],
-            'default'    => [
-                'size' => 12,
-                'unit' => 'px',
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-content' => 'gap: {{SIZE}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_control( 'title_style_heading', [
-            'label'     => __( 'Title', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
-        ] );
-
-        $this->add_control( 'title_color', [
-            'label'     => __( 'Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-title, {{WRAPPER}} .bw-fpw-title a' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'title_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-title, {{WRAPPER}} .bw-fpw-title a',
-        ] );
-
-        $this->add_responsive_control( 'title_padding', [
-            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_control( 'description_style_heading', [
-            'label'     => __( 'Description', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
-        ] );
-
-        $this->add_control( 'description_color', [
-            'label'     => __( 'Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-description, {{WRAPPER}} .bw-fpw-description p' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'description_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-description, {{WRAPPER}} .bw-fpw-description p',
-        ] );
-
-        $this->add_responsive_control( 'description_padding', [
-            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->add_control( 'price_style_heading', [
-            'label'     => __( 'Price', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
-        ] );
-
-        $this->add_control( 'price_color', [
-            'label'     => __( 'Color', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::COLOR,
-            'selectors' => [
-                '{{WRAPPER}} .bw-fpw-price, {{WRAPPER}} .bw-fpw-price .amount, {{WRAPPER}} .bw-fpw-price ins, {{WRAPPER}} .bw-fpw-price .price-sale, {{WRAPPER}} .bw-fpw-price .price-regular' => 'color: {{VALUE}};',
-            ],
-        ] );
-
-        $this->add_group_control( Group_Control_Typography::get_type(), [
-            'name'     => 'price_typography',
-            'selector' => '{{WRAPPER}} .bw-fpw-price, {{WRAPPER}} .bw-fpw-price .amount, {{WRAPPER}} .bw-fpw-price ins, {{WRAPPER}} .bw-fpw-price del',
-        ] );
-
-        $this->add_responsive_control( 'price_padding', [
-            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-fpw-price' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->end_controls_section();
-
-        $this->start_controls_section( 'style_labels_section', [
-            'label' => __( 'Labels', 'bw-elementor-widgets' ),
-            'tab'   => Controls_Manager::TAB_STYLE,
-        ] );
-
-        $this->add_responsive_control( 'archive_labels_padding', [
-            'label'      => __( 'Padding', 'bw-elementor-widgets' ),
-            'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => [ 'px', '%', 'em', 'rem' ],
-            'default'    => [
-                'top'      => 20,
-                'right'    => 20,
-                'bottom'   => 20,
-                'left'     => 20,
-                'unit'     => 'px',
-                'isLinked' => true,
-            ],
-            'selectors'  => [
-                '{{WRAPPER}} .bw-product-labels--archive' => 'top: 0; right: 0; left: 0; padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-            ],
-        ] );
-
-        $this->end_controls_section();
-    }
-
-    private function register_filter_controls() {
-        $category_options = $this->get_filter_category_options();
-        $desktop_filter_group_options = $this->get_desktop_filter_group_options();
-
-        $this->start_controls_section( 'filter_section', [
-            'label' => __( 'Filter Settings', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'show_filters', [
-            'label'       => __( 'Show Filters', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT,
-            'options'     => [
-                'yes' => __( 'On', 'bw-elementor-widgets' ),
-                ''    => __( 'Off', 'bw-elementor-widgets' ),
-            ],
-            'default'     => 'yes',
-            'description' => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'default_category', [
-            'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT,
-            'options'     => $category_options,
-            'default'     => 'all',
-            'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'enable_responsive_filter_mode', [
-            'label'        => __( 'Filter Mode', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SELECT,
-            'options'      => [
-                ''    => __( 'Filter Label', 'bw-elementor-widgets' ),
-                'yes' => __( 'Filter Panel', 'bw-elementor-widgets' ),
-            ],
-            'default'      => '',
-            'description'  => __( 'Choose whether desktop uses the inline filter labels or the responsive filter panel trigger.', 'bw-elementor-widgets' ),
-            'condition'    => [ 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_visible_filters', [
-            'label'        => __( 'Desktop Filters', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => '',
-            'condition'    => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-                'post_type'                     => 'product',
-            ],
-        ] );
-
-        $desktop_filter_group_repeater = new Repeater();
-        $desktop_filter_group_repeater->add_control( 'group_key', [
-            'label'   => __( 'Group', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => $desktop_filter_group_options,
-            'default' => 'types',
-        ] );
-
-        $this->add_control( 'desktop_filters_config', [
-            'label'       => __( 'Desktop Filter Groups', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::REPEATER,
-            'fields'      => $desktop_filter_group_repeater->get_controls(),
-            'default'     => array_map(
-                static function ( $group_key ) {
-                    return [ 'group_key' => $group_key ];
-                },
-                $this->get_default_desktop_filter_groups()
-            ),
-            'title_field' => '{{{ group_key }}}',
-            'condition'   => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-                'show_visible_filters'          => 'yes',
-                'post_type'                     => 'product',
-            ],
-        ] );
-
-        $this->add_control( 'show_desktop_filter_icon', [
-            'label'        => __( 'Show Desktop Filter Icon', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-                'post_type'                     => 'product',
-            ],
-        ] );
-
-        $this->register_filter_controls_categories_section();
-    }
-
-    private function get_runtime_sort_trigger_style( $settings ) {
-        $style = isset( $settings['order_by_trigger_style'] ) ? sanitize_key( $settings['order_by_trigger_style'] ) : 'icon';
-
-        return in_array( $style, [ 'icon', 'dropdown' ], true ) ? $style : 'icon';
-    }
-
-    private function is_visible_filters_enabled( $settings ) {
-        return isset( $settings['show_visible_filters'] )
-            && 'yes' === $settings['show_visible_filters']
-            && $this->is_responsive_filter_mode_enabled( $settings )
-            && isset( $settings['post_type'] )
-            && 'product' === sanitize_key( $settings['post_type'] );
-    }
-
-    private function get_desktop_filter_group_options() {
-        return [
-            'types'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'tags'      => __( 'Style / Subject', 'bw-elementor-widgets' ),
-            'artist'    => __( 'Artist', 'bw-elementor-widgets' ),
-            'author'    => __( 'Author', 'bw-elementor-widgets' ),
-            'publisher' => __( 'Publisher', 'bw-elementor-widgets' ),
-            'source'    => __( 'Source', 'bw-elementor-widgets' ),
-            'technique' => __( 'Technique', 'bw-elementor-widgets' ),
-            'years'     => __( 'Years', 'bw-elementor-widgets' ),
-        ];
-    }
-
-    private function get_default_desktop_filter_groups() {
-        return [ 'types', 'tags', 'artist', 'source', 'years' ];
-    }
-
-    private function sanitize_desktop_filter_groups( $groups ) {
-        $allowed_groups = array_keys( $this->get_desktop_filter_group_options() );
-        $groups         = is_array( $groups ) ? $groups : [];
-        $sanitized      = [];
-
-        foreach ( $groups as $group_key ) {
-            $group_key = sanitize_key( $group_key );
-
-            if ( in_array( $group_key, $allowed_groups, true ) && ! in_array( $group_key, $sanitized, true ) ) {
-                $sanitized[] = $group_key;
-            }
-        }
-
-        return $sanitized;
-    }
-
-    private function sanitize_desktop_filter_order( $order ) {
-        $allowed_groups = array_keys( $this->get_desktop_filter_group_options() );
-        $order          = is_array( $order ) ? $order : [];
-        $sanitized      = [];
-
-        foreach ( $order as $row ) {
-            if ( ! is_array( $row ) || empty( $row['group_key'] ) ) {
-                continue;
-            }
-
-            $group_key = sanitize_key( $row['group_key'] );
-
-            if ( in_array( $group_key, $allowed_groups, true ) && ! in_array( $group_key, $sanitized, true ) ) {
-                $sanitized[] = $group_key;
-            }
-        }
-
-        return $sanitized;
-    }
-
-    private function get_resolved_desktop_filter_config( $settings ) {
-        $configured_groups = $this->sanitize_desktop_filter_order( $settings['desktop_filters_config'] ?? [] );
-
-        if ( ! empty( $configured_groups ) ) {
-            return [
-                'groups' => $configured_groups,
-                'order'  => $configured_groups,
-            ];
-        }
-
-        $legacy_groups = $this->sanitize_desktop_filter_groups(
-            $settings['desktop_filter_groups'] ?? $this->get_default_desktop_filter_groups()
-        );
-
-        if ( empty( $legacy_groups ) ) {
-            $legacy_groups = $this->get_default_desktop_filter_groups();
-        }
-
-        $legacy_order = $this->sanitize_desktop_filter_order( $settings['desktop_filter_order'] ?? [] );
-
-        return [
-            'groups' => $legacy_groups,
-            'order'  => $legacy_order,
-        ];
-    }
-
-    private function is_runtime_sort_enabled( $settings, $include_ids = [] ) {
-        $show_order_by          = isset( $settings['show_order_by'] ) && 'yes' === $settings['show_order_by'];
-        $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
-
-        return $show_order_by && $responsive_filter_mode && empty( $include_ids );
-    }
-
-    private function resolve_product_grid_context_slug( $settings, $runtime_category = 0 ) {
-        $post_type = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
-
-        if ( 'product' !== $post_type || ! function_exists( 'bw_fpw_resolve_product_family_slug_from_term_id' ) ) {
-            return '';
-        }
-
-        $runtime_category = absint( $runtime_category );
-        if ( $runtime_category > 0 ) {
-            return (string) bw_fpw_resolve_product_family_slug_from_term_id( $runtime_category, 'product_cat' );
-        }
-
-        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
-            ? absint( $settings['default_category'] )
-            : 0;
-
-        if ( $default_category > 0 ) {
-            return (string) bw_fpw_resolve_product_family_slug_from_term_id( $default_category, 'product_cat' );
-        }
-
-        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
-        if ( 1 === count( $parent_categories ) ) {
-            return (string) bw_fpw_resolve_product_family_slug_from_term_id( (int) reset( $parent_categories ), 'product_cat' );
-        }
-
-        if ( count( $parent_categories ) > 1 ) {
-            $resolved_slugs = [];
-
-            foreach ( $parent_categories as $category_id ) {
-                $slug = (string) bw_fpw_resolve_product_family_slug_from_term_id( $category_id, 'product_cat' );
-                if ( '' !== $slug ) {
-                    $resolved_slugs[ $slug ] = true;
-                }
-            }
-
-            if ( 1 === count( $resolved_slugs ) ) {
-                $resolved_keys = array_keys( $resolved_slugs );
-                return (string) reset( $resolved_keys );
-            }
-
-            if ( count( $resolved_slugs ) > 1 ) {
-                return 'mixed';
-            }
-        }
-
-        return '';
-    }
-
-    private function get_responsive_slider_size( $settings, $control_name, $default = 0 ) {
-        $values = [
-            'desktop' => $default,
-            'tablet'  => $default,
-            'mobile'  => $default,
-        ];
-
-        foreach ( $values as $device => $fallback ) {
-            $setting_key = 'desktop' === $device ? $control_name : $control_name . '_' . $device;
-            $raw_value   = $settings[ $setting_key ] ?? null;
-
-            if ( is_array( $raw_value ) && isset( $raw_value['size'] ) && '' !== $raw_value['size'] ) {
-                $values[ $device ] = max( 0, (int) $raw_value['size'] );
-                continue;
-            }
-
-            if ( is_numeric( $raw_value ) ) {
-                $values[ $device ] = max( 0, (int) $raw_value );
-                continue;
-            }
-
-            $values[ $device ] = $fallback;
-        }
-
-        return $values;
-    }
-
-    private function register_filter_controls_categories_section() {
-        $this->add_control( 'show_categories', [
-            'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_categories_title', [
-            'label'       => __( 'Categories Title', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'Categories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_categories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_subcategories', [
-            'label'        => __( 'Show Subcategories', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_subcategories_title', [
-            'label'       => __( 'Subcategories Title', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'Subcategories', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_subcategories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_tags', [
-            'label'        => __( 'Show Tags', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'filter_tags_title', [
-            'label'       => __( 'Tags Title', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'default'     => __( 'Tags', 'bw-elementor-widgets' ),
-            'condition'   => [ 'show_filters' => 'yes', 'show_tags' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_all_button', [
-            'label'        => __( 'Show “All” Option', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'yes',
-            'condition'    => [ 'show_filters' => 'yes', 'show_categories' => 'yes', 'enable_responsive_filter_mode!' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_search', [
-            'label'        => __( 'Show Search', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-            'condition'    => [ 'show_filters' => 'yes' ],
-        ] );
-
-        $this->add_control( 'show_order_by', [
-            'label'        => __( 'Show Order By', 'bw-elementor-widgets' ),
-            'type'         => Controls_Manager::SWITCHER,
-            'label_on'     => __( 'On', 'bw-elementor-widgets' ),
-            'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
-            'return_value' => 'yes',
-            'default'      => 'no',
-            'condition'    => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-            ],
-        ] );
-
-        $this->add_control( 'order_by_trigger_style', [
-            'label'     => __( 'Order By Trigger Style', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SELECT,
-            'default'   => 'icon',
-            'options'   => [
-                'icon'     => __( 'Icon', 'bw-elementor-widgets' ),
-                'dropdown' => __( 'Dropdown', 'bw-elementor-widgets' ),
-            ],
-            'condition' => [
-                'show_filters'                  => 'yes',
-                'enable_responsive_filter_mode' => 'yes',
-                'show_order_by'                 => 'yes',
-            ],
-        ] );
-
-        $this->end_controls_section();
-    }
-
-    private function register_query_controls() {
-        $this->start_controls_section( 'query_section', [
-            'label' => __( 'Query', 'bw-elementor-widgets' ),
-        ] );
-
-        $post_type_options = BW_Widget_Helper::get_post_type_options();
-        if ( empty( $post_type_options ) ) {
-            $post_type_options = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
-        }
-
-        $post_type_keys    = array_keys( $post_type_options );
-        $default_post_type = array_key_exists( 'product', $post_type_options ) ? 'product' : reset( $post_type_keys );
-
-        $this->add_control( 'post_type', [
-            'label'   => __( 'Post Type', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'options' => $post_type_options,
-            'default' => $default_post_type,
-        ] );
-
-        $this->add_control( 'parent_category', [
-            'label'       => __( 'Categoria padre', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT2,
-            'label_block' => true,
-            'multiple'    => true,
-            'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : [],
-            'condition'   => [ 'post_type' => 'product' ],
-        ] );
-
-        $this->add_control( 'subcategory', [
-            'label'       => __( 'Sotto-categoria', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SELECT2,
-            'label_block' => true,
-            'multiple'    => true,
-            'options'     => function_exists( 'bw_get_product_categories_options' ) ? bw_get_product_categories_options() : [],
-            'condition'   => [
-                'post_type'        => 'product',
-                'parent_category!' => '',
-            ],
-            'description' => __( 'Seleziona una o più sottocategorie. Se presenti, hanno priorita sulle categorie padre selezionate.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'specific_ids', [
-            'label'       => __( 'ID specifici', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::TEXT,
-            'placeholder' => __( 'es. 12, 45, 78', 'bw-elementor-widgets' ),
-            'description' => __( 'Inserisci gli ID separati da virgola.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->add_control( 'order_by', [
-            'label'   => __( 'Ordina per', 'bw-elementor-widgets' ),
-            'type'    => Controls_Manager::SELECT,
-            'default' => 'date',
-            'options' => [
-                'date'     => __( 'Data pubblicazione', 'bw-elementor-widgets' ),
-                'modified' => __( 'Data modifica', 'bw-elementor-widgets' ),
-                'title'    => __( 'Titolo', 'bw-elementor-widgets' ),
-                'rand'     => __( 'Casuale', 'bw-elementor-widgets' ),
-                'ID'       => __( 'ID', 'bw-elementor-widgets' ),
-            ],
-        ] );
-
-        $this->add_control( 'order', [
-            'label'     => __( 'Direzione ordinamento', 'bw-elementor-widgets' ),
-            'type'      => Controls_Manager::SELECT,
-            'default'   => 'DESC',
-            'options'   => [
-                'ASC'  => __( 'Crescente (A → Z, 1 → 9, vecchio → nuovo)', 'bw-elementor-widgets' ),
-                'DESC' => __( 'Decrescente (Z → A, 9 → 1, nuovo → vecchio)', 'bw-elementor-widgets' ),
-            ],
-            'condition' => [
-                'order_by!' => 'rand',
-            ],
-        ] );
-
-        $this->add_control( 'show_sort', [
-            'label'       => __( 'Mostra ordinamento runtime', 'bw-elementor-widgets' ),
-            'type'        => Controls_Manager::SWITCHER,
-            'default'     => '',
-            'description' => __( 'Mostra un menu a tendina che permette ai visitatori di cambiare l\'ordinamento. Disabilitato automaticamente quando sono impostati ID specifici.', 'bw-elementor-widgets' ),
-        ] );
-
-        $this->end_controls_section();
-    }
-
-    protected function render() {
-        $settings = $this->get_settings_for_display();
-        $raw_settings = $this->get_settings();
-        $widget_id = $this->get_id();
-
-        $show_filters = isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
-        $specific_ids = isset( $settings['specific_ids'] ) ? trim( (string) $settings['specific_ids'] ) : '';
-        $show_sort    = isset( $settings['show_sort'] ) && 'yes' === $settings['show_sort'] && '' === $specific_ids;
-
-        // Render filters area
-        $this->render_wrapper_start( $settings, $show_filters );
-
-        if ( $show_filters ) {
-            $this->render_filters( $settings, $widget_id );
-        }
-
-        if ( $show_sort ) {
-            $this->render_sort_control( $settings, $widget_id );
-        }
-
-        $this->render_posts( $settings, $widget_id, $raw_settings );
-
-        $this->render_wrapper_end( $settings );
-    }
-
-    private function render_wrapper_start( $settings, $show_filters = true ) {
-        $wrapper_classes = [ 'bw-product-grid-wrapper', 'bw-fpw-layout-top' ];
-        $responsive_breakpoint = 1130;
-        $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
-
-        echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '">';
-    }
-
-    private function render_wrapper_end( $settings ) {
-        echo '</div>';
-    }
-
-    private function render_filters( $settings, $widget_id ) {
-        if ( $this->is_responsive_filter_mode_enabled( $settings ) ) {
-            $this->render_responsive_filter_drawer_shell( $settings, $widget_id );
-            return;
-        }
-
-        $post_type = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
-        $categories_title      = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
-        $subcategories_title   = isset( $settings['filter_subcategories_title'] ) ? $settings['filter_subcategories_title'] : __( 'Subcategories', 'bw-elementor-widgets' );
-        $tags_title            = isset( $settings['filter_tags_title'] ) ? $settings['filter_tags_title'] : __( 'Tags', 'bw-elementor-widgets' );
-        $show_categories       = isset( $settings['show_categories'] ) ? 'yes' === $settings['show_categories'] : true;
-        $show_subcategories    = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
-        $show_tags             = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
-        $show_all_button       = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
-        $show_search           = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
-
-        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
-            ? absint( $settings['default_category'] )
-            : 'all';
-
-        $taxonomy     = 'product' === $post_type ? 'product_cat' : 'category';
-
-        // If a default category is set, only show that category or hide categories
-        if ( 'all' !== $default_category ) {
-            // When default category is set, hide the category filter or show only that one
-            $parent_terms = $show_categories
-                ? get_terms(
-                    [
-                        'taxonomy'   => $taxonomy,
-                        'hide_empty' => true,
-                        'include'    => [ $default_category ],
-                    ]
-                )
-                : [];
-        } else {
-            $parent_terms = $show_categories
-                ? get_terms(
-                    [
-                        'taxonomy'   => $taxonomy,
-                        'hide_empty' => true,
-                        'parent'     => 0,
-                    ]
-                )
-                : [];
-        }
-
-        // Load initial subcategories and tags based on default category
-        $initial_category = 'all' !== $default_category ? $default_category : 'all';
-        $tags = $show_tags ? $this->get_related_tags( $post_type, $initial_category, [] ) : [];
-        $initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, $initial_category ) : [];
-
-        $mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
-        $mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
-        $mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
-        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
-        $apply_button_classes  = [ 'bw-fpw-mobile-apply' ];
-        $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
-        ?>
-
-        <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
-            <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
-                <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
-                <span class="bw-fpw-mobile-filter-button-icon-shell">
-                    <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                </span>
-            </button>
-
-            <div class="bw-fpw-mobile-filter-panel" aria-hidden="true">
-                <div class="bw-fpw-mobile-filter-panel__header">
-                    <span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $mobile_panel_title ); ?></span>
-                    <button class="bw-fpw-mobile-filter-close" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">&times;</button>
-                </div>
-
-                <div class="bw-fpw-mobile-filter-panel__body">
-                    <?php if ( $show_search ) : ?>
-                        <div class="bw-fpw-mobile-search-row">
-                            <input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
-                        </div>
-                    <?php endif; ?>
-                    <?php if ( $show_categories ) : ?>
-                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
-                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $categories_title ); ?></span>
-                                <span class="bw-fpw-mobile-dropdown-icon"></span>
-                            </button>
-                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
-                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ( $show_subcategories ) : ?>
-                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
-                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $subcategories_title ); ?></span>
-                                <span class="bw-fpw-mobile-dropdown-icon"></span>
-                            </button>
-                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
-                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php foreach ( $initial_subcategories as $subcategory ) : ?>
-                                        <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
-                                            <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
-                                        </button>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ( $show_tags ) : ?>
-                        <div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <button class="bw-fpw-mobile-dropdown-toggle" type="button">
-                                <span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
-                                <span class="bw-fpw-mobile-dropdown-icon"></span>
-                            </button>
-                            <div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
-                                <div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <?php if ( ! empty( $tags ) ) : ?>
-                                        <?php foreach ( $tags as $tag ) : ?>
-                                            <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-                                                <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
-                                            </button>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="bw-fpw-mobile-filter-panel__footer">
-                    <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
-            <?php if ( $show_search ) : ?>
-            <div class="bw-fpw-search-row" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                <input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
-            </div>
-            <?php endif; ?>
-            <div class="bw-fpw-filter-rows">
-                <?php if ( $show_categories ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                        <h3 class="bw-fpw-filter-label"><?php echo esc_html( $categories_title ); ?></h3>
-                        <div class="bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ( $show_subcategories ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                        <h3 class="bw-fpw-filter-label"><?php echo esc_html( $subcategories_title ); ?></h3>
-                        <div class="bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <?php foreach ( $initial_subcategories as $subcategory ) : ?>
-                                <button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
-                                    <span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ( $show_tags && ! empty( $tags ) ) : ?>
-                    <div class="bw-fpw-filter-row bw-fpw-filter-row--tags bw-fpw-filter-tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                        <h3 class="bw-fpw-filter-label"><?php echo esc_html( $tags_title ); ?></h3>
-                        <div class="bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                            <?php foreach ( $tags as $tag ) : ?>
-                                <button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
-                                    <span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-        <?php
-    }
-
-    private function is_responsive_filter_mode_enabled( $settings ) {
-        return isset( $settings['enable_responsive_filter_mode'] ) && 'yes' === $settings['enable_responsive_filter_mode'];
-    }
-
-    private function get_discovery_search_label( $settings ) {
-        $default_label = __( 'Search in collections...', 'bw-elementor-widgets' );
-        $taxonomy      = ( isset( $settings['post_type'] ) && 'product' === sanitize_key( $settings['post_type'] ) )
-            ? 'product_cat'
-            : 'category';
-
-        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
-            ? absint( $settings['default_category'] )
-            : 0;
-
-        if ( $default_category > 0 ) {
-            $term = get_term( $default_category, $taxonomy );
-            if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
-                return sprintf(
-                    /* translators: %s is the current category label used by the Product Grid search input. */
-                    __( 'Search in %s...', 'bw-elementor-widgets' ),
-                    $term->name
-                );
-            }
-        }
-
-        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
-        if ( 1 === count( $parent_categories ) ) {
-            $term = get_term( reset( $parent_categories ), $taxonomy );
-            if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
-                return sprintf(
-                    /* translators: %s is the current category label used by the Product Grid search input. */
-                    __( 'Search in %s...', 'bw-elementor-widgets' ),
-                    $term->name
-                );
-            }
-        }
-
-        return $default_label;
-    }
-
-    private function render_responsive_filter_drawer_shell( $settings, $widget_id ) {
-        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
-            ? absint( $settings['default_category'] )
-            : 'all';
-        $post_type              = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
-        $show_search            = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
-        $include_ids            = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
-        $show_order_by          = $this->is_runtime_sort_enabled( $settings, $include_ids );
-        $show_visible_filters   = $this->is_visible_filters_enabled( $settings );
-        $desktop_filter_config   = $this->get_resolved_desktop_filter_config( $settings );
-        $desktop_filter_groups   = $desktop_filter_config['groups'];
-        $desktop_filter_order    = $desktop_filter_config['order'];
-        $show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
-        $order_trigger_style    = $this->get_runtime_sort_trigger_style( $settings );
-        $show_subcategories     = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
-        $show_tags              = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
-        $initial_types          = $show_subcategories ? $this->get_subcategories_data( $post_type, $default_category ) : [];
-        $initial_tags           = $show_tags ? $this->get_related_tags( $post_type, $default_category, [] ) : [];
-        $drawer_title        = __( 'Filters', 'bw-elementor-widgets' );
-        $mobile_filters_title = __( 'Filters', 'bw-elementor-widgets' );
-        $mobile_show_results  = __( 'Show results', 'bw-elementor-widgets' );
-        $global_search_label  = $this->get_discovery_search_label( $settings );
-        $mobile_button_classes = [ 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' ];
-        $apply_button_classes  = [ 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' ];
-        $icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
-        $search_icon_html      = '<svg class="bw-fpw-discovery-search__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
-        $sort_chevron_html     = function_exists( 'bw_fpw_get_discovery_sort_chevron_svg' ) ? bw_fpw_get_discovery_sort_chevron_svg() : '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
-        $sort_check_html       = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
-        $discovery_sort_options = function_exists( 'bw_fpw_get_discovery_sort_options' ) ? bw_fpw_get_discovery_sort_options() : [];
-        $default_sort_key       = function_exists( 'bw_fpw_get_discovery_sort_default_key' ) ? bw_fpw_get_discovery_sort_default_key() : 'newest';
-        $default_sort_option    = isset( $discovery_sort_options[ $default_sort_key ] ) ? $discovery_sort_options[ $default_sort_key ] : [];
-        $default_sort_label     = isset( $default_sort_option['trigger_label'] ) ? $default_sort_option['trigger_label'] : __( 'Default', 'bw-elementor-widgets' );
-        $default_sort_icon_html = function_exists( 'bw_fpw_get_discovery_sort_icon_svg' ) ? bw_fpw_get_discovery_sort_icon_svg( $default_sort_key ) : '';
-        $context_slug          = $this->resolve_product_grid_context_slug( $settings );
-        $year_ui               = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : [
-            'supported'    => false,
-            'context'      => $context_slug ?: 'mixed',
-            'min'          => null,
-            'max'          => null,
-            'quick_ranges' => [],
-        ];
-        $advanced_filter_ui    = function_exists( 'bw_fpw_get_advanced_filter_ui' ) ? bw_fpw_get_advanced_filter_ui( $context_slug ) : [];
-        $bootstrap_payload     = [
-            'show_types' => $show_subcategories,
-            'show_tags'  => $show_tags,
-            'show_years' => ! empty( $year_ui['supported'] ),
-            'search_enabled' => $show_search,
-            'show_order_by' => $show_order_by,
-            'show_visible_filters' => $show_visible_filters,
-            'order_trigger_style' => $order_trigger_style,
-            'default_sort_key' => $default_sort_key,
-            'context'    => $context_slug ?: 'mixed',
-            'types'      => array_values( $initial_types ),
-            'tags'       => array_values( $initial_tags ),
-            'year'       => $year_ui,
-            'advanced'   => is_array( $advanced_filter_ui ) ? $advanced_filter_ui : [],
-        ];
-        ?>
-        <div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-ui-ready="false" style="opacity:0; visibility:hidden; transform:translateY(10px); pointer-events:none;">
-            <div class="bw-fpw-discovery-toolbar__summary">
-                <div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                    <span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
-                </div>
-            </div>
-
-            <div class="bw-fpw-discovery-toolbar__controls">
-                <?php if ( $show_search ) : ?>
-                    <label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                        <input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
-                        <span class="bw-fpw-discovery-search__icon-shell">
-                            <?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                        </span>
-                    </label>
-                <?php endif; ?>
-
-                <?php if ( $show_order_by ) : ?>
-                    <div class="bw-fpw-sort bw-fpw-sort--<?php echo esc_attr( $order_trigger_style ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                        <button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--<?php echo esc_attr( $order_trigger_style ); ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
-                            <?php if ( 'dropdown' === $order_trigger_style ) : ?>
-                                <span class="bw-fpw-sort-trigger__content">
-                                    <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
-                                        <?php echo $default_sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                    </span>
-                                    <span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php echo esc_html( $default_sort_label ); ?></span>
-                                </span>
-                                <span class="bw-fpw-sort-trigger__chevron" aria-hidden="true">
-                                    <?php echo $sort_chevron_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                </span>
-                            <?php else : ?>
-                                <span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
-                                    <?php echo $default_sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                </span>
-                            <?php endif; ?>
-                        </button>
-
-                        <div class="bw-fpw-sort-menu" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="menu" aria-hidden="true">
-                            <?php foreach ( $discovery_sort_options as $sort_key => $sort_option ) : ?>
-                                <button class="bw-fpw-sort-option<?php echo $default_sort_key === $sort_key ? ' is-selected' : ''; ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="<?php echo esc_attr( $sort_key ); ?>" role="menuitemradio" aria-checked="<?php echo $default_sort_key === $sort_key ? 'true' : 'false'; ?>">
-                                    <span class="bw-fpw-sort-option__label"><?php echo esc_html( isset( $sort_option['menu_label'] ) ? $sort_option['menu_label'] : '' ); ?></span>
-                                    <span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
-                    <button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
-                        <span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
-                        <span class="bw-fpw-mobile-filter-button-icon-shell">
-                            <?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                        </span>
-                    </button>
-
-                    <div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
-                        <div class="bw-fpw-mobile-filter-drawer">
-                            <div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
-                                <div class="bw-fpw-mobile-filter-sheet-handle" aria-hidden="true">
-                                    <span class="bw-fpw-mobile-filter-sheet-handle-bar"></span>
-                                </div>
-                                <div class="bw-fpw-mobile-filter-drawer-title-row">
-                                    <span class="bw-fpw-mobile-filter-drawer-title"><?php echo esc_html( $drawer_title ); ?></span>
-                                    <button class="bw-fpw-drawer-clear-all bw-fpw-drawer-clear-all--header is-hidden" type="button" aria-hidden="true" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
-                                </div>
-                            </div>
-
-                            <div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
-                                <div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-                                    <div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                                    <div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-                                </div>
-                            </div>
-
-                            <div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
-                                <button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bw-fpw-visible-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo $show_visible_filters ? 'false' : 'true'; ?>"></div>
-
-            <div class="bw-fpw-active-chips bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
-        </div>
-
-        <div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
-        <script type="application/json" class="bw-fpw-discovery-bootstrap" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo wp_json_encode( $bootstrap_payload ); ?></script>
-        <?php
-    }
-
-    private function render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ) {
-        if ( $show_all_button ) :
-            $all_active = 'all' === $default_category;
-            ?>
-            <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $all_active ? ' active' : ''; ?>" data-category="all">
-                <span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
-            </button>
-            <?php
-        endif;
-
-        if ( empty( $parent_terms ) || is_wp_error( $parent_terms ) ) {
-            return;
-        }
-
-        // $has_active_category is true if "All" button already handles the active state
-        $has_active_category = $show_all_button && 'all' === $default_category;
-
-        foreach ( $parent_terms as $category ) :
-            $is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
-            if ( $is_active ) {
-                $has_active_category = true;
-            }
-            ?>
-            <button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
-                <span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
-            </button>
-            <?php
-        endforeach;
-    }
-
-    private function render_sort_control( $settings, $widget_id ) {
-        $order_by     = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
-        $order        = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
-        $context_slug = $this->resolve_product_grid_context_slug( $settings );
-        $year_ui      = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : [ 'supported' => false ];
-        $year_supported = ! empty( $year_ui['supported'] );
-
-        // Normalise: 'rand' has no meaningful sort UI
-        if ( 'rand' === $order_by ) {
-            return;
-        }
-
-        $current_value = $order_by . '|' . $order;
-
-        $options = [
-            'date|DESC'  => __( 'Più recenti', 'bw-elementor-widgets' ),
-            'date|ASC'   => __( 'Meno recenti', 'bw-elementor-widgets' ),
-            'title|ASC'  => __( 'A → Z', 'bw-elementor-widgets' ),
-            'title|DESC' => __( 'Z → A', 'bw-elementor-widgets' ),
-        ];
-
-        if ( $year_supported ) {
-            $options['year_int|ASC']  = __( 'Anno ↑', 'bw-elementor-widgets' );
-            $options['year_int|DESC'] = __( 'Anno ↓', 'bw-elementor-widgets' );
-        }
-
-        $select_id = 'bw-fpw-sort-select-' . esc_attr( $widget_id );
-        ?>
-        <div class="bw-fpw-sort-control" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
-            <label class="bw-fpw-sort-label" for="<?php echo esc_attr( $select_id ); ?>"><?php esc_html_e( 'Ordina:', 'bw-elementor-widgets' ); ?></label>
-            <select class="bw-fpw-sort-select"
-                    id="<?php echo esc_attr( $select_id ); ?>"
-                    data-widget-id="<?php echo esc_attr( $widget_id ); ?>"
-                    data-default-order-by="<?php echo esc_attr( $order_by ); ?>"
-                    data-default-order="<?php echo esc_attr( $order ); ?>">
-                <?php if ( ! array_key_exists( $current_value, $options ) ) : ?>
-                    <option value="" selected><?php esc_html_e( 'Default', 'bw-elementor-widgets' ); ?></option>
-                <?php endif; ?>
-                <?php foreach ( $options as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( $value ); ?>"<?php selected( $value, $current_value ); ?>>
-                        <?php echo esc_html( $label ); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <?php
-    }
-
-    private function render_posts( $settings, $widget_id, $raw_settings = [] ) {
-        $post_type         = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'post';
-        $available_post_types = BW_Widget_Helper::get_post_type_options();
-
-        if ( empty( $available_post_types ) ) {
-            $available_post_types = [ 'post' => __( 'Post', 'bw-elementor-widgets' ) ];
-        }
-
-        if ( ! array_key_exists( $post_type, $available_post_types ) ) {
-            $post_type_keys = array_keys( $available_post_types );
-            $post_type      = array_key_exists( 'post', $available_post_types ) ? 'post' : reset( $post_type_keys );
-        }
-
-        $raw_settings = is_array( $raw_settings ) ? $raw_settings : [];
-
-        $legacy_posts_per_page = isset( $raw_settings['posts_per_page'] )
-            ? (int) $raw_settings['posts_per_page']
-            : ( isset( $settings['posts_per_page'] ) ? (int) $settings['posts_per_page'] : 12 );
-        if ( 0 === $legacy_posts_per_page ) {
-            $legacy_posts_per_page = -1;
-        }
-
-        $has_infinite_scroll_setting = array_key_exists( 'infinite_scroll', $raw_settings );
-        $has_initial_items_setting   = array_key_exists( 'initial_items', $raw_settings );
-        $has_load_batch_size_setting = array_key_exists( 'load_batch_size', $raw_settings );
-
-        $initial_items = $has_initial_items_setting
-            ? (int) $settings['initial_items']
-            : $legacy_posts_per_page;
-        if ( 0 === $initial_items ) {
-            $initial_items = 12;
-        }
-        if ( $initial_items < -1 ) {
-            $initial_items = -1;
-        }
-        if ( $initial_items > 100 ) {
-            $initial_items = 100;
-        }
-
-        $infinite_enabled = $has_infinite_scroll_setting
-            ? ( isset( $settings['infinite_scroll'] ) && 'yes' === $settings['infinite_scroll'] )
-            : $legacy_posts_per_page > 0;
-
-        if ( $initial_items <= 0 ) {
-            $infinite_enabled = false;
-        }
-
-        $load_batch_size = $has_load_batch_size_setting
-            ? (int) $settings['load_batch_size']
-            : ( $legacy_posts_per_page > 0 ? $legacy_posts_per_page : 12 );
-        if ( $load_batch_size < 1 ) {
-            $load_batch_size = 12;
-        }
-        if ( $load_batch_size > 100 ) {
-            $load_batch_size = 100;
-        }
-
-        $initial_query_size   = $infinite_enabled ? $initial_items + 1 : $initial_items;
-        $pagination_per_page  = $infinite_enabled ? $load_batch_size : $initial_items;
-
-        $desktop_columns = isset( $settings['desktop_columns'] ) ? absint( $settings['desktop_columns'] ) : 4;
-        if ( ! in_array( $desktop_columns, [ 3, 4, 5, 6 ], true ) ) {
-            $desktop_columns = 4;
-        }
-        $grid_horizontal_gap = $this->get_responsive_slider_size( $settings, 'grid_horizontal_gap', 10 );
-        $grid_vertical_gap   = $this->get_responsive_slider_size( $settings, 'grid_vertical_gap', 10 );
-        $gap_desktop_size    = $grid_horizontal_gap['desktop'];
-        $gap_tablet_size     = $grid_horizontal_gap['tablet'];
-        $gap_mobile_size     = $grid_horizontal_gap['mobile'];
-        $row_gap_desktop     = $grid_vertical_gap['desktop'];
-        $row_gap_tablet      = $grid_vertical_gap['tablet'];
-        $row_gap_mobile      = $grid_vertical_gap['mobile'];
-        $breakpoint_tablet_min = 768;
-        $breakpoint_tablet_max = 1024;
-        $columns_tablet = 2;
-        $breakpoint_mobile_max = 767;
-        $columns_mobile = 2;
-
-        $container_max_width = isset( $settings['container_max_width'] ) ? absint( $settings['container_max_width'] ) : 2000;
-        if ( $container_max_width < 800 ) {
-            $container_max_width = 800;
-        }
-        if ( $container_max_width > 4000 ) {
-            $container_max_width = 4000;
-        }
-
-        $masonry_effect = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
-        $layout_mode    = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
-        $disable_hover_on_touch = isset( $settings['disable_hover_on_touch'] ) && 'yes' === $settings['disable_hover_on_touch'];
-        $responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
-
-        // These are not yet exposed as Elementor controls; declared here so that
-        // adding a control in the future only requires reading from $settings.
-        $image_size      = 'large';
-        $image_mode      = 'proportional';
-        $hover_effect    = true;
-        $open_cart_popup = false;
-        $show_title       = 'yes' === ( $settings['show_title'] ?? 'yes' );
-        $show_description = 'yes' === ( $settings['show_description'] ?? 'yes' );
-        $show_price         = 'yes' === ( $settings['show_price'] ?? 'yes' );
-        $show_hover_buttons = 'yes' === ( $settings['show_hover_buttons'] ?? 'yes' );
-        $show_search      = isset( $settings['show_search'] ) && 'yes' === $settings['show_search'];
-        $include_ids      = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : [];
-        $show_order_by    = $this->is_runtime_sort_enabled( $settings, $include_ids );
-        $show_visible_filters = $this->is_visible_filters_enabled( $settings );
-        $desktop_filter_config = $this->get_resolved_desktop_filter_config( $settings );
-        $desktop_filter_groups = $desktop_filter_config['groups'];
-        $desktop_filter_order = $desktop_filter_config['order'];
-        $show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
-        $order_trigger_style = $this->get_runtime_sort_trigger_style( $settings );
-
-        $parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : [];
-        $subcategories     = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : [];
-        $context_slug      = $this->resolve_product_grid_context_slug( $settings );
-
-        // Get default category setting for filtering
-        $default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
-            ? absint( $settings['default_category'] )
-            : 0;
-
-        // Get ordering settings
-        $order_by = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
-        $order    = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
-
-        // Validate order_by
-        $valid_order_by = [ 'date', 'modified', 'title', 'rand', 'id' ];
-        if ( ! in_array( $order_by, $valid_order_by, true ) ) {
-            $order_by = 'date';
-        }
-
-        if ( 'id' === $order_by ) {
-            $order_by = 'ID';
-        }
-
-        // Validate order
-        if ( ! in_array( $order, [ 'ASC', 'DESC' ], true ) ) {
-            $order = 'DESC';
-        }
-
-        // For random order, ignore ASC/DESC
-        if ( 'rand' === $order_by ) {
-            $order = 'ASC';
-        }
-
-        $query_args = [
-            'post_type'      => $post_type,
-            'posts_per_page' => $initial_query_size,
-            'post_status'    => 'publish',
-            'no_found_rows'  => ! $responsive_filter_mode,
-            'ignore_sticky_posts' => true,
-            'orderby'        => $order_by,
-            'order'          => $order,
-        ];
-
-        if ( ! empty( $include_ids ) ) {
-            $query_args['post__in'] = $include_ids;
-            $query_args['orderby']  = 'post__in';
-        }
-
-        if ( 'product' === $post_type ) {
-            $tax_query = [];
-
-            // If default category is set, filter by it
-            if ( $default_category > 0 ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => [ $default_category ],
-                ];
-            } elseif ( ! empty( $subcategories ) ) {
-                $tax_query[] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'term_id',
-                    'terms'    => $subcategories,
-                ];
-            } elseif ( ! empty( $parent_categories ) ) {
-                $tax_query[] = [
-                    'taxonomy'         => 'product_cat',
-                    'field'            => 'term_id',
-                    'terms'            => $parent_categories,
-                    'include_children' => true,
-                ];
-            }
-
-            if ( ! empty( $tax_query ) ) {
-                $query_args['tax_query'] = $tax_query;
-            }
-        }
-
-        $query = new \WP_Query( $query_args );
-
-        $has_posts         = $query->have_posts();
-        $has_more          = $infinite_enabled && $query->post_count > $initial_items;
-        $current_page      = 1;
-        $next_page         = $has_more ? 2 : 0;
-        $next_offset       = $has_more ? $initial_items : 0;
-        $load_trigger_px   = 300;
-        $result_count      = $responsive_filter_mode ? (int) $query->found_posts : max( 0, $query->post_count );
-
-        $wrapper_classes = [ 'bw-product-grid' ];
-        $wrapper_style   = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-column-gap:' . $gap_desktop_size . 'px; --bw-fpw-grid-row-gap:' . $row_gap_desktop . 'px; --bw-fpw-grid-column-gap-tablet:' . $gap_tablet_size . 'px; --bw-fpw-grid-row-gap-tablet:' . $row_gap_tablet . 'px; --bw-fpw-grid-column-gap-mobile:' . $gap_mobile_size . 'px; --bw-fpw-grid-row-gap-mobile:' . $row_gap_mobile . 'px;';
-        $wrapper_attributes = [
-            'class'                         => implode( ' ', $wrapper_classes ),
-            'style'                         => $wrapper_style,
-            'data-disable-hover-on-touch'   => $disable_hover_on_touch ? 'yes' : 'no',
-        ];
-        $grid_attributes = [
-            'class'                       => 'bw-fpw-grid',
-            'data-layout-mode'            => $layout_mode,
-            'data-masonry-effect'         => $masonry_effect,
-            'data-widget-id'              => $widget_id,
-            'data-post-type'              => $post_type,
-            'data-context-slug'           => $context_slug,
-            'data-columns-desktop'        => $desktop_columns,
-            'data-gap-x-desktop'          => $gap_desktop_size,
-            'data-gap-y-desktop'          => $row_gap_desktop,
-            'data-breakpoint-tablet-min'  => $breakpoint_tablet_min,
-            'data-breakpoint-tablet-max'  => $breakpoint_tablet_max,
-            'data-columns-tablet'         => $columns_tablet,
-            'data-gap-x-tablet'           => $gap_tablet_size,
-            'data-gap-y-tablet'           => $row_gap_tablet,
-            'data-breakpoint-mobile-max'  => $breakpoint_mobile_max,
-            'data-columns-mobile'         => $columns_mobile,
-            'data-gap-x-mobile'           => $gap_mobile_size,
-            'data-gap-y-mobile'           => $row_gap_mobile,
-            'data-image-size'             => $image_size,
-            'data-image-mode'             => $image_mode,
-            'data-hover-effect'           => $hover_effect ? 'yes' : 'no',
-            'data-open-cart-popup'        => $open_cart_popup ? 'yes' : 'no',
-            'data-show-title'             => $show_title ? 'yes' : 'no',
-            'data-show-description'       => $show_description ? 'yes' : 'no',
-            'data-show-price'             => $show_price ? 'yes' : 'no',
-            'data-search-enabled'         => $show_search ? 'yes' : 'no',
-            'data-show-order-by'          => $show_order_by ? 'yes' : 'no',
-            'data-show-visible-filters'   => $show_visible_filters ? 'yes' : 'no',
-            'data-desktop-filters-enabled'=> $show_visible_filters ? 'yes' : 'no',
-            'data-desktop-filter-groups'  => wp_json_encode( array_values( $desktop_filter_groups ) ),
-            'data-desktop-filter-order'   => wp_json_encode( array_values( $desktop_filter_order ) ),
-            'data-desktop-filter-icon-enabled' => $show_desktop_filter_icon ? 'yes' : 'no',
-            'data-order-trigger-style'    => $order_trigger_style,
-            'data-default-sort-key'       => $default_sort_key,
-            'data-order-by'               => $order_by,
-            'data-order'                  => $order,
-            'data-default-order-by'       => $order_by,
-            'data-default-order'          => $order,
-            'data-specific-ids-mode'      => ! empty( $include_ids ) ? 'yes' : 'no',
-            'data-initial-items'          => $initial_items,
-            'data-load-batch-size'        => $load_batch_size,
-            'data-per-page'               => $pagination_per_page,
-            'data-current-page'           => $current_page,
-            'data-next-page'              => $next_page,
-            'data-loaded-count'           => $infinite_enabled ? min( $initial_items, max( 0, $query->post_count ) ) : max( 0, $query->post_count ),
-            'data-next-offset'            => $next_offset,
-            'data-has-more'               => $has_more ? '1' : '0',
-            'data-infinite-enabled'       => $infinite_enabled ? 'yes' : 'no',
-            'data-load-trigger-offset'    => $load_trigger_px,
-            'data-result-count'           => $result_count,
-        ];
-
-        $grid_attr_html = '';
-        foreach ( $grid_attributes as $attr => $value ) {
-            if ( '' === $value && 0 !== $value ) {
-                continue;
-            }
-
-            $grid_attr_html .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( (string) $value ) );
-        }
-
-        $load_state_classes = [ 'bw-fpw-load-state' ];
-        if ( ! $infinite_enabled ) {
-            $load_state_classes[] = 'bw-fpw-load-state--disabled';
-        } elseif ( ! $has_more ) {
-            $load_state_classes[] = 'bw-fpw-load-state--complete';
-        }
-
-        $rendered_posts      = 0;
-        $initial_eager_items = max( 1, min( $desktop_columns, $initial_items > 0 ? $initial_items : $desktop_columns ) );
-        $wrapper_attr_html = '';
-        foreach ( $wrapper_attributes as $attr => $value ) {
-            if ( '' === $value && 0 !== $value ) {
-                continue;
-            }
-
-            $wrapper_attr_html .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( (string) $value ) );
-        }
-        ?>
-        <div<?php echo $wrapper_attr_html; ?>>
-            <div<?php echo $grid_attr_html; ?>>
-                <?php if ( $has_posts ) : ?>
-                    <?php
-                    while ( $query->have_posts() ) :
-                        $query->the_post();
-                        if ( $infinite_enabled && $rendered_posts >= $initial_items ) {
-                            break;
-                        }
-                        $image_loading       = $rendered_posts < $initial_eager_items ? 'eager' : 'lazy';
-                        $hover_image_loading = 'lazy';
-                        $this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode, $show_title, $show_description, $show_price, $show_hover_buttons );
-                        $rendered_posts++;
-                    endwhile;
-                    ?>
-                <?php else : ?>
-                    <div class="bw-fpw-empty-state">
-                        <p class="bw-fpw-empty-message"><?php esc_html_e( 'There is nothing in this archive yet.', 'bw-elementor-widgets' ); ?></p>
-                    </div>
-                <?php endif; ?>
-            </div>
-            <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
-                <div class="bw-fpw-load-indicator" role="status">
-                    <span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
-                    <span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
-                </div>
-                <div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
-            </div>
-        </div>
-        <?php
-        wp_reset_postdata();
-    }
-
-    private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional', $show_title = true, $show_description = true, $show_price = true, $show_hover_buttons = true ) {
-        $post_id = get_the_ID();
-
-        if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
-            $product = wc_get_product( $post_id );
-
-            if ( $product ) {
-                echo BW_Product_Card_Component::render(
-                    $product,
-                    [
-                        'image_size'             => $image_size,
-                        'image_mode'             => $image_mode,
-                        'image_loading'          => $image_loading,
-                        'hover_image_loading'    => $hover_image_loading,
-                        'show_image'             => true,
-                        'show_hover_image'       => true,
-                        'hover_image_source'     => 'meta',
-                        'show_title'             => $show_title,
-                        'show_description'       => $show_description,
-                        'description_mode'       => 'auto',
-                        'show_price'             => $show_price,
-                        'show_buttons'           => $show_hover_buttons,
-                        'show_add_to_cart'       => true,
-                        'open_cart_popup'        => $open_cart_popup,
-                        'wrapper_classes'        => 'bw-fpw-item',
-                        'card_classes'           => 'bw-fpw-card',
-                        'media_classes'          => 'bw-fpw-media',
-                        'media_link_classes'     => 'bw-fpw-media-link',
-                        'image_wrapper_classes'  => 'bw-fpw-image',
-                        'content_classes'        => 'bw-fpw-content bw-slider-content',
-                        'title_classes'          => 'bw-fpw-title',
-                        'description_classes'    => 'bw-fpw-description',
-                        'price_classes'          => 'bw-fpw-price price',
-                        'overlay_classes'        => 'bw-fpw-overlay overlay-buttons has-buttons',
-                        'overlay_buttons_classes'=> 'bw-fpw-overlay-buttons',
-                        'view_button_classes'    => 'bw-fpw-overlay-button overlay-button overlay-button--view',
-                        'cart_button_classes'    => 'bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart',
-                        'placeholder_classes'    => 'bw-fpw-image-placeholder',
-                    ]
-                );
-                return;
-            }
-        }
-
-        $permalink = get_permalink( $post_id );
-        $title     = get_the_title( $post_id );
-        $excerpt   = get_the_excerpt( $post_id );
-
-        if ( empty( $excerpt ) ) {
-            $excerpt = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 30 );
-        }
-
-        if ( ! empty( $excerpt ) && false === strpos( $excerpt, '<p' ) ) {
-            $excerpt = '<p>' . $excerpt . '</p>';
-        }
-
-        $thumbnail_html = '';
-
-        if ( has_post_thumbnail( $post_id ) ) {
-            $thumbnail_args = [
-                'loading' => $image_loading,
-                'class'   => 'bw-slider-main',
-            ];
-
-            $thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
-        }
-
-        $hover_image_html = '';
-        if ( 'product' === $post_type ) {
-            $hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
-
-            if ( $hover_image_id ) {
-                $hover_image_html = wp_get_attachment_image(
-                    $hover_image_id,
-                    $image_size,
-                    false,
-                    [
-                        'class'   => 'bw-slider-hover',
-                        'loading' => $hover_image_loading,
-                    ]
-                );
-            }
-        }
-
-        $price_html     = '';
-        $has_add_to_cart = false;
-        $add_to_cart_url = '';
-
-        if ( 'product' === $post_type ) {
-            $price_html = $this->get_price_markup( $post_id );
-
-            if ( function_exists( 'wc_get_product' ) ) {
-                $product = wc_get_product( $post_id );
-
-                if ( $product ) {
-                    if ( $product->is_type( 'variable' ) ) {
-                        $add_to_cart_url = $permalink;
-                    } else {
-                        $cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
-
-                        if ( $cart_url ) {
-                            $add_to_cart_url = add_query_arg( 'add-to-cart', $product->get_id(), $cart_url );
-                        }
-                    }
-
-                    if ( ! $add_to_cart_url ) {
-                        $add_to_cart_url = $permalink;
-                    }
-
-                    $has_add_to_cart = true;
-                }
-            }
-        }
-
-        $view_label = 'product' === $post_type
-            ? esc_html__( 'View Product', 'bw-elementor-widgets' )
-            : esc_html__( 'Read More', 'bw-elementor-widgets' );
-        ?>
-        <article <?php post_class( 'bw-fpw-item' ); ?>>
-            <div class="bw-fpw-card">
-                <div class="bw-slider-image-container">
-                    <?php
-                    $media_classes = [ 'bw-fpw-media' ];
-                    if ( ! $thumbnail_html ) {
-                        $media_classes[] = 'bw-fpw-media--placeholder';
-                    }
-                    ?>
-                    <div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
-                        <?php if ( $thumbnail_html ) : ?>
-                            <a class="bw-fpw-media-link" href="<?php echo esc_url( $permalink ); ?>">
-                                <div class="bw-fpw-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-fpw-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
-                                    <?php echo wp_kses_post( $thumbnail_html ); ?>
-                                    <?php if ( $hover_image_html ) : ?>
-                                        <?php echo wp_kses_post( $hover_image_html ); ?>
-                                    <?php endif; ?>
-                                </div>
-                            </a>
-
-                            <div class="bw-fpw-overlay overlay-buttons has-buttons">
-                                <div class="bw-fpw-overlay-buttons<?php echo $has_add_to_cart ? ' bw-fpw-overlay-buttons--double' : ''; ?>">
-                                    <a class="bw-fpw-overlay-button overlay-button overlay-button--view" href="<?php echo esc_url( $permalink ); ?>">
-                                        <span class="bw-fpw-overlay-button__label overlay-button__label"><?php echo $view_label; ?></span>
-                                    </a>
-                                    <?php if ( 'product' === $post_type && $has_add_to_cart && $add_to_cart_url ) : ?>
-                                        <a class="bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-product_id="<?php echo esc_attr( $post_id ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
-                                            <span class="bw-fpw-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        <?php else : ?>
-                            <span class="bw-fpw-image-placeholder" aria-hidden="true"></span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <div class="bw-fpw-content bw-slider-content">
-                    <h3 class="bw-fpw-title">
-                        <a href="<?php echo esc_url( $permalink ); ?>">
-                            <?php echo esc_html( $title ); ?>
-                        </a>
-                    </h3>
-
-                    <?php if ( ! empty( $excerpt ) ) : ?>
-                        <div class="bw-fpw-description"><?php echo wp_kses_post( $excerpt ); ?></div>
-                    <?php endif; ?>
-
-                    <?php if ( $price_html ) : ?>
-                        <div class="bw-fpw-price price"><?php echo wp_kses_post( $price_html ); ?></div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </article>
-        <?php
-    }
-
-    /**
-     * Methods parse_ids(), get_slider_value_with_unit(), and get_post_type_options()
-     * have been moved to BW_Widget_Helper class to reduce code duplication.
-     * Use BW_Widget_Helper::method_name() instead.
-     */
-
-    private function get_total_post_count( $post_type ) {
-        $counts = wp_count_posts( $post_type );
-
-        if ( $counts && isset( $counts->publish ) ) {
-            return (int) $counts->publish;
-        }
-
-        return 0;
-    }
-
-    private function get_filtered_post_ids( $post_type, $category, array $subcategories ) {
-        $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
-
-        $tax_query = [];
-
-        if ( 'all' !== $category && absint( $category ) > 0 ) {
-            if ( ! empty( $subcategories ) ) {
-                $tax_query[] = [
-                    'taxonomy' => $taxonomy,
-                    'field'    => 'term_id',
-                    'terms'    => $subcategories,
-                ];
-            } else {
-                $tax_query[] = [
-                    'taxonomy' => $taxonomy,
-                    'field'    => 'term_id',
-                    'terms'    => [ absint( $category ) ],
-                ];
-            }
-        }
-
-        $query_args = [
-            'post_type'      => $post_type,
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'tax_query'      => $tax_query,
-        ];
-
-        $query = new WP_Query( $query_args );
-
-        return $query->posts;
-    }
-
-    private function get_subcategories_data( $post_type, $category = 'all' ) {
-        $taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
-
-        $args = [
-            'taxonomy'   => $taxonomy,
-            'hide_empty' => true,
-        ];
-
-        if ( 'all' !== $category && ! empty( $category ) && absint( $category ) > 0 ) {
-            $args['parent'] = absint( $category );
-        }
-
-        $terms = get_terms( $args );
-
-        if ( is_wp_error( $terms ) || empty( $terms ) ) {
-            return [];
-        }
-
-        if ( 'all' === $category ) {
-            $terms = array_filter(
-                $terms,
-                static function ( $term ) {
-                    return (int) $term->parent > 0;
-                }
-            );
-        }
-
-        $results = [];
-
-        foreach ( $terms as $term ) {
-            $results[] = [
-                'term_id' => (int) $term->term_id,
-                'name'    => $term->name,
-                'count'   => (int) $term->count,
-            ];
-        }
-
-        return $results;
-    }
-
-    private function collect_terms_from_posts( $taxonomy, array $post_ids ) {
-        if ( empty( $post_ids ) ) {
-            return [];
-        }
-
-        $terms_map = [];
-
-        foreach ( $post_ids as $post_id ) {
-            $terms = wp_get_object_terms( $post_id, $taxonomy );
-
-            if ( empty( $terms ) || is_wp_error( $terms ) ) {
-                continue;
-            }
-
-            foreach ( $terms as $term ) {
-                $term_id = (int) $term->term_id;
-
-                if ( ! isset( $terms_map[ $term_id ] ) ) {
-                    $terms_map[ $term_id ] = [
-                        'term_id' => $term_id,
-                        'name'    => $term->name,
-                        'count'   => 0,
-                    ];
-                }
-
-                $terms_map[ $term_id ]['count']++;
-            }
-        }
-
-        usort(
-            $terms_map,
-            static function ( $a, $b ) {
-                return strcmp( $a['name'], $b['name'] );
-            }
-        );
-
-        return $terms_map;
-    }
-
-    private function get_related_tags( $post_type, $category = 'all', array $subcategories = [] ) {
-        $tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
-
-        if ( 'all' === $category || empty( $category ) ) {
-            $terms = get_terms(
-                [
-                    'taxonomy'   => $tag_taxonomy,
-                    'hide_empty' => true,
-                ]
-            );
-
-            if ( empty( $terms ) || is_wp_error( $terms ) ) {
-                return [];
-            }
-
-            $results = [];
-
-            foreach ( $terms as $term ) {
-                $results[] = [
-                    'term_id' => (int) $term->term_id,
-                    'name'    => $term->name,
-                    'count'   => (int) $term->count,
-                ];
-            }
-
-            return $results;
-        }
-
-        $post_ids = $this->get_filtered_post_ids( $post_type, $category, $subcategories );
-
-        return $this->collect_terms_from_posts( $tag_taxonomy, $post_ids );
-    }
-
-    private function get_price_markup( $post_id ) {
-        return bw_fpw_get_price_markup( $post_id );
-    }
+	public function get_name() {
+		return 'bw-product-grid';
+	}
+
+	public function get_title() {
+		return esc_html__( 'BW Product Grid', 'bw-elementor-widgets' );
+	}
+
+	public function get_icon() {
+		return 'eicon-posts-grid';
+	}
+
+	public function get_categories() {
+		return array( 'blackwork' );
+	}
+
+	public function get_script_depends() {
+		return array( 'imagesloaded', 'masonry', 'bw-product-grid-js' );
+	}
+
+	public function get_style_depends() {
+		return array( 'bw-wallpost-style', 'bw-product-card-style', 'bw-product-grid-style' );
+	}
+
+	protected function register_controls() {
+		$this->register_filter_controls();
+		$this->register_query_controls();
+		$this->register_rebuild_layout_controls();
+		$this->register_grid_controls();
+		$this->register_style_controls();
+	}
+
+	private function get_filter_category_options() {
+		$category_options = array( 'all' => __( 'All Categories', 'bw-elementor-widgets' ) );
+
+		$product_categories = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'parent'     => 0,
+			)
+		);
+
+		if ( ! is_wp_error( $product_categories ) && ! empty( $product_categories ) ) {
+			foreach ( $product_categories as $category ) {
+				$category_options[ $category->term_id ] = $category->name;
+			}
+		}
+
+		return $category_options;
+	}
+
+	private function register_rebuild_layout_controls() {
+		$this->start_controls_section(
+			'layout_rebuild_section',
+			array(
+				'label' => __( 'Layout', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
+			)
+		);
+
+		$this->add_control(
+			'infinite_scroll',
+			array(
+				'label'        => __( 'Infinite Scroll', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'initial_items',
+			array(
+				'label'       => __( 'Initial Items', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::NUMBER,
+				'min'         => -1,
+				'max'         => 100,
+				'step'        => 1,
+				'default'     => 12,
+				'description' => __( 'Use -1 to render all items and disable infinite loading.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'load_batch_size',
+			array(
+				'label'     => __( 'Load Batch Size', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::NUMBER,
+				'min'       => 1,
+				'max'       => 100,
+				'step'      => 1,
+				'default'   => 12,
+				'condition' => array(
+					'infinite_scroll' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'desktop_columns',
+			array(
+				'label'   => __( 'Desktop Columns', 'bw-elementor-widgets' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => '4',
+				'options' => array(
+					'3' => '3',
+					'4' => '4',
+					'5' => '5',
+					'6' => '6',
+				),
+			)
+		);
+
+		$this->add_control(
+			'container_max_width',
+			array(
+				'label'       => __( 'Container Max Width (px)', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::NUMBER,
+				'default'     => 2000,
+				'min'         => 800,
+				'max'         => 4000,
+				'step'        => 10,
+				'description' => __( 'Full-width container with this max width cap.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'masonry_effect',
+			array(
+				'label'        => __( 'Masonry Effect', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'show_title',
+			array(
+				'label'        => __( 'Show Title', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'show_description',
+			array(
+				'label'        => __( 'Show Description', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'show_price',
+			array(
+				'label'        => __( 'Show Price', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'show_hover_buttons',
+			array(
+				'label'        => __( 'Show Hover Buttons', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
+			'disable_hover_on_touch',
+			array(
+				'label'        => __( 'Disable Hover Actions on Tablet & Mobile', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'description'  => __( 'Hide hover overlays and secondary hover media below desktop widths.', 'bw-elementor-widgets' ),
+				'condition'    => array(
+					'show_hover_buttons' => 'yes',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
+	private function register_grid_controls() {
+		$this->start_controls_section(
+			'layout_grid_section',
+			array(
+				'label' => __( 'Grid', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
+			)
+		);
+
+		$this->add_responsive_control(
+			'grid_horizontal_gap',
+			array(
+				'label'          => __( 'Post Gap Horizontal', 'bw-elementor-widgets' ),
+				'type'           => Controls_Manager::SLIDER,
+				'size_units'     => array( 'px' ),
+				'range'          => array(
+					'px' => array(
+						'min'  => 0,
+						'max'  => 80,
+						'step' => 1,
+					),
+				),
+				'default'        => array(
+					'size' => 10,
+					'unit' => 'px',
+				),
+				'tablet_default' => array(
+					'size' => 10,
+					'unit' => 'px',
+				),
+				'mobile_default' => array(
+					'size' => 10,
+					'unit' => 'px',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'grid_vertical_gap',
+			array(
+				'label'          => __( 'Post Gap Vertical', 'bw-elementor-widgets' ),
+				'type'           => Controls_Manager::SLIDER,
+				'size_units'     => array( 'px' ),
+				'range'          => array(
+					'px' => array(
+						'min'  => 0,
+						'max'  => 80,
+						'step' => 1,
+					),
+				),
+				'default'        => array(
+					'size' => 10,
+					'unit' => 'px',
+				),
+				'tablet_default' => array(
+					'size' => 10,
+					'unit' => 'px',
+				),
+				'mobile_default' => array(
+					'size' => 10,
+					'unit' => 'px',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
+	private function register_style_controls() {
+		$this->start_controls_section(
+			'style_media_section',
+			array(
+				'label' => __( 'Image', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		$this->add_control(
+			'product_image_background_color',
+			array(
+				'label'     => __( 'Background Color', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-product-card .bw-slider-image-container, {{WRAPPER}} .bw-product-card .bw-wallpost-media, {{WRAPPER}} .bw-product-card .bw-ss__media' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'style_text_section',
+			array(
+				'label' => __( 'Text', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		$this->add_control(
+			'content_gap_heading',
+			array(
+				'label' => __( 'Content Stack', 'bw-elementor-widgets' ),
+				'type'  => Controls_Manager::HEADING,
+			)
+		);
+
+		$this->add_responsive_control(
+			'content_gap',
+			array(
+				'label'      => __( 'Gap', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min'  => 0,
+						'max'  => 60,
+						'step' => 1,
+					),
+				),
+				'default'    => array(
+					'size' => 12,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-fpw-content' => 'gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'title_style_heading',
+			array(
+				'label'     => __( 'Title', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'title_color',
+			array(
+				'label'     => __( 'Color', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-fpw-title, {{WRAPPER}} .bw-fpw-title a' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		BW_Widget_Helper::add_typography_group( $this, 'title_typography', '{{WRAPPER}} .bw-fpw-title, {{WRAPPER}} .bw-fpw-title a' );
+
+		BW_Widget_Helper::add_dimensions_control( $this, 'title_padding', __( 'Padding', 'bw-elementor-widgets' ), '{{WRAPPER}} .bw-fpw-title', 'padding', array( 'px', '%', 'em', 'rem' ) );
+
+		$this->add_control(
+			'description_style_heading',
+			array(
+				'label'     => __( 'Description', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'description_color',
+			array(
+				'label'     => __( 'Color', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-fpw-description, {{WRAPPER}} .bw-fpw-description p' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		BW_Widget_Helper::add_typography_group( $this, 'description_typography', '{{WRAPPER}} .bw-fpw-description, {{WRAPPER}} .bw-fpw-description p' );
+
+		BW_Widget_Helper::add_dimensions_control( $this, 'description_padding', __( 'Padding', 'bw-elementor-widgets' ), '{{WRAPPER}} .bw-fpw-description', 'padding', array( 'px', '%', 'em', 'rem' ) );
+
+		$this->add_control(
+			'price_style_heading',
+			array(
+				'label'     => __( 'Price', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			)
+		);
+
+		$this->add_control(
+			'price_color',
+			array(
+				'label'     => __( 'Color', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-fpw-price, {{WRAPPER}} .bw-fpw-price .amount, {{WRAPPER}} .bw-fpw-price ins, {{WRAPPER}} .bw-fpw-price .price-sale, {{WRAPPER}} .bw-fpw-price .price-regular' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		BW_Widget_Helper::add_typography_group( $this, 'price_typography', '{{WRAPPER}} .bw-fpw-price, {{WRAPPER}} .bw-fpw-price .amount, {{WRAPPER}} .bw-fpw-price ins, {{WRAPPER}} .bw-fpw-price del' );
+
+		BW_Widget_Helper::add_dimensions_control( $this, 'price_padding', __( 'Padding', 'bw-elementor-widgets' ), '{{WRAPPER}} .bw-fpw-price', 'padding', array( 'px', '%', 'em', 'rem' ) );
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'style_labels_section',
+			array(
+				'label' => __( 'Labels', 'bw-elementor-widgets' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		$this->add_responsive_control(
+			'archive_labels_padding',
+			array(
+				'label'      => __( 'Padding', 'bw-elementor-widgets' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%', 'em', 'rem' ),
+				'default'    => array(
+					'top'      => 20,
+					'right'    => 20,
+					'bottom'   => 20,
+					'left'     => 20,
+					'unit'     => 'px',
+					'isLinked' => true,
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-product-labels--archive' => 'top: 0; right: 0; left: 0; padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
+	private function register_filter_controls() {
+		$category_options             = $this->get_filter_category_options();
+		$desktop_filter_group_options = $this->get_desktop_filter_group_options();
+
+		$this->start_controls_section(
+			'filter_section',
+			array(
+				'label' => __( 'Filter Settings', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'show_filters',
+			array(
+				'label'       => __( 'Show Filters', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SELECT,
+				'options'     => array(
+					'yes' => __( 'On', 'bw-elementor-widgets' ),
+					''    => __( 'Off', 'bw-elementor-widgets' ),
+				),
+				'default'     => 'yes',
+				'description' => __( 'Show or hide filter UI. Query/grid output remains active.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'default_category',
+			array(
+				'label'       => __( 'Default Category', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SELECT,
+				'options'     => $category_options,
+				'default'     => 'all',
+				'description' => __( 'Limit the widget to a specific category. When selected, only subcategories and tags from this category will be shown.', 'bw-elementor-widgets' ),
+				'condition'   => array( 'show_filters' => 'yes' ),
+			)
+		);
+
+		$this->add_control(
+			'enable_responsive_filter_mode',
+			array(
+				'label'       => __( 'Filter Mode', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SELECT,
+				'options'     => array(
+					''    => __( 'Filter Label', 'bw-elementor-widgets' ),
+					'yes' => __( 'Filter Panel', 'bw-elementor-widgets' ),
+				),
+				'default'     => '',
+				'description' => __( 'Choose whether desktop uses the inline filter labels or the responsive filter panel trigger.', 'bw-elementor-widgets' ),
+				'condition'   => array( 'show_filters' => 'yes' ),
+			)
+		);
+
+		$this->add_control(
+			'show_visible_filters',
+			array(
+				'label'        => __( 'Desktop Filters', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => array(
+					'show_filters'                  => 'yes',
+					'enable_responsive_filter_mode' => 'yes',
+					'post_type'                     => 'product',
+				),
+			)
+		);
+
+		$desktop_filter_group_repeater = new Repeater();
+		$desktop_filter_group_repeater->add_control(
+			'group_key',
+			array(
+				'label'   => __( 'Group', 'bw-elementor-widgets' ),
+				'type'    => Controls_Manager::SELECT,
+				'options' => $desktop_filter_group_options,
+				'default' => 'types',
+			)
+		);
+
+		$this->add_control(
+			'desktop_filters_config',
+			array(
+				'label'       => __( 'Desktop Filter Groups', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::REPEATER,
+				'fields'      => $desktop_filter_group_repeater->get_controls(),
+				'default'     => array_map(
+					static function ( $group_key ) {
+						return array( 'group_key' => $group_key );
+					},
+					$this->get_default_desktop_filter_groups()
+				),
+				'title_field' => '{{{ group_key }}}',
+				'condition'   => array(
+					'show_filters'                  => 'yes',
+					'enable_responsive_filter_mode' => 'yes',
+					'show_visible_filters'          => 'yes',
+					'post_type'                     => 'product',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_desktop_filter_icon',
+			array(
+				'label'        => __( 'Show Desktop Filter Icon', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'show_filters'                  => 'yes',
+					'enable_responsive_filter_mode' => 'yes',
+					'post_type'                     => 'product',
+				),
+			)
+		);
+
+		$this->register_filter_controls_categories_section();
+	}
+
+	private function get_runtime_sort_trigger_style( $settings ) {
+		$style = isset( $settings['order_by_trigger_style'] ) ? sanitize_key( $settings['order_by_trigger_style'] ) : 'icon';
+
+		return in_array( $style, array( 'icon', 'dropdown' ), true ) ? $style : 'icon';
+	}
+
+	private function is_visible_filters_enabled( $settings ) {
+		return isset( $settings['show_visible_filters'] )
+			&& 'yes' === $settings['show_visible_filters']
+			&& $this->is_responsive_filter_mode_enabled( $settings )
+			&& isset( $settings['post_type'] )
+			&& 'product' === sanitize_key( $settings['post_type'] );
+	}
+
+	private function get_desktop_filter_group_options() {
+		return array(
+			'types'     => __( 'Categories', 'bw-elementor-widgets' ),
+			'tags'      => __( 'Style / Subject', 'bw-elementor-widgets' ),
+			'artist'    => __( 'Artist', 'bw-elementor-widgets' ),
+			'author'    => __( 'Author', 'bw-elementor-widgets' ),
+			'publisher' => __( 'Publisher', 'bw-elementor-widgets' ),
+			'source'    => __( 'Source', 'bw-elementor-widgets' ),
+			'technique' => __( 'Technique', 'bw-elementor-widgets' ),
+			'years'     => __( 'Years', 'bw-elementor-widgets' ),
+		);
+	}
+
+	private function get_default_desktop_filter_groups() {
+		return array( 'types', 'tags', 'artist', 'source', 'years' );
+	}
+
+	private function sanitize_desktop_filter_groups( $groups ) {
+		$allowed_groups = array_keys( $this->get_desktop_filter_group_options() );
+		$groups         = is_array( $groups ) ? $groups : array();
+		$sanitized      = array();
+
+		foreach ( $groups as $group_key ) {
+			$group_key = sanitize_key( $group_key );
+
+			if ( in_array( $group_key, $allowed_groups, true ) && ! in_array( $group_key, $sanitized, true ) ) {
+				$sanitized[] = $group_key;
+			}
+		}
+
+		return $sanitized;
+	}
+
+	private function sanitize_desktop_filter_order( $order ) {
+		$allowed_groups = array_keys( $this->get_desktop_filter_group_options() );
+		$order          = is_array( $order ) ? $order : array();
+		$sanitized      = array();
+
+		foreach ( $order as $row ) {
+			if ( ! is_array( $row ) || empty( $row['group_key'] ) ) {
+				continue;
+			}
+
+			$group_key = sanitize_key( $row['group_key'] );
+
+			if ( in_array( $group_key, $allowed_groups, true ) && ! in_array( $group_key, $sanitized, true ) ) {
+				$sanitized[] = $group_key;
+			}
+		}
+
+		return $sanitized;
+	}
+
+	private function get_resolved_desktop_filter_config( $settings ) {
+		$configured_groups = $this->sanitize_desktop_filter_order( $settings['desktop_filters_config'] ?? array() );
+
+		if ( ! empty( $configured_groups ) ) {
+			return array(
+				'groups' => $configured_groups,
+				'order'  => $configured_groups,
+			);
+		}
+
+		$legacy_groups = $this->sanitize_desktop_filter_groups(
+			$settings['desktop_filter_groups'] ?? $this->get_default_desktop_filter_groups()
+		);
+
+		if ( empty( $legacy_groups ) ) {
+			$legacy_groups = $this->get_default_desktop_filter_groups();
+		}
+
+		$legacy_order = $this->sanitize_desktop_filter_order( $settings['desktop_filter_order'] ?? array() );
+
+		return array(
+			'groups' => $legacy_groups,
+			'order'  => $legacy_order,
+		);
+	}
+
+	private function is_runtime_sort_enabled( $settings, $include_ids = array() ) {
+		$show_order_by          = isset( $settings['show_order_by'] ) && 'yes' === $settings['show_order_by'];
+		$responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
+
+		return $show_order_by && $responsive_filter_mode && empty( $include_ids );
+	}
+
+	private function resolve_product_grid_context_slug( $settings, $runtime_category = 0 ) {
+		$post_type = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+
+		if ( 'product' !== $post_type || ! function_exists( 'bw_fpw_resolve_product_family_slug_from_term_id' ) ) {
+			return '';
+		}
+
+		$runtime_category = absint( $runtime_category );
+		if ( $runtime_category > 0 ) {
+			return (string) bw_fpw_resolve_product_family_slug_from_term_id( $runtime_category, 'product_cat' );
+		}
+
+		$default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+			? absint( $settings['default_category'] )
+			: 0;
+
+		if ( $default_category > 0 ) {
+			return (string) bw_fpw_resolve_product_family_slug_from_term_id( $default_category, 'product_cat' );
+		}
+
+		$parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : array();
+		if ( 1 === count( $parent_categories ) ) {
+			return (string) bw_fpw_resolve_product_family_slug_from_term_id( (int) reset( $parent_categories ), 'product_cat' );
+		}
+
+		if ( count( $parent_categories ) > 1 ) {
+			$resolved_slugs = array();
+
+			foreach ( $parent_categories as $category_id ) {
+				$slug = (string) bw_fpw_resolve_product_family_slug_from_term_id( $category_id, 'product_cat' );
+				if ( '' !== $slug ) {
+					$resolved_slugs[ $slug ] = true;
+				}
+			}
+
+			if ( 1 === count( $resolved_slugs ) ) {
+				$resolved_keys = array_keys( $resolved_slugs );
+				return (string) reset( $resolved_keys );
+			}
+
+			if ( count( $resolved_slugs ) > 1 ) {
+				return 'mixed';
+			}
+		}
+
+		return '';
+	}
+
+	private function get_responsive_slider_size( $settings, $control_name, $default = 0 ) {
+		$values = array(
+			'desktop' => $default,
+			'tablet'  => $default,
+			'mobile'  => $default,
+		);
+
+		foreach ( $values as $device => $fallback ) {
+			$setting_key = 'desktop' === $device ? $control_name : $control_name . '_' . $device;
+			$raw_value   = $settings[ $setting_key ] ?? null;
+
+			if ( is_array( $raw_value ) && isset( $raw_value['size'] ) && '' !== $raw_value['size'] ) {
+				$values[ $device ] = max( 0, (int) $raw_value['size'] );
+				continue;
+			}
+
+			if ( is_numeric( $raw_value ) ) {
+				$values[ $device ] = max( 0, (int) $raw_value );
+				continue;
+			}
+
+			$values[ $device ] = $fallback;
+		}
+
+		return $values;
+	}
+
+	private function register_filter_controls_categories_section() {
+		$this->add_control(
+			'show_categories',
+			array(
+				'label'        => __( 'Show Categories', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'show_filters'                   => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'filter_categories_title',
+			array(
+				'label'     => __( 'Categories Title', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => __( 'Categories', 'bw-elementor-widgets' ),
+				'condition' => array(
+					'show_filters'                   => 'yes',
+					'show_categories'                => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_subcategories',
+			array(
+				'label'        => __( 'Show Subcategories', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'show_filters'                   => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'filter_subcategories_title',
+			array(
+				'label'     => __( 'Subcategories Title', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => __( 'Subcategories', 'bw-elementor-widgets' ),
+				'condition' => array(
+					'show_filters'                   => 'yes',
+					'show_subcategories'             => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_tags',
+			array(
+				'label'        => __( 'Show Tags', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'show_filters'                   => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'filter_tags_title',
+			array(
+				'label'     => __( 'Tags Title', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => __( 'Tags', 'bw-elementor-widgets' ),
+				'condition' => array(
+					'show_filters'                   => 'yes',
+					'show_tags'                      => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_all_button',
+			array(
+				'label'        => __( 'Show “All” Option', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array(
+					'show_filters'                   => 'yes',
+					'show_categories'                => 'yes',
+					'enable_responsive_filter_mode!' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_search',
+			array(
+				'label'        => __( 'Show Search', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'no',
+				'condition'    => array( 'show_filters' => 'yes' ),
+			)
+		);
+
+		$this->add_control(
+			'show_order_by',
+			array(
+				'label'        => __( 'Show Order By', 'bw-elementor-widgets' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
+				'label_off'    => __( 'Off', 'bw-elementor-widgets' ),
+				'return_value' => 'yes',
+				'default'      => 'no',
+				'condition'    => array(
+					'show_filters'                  => 'yes',
+					'enable_responsive_filter_mode' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'order_by_trigger_style',
+			array(
+				'label'     => __( 'Order By Trigger Style', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'icon',
+				'options'   => array(
+					'icon'     => __( 'Icon', 'bw-elementor-widgets' ),
+					'dropdown' => __( 'Dropdown', 'bw-elementor-widgets' ),
+				),
+				'condition' => array(
+					'show_filters'                  => 'yes',
+					'enable_responsive_filter_mode' => 'yes',
+					'show_order_by'                 => 'yes',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
+	private function register_query_controls() {
+		$this->start_controls_section(
+			'query_section',
+			array(
+				'label' => __( 'Query', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$post_type_options = BW_Widget_Helper::get_post_type_options();
+		if ( empty( $post_type_options ) ) {
+			$post_type_options = array( 'post' => __( 'Post', 'bw-elementor-widgets' ) );
+		}
+
+		$post_type_keys    = array_keys( $post_type_options );
+		$default_post_type = array_key_exists( 'product', $post_type_options ) ? 'product' : reset( $post_type_keys );
+
+		$this->add_control(
+			'post_type',
+			array(
+				'label'   => __( 'Post Type', 'bw-elementor-widgets' ),
+				'type'    => Controls_Manager::SELECT,
+				'options' => $post_type_options,
+				'default' => $default_post_type,
+			)
+		);
+
+		$this->add_control(
+			'parent_category',
+			array(
+				'label'       => __( 'Categoria padre', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SELECT2,
+				'label_block' => true,
+				'multiple'    => true,
+				'options'     => function_exists( 'bw_get_parent_product_categories' ) ? bw_get_parent_product_categories() : array(),
+				'condition'   => array( 'post_type' => 'product' ),
+			)
+		);
+
+		$this->add_control(
+			'subcategory',
+			array(
+				'label'       => __( 'Sotto-categoria', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SELECT2,
+				'label_block' => true,
+				'multiple'    => true,
+				'options'     => function_exists( 'bw_get_product_categories_options' ) ? bw_get_product_categories_options() : array(),
+				'condition'   => array(
+					'post_type'        => 'product',
+					'parent_category!' => '',
+				),
+				'description' => __( 'Seleziona una o più sottocategorie. Se presenti, hanno priorita sulle categorie padre selezionate.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'specific_ids',
+			array(
+				'label'       => __( 'ID specifici', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::TEXT,
+				'placeholder' => __( 'es. 12, 45, 78', 'bw-elementor-widgets' ),
+				'description' => __( 'Inserisci gli ID separati da virgola.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->add_control(
+			'order_by',
+			array(
+				'label'   => __( 'Ordina per', 'bw-elementor-widgets' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'date',
+				'options' => array(
+					'date'     => __( 'Data pubblicazione', 'bw-elementor-widgets' ),
+					'modified' => __( 'Data modifica', 'bw-elementor-widgets' ),
+					'title'    => __( 'Titolo', 'bw-elementor-widgets' ),
+					'rand'     => __( 'Casuale', 'bw-elementor-widgets' ),
+					'ID'       => __( 'ID', 'bw-elementor-widgets' ),
+				),
+			)
+		);
+
+		$this->add_control(
+			'order',
+			array(
+				'label'     => __( 'Direzione ordinamento', 'bw-elementor-widgets' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'DESC',
+				'options'   => array(
+					'ASC'  => __( 'Crescente (A → Z, 1 → 9, vecchio → nuovo)', 'bw-elementor-widgets' ),
+					'DESC' => __( 'Decrescente (Z → A, 9 → 1, nuovo → vecchio)', 'bw-elementor-widgets' ),
+				),
+				'condition' => array(
+					'order_by!' => 'rand',
+				),
+			)
+		);
+
+		$this->add_control(
+			'show_sort',
+			array(
+				'label'       => __( 'Mostra ordinamento runtime', 'bw-elementor-widgets' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'default'     => '',
+				'description' => __( 'Mostra un menu a tendina che permette ai visitatori di cambiare l\'ordinamento. Disabilitato automaticamente quando sono impostati ID specifici.', 'bw-elementor-widgets' ),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function render() {
+		$settings     = $this->get_settings_for_display();
+		$raw_settings = $this->get_settings();
+		$widget_id    = $this->get_id();
+
+		$show_filters = isset( $settings['show_filters'] ) && 'yes' === $settings['show_filters'];
+		$specific_ids = isset( $settings['specific_ids'] ) ? trim( (string) $settings['specific_ids'] ) : '';
+		$show_sort    = isset( $settings['show_sort'] ) && 'yes' === $settings['show_sort'] && '' === $specific_ids;
+
+		// Render filters area
+		$this->render_wrapper_start( $settings, $show_filters );
+
+		if ( $show_filters ) {
+			$this->render_filters( $settings, $widget_id );
+		}
+
+		if ( $show_sort ) {
+			$this->render_sort_control( $settings, $widget_id );
+		}
+
+		$this->render_posts( $settings, $widget_id, $raw_settings );
+
+		$this->render_wrapper_end( $settings );
+	}
+
+	private function render_wrapper_start( $settings, $show_filters = true ) {
+		$wrapper_classes        = array( 'bw-product-grid-wrapper', 'bw-fpw-layout-top' );
+		$responsive_breakpoint  = 1130;
+		$responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
+
+		echo '<div class="' . esc_attr( implode( ' ', $wrapper_classes ) ) . '" data-filter-breakpoint="' . esc_attr( $responsive_breakpoint ) . '" data-responsive-filter-mode="' . esc_attr( $responsive_filter_mode ? 'yes' : 'no' ) . '">';
+	}
+
+	private function render_wrapper_end( $settings ) {
+		echo '</div>';
+	}
+
+	private function render_filters( $settings, $widget_id ) {
+		if ( $this->is_responsive_filter_mode_enabled( $settings ) ) {
+			$this->render_responsive_filter_drawer_shell( $settings, $widget_id );
+			return;
+		}
+
+		$post_type           = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+		$categories_title    = isset( $settings['filter_categories_title'] ) ? $settings['filter_categories_title'] : __( 'Categories', 'bw-elementor-widgets' );
+		$subcategories_title = isset( $settings['filter_subcategories_title'] ) ? $settings['filter_subcategories_title'] : __( 'Subcategories', 'bw-elementor-widgets' );
+		$tags_title          = isset( $settings['filter_tags_title'] ) ? $settings['filter_tags_title'] : __( 'Tags', 'bw-elementor-widgets' );
+		$show_categories     = isset( $settings['show_categories'] ) ? 'yes' === $settings['show_categories'] : true;
+		$show_subcategories  = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
+		$show_tags           = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
+		$show_all_button     = isset( $settings['show_all_button'] ) ? 'yes' === $settings['show_all_button'] : true;
+		$show_search         = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
+
+		$default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+			? absint( $settings['default_category'] )
+			: 'all';
+
+		$taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+
+		// If a default category is set, only show that category or hide categories
+		if ( 'all' !== $default_category ) {
+			// When default category is set, hide the category filter or show only that one
+			$parent_terms = $show_categories
+				? get_terms(
+					array(
+						'taxonomy'   => $taxonomy,
+						'hide_empty' => true,
+						'include'    => array( $default_category ),
+					)
+				)
+				: array();
+		} else {
+			$parent_terms = $show_categories
+				? get_terms(
+					array(
+						'taxonomy'   => $taxonomy,
+						'hide_empty' => true,
+						'parent'     => 0,
+					)
+				)
+				: array();
+		}
+
+		// Load initial subcategories and tags based on default category
+		$initial_category      = 'all' !== $default_category ? $default_category : 'all';
+		$tags                  = $show_tags ? $this->get_related_tags( $post_type, $initial_category, array() ) : array();
+		$initial_subcategories = $show_subcategories ? $this->get_subcategories_data( $post_type, $initial_category ) : array();
+
+		$mobile_panel_title    = __( 'Filter products', 'bw-elementor-widgets' );
+		$mobile_filters_title  = __( 'Filters', 'bw-elementor-widgets' );
+		$mobile_show_results   = __( 'Show results', 'bw-elementor-widgets' );
+		$mobile_button_classes = array( 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' );
+		$apply_button_classes  = array( 'bw-fpw-mobile-apply' );
+		$icon_html             = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
+		?>
+
+		<div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+			<button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
+				<span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+				<span class="bw-fpw-mobile-filter-button-icon-shell">
+					<?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				</span>
+			</button>
+
+			<div class="bw-fpw-mobile-filter-panel" aria-hidden="true">
+				<div class="bw-fpw-mobile-filter-panel__header">
+					<span class="bw-fpw-mobile-filter-panel__title"><?php echo esc_html( $mobile_panel_title ); ?></span>
+					<button class="bw-fpw-mobile-filter-close" type="button" aria-label="<?php esc_attr_e( 'Close filters', 'bw-elementor-widgets' ); ?>">&times;</button>
+				</div>
+
+				<div class="bw-fpw-mobile-filter-panel__body">
+					<?php if ( $show_search ) : ?>
+						<div class="bw-fpw-mobile-search-row">
+							<input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
+						</div>
+					<?php endif; ?>
+					<?php if ( $show_categories ) : ?>
+						<div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+							<button class="bw-fpw-mobile-dropdown-toggle" type="button">
+								<span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $categories_title ); ?></span>
+								<span class="bw-fpw-mobile-dropdown-icon"></span>
+							</button>
+							<div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
+								<div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+									<?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
+								</div>
+							</div>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( $show_subcategories ) : ?>
+						<div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+							<button class="bw-fpw-mobile-dropdown-toggle" type="button">
+								<span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $subcategories_title ); ?></span>
+								<span class="bw-fpw-mobile-dropdown-icon"></span>
+							</button>
+							<div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
+								<div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+									<?php foreach ( $initial_subcategories as $subcategory ) : ?>
+										<button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
+											<span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
+										</button>
+									<?php endforeach; ?>
+								</div>
+							</div>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( $show_tags ) : ?>
+						<div class="bw-fpw-mobile-filter-group bw-fpw-mobile-filter-group--tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+							<button class="bw-fpw-mobile-dropdown-toggle" type="button">
+								<span class="bw-fpw-mobile-dropdown-label"><?php echo esc_html( $tags_title ); ?></span>
+								<span class="bw-fpw-mobile-dropdown-icon"></span>
+							</button>
+							<div class="bw-fpw-mobile-dropdown-panel" aria-hidden="true">
+								<div class="bw-fpw-mobile-dropdown-options bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+									<?php if ( ! empty( $tags ) ) : ?>
+										<?php foreach ( $tags as $tag ) : ?>
+											<button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+												<span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+											</button>
+										<?php endforeach; ?>
+									<?php endif; ?>
+								</div>
+							</div>
+						</div>
+					<?php endif; ?>
+				</div>
+
+				<div class="bw-fpw-mobile-filter-panel__footer">
+					<button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+				</div>
+			</div>
+		</div>
+
+		<div class="bw-fpw-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+			<?php if ( $show_search ) : ?>
+			<div class="bw-fpw-search-row" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+				<input type="search" class="bw-fpw-search-input" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php esc_attr_e( 'Search...', 'bw-elementor-widgets' ); ?>" value="" autocomplete="off">
+			</div>
+			<?php endif; ?>
+			<div class="bw-fpw-filter-rows">
+				<?php if ( $show_categories ) : ?>
+					<div class="bw-fpw-filter-row bw-fpw-filter-row--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+						<h3 class="bw-fpw-filter-label"><?php echo esc_html( $categories_title ); ?></h3>
+						<div class="bw-fpw-filter-options bw-fpw-filter-options--categories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+							<?php $this->render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ); ?>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $show_subcategories ) : ?>
+					<div class="bw-fpw-filter-row bw-fpw-filter-row--subcategories bw-fpw-filter-subcategories" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+						<h3 class="bw-fpw-filter-label"><?php echo esc_html( $subcategories_title ); ?></h3>
+						<div class="bw-fpw-filter-options bw-fpw-subcategories-container" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+							<?php foreach ( $initial_subcategories as $subcategory ) : ?>
+								<button class="bw-fpw-filter-option bw-fpw-subcat-button" data-subcategory="<?php echo esc_attr( $subcategory['term_id'] ); ?>">
+									<span class="bw-fpw-option-label"><?php echo esc_html( $subcategory['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $subcategory['count'] ); ?>)</span>
+								</button>
+							<?php endforeach; ?>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $show_tags && ! empty( $tags ) ) : ?>
+					<div class="bw-fpw-filter-row bw-fpw-filter-row--tags bw-fpw-filter-tags" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+						<h3 class="bw-fpw-filter-label"><?php echo esc_html( $tags_title ); ?></h3>
+						<div class="bw-fpw-filter-options bw-fpw-tag-options" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+							<?php foreach ( $tags as $tag ) : ?>
+								<button class="bw-fpw-filter-option bw-fpw-tag-button" data-tag="<?php echo esc_attr( $tag['term_id'] ); ?>">
+									<span class="bw-fpw-option-label"><?php echo esc_html( $tag['name'] ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $tag['count'] ); ?>)</span>
+								</button>
+							<?php endforeach; ?>
+						</div>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	private function is_responsive_filter_mode_enabled( $settings ) {
+		return isset( $settings['enable_responsive_filter_mode'] ) && 'yes' === $settings['enable_responsive_filter_mode'];
+	}
+
+	private function get_discovery_search_label( $settings ) {
+		$default_label = __( 'Search in collections...', 'bw-elementor-widgets' );
+		$taxonomy      = ( isset( $settings['post_type'] ) && 'product' === sanitize_key( $settings['post_type'] ) )
+			? 'product_cat'
+			: 'category';
+
+		$default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+			? absint( $settings['default_category'] )
+			: 0;
+
+		if ( $default_category > 0 ) {
+			$term = get_term( $default_category, $taxonomy );
+			if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
+				return sprintf(
+					/* translators: %s is the current category label used by the Product Grid search input. */
+					__( 'Search in %s...', 'bw-elementor-widgets' ),
+					$term->name
+				);
+			}
+		}
+
+		$parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : array();
+		if ( 1 === count( $parent_categories ) ) {
+			$term = get_term( reset( $parent_categories ), $taxonomy );
+			if ( $term instanceof \WP_Term && ! is_wp_error( $term ) && '' !== trim( $term->name ) ) {
+				return sprintf(
+					/* translators: %s is the current category label used by the Product Grid search input. */
+					__( 'Search in %s...', 'bw-elementor-widgets' ),
+					$term->name
+				);
+			}
+		}
+
+		return $default_label;
+	}
+
+	private function render_responsive_filter_drawer_shell( $settings, $widget_id ) {
+		$default_category         = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+			? absint( $settings['default_category'] )
+			: 'all';
+		$post_type                = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'product';
+		$show_search              = isset( $settings['show_search'] ) ? 'yes' === $settings['show_search'] : false;
+		$include_ids              = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : array();
+		$show_order_by            = $this->is_runtime_sort_enabled( $settings, $include_ids );
+		$show_visible_filters     = $this->is_visible_filters_enabled( $settings );
+		$desktop_filter_config    = $this->get_resolved_desktop_filter_config( $settings );
+		$desktop_filter_groups    = $desktop_filter_config['groups'];
+		$desktop_filter_order     = $desktop_filter_config['order'];
+		$show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
+		$order_trigger_style      = $this->get_runtime_sort_trigger_style( $settings );
+		$show_subcategories       = isset( $settings['show_subcategories'] ) ? 'yes' === $settings['show_subcategories'] : true;
+		$show_tags                = isset( $settings['show_tags'] ) ? 'yes' === $settings['show_tags'] : true;
+		$initial_types            = $show_subcategories ? $this->get_subcategories_data( $post_type, $default_category ) : array();
+		$initial_tags             = $show_tags ? $this->get_related_tags( $post_type, $default_category, array() ) : array();
+		$drawer_title             = __( 'Filters', 'bw-elementor-widgets' );
+		$mobile_filters_title     = __( 'Filters', 'bw-elementor-widgets' );
+		$mobile_show_results      = __( 'Show results', 'bw-elementor-widgets' );
+		$global_search_label      = $this->get_discovery_search_label( $settings );
+		$mobile_button_classes    = array( 'bw-fpw-mobile-filter-button', 'bw-fpw-mobile-filter-trigger' );
+		$apply_button_classes     = array( 'bw-fpw-mobile-apply', 'bw-fpw-mobile-apply--drawer' );
+		$icon_html                = '<svg class="bw-fpw-mobile-filter-button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
+		$search_icon_html         = '<svg class="bw-fpw-discovery-search__icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
+		$sort_chevron_html        = function_exists( 'bw_fpw_get_discovery_sort_chevron_svg' ) ? bw_fpw_get_discovery_sort_chevron_svg() : '<svg class="bw-fpw-sort-trigger__chevron-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+		$sort_check_html          = '<svg class="bw-fpw-sort-option__check-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
+		$discovery_sort_options   = function_exists( 'bw_fpw_get_discovery_sort_options' ) ? bw_fpw_get_discovery_sort_options() : array();
+		$default_sort_key         = function_exists( 'bw_fpw_get_discovery_sort_default_key' ) ? bw_fpw_get_discovery_sort_default_key() : 'newest';
+		$default_sort_option      = isset( $discovery_sort_options[ $default_sort_key ] ) ? $discovery_sort_options[ $default_sort_key ] : array();
+		$default_sort_label       = isset( $default_sort_option['trigger_label'] ) ? $default_sort_option['trigger_label'] : __( 'Default', 'bw-elementor-widgets' );
+		$default_sort_icon_html   = function_exists( 'bw_fpw_get_discovery_sort_icon_svg' ) ? bw_fpw_get_discovery_sort_icon_svg( $default_sort_key ) : '';
+		$context_slug             = $this->resolve_product_grid_context_slug( $settings );
+		$year_ui                  = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : array(
+			'supported'    => false,
+			'context'      => $context_slug ?: 'mixed',
+			'min'          => null,
+			'max'          => null,
+			'quick_ranges' => array(),
+		);
+		$advanced_filter_ui       = function_exists( 'bw_fpw_get_advanced_filter_ui' ) ? bw_fpw_get_advanced_filter_ui( $context_slug ) : array();
+		$bootstrap_payload        = array(
+			'show_types'           => $show_subcategories,
+			'show_tags'            => $show_tags,
+			'show_years'           => ! empty( $year_ui['supported'] ),
+			'search_enabled'       => $show_search,
+			'show_order_by'        => $show_order_by,
+			'show_visible_filters' => $show_visible_filters,
+			'order_trigger_style'  => $order_trigger_style,
+			'default_sort_key'     => $default_sort_key,
+			'context'              => $context_slug ?: 'mixed',
+			'types'                => array_values( $initial_types ),
+			'tags'                 => array_values( $initial_tags ),
+			'year'                 => $year_ui,
+			'advanced'             => is_array( $advanced_filter_ui ) ? $advanced_filter_ui : array(),
+		);
+		?>
+		<div class="bw-fpw-discovery-toolbar" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-ui-ready="false" style="opacity:0; visibility:hidden; transform:translateY(10px); pointer-events:none;">
+			<div class="bw-fpw-discovery-toolbar__summary">
+				<div class="bw-fpw-discovery-meta" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+					<span class="bw-fpw-discovery-result-count" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></span>
+				</div>
+			</div>
+
+			<div class="bw-fpw-discovery-toolbar__controls">
+				<?php if ( $show_search ) : ?>
+					<label class="bw-fpw-discovery-search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+						<input class="bw-fpw-discovery-search__input" type="search" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" placeholder="<?php echo esc_attr( $global_search_label ); ?>" autocomplete="off" />
+						<span class="bw-fpw-discovery-search__icon-shell">
+							<?php echo $search_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</span>
+					</label>
+				<?php endif; ?>
+
+				<?php if ( $show_order_by ) : ?>
+					<div class="bw-fpw-sort bw-fpw-sort--<?php echo esc_attr( $order_trigger_style ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+						<button class="bw-fpw-sort-trigger bw-fpw-sort-trigger--<?php echo esc_attr( $order_trigger_style ); ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-haspopup="menu" aria-expanded="false" aria-label="<?php esc_attr_e( 'Change product order', 'bw-elementor-widgets' ); ?>">
+							<?php if ( 'dropdown' === $order_trigger_style ) : ?>
+								<span class="bw-fpw-sort-trigger__content">
+									<span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
+										<?php echo $default_sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+									</span>
+									<span class="bw-fpw-sort-trigger__label" data-sort-current-label><?php echo esc_html( $default_sort_label ); ?></span>
+								</span>
+								<span class="bw-fpw-sort-trigger__chevron" aria-hidden="true">
+									<?php echo $sort_chevron_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								</span>
+							<?php else : ?>
+								<span class="bw-fpw-sort-trigger__icon-shell" aria-hidden="true">
+									<?php echo $default_sort_icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								</span>
+							<?php endif; ?>
+						</button>
+
+						<div class="bw-fpw-sort-menu" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" role="menu" aria-hidden="true">
+							<?php foreach ( $discovery_sort_options as $sort_key => $sort_option ) : ?>
+								<button class="bw-fpw-sort-option<?php echo $default_sort_key === $sort_key ? ' is-selected' : ''; ?>" type="button" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-sort-key="<?php echo esc_attr( $sort_key ); ?>" role="menuitemradio" aria-checked="<?php echo $default_sort_key === $sort_key ? 'true' : 'false'; ?>">
+									<span class="bw-fpw-sort-option__label"><?php echo esc_html( isset( $sort_option['menu_label'] ) ? $sort_option['menu_label'] : '' ); ?></span>
+									<span class="bw-fpw-sort-option__check" aria-hidden="true"><?php echo $sort_check_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+								</button>
+							<?php endforeach; ?>
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<div class="bw-fpw-mobile-filter" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>">
+					<button class="<?php echo esc_attr( implode( ' ', $mobile_button_classes ) ); ?>" type="button">
+						<span class="bw-fpw-mobile-filter-button-label"><?php echo esc_html( $mobile_filters_title ); ?></span>
+						<span class="bw-fpw-mobile-filter-button-icon-shell">
+							<?php echo $icon_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</span>
+					</button>
+
+					<div class="bw-fpw-mobile-filter-panel bw-fpw-mobile-filter-panel--drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( $drawer_title ); ?>">
+						<div class="bw-fpw-mobile-filter-drawer">
+							<div class="bw-fpw-mobile-filter-panel__header bw-fpw-mobile-filter-panel__header--drawer">
+								<div class="bw-fpw-mobile-filter-sheet-handle" aria-hidden="true">
+									<span class="bw-fpw-mobile-filter-sheet-handle-bar"></span>
+								</div>
+								<div class="bw-fpw-mobile-filter-drawer-title-row">
+									<span class="bw-fpw-mobile-filter-drawer-title"><?php echo esc_html( $drawer_title ); ?></span>
+									<button class="bw-fpw-drawer-clear-all bw-fpw-drawer-clear-all--header is-hidden" type="button" aria-hidden="true" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php esc_html_e( 'Clear all', 'bw-elementor-widgets' ); ?></button>
+								</div>
+							</div>
+
+							<div class="bw-fpw-mobile-filter-panel__body bw-fpw-mobile-filter-panel__body--drawer">
+								<div class="bw-fpw-drawer-content-shell" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+									<div class="bw-fpw-active-chips bw-fpw-active-chips--drawer" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+									<div class="bw-fpw-drawer-groups" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+								</div>
+							</div>
+
+							<div class="bw-fpw-mobile-filter-panel__footer bw-fpw-mobile-filter-panel__footer--drawer">
+								<button class="<?php echo esc_attr( implode( ' ', $apply_button_classes ) ); ?>" type="button"><?php echo esc_html( $mobile_show_results ); ?></button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="bw-fpw-visible-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" aria-hidden="<?php echo $show_visible_filters ? 'false' : 'true'; ?>"></div>
+
+			<div class="bw-fpw-active-chips bw-fpw-quick-filters" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"></div>
+		</div>
+
+		<div class="bw-fpw-filters bw-fpw-filters--drawer-state" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-default-category="<?php echo esc_attr( $default_category ); ?>"></div>
+		<script type="application/json" class="bw-fpw-discovery-bootstrap" data-widget-id="<?php echo esc_attr( $widget_id ); ?>"><?php echo wp_json_encode( $bootstrap_payload ); ?></script>
+		<?php
+	}
+
+	private function render_category_filter_items( $parent_terms, $default_category, $show_all_button, $post_type ) {
+		if ( $show_all_button ) :
+			$all_active = 'all' === $default_category;
+			?>
+			<button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $all_active ? ' active' : ''; ?>" data-category="all">
+				<span class="bw-fpw-option-label"><?php echo esc_html( __( 'All', 'bw-elementor-widgets' ) ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $this->get_total_post_count( $post_type ) ); ?>)</span>
+			</button>
+			<?php
+		endif;
+
+		if ( empty( $parent_terms ) || is_wp_error( $parent_terms ) ) {
+			return;
+		}
+
+		// $has_active_category is true if "All" button already handles the active state
+		$has_active_category = $show_all_button && 'all' === $default_category;
+
+		foreach ( $parent_terms as $category ) :
+			$is_active = ( 'all' !== $default_category && $category->term_id === $default_category ) || ( ! $has_active_category );
+			if ( $is_active ) {
+				$has_active_category = true;
+			}
+			?>
+			<button class="bw-fpw-filter-option bw-fpw-cat-button<?php echo $is_active ? ' active' : ''; ?>" data-category="<?php echo esc_attr( $category->term_id ); ?>">
+				<span class="bw-fpw-option-label"><?php echo esc_html( $category->name ); ?></span> <span class="bw-fpw-option-count">(<?php echo esc_html( $category->count ); ?>)</span>
+			</button>
+			<?php
+		endforeach;
+	}
+
+	private function render_sort_control( $settings, $widget_id ) {
+		$order_by       = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
+		$order          = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
+		$context_slug   = $this->resolve_product_grid_context_slug( $settings );
+		$year_ui        = function_exists( 'bw_fpw_get_year_filter_ui' ) ? bw_fpw_get_year_filter_ui( $context_slug ) : array( 'supported' => false );
+		$year_supported = ! empty( $year_ui['supported'] );
+
+		// Normalise: 'rand' has no meaningful sort UI
+		if ( 'rand' === $order_by ) {
+			return;
+		}
+
+		$current_value = $order_by . '|' . $order;
+
+		$options = array(
+			'date|DESC'  => __( 'Più recenti', 'bw-elementor-widgets' ),
+			'date|ASC'   => __( 'Meno recenti', 'bw-elementor-widgets' ),
+			'title|ASC'  => __( 'A → Z', 'bw-elementor-widgets' ),
+			'title|DESC' => __( 'Z → A', 'bw-elementor-widgets' ),
+		);
+
+		if ( $year_supported ) {
+			$options['year_int|ASC']  = __( 'Anno ↑', 'bw-elementor-widgets' );
+			$options['year_int|DESC'] = __( 'Anno ↓', 'bw-elementor-widgets' );
+		}
+
+		$select_id = 'bw-fpw-sort-select-' . esc_attr( $widget_id );
+		?>
+		<div class="bw-fpw-sort-control" data-widget-id="<?php echo esc_attr( $widget_id ); ?>">
+			<label class="bw-fpw-sort-label" for="<?php echo esc_attr( $select_id ); ?>"><?php esc_html_e( 'Ordina:', 'bw-elementor-widgets' ); ?></label>
+			<select class="bw-fpw-sort-select"
+					id="<?php echo esc_attr( $select_id ); ?>"
+					data-widget-id="<?php echo esc_attr( $widget_id ); ?>"
+					data-default-order-by="<?php echo esc_attr( $order_by ); ?>"
+					data-default-order="<?php echo esc_attr( $order ); ?>">
+				<?php if ( ! array_key_exists( $current_value, $options ) ) : ?>
+					<option value="" selected><?php esc_html_e( 'Default', 'bw-elementor-widgets' ); ?></option>
+				<?php endif; ?>
+				<?php foreach ( $options as $value => $label ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>"<?php selected( $value, $current_value ); ?>>
+						<?php echo esc_html( $label ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<?php
+	}
+
+	private function render_posts( $settings, $widget_id, $raw_settings = array() ) {
+		$post_type            = isset( $settings['post_type'] ) ? sanitize_key( $settings['post_type'] ) : 'post';
+		$available_post_types = BW_Widget_Helper::get_post_type_options();
+
+		if ( empty( $available_post_types ) ) {
+			$available_post_types = array( 'post' => __( 'Post', 'bw-elementor-widgets' ) );
+		}
+
+		if ( ! array_key_exists( $post_type, $available_post_types ) ) {
+			$post_type_keys = array_keys( $available_post_types );
+			$post_type      = array_key_exists( 'post', $available_post_types ) ? 'post' : reset( $post_type_keys );
+		}
+
+		$raw_settings = is_array( $raw_settings ) ? $raw_settings : array();
+
+		$legacy_posts_per_page = isset( $raw_settings['posts_per_page'] )
+			? (int) $raw_settings['posts_per_page']
+			: ( isset( $settings['posts_per_page'] ) ? (int) $settings['posts_per_page'] : 12 );
+		if ( 0 === $legacy_posts_per_page ) {
+			$legacy_posts_per_page = -1;
+		}
+
+		$has_infinite_scroll_setting = array_key_exists( 'infinite_scroll', $raw_settings );
+		$has_initial_items_setting   = array_key_exists( 'initial_items', $raw_settings );
+		$has_load_batch_size_setting = array_key_exists( 'load_batch_size', $raw_settings );
+
+		$initial_items = $has_initial_items_setting
+			? (int) $settings['initial_items']
+			: $legacy_posts_per_page;
+		if ( 0 === $initial_items ) {
+			$initial_items = 12;
+		}
+		if ( $initial_items < -1 ) {
+			$initial_items = -1;
+		}
+		if ( $initial_items > 100 ) {
+			$initial_items = 100;
+		}
+
+		$infinite_enabled = $has_infinite_scroll_setting
+			? ( isset( $settings['infinite_scroll'] ) && 'yes' === $settings['infinite_scroll'] )
+			: $legacy_posts_per_page > 0;
+
+		if ( $initial_items <= 0 ) {
+			$infinite_enabled = false;
+		}
+
+		$load_batch_size = $has_load_batch_size_setting
+			? (int) $settings['load_batch_size']
+			: ( $legacy_posts_per_page > 0 ? $legacy_posts_per_page : 12 );
+		if ( $load_batch_size < 1 ) {
+			$load_batch_size = 12;
+		}
+		if ( $load_batch_size > 100 ) {
+			$load_batch_size = 100;
+		}
+
+		$initial_query_size  = $infinite_enabled ? $initial_items + 1 : $initial_items;
+		$pagination_per_page = $infinite_enabled ? $load_batch_size : $initial_items;
+
+		$desktop_columns = isset( $settings['desktop_columns'] ) ? absint( $settings['desktop_columns'] ) : 4;
+		if ( ! in_array( $desktop_columns, array( 3, 4, 5, 6 ), true ) ) {
+			$desktop_columns = 4;
+		}
+		$grid_horizontal_gap   = $this->get_responsive_slider_size( $settings, 'grid_horizontal_gap', 10 );
+		$grid_vertical_gap     = $this->get_responsive_slider_size( $settings, 'grid_vertical_gap', 10 );
+		$gap_desktop_size      = $grid_horizontal_gap['desktop'];
+		$gap_tablet_size       = $grid_horizontal_gap['tablet'];
+		$gap_mobile_size       = $grid_horizontal_gap['mobile'];
+		$row_gap_desktop       = $grid_vertical_gap['desktop'];
+		$row_gap_tablet        = $grid_vertical_gap['tablet'];
+		$row_gap_mobile        = $grid_vertical_gap['mobile'];
+		$breakpoint_tablet_min = 768;
+		$breakpoint_tablet_max = 1024;
+		$columns_tablet        = 2;
+		$breakpoint_mobile_max = 767;
+		$columns_mobile        = 2;
+
+		$container_max_width = isset( $settings['container_max_width'] ) ? absint( $settings['container_max_width'] ) : 2000;
+		if ( $container_max_width < 800 ) {
+			$container_max_width = 800;
+		}
+		if ( $container_max_width > 4000 ) {
+			$container_max_width = 4000;
+		}
+
+		$masonry_effect         = isset( $settings['masonry_effect'] ) && 'yes' === $settings['masonry_effect'] ? 'yes' : 'no';
+		$layout_mode            = 'yes' === $masonry_effect ? 'masonry' : 'css-grid';
+		$disable_hover_on_touch = isset( $settings['disable_hover_on_touch'] ) && 'yes' === $settings['disable_hover_on_touch'];
+		$responsive_filter_mode = $this->is_responsive_filter_mode_enabled( $settings );
+
+		// These are not yet exposed as Elementor controls; declared here so that
+		// adding a control in the future only requires reading from $settings.
+		$image_size               = 'large';
+		$image_mode               = 'proportional';
+		$hover_effect             = true;
+		$open_cart_popup          = false;
+		$show_title               = 'yes' === ( $settings['show_title'] ?? 'yes' );
+		$show_description         = 'yes' === ( $settings['show_description'] ?? 'yes' );
+		$show_price               = 'yes' === ( $settings['show_price'] ?? 'yes' );
+		$show_hover_buttons       = 'yes' === ( $settings['show_hover_buttons'] ?? 'yes' );
+		$show_search              = isset( $settings['show_search'] ) && 'yes' === $settings['show_search'];
+		$include_ids              = isset( $settings['specific_ids'] ) ? BW_Widget_Helper::parse_ids( $settings['specific_ids'] ) : array();
+		$show_order_by            = $this->is_runtime_sort_enabled( $settings, $include_ids );
+		$show_visible_filters     = $this->is_visible_filters_enabled( $settings );
+		$desktop_filter_config    = $this->get_resolved_desktop_filter_config( $settings );
+		$desktop_filter_groups    = $desktop_filter_config['groups'];
+		$desktop_filter_order     = $desktop_filter_config['order'];
+		$show_desktop_filter_icon = ! isset( $settings['show_desktop_filter_icon'] ) || 'yes' === $settings['show_desktop_filter_icon'];
+		$order_trigger_style      = $this->get_runtime_sort_trigger_style( $settings );
+
+		$parent_categories = isset( $settings['parent_category'] ) ? array_filter( array_map( 'absint', (array) $settings['parent_category'] ) ) : array();
+		$subcategories     = isset( $settings['subcategory'] ) ? array_filter( array_map( 'absint', (array) $settings['subcategory'] ) ) : array();
+		$context_slug      = $this->resolve_product_grid_context_slug( $settings );
+
+		// Get default category setting for filtering
+		$default_category = isset( $settings['default_category'] ) && 'all' !== $settings['default_category']
+			? absint( $settings['default_category'] )
+			: 0;
+
+		// Get ordering settings
+		$order_by = isset( $settings['order_by'] ) ? sanitize_key( $settings['order_by'] ) : 'date';
+		$order    = isset( $settings['order'] ) ? strtoupper( sanitize_key( $settings['order'] ) ) : 'DESC';
+
+		// Validate order_by
+		$valid_order_by = array( 'date', 'modified', 'title', 'rand', 'id' );
+		if ( ! in_array( $order_by, $valid_order_by, true ) ) {
+			$order_by = 'date';
+		}
+
+		if ( 'id' === $order_by ) {
+			$order_by = 'ID';
+		}
+
+		// Validate order
+		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+			$order = 'DESC';
+		}
+
+		// For random order, ignore ASC/DESC
+		if ( 'rand' === $order_by ) {
+			$order = 'ASC';
+		}
+
+		$query_args = array(
+			'post_type'           => $post_type,
+			'posts_per_page'      => $initial_query_size,
+			'post_status'         => 'publish',
+			'no_found_rows'       => ! $responsive_filter_mode,
+			'ignore_sticky_posts' => true,
+			'orderby'             => $order_by,
+			'order'               => $order,
+		);
+
+		if ( ! empty( $include_ids ) ) {
+			$query_args['post__in'] = $include_ids;
+			$query_args['orderby']  = 'post__in';
+		}
+
+		if ( 'product' === $post_type ) {
+			$tax_query = array();
+
+			// If default category is set, filter by it
+			if ( $default_category > 0 ) {
+				$tax_query[] = array(
+					'taxonomy' => 'product_cat',
+					'field'    => 'term_id',
+					'terms'    => array( $default_category ),
+				);
+			} elseif ( ! empty( $subcategories ) ) {
+				$tax_query[] = array(
+					'taxonomy' => 'product_cat',
+					'field'    => 'term_id',
+					'terms'    => $subcategories,
+				);
+			} elseif ( ! empty( $parent_categories ) ) {
+				$tax_query[] = array(
+					'taxonomy'         => 'product_cat',
+					'field'            => 'term_id',
+					'terms'            => $parent_categories,
+					'include_children' => true,
+				);
+			}
+
+			if ( ! empty( $tax_query ) ) {
+				$query_args['tax_query'] = $tax_query;
+			}
+		}
+
+		$query = new \WP_Query( $query_args );
+
+		$has_posts       = $query->have_posts();
+		$has_more        = $infinite_enabled && $query->post_count > $initial_items;
+		$current_page    = 1;
+		$next_page       = $has_more ? 2 : 0;
+		$next_offset     = $has_more ? $initial_items : 0;
+		$load_trigger_px = 300;
+		$result_count    = $responsive_filter_mode ? (int) $query->found_posts : max( 0, $query->post_count );
+
+		$wrapper_classes    = array( 'bw-product-grid' );
+		$wrapper_style      = '--bw-fpw-max-width:' . $container_max_width . 'px; --bw-fpw-desktop-columns:' . $desktop_columns . '; --bw-fpw-grid-column-gap:' . $gap_desktop_size . 'px; --bw-fpw-grid-row-gap:' . $row_gap_desktop . 'px; --bw-fpw-grid-column-gap-tablet:' . $gap_tablet_size . 'px; --bw-fpw-grid-row-gap-tablet:' . $row_gap_tablet . 'px; --bw-fpw-grid-column-gap-mobile:' . $gap_mobile_size . 'px; --bw-fpw-grid-row-gap-mobile:' . $row_gap_mobile . 'px;';
+		$wrapper_attributes = array(
+			'class'                       => implode( ' ', $wrapper_classes ),
+			'style'                       => $wrapper_style,
+			'data-disable-hover-on-touch' => $disable_hover_on_touch ? 'yes' : 'no',
+		);
+		$grid_attributes    = array(
+			'class'                            => 'bw-fpw-grid',
+			'data-layout-mode'                 => $layout_mode,
+			'data-masonry-effect'              => $masonry_effect,
+			'data-widget-id'                   => $widget_id,
+			'data-post-type'                   => $post_type,
+			'data-context-slug'                => $context_slug,
+			'data-columns-desktop'             => $desktop_columns,
+			'data-gap-x-desktop'               => $gap_desktop_size,
+			'data-gap-y-desktop'               => $row_gap_desktop,
+			'data-breakpoint-tablet-min'       => $breakpoint_tablet_min,
+			'data-breakpoint-tablet-max'       => $breakpoint_tablet_max,
+			'data-columns-tablet'              => $columns_tablet,
+			'data-gap-x-tablet'                => $gap_tablet_size,
+			'data-gap-y-tablet'                => $row_gap_tablet,
+			'data-breakpoint-mobile-max'       => $breakpoint_mobile_max,
+			'data-columns-mobile'              => $columns_mobile,
+			'data-gap-x-mobile'                => $gap_mobile_size,
+			'data-gap-y-mobile'                => $row_gap_mobile,
+			'data-image-size'                  => $image_size,
+			'data-image-mode'                  => $image_mode,
+			'data-hover-effect'                => $hover_effect ? 'yes' : 'no',
+			'data-open-cart-popup'             => $open_cart_popup ? 'yes' : 'no',
+			'data-show-title'                  => $show_title ? 'yes' : 'no',
+			'data-show-description'            => $show_description ? 'yes' : 'no',
+			'data-show-price'                  => $show_price ? 'yes' : 'no',
+			'data-search-enabled'              => $show_search ? 'yes' : 'no',
+			'data-show-order-by'               => $show_order_by ? 'yes' : 'no',
+			'data-show-visible-filters'        => $show_visible_filters ? 'yes' : 'no',
+			'data-desktop-filters-enabled'     => $show_visible_filters ? 'yes' : 'no',
+			'data-desktop-filter-groups'       => wp_json_encode( array_values( $desktop_filter_groups ) ),
+			'data-desktop-filter-order'        => wp_json_encode( array_values( $desktop_filter_order ) ),
+			'data-desktop-filter-icon-enabled' => $show_desktop_filter_icon ? 'yes' : 'no',
+			'data-order-trigger-style'         => $order_trigger_style,
+			'data-default-sort-key'            => $default_sort_key,
+			'data-order-by'                    => $order_by,
+			'data-order'                       => $order,
+			'data-default-order-by'            => $order_by,
+			'data-default-order'               => $order,
+			'data-specific-ids-mode'           => ! empty( $include_ids ) ? 'yes' : 'no',
+			'data-initial-items'               => $initial_items,
+			'data-load-batch-size'             => $load_batch_size,
+			'data-per-page'                    => $pagination_per_page,
+			'data-current-page'                => $current_page,
+			'data-next-page'                   => $next_page,
+			'data-loaded-count'                => $infinite_enabled ? min( $initial_items, max( 0, $query->post_count ) ) : max( 0, $query->post_count ),
+			'data-next-offset'                 => $next_offset,
+			'data-has-more'                    => $has_more ? '1' : '0',
+			'data-infinite-enabled'            => $infinite_enabled ? 'yes' : 'no',
+			'data-load-trigger-offset'         => $load_trigger_px,
+			'data-result-count'                => $result_count,
+		);
+
+		$grid_attr_html = '';
+		foreach ( $grid_attributes as $attr => $value ) {
+			if ( '' === $value && 0 !== $value ) {
+				continue;
+			}
+
+			$grid_attr_html .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( (string) $value ) );
+		}
+
+		$load_state_classes = array( 'bw-fpw-load-state' );
+		if ( ! $infinite_enabled ) {
+			$load_state_classes[] = 'bw-fpw-load-state--disabled';
+		} elseif ( ! $has_more ) {
+			$load_state_classes[] = 'bw-fpw-load-state--complete';
+		}
+
+		$rendered_posts      = 0;
+		$initial_eager_items = max( 1, min( $desktop_columns, $initial_items > 0 ? $initial_items : $desktop_columns ) );
+		$wrapper_attr_html   = '';
+		foreach ( $wrapper_attributes as $attr => $value ) {
+			if ( '' === $value && 0 !== $value ) {
+				continue;
+			}
+
+			$wrapper_attr_html .= sprintf( ' %s="%s"', esc_attr( $attr ), esc_attr( (string) $value ) );
+		}
+		?>
+		<div<?php echo $wrapper_attr_html; ?>>
+			<div<?php echo $grid_attr_html; ?>>
+				<?php if ( $has_posts ) : ?>
+					<?php
+					while ( $query->have_posts() ) :
+						$query->the_post();
+						if ( $infinite_enabled && $rendered_posts >= $initial_items ) {
+							break;
+						}
+						$image_loading       = $rendered_posts < $initial_eager_items ? 'eager' : 'lazy';
+						$hover_image_loading = 'lazy';
+						$this->render_post_item( $post_type, $open_cart_popup, $image_loading, $hover_image_loading, $image_size, $image_mode, $show_title, $show_description, $show_price, $show_hover_buttons );
+						++$rendered_posts;
+					endwhile;
+					?>
+				<?php else : ?>
+					<div class="bw-fpw-empty-state">
+						<p class="bw-fpw-empty-message"><?php esc_html_e( 'There is nothing in this archive yet.', 'bw-elementor-widgets' ); ?></p>
+					</div>
+				<?php endif; ?>
+			</div>
+			<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $load_state_classes ) ) ); ?>" data-widget-id="<?php echo esc_attr( $widget_id ); ?>" data-has-more="<?php echo $has_more ? '1' : '0'; ?>" aria-live="polite">
+				<div class="bw-fpw-load-indicator" role="status">
+					<span class="bw-fpw-load-indicator__spinner" aria-hidden="true"></span>
+					<span class="bw-fpw-load-indicator__label"><?php esc_html_e( 'Loading more', 'bw-elementor-widgets' ); ?></span>
+				</div>
+				<div class="bw-fpw-load-sentinel" aria-hidden="true"></div>
+			</div>
+		</div>
+		<?php
+		wp_reset_postdata();
+	}
+
+	private function render_post_item( $post_type, $open_cart_popup, $image_loading = 'lazy', $hover_image_loading = 'lazy', $image_size = 'large', $image_mode = 'proportional', $show_title = true, $show_description = true, $show_price = true, $show_hover_buttons = true ) {
+		$post_id = get_the_ID();
+
+		if ( 'product' === $post_type && class_exists( 'BW_Product_Card_Component' ) && function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $post_id );
+
+			if ( $product ) {
+				echo BW_Product_Card_Component::render(
+					$product,
+					array(
+						'image_size'              => $image_size,
+						'image_mode'              => $image_mode,
+						'image_loading'           => $image_loading,
+						'hover_image_loading'     => $hover_image_loading,
+						'show_image'              => true,
+						'show_hover_image'        => true,
+						'hover_image_source'      => 'meta',
+						'show_title'              => $show_title,
+						'show_description'        => $show_description,
+						'description_mode'        => 'auto',
+						'show_price'              => $show_price,
+						'show_buttons'            => $show_hover_buttons,
+						'show_add_to_cart'        => true,
+						'open_cart_popup'         => $open_cart_popup,
+						'wrapper_classes'         => 'bw-fpw-item',
+						'card_classes'            => 'bw-fpw-card',
+						'media_classes'           => 'bw-fpw-media',
+						'media_link_classes'      => 'bw-fpw-media-link',
+						'image_wrapper_classes'   => 'bw-fpw-image',
+						'content_classes'         => 'bw-fpw-content bw-slider-content',
+						'title_classes'           => 'bw-fpw-title',
+						'description_classes'     => 'bw-fpw-description',
+						'price_classes'           => 'bw-fpw-price price',
+						'overlay_classes'         => 'bw-fpw-overlay overlay-buttons has-buttons',
+						'overlay_buttons_classes' => 'bw-fpw-overlay-buttons',
+						'view_button_classes'     => 'bw-fpw-overlay-button overlay-button overlay-button--view',
+						'cart_button_classes'     => 'bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart',
+						'placeholder_classes'     => 'bw-fpw-image-placeholder',
+					)
+				);
+				return;
+			}
+		}
+
+		$permalink = get_permalink( $post_id );
+		$title     = get_the_title( $post_id );
+		$excerpt   = get_the_excerpt( $post_id );
+
+		if ( empty( $excerpt ) ) {
+			$excerpt = wp_trim_words( wp_strip_all_tags( get_the_content( null, false, $post_id ) ), 30 );
+		}
+
+		if ( ! empty( $excerpt ) && false === strpos( $excerpt, '<p' ) ) {
+			$excerpt = '<p>' . $excerpt . '</p>';
+		}
+
+		$thumbnail_html = '';
+
+		if ( has_post_thumbnail( $post_id ) ) {
+			$thumbnail_args = array(
+				'loading' => $image_loading,
+				'class'   => 'bw-slider-main',
+			);
+
+			$thumbnail_html = get_the_post_thumbnail( $post_id, $image_size, $thumbnail_args );
+		}
+
+		$hover_image_html = '';
+		if ( 'product' === $post_type ) {
+			$hover_image_id = (int) get_post_meta( $post_id, '_bw_slider_hover_image', true );
+
+			if ( $hover_image_id ) {
+				$hover_image_html = wp_get_attachment_image(
+					$hover_image_id,
+					$image_size,
+					false,
+					array(
+						'class'   => 'bw-slider-hover',
+						'loading' => $hover_image_loading,
+					)
+				);
+			}
+		}
+
+		$price_html      = '';
+		$has_add_to_cart = false;
+		$add_to_cart_url = '';
+
+		if ( 'product' === $post_type ) {
+			$price_html = $this->get_price_markup( $post_id );
+
+			if ( function_exists( 'wc_get_product' ) ) {
+				$product = wc_get_product( $post_id );
+
+				if ( $product ) {
+					if ( $product->is_type( 'variable' ) ) {
+						$add_to_cart_url = $permalink;
+					} else {
+						$cart_url = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
+
+						if ( $cart_url ) {
+							$add_to_cart_url = add_query_arg( 'add-to-cart', $product->get_id(), $cart_url );
+						}
+					}
+
+					if ( ! $add_to_cart_url ) {
+						$add_to_cart_url = $permalink;
+					}
+
+					$has_add_to_cart = true;
+				}
+			}
+		}
+
+		$view_label = 'product' === $post_type
+			? esc_html__( 'View Product', 'bw-elementor-widgets' )
+			: esc_html__( 'Read More', 'bw-elementor-widgets' );
+		?>
+		<article <?php post_class( 'bw-fpw-item' ); ?>>
+			<div class="bw-fpw-card">
+				<div class="bw-slider-image-container">
+					<?php
+					$media_classes = array( 'bw-fpw-media' );
+					if ( ! $thumbnail_html ) {
+						$media_classes[] = 'bw-fpw-media--placeholder';
+					}
+					?>
+					<div class="<?php echo esc_attr( implode( ' ', array_map( 'sanitize_html_class', $media_classes ) ) ); ?>">
+						<?php if ( $thumbnail_html ) : ?>
+							<a class="bw-fpw-media-link" href="<?php echo esc_url( $permalink ); ?>">
+								<div class="bw-fpw-image bw-slick-slider-image<?php echo $hover_image_html ? ' bw-fpw-image--has-hover bw-slick-slider-image--has-hover' : ''; ?>">
+									<?php echo wp_kses_post( $thumbnail_html ); ?>
+									<?php if ( $hover_image_html ) : ?>
+										<?php echo wp_kses_post( $hover_image_html ); ?>
+									<?php endif; ?>
+								</div>
+							</a>
+
+							<div class="bw-fpw-overlay overlay-buttons has-buttons">
+								<div class="bw-fpw-overlay-buttons<?php echo $has_add_to_cart ? ' bw-fpw-overlay-buttons--double' : ''; ?>">
+									<a class="bw-fpw-overlay-button overlay-button overlay-button--view" href="<?php echo esc_url( $permalink ); ?>">
+										<span class="bw-fpw-overlay-button__label overlay-button__label"><?php echo $view_label; ?></span>
+									</a>
+									<?php if ( 'product' === $post_type && $has_add_to_cart && $add_to_cart_url ) : ?>
+										<a class="bw-fpw-overlay-button overlay-button overlay-button--cart bw-btn-addtocart" href="<?php echo esc_url( $add_to_cart_url ); ?>" data-product_id="<?php echo esc_attr( $post_id ); ?>"<?php echo $open_cart_popup ? ' data-open-cart-popup="1"' : ''; ?>>
+											<span class="bw-fpw-overlay-button__label overlay-button__label"><?php esc_html_e( 'Add to Cart', 'bw-elementor-widgets' ); ?></span>
+										</a>
+									<?php endif; ?>
+								</div>
+							</div>
+						<?php else : ?>
+							<span class="bw-fpw-image-placeholder" aria-hidden="true"></span>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<div class="bw-fpw-content bw-slider-content">
+					<h3 class="bw-fpw-title">
+						<a href="<?php echo esc_url( $permalink ); ?>">
+							<?php echo esc_html( $title ); ?>
+						</a>
+					</h3>
+
+					<?php if ( ! empty( $excerpt ) ) : ?>
+						<div class="bw-fpw-description"><?php echo wp_kses_post( $excerpt ); ?></div>
+					<?php endif; ?>
+
+					<?php if ( $price_html ) : ?>
+						<div class="bw-fpw-price price"><?php echo wp_kses_post( $price_html ); ?></div>
+					<?php endif; ?>
+				</div>
+			</div>
+		</article>
+		<?php
+	}
+
+	/**
+	 * Methods parse_ids(), get_slider_value_with_unit(), and get_post_type_options()
+	 * have been moved to BW_Widget_Helper class to reduce code duplication.
+	 * Use BW_Widget_Helper::method_name() instead.
+	 */
+	private function get_total_post_count( $post_type ) {
+		$counts = wp_count_posts( $post_type );
+
+		if ( $counts && isset( $counts->publish ) ) {
+			return (int) $counts->publish;
+		}
+
+		return 0;
+	}
+
+	private function get_filtered_post_ids( $post_type, $category, array $subcategories ) {
+		$taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+
+		$tax_query = array();
+
+		if ( 'all' !== $category && absint( $category ) > 0 ) {
+			if ( ! empty( $subcategories ) ) {
+				$tax_query[] = array(
+					'taxonomy' => $taxonomy,
+					'field'    => 'term_id',
+					'terms'    => $subcategories,
+				);
+			} else {
+				$tax_query[] = array(
+					'taxonomy' => $taxonomy,
+					'field'    => 'term_id',
+					'terms'    => array( absint( $category ) ),
+				);
+			}
+		}
+
+		$query_args = array(
+			'post_type'      => $post_type,
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'tax_query'      => $tax_query,
+		);
+
+		$query = new WP_Query( $query_args );
+
+		return $query->posts;
+	}
+
+	private function get_subcategories_data( $post_type, $category = 'all' ) {
+		$taxonomy = 'product' === $post_type ? 'product_cat' : 'category';
+
+		$args = array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => true,
+		);
+
+		if ( 'all' !== $category && ! empty( $category ) && absint( $category ) > 0 ) {
+			$args['parent'] = absint( $category );
+		}
+
+		$terms = get_terms( $args );
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return array();
+		}
+
+		if ( 'all' === $category ) {
+			$terms = array_filter(
+				$terms,
+				static function ( $term ) {
+					return (int) $term->parent > 0;
+				}
+			);
+		}
+
+		$results = array();
+
+		foreach ( $terms as $term ) {
+			$results[] = array(
+				'term_id' => (int) $term->term_id,
+				'name'    => $term->name,
+				'count'   => (int) $term->count,
+			);
+		}
+
+		return $results;
+	}
+
+	private function collect_terms_from_posts( $taxonomy, array $post_ids ) {
+		if ( empty( $post_ids ) ) {
+			return array();
+		}
+
+		$terms_map = array();
+
+		foreach ( $post_ids as $post_id ) {
+			$terms = wp_get_object_terms( $post_id, $taxonomy );
+
+			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			foreach ( $terms as $term ) {
+				$term_id = (int) $term->term_id;
+
+				if ( ! isset( $terms_map[ $term_id ] ) ) {
+					$terms_map[ $term_id ] = array(
+						'term_id' => $term_id,
+						'name'    => $term->name,
+						'count'   => 0,
+					);
+				}
+
+				++$terms_map[ $term_id ]['count'];
+			}
+		}
+
+		usort(
+			$terms_map,
+			static function ( $a, $b ) {
+				return strcmp( $a['name'], $b['name'] );
+			}
+		);
+
+		return $terms_map;
+	}
+
+	private function get_related_tags( $post_type, $category = 'all', array $subcategories = array() ) {
+		$tag_taxonomy = 'product' === $post_type ? 'product_tag' : 'post_tag';
+
+		if ( 'all' === $category || empty( $category ) ) {
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $tag_taxonomy,
+					'hide_empty' => true,
+				)
+			);
+
+			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+				return array();
+			}
+
+			$results = array();
+
+			foreach ( $terms as $term ) {
+				$results[] = array(
+					'term_id' => (int) $term->term_id,
+					'name'    => $term->name,
+					'count'   => (int) $term->count,
+				);
+			}
+
+			return $results;
+		}
+
+		$post_ids = $this->get_filtered_post_ids( $post_type, $category, $subcategories );
+
+		return $this->collect_terms_from_posts( $tag_taxonomy, $post_ids );
+	}
+
+	private function get_price_markup( $post_id ) {
+		return bw_fpw_get_price_markup( $post_id );
+	}
 }
