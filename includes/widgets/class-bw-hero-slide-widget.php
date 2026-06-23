@@ -419,48 +419,39 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'section_padding',
+			__( 'Section Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-hero-slide__inner',
+			'padding',
+			array( 'px', '%', 'em', 'rem' ),
 			array(
-				'label'      => __( 'Section Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'default'    => array(
-					'top'      => 60,
-					'right'    => 24,
-					'bottom'   => 60,
-					'left'     => 24,
-					'unit'     => 'px',
-					'isLinked' => false,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-hero-slide__inner' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
+				'top'      => 60,
+				'right'    => 24,
+				'bottom'   => 60,
+				'left'     => 24,
+				'unit'     => 'px',
+				'isLinked' => false,
 			)
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'overlay_color',
-			array(
-				'label'     => __( 'Overlay Color', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(8, 8, 8, 0.86)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-hs-overlay-color: {{VALUE}};',
-				),
-			)
+			__( 'Overlay Color', 'bw-elementor-widgets' ),
+			'{{WRAPPER}}',
+			'--bw-hs-overlay-color',
+			'rgba(8, 8, 8, 0.86)'
 		);
 
-		$this->add_control(
+		BW_Widget_Helper::add_color_var_control(
+			$this,
 			'glow_color',
-			array(
-				'label'     => __( 'Glow Color', 'bw-elementor-widgets' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => 'rgba(170, 72, 255, 0.30)',
-				'selectors' => array(
-					'{{WRAPPER}}' => '--bw-hs-glow-color: {{VALUE}};',
-				),
-			)
+			__( 'Glow Color', 'bw-elementor-widgets' ),
+			'{{WRAPPER}}',
+			'--bw-hs-glow-color',
+			'rgba(170, 72, 255, 0.30)'
 		);
 
 		$this->add_control(
@@ -496,12 +487,10 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'title_typography',
-				'selector' => '{{WRAPPER}} .bw-hero-slide__title',
-			)
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'title_typography',
+			'{{WRAPPER}} .bw-hero-slide__title'
 		);
 
 		$this->add_control(
@@ -516,16 +505,13 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'title_padding',
-			array(
-				'label'      => __( 'Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-hero-slide__title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-hero-slide__title',
+			'padding',
+			array( 'px', '%', 'em', 'rem' )
 		);
 
 		$this->end_controls_section();
@@ -545,12 +531,10 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'subtitle_typography',
-				'selector' => '{{WRAPPER}} .bw-hero-slide__subtitle',
-			)
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'subtitle_typography',
+			'{{WRAPPER}} .bw-hero-slide__subtitle'
 		);
 
 		$this->add_control(
@@ -565,16 +549,13 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'subtitle_padding',
-			array(
-				'label'      => __( 'Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-hero-slide__subtitle' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-hero-slide__subtitle',
+			'padding',
+			array( 'px', '%', 'em', 'rem' )
 		);
 
 		$this->end_controls_section();
@@ -692,12 +673,10 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'button_typography',
-				'selector' => '{{WRAPPER}} .bw-hero-slide__button-label',
-			)
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'button_typography',
+			'{{WRAPPER}} .bw-hero-slide__button-label'
 		);
 
 		$this->add_control(
@@ -712,23 +691,20 @@ class BW_Hero_Slide_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'button_padding',
+			__( 'Button Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-hero-slide__button',
+			'padding',
+			array( 'px', '%', 'em', 'rem' ),
 			array(
-				'label'      => __( 'Button Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'default'    => array(
-					'top'      => 16,
-					'right'    => 28,
-					'bottom'   => 16,
-					'left'     => 28,
-					'unit'     => 'px',
-					'isLinked' => false,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-hero-slide__button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
+				'top'      => 16,
+				'right'    => 28,
+				'bottom'   => 16,
+				'left'     => 28,
+				'unit'     => 'px',
+				'isLinked' => false,
 			)
 		);
 
