@@ -65,7 +65,7 @@ New `BW_Widget_Helper` methods:
 5. `get_svg_allowed_tags()` + `sanitize_svg_content($svg)` → merge the two near-identical whitelists (accordion = superset).
 6. `sanitize_html_tag($tag,$allowed,$default)` → the title-tag guard.
 
-Refactor consumers: `class-bw-license-table-widget.php`, `class-bw-accordion-widget.php`, `class-bw-newsletter-subscription-widget.php`, `class-bw-button-widget.php` (SVG only).
+Refactor consumers: **all 28 widget files** in `includes/widgets/` (~23,145 LOC). Order: build helpers → pilot the 4 worst offenders (`license-table`, `accordion`, `newsletter-subscription`, `button`) and self-check byte-identical output → sweep the remaining 24. Widgets with no matching duplication are skipped. Full checklist in `BW-TASK-20260623-refactor-progress.md`.
 
 **Risk control:** Elementor control output must be byte-identical. Refactor **one widget at a time**, diff the rendered control panel + frontend CSS variables before/after. Saves ~300+ lines.
 
@@ -116,7 +116,7 @@ Estimation basis: dense PHP ≈ ~12 tokens/line. Cost per phase ≈ (source read
 |---|---|---:|
 | 0 | phpcbf auto-fix + verify 10 files | ~150K |
 | 1 | Bootstrap extraction (4 modules) + verify | ~400K |
-| 2 | 6 helper methods + refactor 4 widgets + verify | ~480K |
+| 2 | 6 helper methods + refactor **all 28 widgets** + verify | ~2.5–3.2M |
 | 3a | Settings god-file split (~10 includes, CSV engine, options mgr) — re-reads of a 13.5k-line file dominate | ~1.1M |
 | 3b | woocommerce-init split | ~300K |
 | 3c | checkout-subscribe split | ~350K |
