@@ -7,8 +7,8 @@
  * @package BW_Cart_Popup
  */
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
@@ -16,25 +16,24 @@ if (!defined('ABSPATH')) {
  *
  * @return WC_Cart|null
  */
-function bw_cart_popup_get_cart_instance()
-{
-    if (!function_exists('WC')) {
-        return null;
-    }
+function bw_cart_popup_get_cart_instance() {
+	if ( ! function_exists( 'WC' ) ) {
+		return null;
+	}
 
-    $wc = WC();
+	$wc = WC();
 
-    if (!$wc || !isset($wc->cart)) {
-        return null;
-    }
+	if ( ! $wc || ! isset( $wc->cart ) ) {
+		return null;
+	}
 
-    $cart = $wc->cart;
+	$cart = $wc->cart;
 
-    if (!$cart || !class_exists('WC_Cart') || !$cart instanceof WC_Cart) {
-        return null;
-    }
+	if ( ! $cart || ! class_exists( 'WC_Cart' ) || ! $cart instanceof WC_Cart ) {
+		return null;
+	}
 
-    return $cart;
+	return $cart;
 }
 
 /**
@@ -47,26 +46,25 @@ function bw_cart_popup_get_cart_instance()
  *
  * @return string
  */
-function bw_cart_popup_get_first_error_notice($fallback = '')
-{
-    $error_messages = wc_get_notices('error');
-    $message = $fallback;
+function bw_cart_popup_get_first_error_notice( $fallback = '' ) {
+	$error_messages = wc_get_notices( 'error' );
+	$message        = $fallback;
 
-    if (!empty($error_messages) && is_array($error_messages)) {
-        $first_error = reset($error_messages);
+	if ( ! empty( $error_messages ) && is_array( $error_messages ) ) {
+		$first_error = reset( $error_messages );
 
-        if (is_array($first_error) && isset($first_error['notice'])) {
-            $message = wp_strip_all_tags((string) $first_error['notice']);
-        } elseif (is_string($first_error)) {
-            $message = wp_strip_all_tags($first_error);
-        }
-    }
+		if ( is_array( $first_error ) && isset( $first_error['notice'] ) ) {
+			$message = wp_strip_all_tags( (string) $first_error['notice'] );
+		} elseif ( is_string( $first_error ) ) {
+			$message = wp_strip_all_tags( $first_error );
+		}
+	}
 
-    if (empty($message)) {
-        $message = __('An error occurred while processing your request.', 'bw');
-    }
+	if ( empty( $message ) ) {
+		$message = __( 'An error occurred while processing your request.', 'bw' );
+	}
 
-    return $message;
+	return $message;
 }
 
 /**
@@ -78,29 +76,28 @@ function bw_cart_popup_get_first_error_notice($fallback = '')
  *
  * @return float Positive discount amount for the coupon.
  */
-function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
-{
-    $amount = 0.0;
+function bw_cart_popup_get_coupon_amount( $cart, $code, $coupon_amounts = array() ) {
+	$amount = 0.0;
 
-    if ($cart && is_callable([$cart, 'get_coupon_discount_amount'])) {
-        $amount = (float) $cart->get_coupon_discount_amount($code);
-    }
+	if ( $cart && is_callable( array( $cart, 'get_coupon_discount_amount' ) ) ) {
+		$amount = (float) $cart->get_coupon_discount_amount( $code );
+	}
 
-    if ($amount <= 0 && !empty($coupon_amounts) && is_array($coupon_amounts)) {
-        if (isset($coupon_amounts[$code])) {
-            $amount = (float) $coupon_amounts[$code];
-        } else {
-            $code_lc = strtolower((string) $code);
-            foreach ($coupon_amounts as $key => $value) {
-                if (strtolower((string) $key) === $code_lc) {
-                    $amount = (float) $value;
-                    break;
-                }
-            }
-        }
-    }
+	if ( $amount <= 0 && ! empty( $coupon_amounts ) && is_array( $coupon_amounts ) ) {
+		if ( isset( $coupon_amounts[ $code ] ) ) {
+			$amount = (float) $coupon_amounts[ $code ];
+		} else {
+			$code_lc = strtolower( (string) $code );
+			foreach ( $coupon_amounts as $key => $value ) {
+				if ( strtolower( (string) $key ) === $code_lc ) {
+					$amount = (float) $value;
+					break;
+				}
+			}
+		}
+	}
 
-    return max(0, $amount);
+	return max( 0, $amount );
 }
 
 /**
@@ -110,47 +107,46 @@ function bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts = [])
  * @param WC_Cart $cart Cart instance.
  * @return array
  */
-function bw_cart_popup_build_totals_data($cart)
-{
-    $subtotal   = $cart->get_subtotal();
-    $discount   = $cart->get_discount_total();
-    $tax        = $cart->get_total_tax();
-    $total      = (float) $cart->get_total('');
-    $item_count = $cart->get_cart_contents_count();
-    $display_context = bw_cart_popup_get_display_totals_context($cart, $subtotal, $total);
+function bw_cart_popup_build_totals_data( $cart ) {
+	$subtotal        = $cart->get_subtotal();
+	$discount        = $cart->get_discount_total();
+	$tax             = $cart->get_total_tax();
+	$total           = (float) $cart->get_total( '' );
+	$item_count      = $cart->get_cart_contents_count();
+	$display_context = bw_cart_popup_get_display_totals_context( $cart, $subtotal, $total );
 
-    $applied_coupons = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
-    $coupon_amounts  = is_callable([$cart, 'get_coupon_discount_amounts']) ? $cart->get_coupon_discount_amounts() : [];
+	$applied_coupons = is_callable( array( $cart, 'get_applied_coupons' ) ) ? $cart->get_applied_coupons() : array();
+	$coupon_amounts  = is_callable( array( $cart, 'get_coupon_discount_amounts' ) ) ? $cart->get_coupon_discount_amounts() : array();
 
-    $detailed_coupons = [];
-    foreach ($applied_coupons as $code) {
-        $amount             = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
-        $detailed_coupons[] = [
-            'code'       => $code,
-            'amount'     => wc_price(-$amount),
-            'amount_raw' => -$amount,
-        ];
-    }
+	$detailed_coupons = array();
+	foreach ( $applied_coupons as $code ) {
+		$amount             = bw_cart_popup_get_coupon_amount( $cart, $code, $coupon_amounts );
+		$detailed_coupons[] = array(
+			'code'       => $code,
+			'amount'     => wc_price( -$amount ),
+			'amount_raw' => -$amount,
+		);
+	}
 
-    return [
-        'item_count'      => $item_count,
-        'empty'           => $cart->is_empty(),
-        'subtotal'        => wc_price($subtotal),
-        'subtotal_raw'    => $subtotal,
-        'shipping'        => wc_price($display_context['shipping_raw']),
-        'shipping_raw'    => $display_context['shipping_raw'],
-        'show_shipping_row' => $display_context['show_shipping_row'],
-        'discount'        => wc_price($discount),
-        'discount_raw'    => $discount,
-        'tax'             => wc_price($tax),
-        'tax_raw'         => $tax,
-        'total'           => wc_price($display_context['display_total_raw']),
-        'total_raw'       => $display_context['display_total_raw'],
-        'native_total'    => wc_price($total),
-        'native_total_raw'=> $total,
-        'applied_coupons' => $applied_coupons,
-        'coupons'         => $detailed_coupons,
-    ];
+	return array(
+		'item_count'        => $item_count,
+		'empty'             => $cart->is_empty(),
+		'subtotal'          => wc_price( $subtotal ),
+		'subtotal_raw'      => $subtotal,
+		'shipping'          => wc_price( $display_context['shipping_raw'] ),
+		'shipping_raw'      => $display_context['shipping_raw'],
+		'show_shipping_row' => $display_context['show_shipping_row'],
+		'discount'          => wc_price( $discount ),
+		'discount_raw'      => $discount,
+		'tax'               => wc_price( $tax ),
+		'tax_raw'           => $tax,
+		'total'             => wc_price( $display_context['display_total_raw'] ),
+		'total_raw'         => $display_context['display_total_raw'],
+		'native_total'      => wc_price( $total ),
+		'native_total_raw'  => $total,
+		'applied_coupons'   => $applied_coupons,
+		'coupons'           => $detailed_coupons,
+	);
 }
 
 /**
@@ -166,28 +162,27 @@ function bw_cart_popup_build_totals_data($cart)
  * @param float   $native_total Native WooCommerce total.
  * @return array<string, mixed>
  */
-function bw_cart_popup_get_display_totals_context($cart, $subtotal, $native_total)
-{
-    $shipping_total = is_callable([$cart, 'get_shipping_total']) ? (float) $cart->get_shipping_total() : 0.0;
-    $shipping_tax   = is_callable([$cart, 'get_shipping_tax']) ? (float) $cart->get_shipping_tax() : 0.0;
-    $shipping_raw   = max(0, $shipping_total + $shipping_tax);
-    $shipping_notice_enabled = function_exists('bw_cart_popup_get_shipping_notice_enabled')
-        ? (1 === (int) bw_cart_popup_get_shipping_notice_enabled())
-        : true;
+function bw_cart_popup_get_display_totals_context( $cart, $subtotal, $native_total ) {
+	$shipping_total          = is_callable( array( $cart, 'get_shipping_total' ) ) ? (float) $cart->get_shipping_total() : 0.0;
+	$shipping_tax            = is_callable( array( $cart, 'get_shipping_tax' ) ) ? (float) $cart->get_shipping_tax() : 0.0;
+	$shipping_raw            = max( 0, $shipping_total + $shipping_tax );
+	$shipping_notice_enabled = function_exists( 'bw_cart_popup_get_shipping_notice_enabled' )
+		? ( 1 === (int) bw_cart_popup_get_shipping_notice_enabled() )
+		: true;
 
-    if ($shipping_notice_enabled) {
-        return [
-            'shipping_raw' => 0.0,
-            'show_shipping_row' => false,
-            'display_total_raw' => max(0, (float) $native_total - $shipping_raw),
-        ];
-    }
+	if ( $shipping_notice_enabled ) {
+		return array(
+			'shipping_raw'      => 0.0,
+			'show_shipping_row' => false,
+			'display_total_raw' => max( 0, (float) $native_total - $shipping_raw ),
+		);
+	}
 
-    return [
-        'shipping_raw' => $shipping_raw,
-        'show_shipping_row' => $shipping_raw > 0,
-        'display_total_raw' => (float) $native_total,
-    ];
+	return array(
+		'shipping_raw'      => $shipping_raw,
+		'show_shipping_row' => $shipping_raw > 0,
+		'display_total_raw' => (float) $native_total,
+	);
 }
 
 /**
@@ -195,96 +190,95 @@ function bw_cart_popup_get_display_totals_context($cart, $subtotal, $native_tota
  *
  * @return array<string, mixed>
  */
-function bw_cart_popup_get_strict_svg_allowed_tags()
-{
-    return [
-        'svg' => [
-            'class' => true,
-            'xmlns' => true,
-            'width' => true,
-            'height' => true,
-            'viewbox' => true,
-            'viewBox' => true,
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'stroke-linecap' => true,
-            'stroke-linejoin' => true,
-            'aria-hidden' => true,
-            'focusable' => true,
-            'role' => true,
-            'preserveAspectRatio' => true,
-        ],
-        'g' => [
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'transform' => true,
-            'fill-rule' => true,
-            'clip-rule' => true,
-        ],
-        'path' => [
-            'd' => true,
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'stroke-linecap' => true,
-            'stroke-linejoin' => true,
-            'transform' => true,
-            'fill-rule' => true,
-            'clip-rule' => true,
-        ],
-        'circle' => [
-            'cx' => true,
-            'cy' => true,
-            'r' => true,
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'transform' => true,
-        ],
-        'rect' => [
-            'x' => true,
-            'y' => true,
-            'width' => true,
-            'height' => true,
-            'rx' => true,
-            'ry' => true,
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'transform' => true,
-        ],
-        'line' => [
-            'x1' => true,
-            'y1' => true,
-            'x2' => true,
-            'y2' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'stroke-linecap' => true,
-            'stroke-linejoin' => true,
-            'transform' => true,
-        ],
-        'polyline' => [
-            'points' => true,
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'stroke-linecap' => true,
-            'stroke-linejoin' => true,
-            'transform' => true,
-        ],
-        'polygon' => [
-            'points' => true,
-            'fill' => true,
-            'stroke' => true,
-            'stroke-width' => true,
-            'stroke-linecap' => true,
-            'stroke-linejoin' => true,
-            'transform' => true,
-        ],
-    ];
+function bw_cart_popup_get_strict_svg_allowed_tags() {
+	return array(
+		'svg'      => array(
+			'class'               => true,
+			'xmlns'               => true,
+			'width'               => true,
+			'height'              => true,
+			'viewbox'             => true,
+			'viewBox'             => true,
+			'fill'                => true,
+			'stroke'              => true,
+			'stroke-width'        => true,
+			'stroke-linecap'      => true,
+			'stroke-linejoin'     => true,
+			'aria-hidden'         => true,
+			'focusable'           => true,
+			'role'                => true,
+			'preserveAspectRatio' => true,
+		),
+		'g'        => array(
+			'fill'         => true,
+			'stroke'       => true,
+			'stroke-width' => true,
+			'transform'    => true,
+			'fill-rule'    => true,
+			'clip-rule'    => true,
+		),
+		'path'     => array(
+			'd'               => true,
+			'fill'            => true,
+			'stroke'          => true,
+			'stroke-width'    => true,
+			'stroke-linecap'  => true,
+			'stroke-linejoin' => true,
+			'transform'       => true,
+			'fill-rule'       => true,
+			'clip-rule'       => true,
+		),
+		'circle'   => array(
+			'cx'           => true,
+			'cy'           => true,
+			'r'            => true,
+			'fill'         => true,
+			'stroke'       => true,
+			'stroke-width' => true,
+			'transform'    => true,
+		),
+		'rect'     => array(
+			'x'            => true,
+			'y'            => true,
+			'width'        => true,
+			'height'       => true,
+			'rx'           => true,
+			'ry'           => true,
+			'fill'         => true,
+			'stroke'       => true,
+			'stroke-width' => true,
+			'transform'    => true,
+		),
+		'line'     => array(
+			'x1'              => true,
+			'y1'              => true,
+			'x2'              => true,
+			'y2'              => true,
+			'stroke'          => true,
+			'stroke-width'    => true,
+			'stroke-linecap'  => true,
+			'stroke-linejoin' => true,
+			'transform'       => true,
+		),
+		'polyline' => array(
+			'points'          => true,
+			'fill'            => true,
+			'stroke'          => true,
+			'stroke-width'    => true,
+			'stroke-linecap'  => true,
+			'stroke-linejoin' => true,
+			'transform'       => true,
+		),
+		'polygon'  => array(
+			'points'          => true,
+			'fill'            => true,
+			'stroke'          => true,
+			'stroke-width'    => true,
+			'stroke-linecap'  => true,
+			'stroke-linejoin' => true,
+			'transform'       => true,
+		),
+	);
 }
 
 /**
@@ -292,640 +286,638 @@ function bw_cart_popup_get_strict_svg_allowed_tags()
  * NOTA: Il markup viene sempre renderizzato perché è necessario anche per i widget
  * (anche se l'opzione globale cart popup è disattivata)
  */
-function bw_cart_popup_render_panel()
-{
-    // Verifica se WooCommerce è attivo
-    if (!class_exists('WooCommerce')) {
-        return;
-    }
+function bw_cart_popup_render_panel() {
+	// Verifica se WooCommerce è attivo
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return;
+	}
 
-    if (function_exists('bw_cart_popup_should_load_assets') && !bw_cart_popup_should_load_assets()) {
-        return;
-    }
+	if ( function_exists( 'bw_cart_popup_should_load_assets' ) && ! bw_cart_popup_should_load_assets() ) {
+		return;
+	}
 
-    // Recupera le impostazioni
-    $checkout_text = get_option('bw_cart_popup_checkout_text', 'Proceed to checkout');
-    // Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
-    // per garantire un comportamento coerente in ogni contesto.
-    $checkout_url = wc_get_checkout_url();
-    $continue_text = get_option('bw_cart_popup_continue_text', 'Continue shopping');
-    $continue_url = get_option('bw_cart_popup_continue_url', '');
-    $show_floating_trigger = get_option('bw_cart_popup_show_floating_trigger', 0);
-    $additional_svg = get_option('bw_cart_popup_additional_svg', '');
-    $empty_cart_svg = get_option('bw_cart_popup_empty_cart_svg', '');
-    $svg_black = get_option('bw_cart_popup_svg_black', 0);
-    $return_shop_url = get_option('bw_cart_popup_return_shop_url', '');
-    $shipping_notice_enabled = function_exists('bw_cart_popup_get_shipping_notice_enabled')
-        ? (1 === (int) bw_cart_popup_get_shipping_notice_enabled())
-        : true;
-    $shipping_notice_url = function_exists('bw_cart_popup_get_shipping_notice_url')
-        ? bw_cart_popup_get_shipping_notice_url()
-        : '/shipping/';
-    $cart_instance = bw_cart_popup_get_cart_instance();
-    $initial_shipping_display_context = $cart_instance
-        ? bw_cart_popup_get_display_totals_context(
-            $cart_instance,
-            (float) $cart_instance->get_subtotal(),
-            (float) $cart_instance->get_total('')
-        )
-        : [
-            'shipping_raw' => 0.0,
-            'show_shipping_row' => false,
-            'display_total_raw' => 0.0,
-        ];
+	// Recupera le impostazioni
+	$checkout_text = get_option( 'bw_cart_popup_checkout_text', 'Proceed to checkout' );
+	// Forza l'URL del pulsante principale verso il checkout standard di WooCommerce
+	// per garantire un comportamento coerente in ogni contesto.
+	$checkout_url                     = wc_get_checkout_url();
+	$continue_text                    = get_option( 'bw_cart_popup_continue_text', 'Continue shopping' );
+	$continue_url                     = get_option( 'bw_cart_popup_continue_url', '' );
+	$show_floating_trigger            = get_option( 'bw_cart_popup_show_floating_trigger', 0 );
+	$additional_svg                   = get_option( 'bw_cart_popup_additional_svg', '' );
+	$empty_cart_svg                   = get_option( 'bw_cart_popup_empty_cart_svg', '' );
+	$svg_black                        = get_option( 'bw_cart_popup_svg_black', 0 );
+	$return_shop_url                  = get_option( 'bw_cart_popup_return_shop_url', '' );
+	$shipping_notice_enabled          = function_exists( 'bw_cart_popup_get_shipping_notice_enabled' )
+		? ( 1 === (int) bw_cart_popup_get_shipping_notice_enabled() )
+		: true;
+	$shipping_notice_url              = function_exists( 'bw_cart_popup_get_shipping_notice_url' )
+		? bw_cart_popup_get_shipping_notice_url()
+		: '/shipping/';
+	$cart_instance                    = bw_cart_popup_get_cart_instance();
+	$initial_shipping_display_context = $cart_instance
+		? bw_cart_popup_get_display_totals_context(
+			$cart_instance,
+			(float) $cart_instance->get_subtotal(),
+			(float) $cart_instance->get_total( '' )
+		)
+		: array(
+			'shipping_raw'      => 0.0,
+			'show_shipping_row' => false,
+			'display_total_raw' => 0.0,
+		);
 
-    // Determina l'URL per continue shopping
-    if (empty($continue_url)) {
-        $continue_url = home_url('/shop/');
-    }
+	// Determina l'URL per continue shopping
+	if ( empty( $continue_url ) ) {
+		$continue_url = home_url( '/shop/' );
+	}
 
-    // Determina l'URL di ritorno allo shop (per empty cart)
-    if (empty($return_shop_url)) {
-        $return_shop_url = home_url('/shop/');
-    }
+	// Determina l'URL di ritorno allo shop (per empty cart)
+	if ( empty( $return_shop_url ) ) {
+		$return_shop_url = home_url( '/shop/' );
+	}
 
-    $allowed_svg_tags = bw_cart_popup_get_strict_svg_allowed_tags();
-    $empty_cart_svg_render = '';
-    $additional_svg_render = '';
+	$allowed_svg_tags      = bw_cart_popup_get_strict_svg_allowed_tags();
+	$empty_cart_svg_render = '';
+	$additional_svg_render = '';
 
-    if (!empty($empty_cart_svg)) {
-        $empty_cart_svg_render = wp_kses((string) $empty_cart_svg, $allowed_svg_tags);
-    }
+	if ( ! empty( $empty_cart_svg ) ) {
+		$empty_cart_svg_render = wp_kses( (string) $empty_cart_svg, $allowed_svg_tags );
+	}
 
-    if (!empty($additional_svg)) {
-        $additional_svg_render = (string) $additional_svg;
-        if ($svg_black) {
-            // Prefer explicit fill attribute to avoid inline style usage.
-            $additional_svg_render = preg_replace('/<(path|circle|rect|polygon|ellipse)([^>]*)>/i', '<$1$2 fill="#000">', $additional_svg_render);
-        }
-        $additional_svg_render = wp_kses($additional_svg_render, $allowed_svg_tags);
-    }
+	if ( ! empty( $additional_svg ) ) {
+		$additional_svg_render = (string) $additional_svg;
+		if ( $svg_black ) {
+			// Prefer explicit fill attribute to avoid inline style usage.
+			$additional_svg_render = preg_replace( '/<(path|circle|rect|polygon|ellipse)([^>]*)>/i', '<$1$2 fill="#000">', $additional_svg_render );
+		}
+		$additional_svg_render = wp_kses( $additional_svg_render, $allowed_svg_tags );
+	}
 
-    ?>
-    <!-- BW Cart Pop-Up -->
-    <div id="bw-cart-popup-overlay" class="bw-cart-popup-overlay"></div>
-    <div id="bw-cart-popup-panel" class="bw-cart-popup-panel bw-surface-glass">
-        <!-- Loading State -->
-        <div class="bw-cart-popup-loading" style="display: none;">
-            <div class="bw-cart-spinner"></div>
-            <p>Loading cart...</p>
-        </div>
+	?>
+	<!-- BW Cart Pop-Up -->
+	<div id="bw-cart-popup-overlay" class="bw-cart-popup-overlay"></div>
+	<div id="bw-cart-popup-panel" class="bw-cart-popup-panel bw-surface-glass">
+		<!-- Loading State -->
+		<div class="bw-cart-popup-loading" style="display: none;">
+			<div class="bw-cart-spinner"></div>
+			<p>Loading cart...</p>
+		</div>
 
-        <!-- Header del pannello -->
-        <div class="bw-cart-popup-header">
-            <div class="bw-cart-popup-header-icon">
-                <span class="bw-cart-icon"></span>
-                <span class="bw-cart-badge">0</span>
-            </div>
-            <button type="button" class="bw-cart-popup-close" aria-label="Close cart">
-                <span class="bw-close-icon"></span>
-            </button>
-        </div>
+		<!-- Header del pannello -->
+		<div class="bw-cart-popup-header">
+			<div class="bw-cart-popup-header-icon">
+				<span class="bw-cart-icon"></span>
+				<span class="bw-cart-badge">0</span>
+			</div>
+			<button type="button" class="bw-cart-popup-close" aria-label="Close cart">
+				<span class="bw-close-icon"></span>
+			</button>
+		</div>
 
-        <!-- Notifica verde: "Your item has been added to the cart" -->
-        <div class="bw-cart-popup-notification" style="display: none;">
-            <svg class="bw-cart-notification-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <span class="bw-cart-notification-text">Your item has been added to the cart</span>
-        </div>
+		<!-- Notifica verde: "Your item has been added to the cart" -->
+		<div class="bw-cart-popup-notification" style="display: none;">
+			<svg class="bw-cart-notification-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+				xmlns="http://www.w3.org/2000/svg">
+				<path
+					d="M7 10L9 12L13 8M19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1C14.9706 1 19 5.02944 19 10Z"
+					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
+			<span class="bw-cart-notification-text">Your item has been added to the cart</span>
+		</div>
 
-        <!-- Layout Carrello Vuoto -->
-        <div class="bw-cart-popup-empty-state" style="display: none;">
-            <div class="bw-cart-empty-icon">
-                <?php if (!empty($empty_cart_svg)): ?>
-                    <?php echo $empty_cart_svg_render; ?>
-                <?php else: ?>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="9" cy="21" r="1" />
-                        <circle cx="20" cy="21" r="1" />
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                    </svg>
-                <?php endif; ?>
-            </div>
-            <p class="bw-cart-empty-text">Your cart is currently empty</p>
-            <a href="<?php echo esc_url($return_shop_url); ?>"
-                class="bw-cart-popup-return-shop elementor-button elementor-button-link elementor-size-md">
-                Return to Shop
-            </a>
-        </div>
+		<!-- Layout Carrello Vuoto -->
+		<div class="bw-cart-popup-empty-state" style="display: none;">
+			<div class="bw-cart-empty-icon">
+				<?php if ( ! empty( $empty_cart_svg ) ) : ?>
+					<?php echo $empty_cart_svg_render; ?>
+				<?php else : ?>
+					<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="9" cy="21" r="1" />
+						<circle cx="20" cy="21" r="1" />
+						<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+					</svg>
+				<?php endif; ?>
+			</div>
+			<p class="bw-cart-empty-text">Your cart is currently empty</p>
+			<a href="<?php echo esc_url( $return_shop_url ); ?>"
+				class="bw-cart-popup-return-shop elementor-button elementor-button-link elementor-size-md">
+				Return to Shop
+			</a>
+		</div>
 
-        <!-- Contenuto del carrello -->
-        <div class="bw-cart-popup-content">
-            <div class="bw-cart-popup-items">
-                <!-- I prodotti vengono caricati dinamicamente via AJAX -->
-            </div>
+		<!-- Contenuto del carrello -->
+		<div class="bw-cart-popup-content">
+			<div class="bw-cart-popup-items">
+				<!-- I prodotti vengono caricati dinamicamente via AJAX -->
+			</div>
 
-            <!-- Divider -->
-            <div class="bw-cart-popup-divider"></div>
+			<!-- Divider -->
+			<div class="bw-cart-popup-divider"></div>
 
-            <!-- Sezione Promo Code -->
-            <div class="bw-cart-popup-promo">
-                <p class="bw-cart-popup-promo-trigger">
-                    Have a promo code? <a href="#" class="bw-promo-link">Click here.</a>
-                </p>
-                <div class="bw-cart-popup-promo-box" style="display: none;">
-                    <div class="bw-promo-input-wrapper">
-                        <div class="bw-coupon-input-wrapper bw-field-wrapper">
-                            <input type="text" class="bw-promo-input" placeholder="" aria-label="Enter promo code" />
-                            <label class="bw-floating-label" data-full="Enter promo code" data-short="Promo code">Enter promo code</label>
-                        </div>
-                        <button class="bw-promo-apply">Apply</button>
-                    </div>
-                </div>
-                <div class="bw-promo-message"></div>
-            </div>
+			<!-- Sezione Promo Code -->
+			<div class="bw-cart-popup-promo">
+				<p class="bw-cart-popup-promo-trigger">
+					Have a promo code? <a href="#" class="bw-promo-link">Click here.</a>
+				</p>
+				<div class="bw-cart-popup-promo-box" style="display: none;">
+					<div class="bw-promo-input-wrapper">
+						<div class="bw-coupon-input-wrapper bw-field-wrapper">
+							<input type="text" class="bw-promo-input" placeholder="" aria-label="Enter promo code" />
+							<label class="bw-floating-label" data-full="Enter promo code" data-short="Promo code">Enter promo code</label>
+						</div>
+						<button class="bw-promo-apply">Apply</button>
+					</div>
+				</div>
+				<div class="bw-promo-message"></div>
+			</div>
 
-            <!-- Totali -->
-            <div class="bw-cart-popup-totals">
-                <div class="bw-cart-popup-subtotal">
-                    <span class="label">Subtotal:</span>
-                    <span class="value" data-price="0">€0.00</span>
-                </div>
-                <div class="bw-cart-popup-shipping" <?php echo $initial_shipping_display_context['show_shipping_row'] ? '' : 'style="display: none;"'; ?>>
-                    <span class="label">Shipping:</span>
-                    <span class="value" data-shipping="<?php echo esc_attr($initial_shipping_display_context['shipping_raw']); ?>">
-                        <?php echo $initial_shipping_display_context['show_shipping_row'] ? wp_kses_post(wc_price($initial_shipping_display_context['shipping_raw'])) : '€0.00'; ?>
-                    </span>
-                </div>
-                <div class="bw-cart-popup-discount" style="display: none;">
-                    <span class="label">Discount:</span>
-                    <span class="bw-cart-coupon-label" style="display: none;">
-                        <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
-                        <span class="bw-cart-coupon-code"></span>
-                    </span>
-                    <span class="value" data-discount="0">-€0.00</span>
-                    <span class="bw-cart-coupon-label" style="display: none;">
-                        <span class="bw-cart-coupon-icon" aria-hidden="true"></span>
-                        <span class="bw-cart-coupon-code"></span>
-                    </span>
-                </div>
-                <div class="bw-cart-popup-total">
-                    <span class="label">Total:</span>
-                    <span class="value" data-total="0">€0.00</span>
-                </div>
-            </div>
-        </div>
+			<!-- Totali -->
+			<div class="bw-cart-popup-totals">
+				<div class="bw-cart-popup-subtotal">
+					<span class="label">Subtotal:</span>
+					<span class="value" data-price="0">€0.00</span>
+				</div>
+				<div class="bw-cart-popup-shipping" <?php echo $initial_shipping_display_context['show_shipping_row'] ? '' : 'style="display: none;"'; ?>>
+					<span class="label">Shipping:</span>
+					<span class="value" data-shipping="<?php echo esc_attr( $initial_shipping_display_context['shipping_raw'] ); ?>">
+						<?php echo $initial_shipping_display_context['show_shipping_row'] ? wp_kses_post( wc_price( $initial_shipping_display_context['shipping_raw'] ) ) : '€0.00'; ?>
+					</span>
+				</div>
+				<div class="bw-cart-popup-discount" style="display: none;">
+					<span class="label">Discount:</span>
+					<span class="bw-cart-coupon-label" style="display: none;">
+						<span class="bw-cart-coupon-icon" aria-hidden="true"></span>
+						<span class="bw-cart-coupon-code"></span>
+					</span>
+					<span class="value" data-discount="0">-€0.00</span>
+					<span class="bw-cart-coupon-label" style="display: none;">
+						<span class="bw-cart-coupon-icon" aria-hidden="true"></span>
+						<span class="bw-cart-coupon-code"></span>
+					</span>
+				</div>
+				<div class="bw-cart-popup-total">
+					<span class="label">Total:</span>
+					<span class="value" data-total="0">€0.00</span>
+				</div>
+			</div>
+		</div>
 
-        <!-- Footer con pulsanti -->
-        <div class="bw-cart-popup-footer">
-            <?php if ($shipping_notice_enabled) : ?>
-                <p class="bw-cart-popup__checkout-note">
-                    <?php esc_html_e('Tax included.', 'bw'); ?>
-                    <?php esc_html_e('Final', 'bw'); ?>
-                    <a href="<?php echo esc_url($shipping_notice_url); ?>"><?php esc_html_e('shipping', 'bw'); ?></a>
-                    <?php esc_html_e('confirmed at checkout.', 'bw'); ?>
-                </p>
-            <?php endif; ?>
-            <a href="<?php echo esc_url($checkout_url); ?>"
-                class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md"
-                data-base-text="<?php echo esc_attr($checkout_text); ?>">
-                <?php echo esc_html($checkout_text); ?>
-            </a>
-            <a href="<?php echo esc_url($continue_url); ?>" class="bw-cart-popup-continue">
-                <?php echo esc_html($continue_text); ?>
-            </a>
-        </div>
+		<!-- Footer con pulsanti -->
+		<div class="bw-cart-popup-footer">
+			<?php if ( $shipping_notice_enabled ) : ?>
+				<p class="bw-cart-popup__checkout-note">
+					<?php esc_html_e( 'Tax included.', 'bw' ); ?>
+					<?php esc_html_e( 'Final', 'bw' ); ?>
+					<a href="<?php echo esc_url( $shipping_notice_url ); ?>"><?php esc_html_e( 'shipping', 'bw' ); ?></a>
+					<?php esc_html_e( 'confirmed at checkout.', 'bw' ); ?>
+				</p>
+			<?php endif; ?>
+			<a href="<?php echo esc_url( $checkout_url ); ?>"
+				class="bw-cart-popup-checkout elementor-button elementor-button-link elementor-size-md"
+				data-base-text="<?php echo esc_attr( $checkout_text ); ?>">
+				<?php echo esc_html( $checkout_text ); ?>
+			</a>
+			<a href="<?php echo esc_url( $continue_url ); ?>" class="bw-cart-popup-continue">
+				<?php echo esc_html( $continue_text ); ?>
+			</a>
+		</div>
 
-        <?php if ('' !== trim($additional_svg_render)): ?>
-            <!-- SVG Personalizzato -->
-            <div class="bw-cart-popup-custom-svg">
-                <?php echo $additional_svg_render; ?>
-            </div>
-        <?php endif; ?>
-    </div>
-    <?php if ($show_floating_trigger): ?>
-        <button type="button" class="bw-cart-floating-trigger hidden" aria-label="Open cart">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M6 6h15l-1.5 9h-12z"></path>
-                <path d="M9 11h6"></path>
-                <circle cx="9" cy="20" r="1"></circle>
-                <circle cx="17" cy="20" r="1"></circle>
-            </svg>
-            <span class="bw-cart-floating-badge">0</span>
-        </button>
-    <?php endif; ?>
-<?php
+		<?php if ( '' !== trim( $additional_svg_render ) ) : ?>
+			<!-- SVG Personalizzato -->
+			<div class="bw-cart-popup-custom-svg">
+				<?php echo $additional_svg_render; ?>
+			</div>
+		<?php endif; ?>
+	</div>
+	<?php if ( $show_floating_trigger ) : ?>
+		<button type="button" class="bw-cart-floating-trigger hidden" aria-label="Open cart">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+				stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<path d="M6 6h15l-1.5 9h-12z"></path>
+				<path d="M9 11h6"></path>
+				<circle cx="9" cy="20" r="1"></circle>
+				<circle cx="17" cy="20" r="1"></circle>
+			</svg>
+			<span class="bw-cart-floating-badge">0</span>
+		</button>
+	<?php endif; ?>
+	<?php
 }
-add_action('wp_footer', 'bw_cart_popup_render_panel');
+add_action( 'wp_footer', 'bw_cart_popup_render_panel' );
 
 /* Styling is handled by bw-cart-popup.css — no dynamic CSS output. */
 
 /**
  * AJAX: Add to cart with sold-individually handling
  */
-function bw_cart_popup_ajax_add_to_cart()
-{
-    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-    if ('POST' !== $request_method) {
-        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
-    }
+function bw_cart_popup_ajax_add_to_cart() {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+	if ( 'POST' !== $request_method ) {
+		wp_send_json_error( array( 'message' => __( 'Method Not Allowed.', 'bw' ) ), 405 );
+	}
 
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+	check_ajax_referer( 'bw_cart_popup_nonce', 'nonce' );
 
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => __('WooCommerce is not active.', 'bw')]);
-    }
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		wp_send_json_error( array( 'message' => __( 'WooCommerce is not active.', 'bw' ) ) );
+	}
 
-    $cart = bw_cart_popup_get_cart_instance();
+	$cart = bw_cart_popup_get_cart_instance();
 
-    if (!$cart) {
-        wp_send_json_error(['message' => __('Cart not initialized.', 'bw')]);
-    }
+	if ( ! $cart ) {
+		wp_send_json_error( array( 'message' => __( 'Cart not initialized.', 'bw' ) ) );
+	}
 
-    $product_id = isset($_POST['product_id']) ? absint(wp_unslash($_POST['product_id'])) : 0;
-    $quantity_raw = isset($_POST['quantity']) ? wp_unslash($_POST['quantity']) : 1;
-    $quantity = apply_filters('woocommerce_stock_amount', wc_stock_amount($quantity_raw));
-    $variation_id = isset($_POST['variation_id']) ? absint(wp_unslash($_POST['variation_id'])) : 0;
-    $variation = [];
+	$product_id   = isset( $_POST['product_id'] ) ? absint( wp_unslash( $_POST['product_id'] ) ) : 0;
+	$quantity_raw = isset( $_POST['quantity'] ) ? wp_unslash( $_POST['quantity'] ) : 1;
+	$quantity     = apply_filters( 'woocommerce_stock_amount', wc_stock_amount( $quantity_raw ) );
+	$variation_id = isset( $_POST['variation_id'] ) ? absint( wp_unslash( $_POST['variation_id'] ) ) : 0;
+	$variation    = array();
 
-    // Recupera le variazioni passate
-    if (!empty($_POST['variation']) && is_array($_POST['variation'])) {
-        foreach ($_POST['variation'] as $key => $value) {
-            $variation[sanitize_title(wp_unslash($key))] = wc_clean(wp_unslash($value));
-        }
-    } else {
-        foreach ($_POST as $key => $value) {
-            if (0 === strpos($key, 'attribute_')) {
-                $variation[sanitize_title(wp_unslash($key))] = wc_clean(wp_unslash($value));
-            }
-        }
-    }
+	// Recupera le variazioni passate
+	if ( ! empty( $_POST['variation'] ) && is_array( $_POST['variation'] ) ) {
+		foreach ( $_POST['variation'] as $key => $value ) {
+			$variation[ sanitize_title( wp_unslash( $key ) ) ] = wc_clean( wp_unslash( $value ) );
+		}
+	} else {
+		foreach ( $_POST as $key => $value ) {
+			if ( 0 === strpos( $key, 'attribute_' ) ) {
+				$variation[ sanitize_title( wp_unslash( $key ) ) ] = wc_clean( wp_unslash( $value ) );
+			}
+		}
+	}
 
-    if (!$product_id) {
-        wp_send_json_error(['message' => __('Invalid product.', 'bw')]);
-    }
+	if ( ! $product_id ) {
+		wp_send_json_error( array( 'message' => __( 'Invalid product.', 'bw' ) ) );
+	}
 
-    $product = wc_get_product($product_id);
+	$product = wc_get_product( $product_id );
 
-    if (!$product) {
-        wp_send_json_error(['message' => __('Product not found.', 'bw')]);
-    }
+	if ( ! $product ) {
+		wp_send_json_error( array( 'message' => __( 'Product not found.', 'bw' ) ) );
+	}
 
-    // Gestione prodotti vendibili singolarmente già nel carrello
-    if ($product->is_sold_individually()) {
-        $cart_item_key = $cart->find_product_in_cart($cart->generate_cart_id($product_id, $variation_id, $variation));
+	// Gestione prodotti vendibili singolarmente già nel carrello
+	if ( $product->is_sold_individually() ) {
+		$cart_item_key = $cart->find_product_in_cart( $cart->generate_cart_id( $product_id, $variation_id, $variation ) );
 
-        if ($cart_item_key) {
-            $message = sprintf(__('You cannot add another "%s" to your cart.', 'woocommerce'), $product->get_name());
+		if ( $cart_item_key ) {
+			$message = sprintf( __( 'You cannot add another "%s" to your cart.', 'woocommerce' ), $product->get_name() );
 
-            wp_send_json(
-                [
-                    'status' => 'already_in_cart',
-                    'message' => wp_kses_post($message),
-                    'cart_url' => function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/'),
-                    'product' => [
-                        'id' => $product_id,
-                        'name' => $product->get_name(),
-                    ],
-                ]
-            );
-        }
-    }
+			wp_send_json(
+				array(
+					'status'   => 'already_in_cart',
+					'message'  => wp_kses_post( $message ),
+					'cart_url' => function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/cart/' ),
+					'product'  => array(
+						'id'   => $product_id,
+						'name' => $product->get_name(),
+					),
+				)
+			);
+		}
+	}
 
-    $added = $cart->add_to_cart($product_id, $quantity, $variation_id, $variation);
+	$added = $cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
 
-    if (!$added) {
-        $message = bw_cart_popup_get_first_error_notice(__('Unable to add product to cart.', 'bw'));
-        wc_clear_notices();
+	if ( ! $added ) {
+		$message = bw_cart_popup_get_first_error_notice( __( 'Unable to add product to cart.', 'bw' ) );
+		wc_clear_notices();
 
-        wp_send_json_error(['message' => $message]);
-    }
+		wp_send_json_error( array( 'message' => $message ) );
+	}
 
-    // Costruisci i fragments come WooCommerce
-    ob_start();
-    woocommerce_mini_cart();
-    $mini_cart = ob_get_clean();
+	// Costruisci i fragments come WooCommerce
+	ob_start();
+	woocommerce_mini_cart();
+	$mini_cart = ob_get_clean();
 
-    $fragments = apply_filters(
-        'woocommerce_add_to_cart_fragments',
-        [
-            'div.widget_shopping_cart_content' => '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>',
-        ],
-        $product_id
-    );
+	$fragments = apply_filters(
+		'woocommerce_add_to_cart_fragments',
+		array(
+			'div.widget_shopping_cart_content' => '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>',
+		),
+		$product_id
+	);
 
-    $cart_hash = apply_filters('woocommerce_add_to_cart_hash', WC()->cart->get_cart_hash(), $added);
+	$cart_hash = apply_filters( 'woocommerce_add_to_cart_hash', WC()->cart->get_cart_hash(), $added );
 
-    wp_send_json_success(
-        [
-            'status'    => 'added',
-            'fragments' => $fragments,
-            'cart_hash' => $cart_hash,
-            'cart_data' => bw_cart_popup_build_cart_data($cart),
-        ]
-    );
+	wp_send_json_success(
+		array(
+			'status'    => 'added',
+			'fragments' => $fragments,
+			'cart_hash' => $cart_hash,
+			'cart_data' => bw_cart_popup_build_cart_data( $cart ),
+		)
+	);
 }
-add_action('wp_ajax_bw_cart_popup_add_to_cart', 'bw_cart_popup_ajax_add_to_cart');
-add_action('wp_ajax_nopriv_bw_cart_popup_add_to_cart', 'bw_cart_popup_ajax_add_to_cart');
+add_action( 'wp_ajax_bw_cart_popup_add_to_cart', 'bw_cart_popup_ajax_add_to_cart' );
+add_action( 'wp_ajax_nopriv_bw_cart_popup_add_to_cart', 'bw_cart_popup_ajax_add_to_cart' );
 
 /**
  * Costruisce l'array dati del carrello.
  * Condiviso tra bw_cart_popup_ajax_add_to_cart e bw_cart_popup_get_cart_contents
  * così una singola AJAX add-to-cart restituisce già tutto il necessario.
  */
-function bw_cart_popup_build_cart_data($cart)
-{
-    $cart_items = [];
-    $subtotal   = 0;
-    $discount   = 0;
-    $tax        = 0;
-    $total      = 0;
-    $item_count = 0;
-    $display_context = [
-        'shipping_raw' => 0.0,
-        'show_shipping_row' => false,
-        'display_total_raw' => 0.0,
-    ];
+function bw_cart_popup_build_cart_data( $cart ) {
+	$cart_items      = array();
+	$subtotal        = 0;
+	$discount        = 0;
+	$tax             = 0;
+	$total           = 0;
+	$item_count      = 0;
+	$display_context = array(
+		'shipping_raw'      => 0.0,
+		'show_shipping_row' => false,
+		'display_total_raw' => 0.0,
+	);
 
-    if (!$cart->is_empty()) {
-        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-            $product    = $cart_item['data'];
-            $product_id = $cart_item['product_id'];
-            $quantity   = $cart_item['quantity'];
+	if ( ! $cart->is_empty() ) {
+		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+			$product    = $cart_item['data'];
+			$product_id = $cart_item['product_id'];
+			$quantity   = $cart_item['quantity'];
 
-            $price_display         = wc_get_price_to_display($product, ['qty' => $quantity]);
-            $regular_price_display = wc_get_price_to_display($product, ['qty' => $quantity, 'price' => $product->get_regular_price()]);
+			$price_display         = wc_get_price_to_display( $product, array( 'qty' => $quantity ) );
+			$regular_price_display = wc_get_price_to_display(
+				$product,
+				array(
+					'qty'   => $quantity,
+					'price' => $product->get_regular_price(),
+				)
+			);
 
-            $cart_items[] = [
-                'key'                  => $cart_item_key,
-                'product_id'           => $product_id,
-                'variation_id'         => isset($cart_item['variation_id']) ? (int) $cart_item['variation_id'] : 0,
-                'name'                 => $product->get_name(),
-                'quantity'             => $quantity,
-                'sold_individually'    => (bool) $product->is_sold_individually(),
-                'price'                => wc_price($product->get_price()),
-                'price_raw'            => (float) $product->get_price(),
-                'regular_price'        => wc_price($product->get_regular_price()),
-                'regular_price_raw'    => (float) $product->get_regular_price(),
-                'subtotal'             => wc_price($price_display),
-                'subtotal_raw'         => (float) $price_display,
-                'regular_subtotal'     => wc_price($regular_price_display),
-                'regular_subtotal_raw' => (float) $regular_price_display,
-                'image'                => $product->get_image('thumbnail'),
-                'permalink'            => $product->get_permalink(),
-            ];
-        }
+			$cart_items[] = array(
+				'key'                  => $cart_item_key,
+				'product_id'           => $product_id,
+				'variation_id'         => isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0,
+				'name'                 => $product->get_name(),
+				'quantity'             => $quantity,
+				'sold_individually'    => (bool) $product->is_sold_individually(),
+				'price'                => wc_price( $product->get_price() ),
+				'price_raw'            => (float) $product->get_price(),
+				'regular_price'        => wc_price( $product->get_regular_price() ),
+				'regular_price_raw'    => (float) $product->get_regular_price(),
+				'subtotal'             => wc_price( $price_display ),
+				'subtotal_raw'         => (float) $price_display,
+				'regular_subtotal'     => wc_price( $regular_price_display ),
+				'regular_subtotal_raw' => (float) $regular_price_display,
+				'image'                => $product->get_image( 'thumbnail' ),
+				'permalink'            => $product->get_permalink(),
+			);
+		}
 
-        $subtotal   = $cart->get_subtotal();
-        $discount   = $cart->get_discount_total();
-        $tax        = $cart->get_total_tax();
-        $total      = (float) $cart->get_total('');
-        $item_count = $cart->get_cart_contents_count();
-        $display_context = bw_cart_popup_get_display_totals_context($cart, $subtotal, $total);
-    }
+		$subtotal        = $cart->get_subtotal();
+		$discount        = $cart->get_discount_total();
+		$tax             = $cart->get_total_tax();
+		$total           = (float) $cart->get_total( '' );
+		$item_count      = $cart->get_cart_contents_count();
+		$display_context = bw_cart_popup_get_display_totals_context( $cart, $subtotal, $total );
+	}
 
-    $raw_coupons    = is_callable([$cart, 'get_applied_coupons']) ? $cart->get_applied_coupons() : [];
-    $coupon_amounts = is_callable([$cart, 'get_coupon_discount_amounts']) ? $cart->get_coupon_discount_amounts() : [];
+	$raw_coupons    = is_callable( array( $cart, 'get_applied_coupons' ) ) ? $cart->get_applied_coupons() : array();
+	$coupon_amounts = is_callable( array( $cart, 'get_coupon_discount_amounts' ) ) ? $cart->get_coupon_discount_amounts() : array();
 
-    $detailed_coupons = [];
-    foreach ($raw_coupons as $code) {
-        $amount             = bw_cart_popup_get_coupon_amount($cart, $code, $coupon_amounts);
-        $detailed_coupons[] = [
-            'code'       => $code,
-            'amount'     => wc_price(-$amount),
-            'amount_raw' => -$amount,
-        ];
-    }
+	$detailed_coupons = array();
+	foreach ( $raw_coupons as $code ) {
+		$amount             = bw_cart_popup_get_coupon_amount( $cart, $code, $coupon_amounts );
+		$detailed_coupons[] = array(
+			'code'       => $code,
+			'amount'     => wc_price( -$amount ),
+			'amount_raw' => -$amount,
+		);
+	}
 
-    return [
-        'items'           => $cart_items,
-        'item_count'      => $item_count,
-        'coupons'         => $detailed_coupons,
-        'subtotal'        => wc_price($subtotal),
-        'subtotal_raw'    => $subtotal,
-        'shipping'        => wc_price($display_context['shipping_raw']),
-        'shipping_raw'    => $display_context['shipping_raw'],
-        'show_shipping_row' => $display_context['show_shipping_row'],
-        'discount'        => wc_price($discount),
-        'discount_raw'    => $discount,
-        'tax'             => wc_price($tax),
-        'tax_raw'         => $tax,
-        'total'           => wc_price($display_context['display_total_raw']),
-        'total_raw'       => $display_context['display_total_raw'],
-        'native_total'    => wc_price($total),
-        'native_total_raw'=> $total,
-        'empty'           => $cart->is_empty(),
-        'applied_coupons' => $raw_coupons,
-    ];
+	return array(
+		'items'             => $cart_items,
+		'item_count'        => $item_count,
+		'coupons'           => $detailed_coupons,
+		'subtotal'          => wc_price( $subtotal ),
+		'subtotal_raw'      => $subtotal,
+		'shipping'          => wc_price( $display_context['shipping_raw'] ),
+		'shipping_raw'      => $display_context['shipping_raw'],
+		'show_shipping_row' => $display_context['show_shipping_row'],
+		'discount'          => wc_price( $discount ),
+		'discount_raw'      => $discount,
+		'tax'               => wc_price( $tax ),
+		'tax_raw'           => $tax,
+		'total'             => wc_price( $display_context['display_total_raw'] ),
+		'total_raw'         => $display_context['display_total_raw'],
+		'native_total'      => wc_price( $total ),
+		'native_total_raw'  => $total,
+		'empty'             => $cart->is_empty(),
+		'applied_coupons'   => $raw_coupons,
+	);
 }
 
 /**
  * AJAX: Ottieni il contenuto del carrello
  */
-function bw_cart_popup_get_cart_contents()
-{
-    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-    if ('POST' !== $request_method) {
-        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
-    }
+function bw_cart_popup_get_cart_contents() {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+	if ( 'POST' !== $request_method ) {
+		wp_send_json_error( array( 'message' => __( 'Method Not Allowed.', 'bw' ) ), 405 );
+	}
 
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+	check_ajax_referer( 'bw_cart_popup_nonce', 'nonce' );
 
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		wp_send_json_error( array( 'message' => 'WooCommerce not active' ) );
+	}
 
-    $cart = bw_cart_popup_get_cart_instance();
+	$cart = bw_cart_popup_get_cart_instance();
 
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
+	if ( ! $cart ) {
+		wp_send_json_error( array( 'message' => 'Cart not initialized' ) );
+	}
 
-    wp_send_json_success(bw_cart_popup_build_cart_data($cart));
+	wp_send_json_success( bw_cart_popup_build_cart_data( $cart ) );
 }
-add_action('wp_ajax_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents');
-add_action('wp_ajax_nopriv_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents');
+add_action( 'wp_ajax_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents' );
+add_action( 'wp_ajax_nopriv_bw_cart_popup_get_contents', 'bw_cart_popup_get_cart_contents' );
 
 /**
  * AJAX: Rimuovi un prodotto dal carrello tramite cart item key.
  */
-function bw_cart_popup_remove_item()
-{
-    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-    if ('POST' !== $request_method) {
-        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
-    }
+function bw_cart_popup_remove_item() {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+	if ( 'POST' !== $request_method ) {
+		wp_send_json_error( array( 'message' => __( 'Method Not Allowed.', 'bw' ) ), 405 );
+	}
 
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+	check_ajax_referer( 'bw_cart_popup_nonce', 'nonce' );
 
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		wp_send_json_error( array( 'message' => 'WooCommerce not active' ) );
+	}
 
-    $cart = bw_cart_popup_get_cart_instance();
+	$cart = bw_cart_popup_get_cart_instance();
 
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
+	if ( ! $cart ) {
+		wp_send_json_error( array( 'message' => 'Cart not initialized' ) );
+	}
 
-    $cart_item_key = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+	$cart_item_key = isset( $_POST['cart_item_key'] ) ? wc_clean( wp_unslash( $_POST['cart_item_key'] ) ) : '';
 
-    if ('' === $cart_item_key) {
-        wp_send_json_error(['message' => 'Missing cart item key']);
-    }
+	if ( '' === $cart_item_key ) {
+		wp_send_json_error( array( 'message' => 'Missing cart item key' ) );
+	}
 
-    $cart_items = $cart->get_cart();
-    if (!isset($cart_items[$cart_item_key])) {
-        wp_send_json_error(['message' => 'Cart item not found']);
-    }
+	$cart_items = $cart->get_cart();
+	if ( ! isset( $cart_items[ $cart_item_key ] ) ) {
+		wp_send_json_error( array( 'message' => 'Cart item not found' ) );
+	}
 
-    $removed = $cart->remove_cart_item($cart_item_key);
-    if (!$removed) {
-        wp_send_json_error(['message' => 'Unable to remove cart item']);
-    }
+	$removed = $cart->remove_cart_item( $cart_item_key );
+	if ( ! $removed ) {
+		wp_send_json_error( array( 'message' => 'Unable to remove cart item' ) );
+	}
 
-    $cart->calculate_totals();
+	$cart->calculate_totals();
 
-    wp_send_json_success(
-        array_merge(['message' => __('Item removed.', 'bw')], bw_cart_popup_build_totals_data($cart))
-    );
+	wp_send_json_success(
+		array_merge( array( 'message' => __( 'Item removed.', 'bw' ) ), bw_cart_popup_build_totals_data( $cart ) )
+	);
 }
-add_action('wp_ajax_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item');
-add_action('wp_ajax_nopriv_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item');
+add_action( 'wp_ajax_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item' );
+add_action( 'wp_ajax_nopriv_bw_cart_popup_remove_item', 'bw_cart_popup_remove_item' );
 
 /**
  * AJAX: Aggiorna la quantità di un prodotto nel carrello.
  */
-function bw_cart_popup_update_quantity()
-{
-    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-    if ('POST' !== $request_method) {
-        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
-    }
+function bw_cart_popup_update_quantity() {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+	if ( 'POST' !== $request_method ) {
+		wp_send_json_error( array( 'message' => __( 'Method Not Allowed.', 'bw' ) ), 405 );
+	}
 
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+	check_ajax_referer( 'bw_cart_popup_nonce', 'nonce' );
 
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		wp_send_json_error( array( 'message' => 'WooCommerce not active' ) );
+	}
 
-    $cart = bw_cart_popup_get_cart_instance();
+	$cart = bw_cart_popup_get_cart_instance();
 
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
+	if ( ! $cart ) {
+		wp_send_json_error( array( 'message' => 'Cart not initialized' ) );
+	}
 
-    $cart_item_key = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
-    $quantity = isset($_POST['quantity']) ? max(0, wc_stock_amount(wp_unslash($_POST['quantity']))) : null;
+	$cart_item_key = isset( $_POST['cart_item_key'] ) ? wc_clean( wp_unslash( $_POST['cart_item_key'] ) ) : '';
+	$quantity      = isset( $_POST['quantity'] ) ? max( 0, wc_stock_amount( wp_unslash( $_POST['quantity'] ) ) ) : null;
 
-    if ('' === $cart_item_key || null === $quantity) {
-        wp_send_json_error(['message' => 'Missing required parameters']);
-    }
+	if ( '' === $cart_item_key || null === $quantity ) {
+		wp_send_json_error( array( 'message' => 'Missing required parameters' ) );
+	}
 
-    $cart_items = $cart->get_cart();
-    if (!isset($cart_items[$cart_item_key])) {
-        wp_send_json_error(['message' => 'Cart item not found']);
-    }
+	$cart_items = $cart->get_cart();
+	if ( ! isset( $cart_items[ $cart_item_key ] ) ) {
+		wp_send_json_error( array( 'message' => 'Cart item not found' ) );
+	}
 
-    if (0 === (int) $quantity) {
-        $updated = $cart->remove_cart_item($cart_item_key);
-    } else {
-        // Delay totals calculation to batch operations consistently.
-        $updated = $cart->set_quantity($cart_item_key, $quantity, false);
-    }
+	if ( 0 === (int) $quantity ) {
+		$updated = $cart->remove_cart_item( $cart_item_key );
+	} else {
+		// Delay totals calculation to batch operations consistently.
+		$updated = $cart->set_quantity( $cart_item_key, $quantity, false );
+	}
 
-    if (false === $updated) {
-        wp_send_json_error(['message' => 'Unable to update quantity']);
-    }
+	if ( false === $updated ) {
+		wp_send_json_error( array( 'message' => 'Unable to update quantity' ) );
+	}
 
-    $cart->calculate_totals();
+	$cart->calculate_totals();
 
-    wp_send_json_success(
-        array_merge(['message' => __('Quantity updated.', 'bw')], bw_cart_popup_build_totals_data($cart))
-    );
+	wp_send_json_success(
+		array_merge( array( 'message' => __( 'Quantity updated.', 'bw' ) ), bw_cart_popup_build_totals_data( $cart ) )
+	);
 }
-add_action('wp_ajax_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity');
-add_action('wp_ajax_nopriv_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity');
+add_action( 'wp_ajax_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity' );
+add_action( 'wp_ajax_nopriv_bw_cart_popup_update_quantity', 'bw_cart_popup_update_quantity' );
 
 /**
  * AJAX: Applica coupon
  */
-function bw_cart_popup_apply_coupon()
-{
-    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-    if ('POST' !== $request_method) {
-        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
-    }
+function bw_cart_popup_apply_coupon() {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+	if ( 'POST' !== $request_method ) {
+		wp_send_json_error( array( 'message' => __( 'Method Not Allowed.', 'bw' ) ), 405 );
+	}
 
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+	check_ajax_referer( 'bw_cart_popup_nonce', 'nonce' );
 
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		wp_send_json_error( array( 'message' => 'WooCommerce not active' ) );
+	}
 
-    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field(wp_unslash($_POST['coupon_code'])) : '';
+	$coupon_code = isset( $_POST['coupon_code'] ) ? sanitize_text_field( wp_unslash( $_POST['coupon_code'] ) ) : '';
 
-    if (empty($coupon_code)) {
-        wp_send_json_error(['message' => 'Please enter a coupon code']);
-    }
+	if ( empty( $coupon_code ) ) {
+		wp_send_json_error( array( 'message' => 'Please enter a coupon code' ) );
+	}
 
-    $cart = bw_cart_popup_get_cart_instance();
+	$cart = bw_cart_popup_get_cart_instance();
 
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
+	if ( ! $cart ) {
+		wp_send_json_error( array( 'message' => 'Cart not initialized' ) );
+	}
 
-    $applied = $cart->add_discount($coupon_code);
+	$applied = $cart->add_discount( $coupon_code );
 
-    if ($applied) {
-        $cart->calculate_totals();
-        wp_send_json_success(
-            array_merge(['message' => __('Coupon code applied successfully.', 'bw')], bw_cart_popup_build_totals_data($cart))
-        );
-    } else {
-        // Usa il messaggio reale di WooCommerce (es. "Spesa minima non raggiunta", "Limite utilizzi superato")
-        $error = bw_cart_popup_get_first_error_notice(__('Coupon code invalid or expired.', 'bw'));
-        wc_clear_notices();
-        wp_send_json_error(['message' => $error]);
-    }
+	if ( $applied ) {
+		$cart->calculate_totals();
+		wp_send_json_success(
+			array_merge( array( 'message' => __( 'Coupon code applied successfully.', 'bw' ) ), bw_cart_popup_build_totals_data( $cart ) )
+		);
+	} else {
+		// Usa il messaggio reale di WooCommerce (es. "Spesa minima non raggiunta", "Limite utilizzi superato")
+		$error = bw_cart_popup_get_first_error_notice( __( 'Coupon code invalid or expired.', 'bw' ) );
+		wc_clear_notices();
+		wp_send_json_error( array( 'message' => $error ) );
+	}
 }
-add_action('wp_ajax_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon');
-add_action('wp_ajax_nopriv_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon');
+add_action( 'wp_ajax_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon' );
+add_action( 'wp_ajax_nopriv_bw_cart_popup_apply_coupon', 'bw_cart_popup_apply_coupon' );
 
 /**
  * AJAX: Rimuovi coupon
  */
-function bw_cart_popup_remove_coupon()
-{
-    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
-    if ('POST' !== $request_method) {
-        wp_send_json_error(['message' => __('Method Not Allowed.', 'bw')], 405);
-    }
+function bw_cart_popup_remove_coupon() {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+	if ( 'POST' !== $request_method ) {
+		wp_send_json_error( array( 'message' => __( 'Method Not Allowed.', 'bw' ) ), 405 );
+	}
 
-    check_ajax_referer('bw_cart_popup_nonce', 'nonce');
+	check_ajax_referer( 'bw_cart_popup_nonce', 'nonce' );
 
-    if (!class_exists('WooCommerce')) {
-        wp_send_json_error(['message' => 'WooCommerce not active']);
-    }
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		wp_send_json_error( array( 'message' => 'WooCommerce not active' ) );
+	}
 
-    $cart = bw_cart_popup_get_cart_instance();
+	$cart = bw_cart_popup_get_cart_instance();
 
-    if (!$cart) {
-        wp_send_json_error(['message' => 'Cart not initialized']);
-    }
+	if ( ! $cart ) {
+		wp_send_json_error( array( 'message' => 'Cart not initialized' ) );
+	}
 
-    // Support removing a specific coupon if provided
-    $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field(wp_unslash($_POST['coupon_code'])) : '';
+	// Support removing a specific coupon if provided
+	$coupon_code = isset( $_POST['coupon_code'] ) ? sanitize_text_field( wp_unslash( $_POST['coupon_code'] ) ) : '';
 
-    if (!empty($coupon_code)) {
-        // Remove specific coupon
-        $cart->remove_coupon($coupon_code);
-    } else {
-        // Legacy behavior: Remove ALL coupons
-        $cart->remove_coupons();
-    }
+	if ( ! empty( $coupon_code ) ) {
+		// Remove specific coupon
+		$cart->remove_coupon( $coupon_code );
+	} else {
+		// Legacy behavior: Remove ALL coupons
+		$cart->remove_coupons();
+	}
 
-    $cart->calculate_totals();
+	$cart->calculate_totals();
 
-    wp_send_json_success(
-        array_merge(['message' => __('Coupon removed.', 'bw')], bw_cart_popup_build_totals_data($cart))
-    );
+	wp_send_json_success(
+		array_merge( array( 'message' => __( 'Coupon removed.', 'bw' ) ), bw_cart_popup_build_totals_data( $cart ) )
+	);
 }
-add_action('wp_ajax_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon');
-add_action('wp_ajax_nopriv_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon');
+add_action( 'wp_ajax_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon' );
+add_action( 'wp_ajax_nopriv_bw_cart_popup_remove_coupon', 'bw_cart_popup_remove_coupon' );

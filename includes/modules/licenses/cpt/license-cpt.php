@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'bw_register_license_cpt' ) ) {
 	function bw_register_license_cpt() {
-		$labels = [
+		$labels = array(
 			'name'               => __( 'Licenses', 'bw' ),
 			'singular_name'      => __( 'License', 'bw' ),
 			'menu_name'          => __( 'Licenses', 'bw' ),
@@ -19,11 +19,11 @@ if ( ! function_exists( 'bw_register_license_cpt' ) ) {
 			'search_items'       => __( 'Search Licenses', 'bw' ),
 			'not_found'          => __( 'No licenses found.', 'bw' ),
 			'not_found_in_trash' => __( 'No licenses found in Trash.', 'bw' ),
-		];
+		);
 
 		register_post_type(
 			'bw_license',
-			[
+			array(
 				'labels'              => $labels,
 				'public'              => false,
 				'publicly_queryable'  => false,
@@ -35,11 +35,11 @@ if ( ! function_exists( 'bw_register_license_cpt' ) ) {
 				'has_archive'         => false,
 				'rewrite'             => false,
 				'query_var'           => false,
-				'supports'            => [ 'title' ],
+				'supports'            => array( 'title' ),
 				'capability_type'     => 'post',
 				'menu_position'       => 81,
 				'menu_icon'           => 'dashicons-media-document',
-			]
+			)
 		);
 	}
 }

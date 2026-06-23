@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'bw_get_license_default_row_labels' ) ) {
 	function bw_get_license_default_row_labels() {
-		return [
+		return array(
 			__( 'Company size:', 'bw' ),
 			__( 'Time period:', 'bw' ),
 			__( 'Projects:', 'bw' ),
@@ -13,7 +13,7 @@ if ( ! function_exists( 'bw_get_license_default_row_labels' ) ) {
 			__( 'Distribution:', 'bw' ),
 			__( 'Promotion:', 'bw' ),
 			__( 'Know More', 'bw' ),
-		];
+		);
 	}
 }
 
@@ -22,7 +22,7 @@ if ( ! function_exists( 'bw_get_license_allowed_html' ) ) {
 		$allowed = wp_kses_allowed_html( 'post' );
 
 		if ( ! isset( $allowed['a'] ) || ! is_array( $allowed['a'] ) ) {
-			$allowed['a'] = [];
+			$allowed['a'] = array();
 		}
 
 		$allowed['a']['href']   = true;
@@ -48,19 +48,19 @@ if ( ! function_exists( 'bw_sanitize_license_row_value' ) ) {
 
 if ( ! function_exists( 'bw_sanitize_license_rows' ) ) {
 	function bw_sanitize_license_rows( $raw_rows ) {
-		$raw_rows = is_array( $raw_rows ) ? array_values( $raw_rows ) : [];
-		$rows     = [];
+		$raw_rows = is_array( $raw_rows ) ? array_values( $raw_rows ) : array();
+		$rows     = array();
 
 		foreach ( $raw_rows as $index => $row ) {
-			$row   = is_array( $row ) ? $row : [];
+			$row   = is_array( $row ) ? $row : array();
 			$label = bw_sanitize_license_row_label( isset( $row['label'] ) ? $row['label'] : '' );
 			$value = bw_sanitize_license_row_value( isset( $row['value'] ) ? $row['value'] : '' );
 
 			if ( $index < 7 ) {
-				$rows[] = [
+				$rows[] = array(
 					'label' => $label,
 					'value' => $value,
-				];
+				);
 				continue;
 			}
 
@@ -68,10 +68,10 @@ if ( ! function_exists( 'bw_sanitize_license_rows' ) ) {
 				continue;
 			}
 
-			$rows[] = [
+			$rows[] = array(
 				'label' => $label,
 				'value' => $value,
-			];
+			);
 		}
 
 		return $rows;
@@ -83,32 +83,32 @@ if ( ! function_exists( 'bw_get_license_editor_rows' ) ) {
 		$saved_rows = get_post_meta( $license_id, '_bw_license_rows', true );
 
 		if ( ! is_array( $saved_rows ) || empty( $saved_rows ) ) {
-			$rows = [];
+			$rows = array();
 
 			foreach ( bw_get_license_default_row_labels() as $label ) {
-				$rows[] = [
+				$rows[] = array(
 					'label' => $label,
 					'value' => '',
-				];
+				);
 			}
 		} else {
-			$rows = [];
+			$rows = array();
 
 			foreach ( $saved_rows as $row ) {
-				$row    = is_array( $row ) ? $row : [];
-				$rows[] = [
+				$row    = is_array( $row ) ? $row : array();
+				$rows[] = array(
 					'label' => bw_sanitize_license_row_label( isset( $row['label'] ) ? $row['label'] : '' ),
 					'value' => bw_sanitize_license_row_value( isset( $row['value'] ) ? $row['value'] : '' ),
-				];
+				);
 			}
 		}
 
 		$target_count = max( 10, count( $rows ) + 2 );
 		while ( count( $rows ) < $target_count ) {
-			$rows[] = [
+			$rows[] = array(
 				'label' => '',
 				'value' => '',
-			];
+			);
 		}
 
 		return $rows;
@@ -118,11 +118,11 @@ if ( ! function_exists( 'bw_get_license_editor_rows' ) ) {
 if ( ! function_exists( 'bw_get_license_rows' ) ) {
 	function bw_get_license_rows( $license_id ) {
 		$rows = get_post_meta( $license_id, '_bw_license_rows', true );
-		$rows = is_array( $rows ) ? $rows : [];
-		$out  = [];
+		$rows = is_array( $rows ) ? $rows : array();
+		$out  = array();
 
 		foreach ( $rows as $row ) {
-			$row   = is_array( $row ) ? $row : [];
+			$row   = is_array( $row ) ? $row : array();
 			$label = bw_sanitize_license_row_label( isset( $row['label'] ) ? $row['label'] : '' );
 			$value = bw_sanitize_license_row_value( isset( $row['value'] ) ? $row['value'] : '' );
 
@@ -130,10 +130,10 @@ if ( ! function_exists( 'bw_get_license_rows' ) ) {
 				continue;
 			}
 
-			$out[] = [
+			$out[] = array(
 				'label' => $label,
 				'value' => $value,
-			];
+			);
 		}
 
 		return $out;
@@ -143,16 +143,16 @@ if ( ! function_exists( 'bw_get_license_rows' ) ) {
 if ( ! function_exists( 'bw_get_license_options' ) ) {
 	function bw_get_license_options() {
 		$posts   = get_posts(
-			[
+			array(
 				'post_type'      => 'bw_license',
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
 				'orderby'        => 'title',
 				'order'          => 'ASC',
 				'fields'         => 'ids',
-			]
+			)
 		);
-		$options = [];
+		$options = array();
 
 		foreach ( $posts as $post_id ) {
 			$options[ $post_id ] = get_the_title( $post_id );
@@ -177,7 +177,7 @@ if ( ! function_exists( 'bw_build_license_table_html_from_rows' ) ) {
 		$markup = '<div class="bw-license-table-wrapper"><table class="bw-license-table bw-license-table--clean"><tbody>';
 
 		foreach ( $rows as $row ) {
-			$row   = is_array( $row ) ? $row : [];
+			$row   = is_array( $row ) ? $row : array();
 			$label = isset( $row['label'] ) ? trim( (string) $row['label'] ) : '';
 			$value = isset( $row['value'] ) ? trim( (string) $row['value'] ) : '';
 
@@ -202,9 +202,9 @@ if ( ! function_exists( 'bw_get_variation_license_rows_from_legacy_meta' ) ) {
 	function bw_get_variation_license_rows_from_legacy_meta( $variation_id ) {
 		$col1 = get_post_meta( $variation_id, '_bw_variation_license_col1', true );
 		$col2 = get_post_meta( $variation_id, '_bw_variation_license_col2', true );
-		$col1 = is_array( $col1 ) ? array_values( $col1 ) : [];
-		$col2 = is_array( $col2 ) ? array_values( $col2 ) : [];
-		$rows = [];
+		$col1 = is_array( $col1 ) ? array_values( $col1 ) : array();
+		$col2 = is_array( $col2 ) ? array_values( $col2 ) : array();
+		$rows = array();
 
 		for ( $index = 0; $index < 10; $index++ ) {
 			$label = isset( $col1[ $index ] ) ? bw_sanitize_license_row_label( $col1[ $index ] ) : '';
@@ -214,10 +214,10 @@ if ( ! function_exists( 'bw_get_variation_license_rows_from_legacy_meta' ) ) {
 				continue;
 			}
 
-			$rows[] = [
+			$rows[] = array(
 				'label' => $label,
 				'value' => $value,
-			];
+			);
 		}
 
 		return $rows;
@@ -383,7 +383,7 @@ if ( ! function_exists( 'bw_save_license_terms_metabox' ) ) {
 
 		$raw_rows = isset( $_POST['bw_license_rows'] ) && is_array( $_POST['bw_license_rows'] )
 			? wp_unslash( $_POST['bw_license_rows'] )
-			: [];
+			: array();
 
 		update_post_meta( $post_id, '_bw_license_rows', bw_sanitize_license_rows( $raw_rows ) );
 	}
