@@ -31,11 +31,11 @@ class BW_Related_Products_Widget extends Widget_Base {
 	}
 
 	public function get_categories() {
-		return [ 'blackwork' ];
+		return array( 'blackwork' );
 	}
 
 	public function get_style_depends() {
-		return [ 'bw-wallpost-style', 'bw-product-card-style', 'bw-related-products-style' ];
+		return array( 'bw-wallpost-style', 'bw-product-card-style', 'bw-related-products-style' );
 	}
 
 	protected function register_controls() {
@@ -50,70 +50,70 @@ class BW_Related_Products_Widget extends Widget_Base {
 	private function register_content_controls() {
 		$this->start_controls_section(
 			'section_content',
-			[
+			array(
 				'label' => __( 'Content', 'bw-elementor-widgets' ),
-			]
+			)
 		);
 
 		$this->add_control(
 			'query_by',
-			[
+			array(
 				'label'   => __( 'Query by', 'bw-elementor-widgets' ),
 				'type'    => Controls_Manager::SELECT,
 				'default' => 'category',
-				'options' => [
+				'options' => array(
 					'category'    => __( 'Category', 'bw-elementor-widgets' ),
 					'subcategory' => __( 'Subcategory', 'bw-elementor-widgets' ),
 					'tag'         => __( 'Tag', 'bw-elementor-widgets' ),
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'posts_per_page',
-			[
+			array(
 				'label'   => __( 'Numero di prodotti', 'bw-elementor-widgets' ),
 				'type'    => Controls_Manager::NUMBER,
 				'default' => 4,
 				'min'     => 1,
 				'max'     => 12,
-			]
+			)
 		);
 
 		$this->add_control(
 			'show_title',
-			[
+			array(
 				'label'        => __( 'Show Title', 'bw-elementor-widgets' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
 				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-			]
+			)
 		);
 
 		$this->add_control(
 			'show_description',
-			[
+			array(
 				'label'        => __( 'Show Description', 'bw-elementor-widgets' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
 				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
 				'return_value' => 'yes',
 				'default'      => '',
-			]
+			)
 		);
 
 		$this->add_control(
 			'show_price',
-			[
+			array(
 				'label'        => __( 'Show Price', 'bw-elementor-widgets' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'Yes', 'bw-elementor-widgets' ),
 				'label_off'    => __( 'No', 'bw-elementor-widgets' ),
 				'return_value' => 'yes',
 				'default'      => 'yes',
-			]
+			)
 		);
 
 		$this->end_controls_section();
@@ -125,54 +125,57 @@ class BW_Related_Products_Widget extends Widget_Base {
 	private function register_layout_controls() {
 		$this->start_controls_section(
 			'section_layout',
-			[
+			array(
 				'label' => __( 'Layout', 'bw-elementor-widgets' ),
-			]
+			)
 		);
 
 		$this->add_control(
 			'columns',
-			[
+			array(
 				'label'       => __( 'Colonne (Desktop)', 'bw-elementor-widgets' ),
 				'type'        => Controls_Manager::SELECT,
 				'default'     => '4',
-				'options'     => [
+				'options'     => array(
 					'1' => '1',
 					'2' => '2',
 					'3' => '3',
 					'4' => '4',
 					'5' => '5',
 					'6' => '6',
-				],
-				'selectors'   => [
+				),
+				'selectors'   => array(
 					'{{WRAPPER}} .bw-related-products-grid' => '--bw-rp-columns: {{VALUE}};',
-				],
+				),
 				'description' => __( 'Tablet e mobile: sempre 2 colonne.', 'bw-elementor-widgets' ),
-			]
+			)
 		);
 
 		$this->add_responsive_control(
 			'gap',
-			[
+			array(
 				'label'      => __( 'Gap', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => 0, 'max' => 100 ],
-				],
-				'default'    => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 100,
+					),
+				),
+				'default'    => array(
 					'size' => 24,
 					'unit' => 'px',
-				],
-				'selectors'  => [
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-related-products-grid' => '--bw-rp-gap: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_control(
 			'show_mobile_overlay_actions',
-			[
+			array(
 				'label'        => __( 'Show Overlay Actions on Tablet & Mobile', 'bw-elementor-widgets' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'label_on'     => __( 'On', 'bw-elementor-widgets' ),
@@ -180,7 +183,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 				'return_value' => 'yes',
 				'default'      => '',
 				'description'  => __( 'Controls the tablet/mobile visibility of the View Product / Add to Cart overlay below 1025px.', 'bw-elementor-widgets' ),
-			]
+			)
 		);
 
 		$this->end_controls_section();
@@ -192,219 +195,216 @@ class BW_Related_Products_Widget extends Widget_Base {
 	private function register_style_controls() {
 		$this->start_controls_section(
 			'section_typography',
-			[
+			array(
 				'label' => __( 'Typography', 'bw-elementor-widgets' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
-			]
+			)
 		);
 
 		// Title
 		$this->add_control(
 			'title_typography_heading',
-			[
+			array(
 				'label' => __( 'Titolo', 'bw-elementor-widgets' ),
 				'type'  => Controls_Manager::HEADING,
-			]
+			)
 		);
 
 		$this->add_control(
 			'title_color',
-			[
+			array(
 				'label'     => __( 'Colore titolo', 'bw-elementor-widgets' ),
 				'type'      => Controls_Manager::COLOR,
-				'selectors' => [
+				'selectors' => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-title' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card'                    => '--bw-card-title-color: {{VALUE}};',
-				],
-			]
+					'{{WRAPPER}} .bw-product-card' => '--bw-card-title-color: {{VALUE}};',
+				),
+			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'title_typography',
-				'selector' => '{{WRAPPER}} .bw-product-card .bw-wallpost-title',
-			]
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'title_typography', '{{WRAPPER}} .bw-product-card .bw-wallpost-title' );
 
 		$this->add_responsive_control(
 			'title_margin_top',
-			[
+			array(
 				'label'      => __( 'Margin Top', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => -100, 'max' => 200 ],
-				],
-				'selectors'  => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => -100,
+						'max' => 200,
+					),
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-title' => 'margin-top: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_responsive_control(
 			'title_margin_bottom',
-			[
+			array(
 				'label'      => __( 'Margin Bottom', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => -100, 'max' => 200 ],
-				],
-				'selectors'  => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => -100,
+						'max' => 200,
+					),
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-title' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		// Description
 		$this->add_control(
 			'description_typography_heading',
-			[
+			array(
 				'label'     => __( 'Descrizione', 'bw-elementor-widgets' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
-			]
+			)
 		);
 
 		$this->add_control(
 			'description_color',
-			[
+			array(
 				'label'     => __( 'Colore descrizione', 'bw-elementor-widgets' ),
 				'type'      => Controls_Manager::COLOR,
-				'selectors' => [
+				'selectors' => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-description' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card'                           => '--bw-card-description-color: {{VALUE}};',
-				],
-			]
+					'{{WRAPPER}} .bw-product-card' => '--bw-card-description-color: {{VALUE}};',
+				),
+			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'description_typography',
-				'selector' => '{{WRAPPER}} .bw-product-card .bw-wallpost-description',
-			]
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'description_typography', '{{WRAPPER}} .bw-product-card .bw-wallpost-description' );
 
 		$this->add_responsive_control(
 			'description_margin_top',
-			[
+			array(
 				'label'      => __( 'Margin Top', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => -100, 'max' => 200 ],
-				],
-				'selectors'  => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => -100,
+						'max' => 200,
+					),
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-description' => 'margin-top: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_responsive_control(
 			'description_margin_bottom',
-			[
+			array(
 				'label'      => __( 'Margin Bottom', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => -100, 'max' => 200 ],
-				],
-				'selectors'  => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => -100,
+						'max' => 200,
+					),
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-description' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		// Price
 		$this->add_control(
 			'price_typography_heading',
-			[
+			array(
 				'label'     => __( 'Prezzo', 'bw-elementor-widgets' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
-			]
+			)
 		);
 
 		$this->add_control(
 			'price_color',
-			[
+			array(
 				'label'     => __( 'Colore prezzo', 'bw-elementor-widgets' ),
 				'type'      => Controls_Manager::COLOR,
-				'selectors' => [
+				'selectors' => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-price' => 'color: {{VALUE}};',
-					'{{WRAPPER}} .bw-product-card'                    => '--bw-card-price-color: {{VALUE}};',
-				],
-			]
+					'{{WRAPPER}} .bw-product-card' => '--bw-card-price-color: {{VALUE}};',
+				),
+			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			[
-				'name'     => 'price_typography',
-				'selector' => '{{WRAPPER}} .bw-product-card .bw-wallpost-price',
-			]
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'price_typography', '{{WRAPPER}} .bw-product-card .bw-wallpost-price' );
 
 		$this->add_responsive_control(
 			'price_margin_top',
-			[
+			array(
 				'label'      => __( 'Margin Top', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => -100, 'max' => 200 ],
-				],
-				'selectors'  => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => -100,
+						'max' => 200,
+					),
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-price' => 'margin-top: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		$this->add_responsive_control(
 			'price_margin_bottom',
-			[
+			array(
 				'label'      => __( 'Margin Bottom', 'bw-elementor-widgets' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
-				'range'      => [
-					'px' => [ 'min' => -100, 'max' => 200 ],
-				],
-				'selectors'  => [
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => -100,
+						'max' => 200,
+					),
+				),
+				'selectors'  => array(
 					'{{WRAPPER}} .bw-product-card .bw-wallpost-price' => 'margin-bottom: {{SIZE}}{{UNIT}};',
-				],
-			]
+				),
+			)
 		);
 
 		$this->end_controls_section();
 
 		$this->start_controls_section(
 			'section_labels',
-			[
+			array(
 				'label' => __( 'Labels', 'bw-elementor-widgets' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
-			]
+			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'archive_labels_padding',
-			[
-				'label'      => __( 'Badge Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%', 'em', 'rem' ],
-				'default'    => [
-					'top'      => 8,
-					'right'    => 12,
-					'bottom'   => 8,
-					'left'     => 12,
-					'unit'     => 'px',
-					'isLinked' => false,
-				],
-				'selectors'  => [
-					'{{WRAPPER}} .bw-related-products-widget .bw-product-labels--archive .bw-product-label' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				],
-			]
+			__( 'Badge Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-related-products-widget .bw-product-labels--archive .bw-product-label',
+			'padding',
+			array( 'px', '%', 'em', 'rem' ),
+			array(
+				'top'      => 8,
+				'right'    => 12,
+				'bottom'   => 8,
+				'left'     => 12,
+				'unit'     => 'px',
+				'isLinked' => false,
+			)
 		);
 
 		$this->end_controls_section();
@@ -415,7 +415,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 	 */
 	protected function get_related_products_by_type( $product, $query_by, $posts_per_page ) {
 		$product_id  = $product->get_id();
-		$related_ids = [];
+		$related_ids = array();
 
 		switch ( $query_by ) {
 			case 'subcategory':
@@ -447,13 +447,13 @@ class BW_Related_Products_Widget extends Widget_Base {
 	 * Get related products by subcategory
 	 */
 	protected function get_related_by_subcategory( $product_id ) {
-		$product_categories = wp_get_post_terms( $product_id, 'product_cat', [ 'fields' => 'ids' ] );
+		$product_categories = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
 
 		if ( empty( $product_categories ) || is_wp_error( $product_categories ) ) {
-			return [];
+			return array();
 		}
 
-		$subcategories = [];
+		$subcategories = array();
 		foreach ( $product_categories as $cat_id ) {
 			$term = get_term( $cat_id, 'product_cat' );
 			if ( $term && ! is_wp_error( $term ) && $term->parent > 0 ) {
@@ -462,23 +462,23 @@ class BW_Related_Products_Widget extends Widget_Base {
 		}
 
 		if ( empty( $subcategories ) ) {
-			return [];
+			return array();
 		}
 
-		$query_args = [
+		$query_args = array(
 			'post_type'      => 'product',
 			'posts_per_page' => 50,
-			'post__not_in'   => [ $product_id ],
+			'post__not_in'   => array( $product_id ),
 			'orderby'        => 'rand',
 			'fields'         => 'ids',
-			'tax_query'      => [
-				[
+			'tax_query'      => array(
+				array(
 					'taxonomy' => 'product_cat',
 					'field'    => 'term_id',
 					'terms'    => $subcategories,
-				],
-			],
-		];
+				),
+			),
+		);
 
 		$query = new \WP_Query( $query_args );
 		return $query->posts;
@@ -488,27 +488,27 @@ class BW_Related_Products_Widget extends Widget_Base {
 	 * Get related products by tag
 	 */
 	protected function get_related_by_tag( $product_id ) {
-		$product_tags = wp_get_post_terms( $product_id, 'product_tag', [ 'fields' => 'ids' ] );
+		$product_tags = wp_get_post_terms( $product_id, 'product_tag', array( 'fields' => 'ids' ) );
 
 		if ( empty( $product_tags ) || is_wp_error( $product_tags ) ) {
-			return [];
+			return array();
 		}
 
-		$query_args = [
+		$query_args = array(
 			'post_type'      => 'product',
 			'posts_per_page' => 50,
-			'post__not_in'   => [ $product_id ],
+			'post__not_in'   => array( $product_id ),
 			'orderby'        => 'rand',
 			'fields'         => 'ids',
-			'tax_query'      => [
-				[
+			'tax_query'      => array(
+				array(
 					'taxonomy' => 'product_tag',
 					'field'    => 'term_id',
 					'terms'    => $product_tags,
 					'operator' => 'IN',
-				],
-			],
-		];
+				),
+			),
+		);
 
 		$query = new \WP_Query( $query_args );
 		return $query->posts;
@@ -529,7 +529,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 		}
 
 		if ( function_exists( 'bw_tbl_resolve_product_context_id' ) ) {
-			$resolved    = bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] );
+			$resolved    = bw_tbl_resolve_product_context_id( array( '__widget_class' => __CLASS__ ) );
 			$resolved_id = isset( $resolved['id'] ) ? absint( $resolved['id'] ) : 0;
 			if ( $resolved_id > 0 ) {
 				$maybe_product = wc_get_product( $resolved_id );
@@ -546,13 +546,13 @@ class BW_Related_Products_Widget extends Widget_Base {
 	 * Get fallback products for editor preview
 	 */
 	protected function get_fallback_products( $limit = 4 ) {
-		$query_args = [
+		$query_args = array(
 			'post_type'      => 'product',
 			'posts_per_page' => $limit,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 			'fields'         => 'ids',
-		];
+		);
 
 		$query = new \WP_Query( $query_args );
 		return $query->posts;
@@ -566,12 +566,12 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return;
 		}
 
-		$settings         = $this->get_settings_for_display();
-		$query_by         = isset( $settings['query_by'] ) ? $settings['query_by'] : 'category';
-		$posts_per_page   = isset( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 4;
-		$show_title       = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
-		$show_description = isset( $settings['show_description'] ) && 'yes' === $settings['show_description'];
-		$show_price       = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
+		$settings                    = $this->get_settings_for_display();
+		$query_by                    = isset( $settings['query_by'] ) ? $settings['query_by'] : 'category';
+		$posts_per_page              = isset( $settings['posts_per_page'] ) ? absint( $settings['posts_per_page'] ) : 4;
+		$show_title                  = isset( $settings['show_title'] ) && 'yes' === $settings['show_title'];
+		$show_description            = isset( $settings['show_description'] ) && 'yes' === $settings['show_description'];
+		$show_price                  = isset( $settings['show_price'] ) && 'yes' === $settings['show_price'];
 		$show_mobile_overlay_actions = isset( $settings['show_mobile_overlay_actions'] ) && 'yes' === $settings['show_mobile_overlay_actions'];
 
 		$product   = $this->get_current_product();
@@ -600,7 +600,7 @@ class BW_Related_Products_Widget extends Widget_Base {
 			return;
 		}
 
-		$card_settings = [
+		$card_settings = array(
 			'image_mode'       => 'proportional',
 			'show_image'       => true,
 			'show_hover_image' => true,
@@ -610,9 +610,9 @@ class BW_Related_Products_Widget extends Widget_Base {
 			'show_buttons'     => true,
 			'show_add_to_cart' => true,
 			'open_cart_popup'  => false,
-		];
+		);
 
-		$wrapper_classes = [ 'bw-related-products-widget' ];
+		$wrapper_classes = array( 'bw-related-products-widget' );
 		if ( ! $show_mobile_overlay_actions ) {
 			$wrapper_classes[] = 'bw-related-products-widget--mobile-overlay-off';
 		}
