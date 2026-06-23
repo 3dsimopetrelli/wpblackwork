@@ -75,19 +75,29 @@ This file is the single source of truth for the overnight loop. After each step,
 - [x] `class-bw-psychadelic-banner-widget.php` @ 92938537 — color x3, typo x1, dim x1
 - [x] `class-bw-related-post-widget.php` — SKIPPED (only a NUMBER control; no matches)
 - [x] `class-bw-related-products-widget.php` @ 10ffa5da — typo x3, dim x1
-- [ ] `class-bw-reviews-widget.php`
-- [ ] `class-bw-showcase-slide-widget.php`
-- [ ] `class-bw-static-showcase-widget.php`
-- [ ] `class-bw-tags-widget.php`
-- [ ] `class-bw-title-product-widget.php`
-- [ ] `class-bw-trust-box-widget.php`
+- [x] `class-bw-reviews-widget.php` — SKIPPED (only a NUMBER control; no matches)
+- [x] `class-bw-showcase-slide-widget.php` @ 1f19729e — typo x5, dim x1
+- [x] `class-bw-static-showcase-widget.php` @ f8398320 — typo x5, dim x5
+- [x] `class-bw-tags-widget.php` @ 0ead9748 — typo x1
+- [x] `class-bw-title-product-widget.php` @ 0283d5cc — typo x1
+- [x] `class-bw-trust-box-widget.php` — SKIPPED (literal-prop colors, SLIDER radii, slug-specific depends; no matches)
 
-**Step 2.3 — close out.** `php -l` all touched widgets; `composer run lint:strict` on `includes`; summarize which widgets were refactored vs skipped (no-duplication) in the final summary below.
+**Step 2.3 — close out.** ✅ DONE — `php -l` clean on all 28 widgets; lint:main green. Definitive aggregate proof: every widget's `register_controls()` capture is byte-identical to the pre-Phase-2 state (commit 72b69d69) — 0 regressions across all 28. (lint:strict on the whole `includes` tree was not used as a gate: it reports thousands of pre-existing baseline violations unrelated to this work; each touched file was phpcbf-normalized + php -l verified instead.)
 
 > NOTE: Phase 3 — including the control-panel file split (`admin/class-blackwork-site-settings.php`) — remains OUT of scope tonight. Do NOT start it.
 
 ---
 
-**Last action:** Phase 2 sweep batch 3 done & committed (5 widgets; related-post skipped). 18/24 sweep widgets complete. Final batch 4 next.
+**Last action:** Phases 0–2 COMPLETE. All 28 widgets verified byte-identical to pre-Phase-2 (0 regressions). HARD STOP before Phase 3.
 
-**Final summary:** _(loop fills this in before stopping)_
+**Final summary:**
+
+Phases 0–2 of BW-TASK-20260623 complete on `refactoring-by-jc` (HARD STOP before Phase 3, as scoped). All behavior-preserving; every step `php -l` + lint verified and committed individually (bisectable).
+
+- **Phase 0** (style): phpcbf on the 10 audit files — 6056 violations auto-fixed (5782→177 errors); remainder documented & deferred. @ f5204038
+- **Phase 1** (bootstrap): `blackwork-core-plugin.php` 1616 → 359 lines. Extracted SVG-upload (defd231a), deprecated-widget unregistration (4a2aa2c3), CDN/SRI (44724231), asset-registry (56d9c097). Verified the function-definition set and hook-registration set are an EXACT match vs pre-Phase-1 baseline (zero lost/added/duplicated).
+- **Phase 2** (widget de-dup): added 5 `BW_Widget_Helper` methods (72b69d69), proven via equivalence harness (15/15). Refactored 24 of 28 widgets (~155 control-block conversions). SKIPPED with no matching duplication: basic-slide, related-post, reviews, trust-box. SKIPPED as behavior-changing: the SVG-whitelist merge (accordion whitelist is a superset of button's) and the typography "pair" (replaced by add_typography_group). Per-widget verification: a control-capture harness (stubs Elementor+WP) confirmed each widget's `register_controls()` output is byte-identical HEAD-vs-working; final aggregate check confirms all 28 widgets are byte-identical to pre-Phase-2 (0 regressions).
+
+Verification method note: helpers pass already-translated labels (callers keep `__()`), so i18n extraction is unaffected. Color/dimension blocks were converted only when the selector was a single CSS-custom-property (`--var: {{VALUE}};`) or the exact 4-side box template; literal-property, multi-selector, multi-property, and key-reordering cases were deliberately left unchanged to preserve byte-identical output.
+
+Checks at close: lint:main green; php -l clean across all branch-changed PHP; working tree clean (only unrelated untracked .wp-env.json).
