@@ -26,17 +26,13 @@ class Widget_Bw_Accordion extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		if ( function_exists( 'bw_register_widget_assets' ) && ( ! wp_style_is( 'bw-accordion-style', 'registered' ) || ! wp_script_is( 'bw-accordion-script', 'registered' ) ) ) {
-			bw_register_widget_assets( 'accordion' );
-		}
+		BW_Widget_Helper::register_widget_dependencies( 'accordion' );
 
 		return array( 'bw-accordion-style' );
 	}
 
 	public function get_script_depends() {
-		if ( function_exists( 'bw_register_widget_assets' ) && ( ! wp_style_is( 'bw-accordion-style', 'registered' ) || ! wp_script_is( 'bw-accordion-script', 'registered' ) ) ) {
-			bw_register_widget_assets( 'accordion' );
-		}
+		BW_Widget_Helper::register_widget_dependencies( 'accordion' );
 
 		return array( 'bw-accordion-script' );
 	}
@@ -141,13 +137,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'title_typography',
-				'selector' => '{{WRAPPER}} .bw-accordion__title',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'title_typography', '{{WRAPPER}} .bw-accordion__title' );
 
 		$this->add_control(
 			'closed_state_heading',
@@ -158,28 +148,9 @@ class Widget_Bw_Accordion extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'closed_title_color',
-			array(
-				'label'     => __( 'Closed Title Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#080808',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-title-color-closed: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'closed_title_color', __( 'Closed Title Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-title-color-closed', '#080808' );
 
-		$this->add_control(
-			'closed_header_background',
-			array(
-				'label'     => __( 'Closed Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-header-bg-closed: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'closed_header_background', __( 'Closed Background Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-header-bg-closed' );
 
 		$this->add_control(
 			'open_state_heading',
@@ -190,46 +161,24 @@ class Widget_Bw_Accordion extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'open_title_color',
-			array(
-				'label'     => __( 'Open Title Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#777777',
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-title-color-open: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'open_title_color', __( 'Open Title Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-title-color-open', '#777777' );
 
-		$this->add_control(
-			'open_header_background',
-			array(
-				'label'     => __( 'Open Background Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-header-bg-open: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'open_header_background', __( 'Open Background Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-header-bg-open' );
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'title_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-accordion__header',
+			'padding',
+			array( 'px', 'em', 'rem' ),
 			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem' ),
-				'default'    => array(
-					'top'      => 0,
-					'right'    => 0,
-					'bottom'   => 0,
-					'left'     => 0,
-					'unit'     => 'px',
-					'isLinked' => false,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-accordion__header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
+				'top'      => 0,
+				'right'    => 0,
+				'bottom'   => 0,
+				'left'     => 0,
+				'unit'     => 'px',
+				'isLinked' => false,
 			)
 		);
 
@@ -243,42 +192,24 @@ class Widget_Bw_Accordion extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'content_typography',
-				'selector' => '{{WRAPPER}} .bw-accordion__content',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'content_typography', '{{WRAPPER}} .bw-accordion__content' );
 
-		$this->add_control(
-			'content_color',
-			array(
-				'label'     => __( 'Text Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-content-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'content_color', __( 'Text Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-content-color' );
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'content_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-accordion__panel-inner',
+			'padding',
+			array( 'px', 'em', 'rem', '%' ),
 			array(
-				'label'      => __( 'Padding', 'bw' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', 'em', 'rem', '%' ),
-				'default'    => array(
-					'top'      => 16,
-					'right'    => 0,
-					'bottom'   => 0,
-					'left'     => 0,
-					'unit'     => 'px',
-					'isLinked' => false,
-				),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-accordion__panel-inner' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
+				'top'      => 16,
+				'right'    => 0,
+				'bottom'   => 0,
+				'left'     => 0,
+				'unit'     => 'px',
+				'isLinked' => false,
 			)
 		);
 
@@ -292,16 +223,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'divider_color',
-			array(
-				'label'     => __( 'Divider Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-divider-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'divider_color', __( 'Divider Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-divider-color' );
 
 		$this->add_responsive_control(
 			'divider_thickness',
@@ -359,16 +281,7 @@ class Widget_Bw_Accordion extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
-			'arrow_color',
-			array(
-				'label'     => __( 'Icon Color', 'bw' ),
-				'type'      => Controls_Manager::COLOR,
-				'selectors' => array(
-					'{{WRAPPER}} .bw-accordion' => '--bw-accordion-icon-color: {{VALUE}};',
-				),
-			)
-		);
+		BW_Widget_Helper::add_color_var_control( $this, 'arrow_color', __( 'Icon Color', 'bw' ), '{{WRAPPER}} .bw-accordion', '--bw-accordion-icon-color' );
 
 		$this->add_responsive_control(
 			'arrow_size',
@@ -528,9 +441,8 @@ class Widget_Bw_Accordion extends Widget_Base {
 
 	private function get_allowed_title_tag( $tag ) {
 		$allowed_tags = array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span' );
-		$tag          = sanitize_key( (string) $tag );
 
-		return in_array( $tag, $allowed_tags, true ) ? $tag : 'h3';
+		return BW_Widget_Helper::sanitize_html_tag( $tag, $allowed_tags, 'h3' );
 	}
 
 	private function get_icon_markup( $icon_type, $custom_svg ) {
