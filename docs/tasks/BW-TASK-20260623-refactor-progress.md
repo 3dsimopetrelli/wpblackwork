@@ -63,12 +63,12 @@ This file is the single source of truth for the overnight loop. After each step,
 - [x] `class-bw-big-text-widget.php` @ b352817f — typo x1, dim x1
 - [x] `class-bw-divider-widget.php` @ 44ab5444 — color x1
 - [x] `class-bw-go-to-app-widget.php` @ 3e25b7f5 — typo x2
-- [ ] `class-bw-hero-slide-widget.php`
-- [ ] `class-bw-mosaic-slider-widget.php`
-- [ ] `class-bw-presentation-slide-widget.php`
-- [ ] `class-bw-price-variation-widget.php`
-- [ ] `class-bw-product-breadcrumbs-widget.php`
-- [ ] `class-bw-product-description-widget.php`
+- [x] `class-bw-hero-slide-widget.php` @ c4127dc2 — color x2, dim x4, typo x3
+- [x] `class-bw-mosaic-slider-widget.php` @ eb8e89c1 — typo x3, dim x3
+- [x] `class-bw-presentation-slide-widget.php` @ 2a06b3b4 — dim x1
+- [x] `class-bw-price-variation-widget.php` @ d6af49ce — dim x8, typo x2
+- [x] `class-bw-product-breadcrumbs-widget.php` @ 92f22160 — dim x1, typo x1
+- [x] `class-bw-product-description-widget.php` @ 0d701320 — typo x1
 - [ ] `class-bw-product-details-widget.php`
 - [ ] `class-bw-product-grid-widget.php`
 - [ ] `class-bw-product-slider-widget.php`
@@ -88,6 +88,6 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ---
 
-**Last action:** Phase 2 sweep batch 1 done & committed (about-menu/animated-banner/big-text/divider/go-to-app; basic-slide skipped). All capture diffs EMPTY. Continuing sweep batch 2.
+**Last action:** Phase 2 sweep batch 2 done & committed (6 widgets, all capture diffs EMPTY). 12/24 sweep widgets complete. Continuing batch 3.
 
 **Final summary:** _(loop fills this in before stopping)_
