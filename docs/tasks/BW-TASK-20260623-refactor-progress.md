@@ -16,11 +16,11 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ## Progress
 
-### Phase 0 — phpcbf formatting auto-fix (risk: none)
-- [ ] Run `phpcbf` on the 10 flagged files (cart-popup x3, licenses x3, media-folders-admin, accordion, license-table, newsletter)
-- [ ] Re-run phpcs summary; hand-resolve / document any non-auto-fixable remainder
-- [ ] `php -l` touched files + `composer run lint:main`
-- [ ] Commit: `style: phpcbf auto-fix formatting debt on new feature files`
+### Phase 0 — phpcbf formatting auto-fix (risk: none) ✅ DONE
+- [x] Run `phpcbf` on the 10 flagged files (cart-popup x3, licenses cpt x2, media-folders-admin, accordion, license-table, newsletter) — 6056 fixed, errors 5782→177
+- [x] Re-run phpcs summary; non-auto-fixable remainder (194) documented in commit body (doc-comments, security sniffs, Yoda/style) — deferred, out of whitespace-only scope
+- [x] `php -l` touched files (clean) + `composer run lint:main` (green)
+- [x] Commit: `style: phpcbf auto-fix formatting debt on new feature files` @ f5204038
 
 ### Phase 1 — bootstrap decomposition (risk: low)
 - [ ] Extract SVG-upload security (`blackwork-core-plugin.php` ~35–418) → `includes/svg-upload/class-bw-svg-upload-handler.php`
@@ -76,6 +76,6 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ---
 
-**Last action:** _(loop updates this each iteration — e.g. "Phase 0 committed at <sha>; starting Phase 1 SVG extraction")_
+**Last action:** Phase 0 committed @ f5204038 (whitespace/style only, gate green). Starting Phase 1 — bootstrap decomposition, SVG-upload extraction first.
 
 **Final summary:** _(loop fills this in before stopping)_
