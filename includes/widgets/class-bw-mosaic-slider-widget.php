@@ -750,24 +750,15 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'title_typography',
-				'selector' => '{{WRAPPER}} .bw-ms-title',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'title_typography', '{{WRAPPER}} .bw-ms-title' );
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'title_padding',
-			array(
-				'label'      => __( 'Title Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-ms-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Title Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-ms-title',
+			'padding',
+			array( 'px', '%', 'em', 'rem' )
 		);
 
 		$this->add_control(
@@ -779,24 +770,15 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
-			array(
-				'name'     => 'description_typography',
-				'selector' => '{{WRAPPER}} .bw-ms-description',
-			)
-		);
+		BW_Widget_Helper::add_typography_group( $this, 'description_typography', '{{WRAPPER}} .bw-ms-description' );
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'description_padding',
-			array(
-				'label'      => __( 'Description Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-ms-description' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-			)
+			__( 'Description Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-ms-description',
+			'padding',
+			array( 'px', '%', 'em', 'rem' )
 		);
 
 		$this->add_control(
@@ -808,27 +790,27 @@ class BW_Mosaic_Slider_Widget extends Widget_Base {
 			)
 		);
 
-		$this->add_group_control(
-			Group_Control_Typography::get_type(),
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'price_typography',
+			'{{WRAPPER}} .bw-ms-price',
 			array(
-				'name'      => 'price_typography',
-				'selector'  => '{{WRAPPER}} .bw-ms-price',
 				'condition' => array(
 					'post_type' => 'product',
 				),
 			)
 		);
 
-		$this->add_responsive_control(
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
 			'price_padding',
+			__( 'Price Padding', 'bw-elementor-widgets' ),
+			'{{WRAPPER}} .bw-ms-price',
+			'padding',
+			array( 'px', '%', 'em', 'rem' ),
+			null,
 			array(
-				'label'      => __( 'Price Padding', 'bw-elementor-widgets' ),
-				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => array( 'px', '%', 'em', 'rem' ),
-				'selectors'  => array(
-					'{{WRAPPER}} .bw-ms-price' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-				),
-				'condition'  => array(
+				'condition' => array(
 					'post_type' => 'product',
 				),
 			)
