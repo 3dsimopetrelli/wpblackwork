@@ -44,16 +44,17 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ### Phase 2 — widget control de-duplication: ALL 28 widgets (risk: low per widget, high volume)
 
-**Step 2.0 — build helpers.** Add to `includes/class-bw-widget-helper.php`:
-`register_widget_dependencies`, `add_color_var_control`, `add_typography_color_pair`, `add_dimensions_control`, `get_svg_allowed_tags`+`sanitize_svg_content`, `sanitize_html_tag`. Commit helpers alone first.
-- [ ] Helpers added + committed
+**Step 2.0 — build helpers.** ✅ DONE @ 72b69d69
+- [x] Helpers added + committed: `register_widget_dependencies`, `add_color_var_control` (null-default omission + `$extra`), `add_dimensions_control`, `add_typography_group` (replaces the planned `add_typography_color_pair` to avoid reordering), `sanitize_html_tag`. SKIPPED `get_svg_allowed_tags`/`sanitize_svg_content` merge (behavior-changing — accordion whitelist is a superset of button's). Proven via equivalence harness (15/15 checks).
+
+> VERIFICATION METHOD: a control-capture harness (scratchpad/widget_capture.php) stubs Elementor+WP, runs each widget's `register_controls()` on HEAD vs working copy, and var_export-diffs the full control tree. EMPTY diff = byte-identical Elementor output. Used as the gate for every widget below. (Note: real Elementor add_control/add_responsive_control/add_group_control are PUBLIC; harness matches.)
 
 **Step 2.1 — PILOT (the 4 worst offenders, do these FIRST and stop to self-check).** For each: replace duplicated control blocks with helper calls, then prove the generated Elementor controls + frontend CSS-variable selectors are **byte-identical** to before (reason about it in the commit body; if a helper changes any output, fix the helper, not the widget). One commit per widget.
-- [ ] `class-bw-license-table-widget.php`
-- [ ] `class-bw-accordion-widget.php`
-- [ ] `class-bw-newsletter-subscription-widget.php`
-- [ ] `class-bw-button-widget.php` (SVG sanitization only)
-- [ ] **Checkpoint:** after the 4 pilots, re-confirm the helper pattern is sound before sweeping the rest. If any pilot needed a helper fix, re-verify the others.
+- [x] `class-bw-license-table-widget.php` @ 94068877 — 34 conversions, capture diff EMPTY
+- [x] `class-bw-accordion-widget.php` @ 16490932 — 14 conversions, capture diff EMPTY
+- [x] `class-bw-newsletter-subscription-widget.php` @ 96dc4e89 — 19 conversions, capture diff EMPTY
+- [x] `class-bw-button-widget.php` @ 6edb8362 — 3 conversions (SVG merge skipped as behavior-changing), capture diff EMPTY
+- [x] **Checkpoint PASSED:** helper pattern sound; no helper fixes needed. Each pilot's register_controls() proven byte-identical via capture harness.
 
 **Step 2.2 — SWEEP the remaining 24 widgets.** Same protocol, one widget per commit (small batches OK only if trivially identical). A widget that has *no* matching duplication just gets skipped — note it, don't force a change.
 - [ ] `class-bw-about-menu-widget.php`
@@ -87,6 +88,6 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ---
 
-**Last action:** Phase 1 complete (4 extractions @ defd231a/4a2aa2c3/44724231/56d9c097, bootstrap 1616→359, gate green, set-match verified). Starting Phase 2 — building widget helpers first.
+**Last action:** Phase 2 helpers + 4 pilots committed (72b69d69 / 94068877 / 16490932 / 96dc4e89 / 6edb8362). Capture harness gate green on all. Starting Step 2.2 sweep of the remaining 24 widgets.
 
 **Final summary:** _(loop fills this in before stopping)_
