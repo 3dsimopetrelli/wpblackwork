@@ -22,15 +22,15 @@ class Widget_Bw_Product_Details extends Widget_Base {
 	}
 
 	public function get_categories() {
-		return [ 'blackwork' ];
+		return array( 'blackwork' );
 	}
 
 	public function get_style_depends() {
-		return [ 'bw-product-details-style' ];
+		return array( 'bw-product-details-style' );
 	}
 
 	public function get_script_depends() {
-		return [ 'bw-product-details-script' ];
+		return array( 'bw-product-details-script' );
 	}
 
 	protected function register_controls() {
@@ -38,80 +38,107 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		// =========================================================
 		// TAB: CONTENT
 		// =========================================================
-		$this->start_controls_section( 'section_content', [
-			'label' => __( 'Content', 'bw' ),
-		] );
+		$this->start_controls_section(
+			'section_content',
+			array(
+				'label' => __( 'Content', 'bw' ),
+			)
+		);
 
-		$this->add_control( 'content_type', [
-			'label'   => __( 'Content Type', 'bw' ),
-			'type'    => Controls_Manager::SELECT,
-			'default' => 'product_details',
-			'options' => [
-				'product_details' => __( 'Product Details', 'bw' ),
-				'compatibility'  => __( 'Compatibility', 'bw' ),
-				'info_box'        => __( 'Info Box', 'bw' ),
-			],
-		] );
+		$this->add_control(
+			'content_type',
+			array(
+				'label'   => __( 'Content Type', 'bw' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'product_details',
+				'options' => array(
+					'product_details' => __( 'Product Details', 'bw' ),
+					'compatibility'   => __( 'Compatibility', 'bw' ),
+					'info_box'        => __( 'Info Box', 'bw' ),
+				),
+			)
+		);
 
 		// --- Product Details: table title ---
-		$this->add_control( 'table_title', [
-			'label'       => __( 'Table Title', 'bw' ),
-			'type'        => Controls_Manager::TEXT,
-			'placeholder' => __( 'Collection Content', 'bw' ),
-			'default'     => __( 'Collection Content', 'bw' ),
-			'condition'   => [ 'content_type' => 'product_details' ],
-		] );
+		$this->add_control(
+			'table_title',
+			array(
+				'label'       => __( 'Table Title', 'bw' ),
+				'type'        => Controls_Manager::TEXT,
+				'placeholder' => __( 'Collection Content', 'bw' ),
+				'default'     => __( 'Collection Content', 'bw' ),
+				'condition'   => array( 'content_type' => 'product_details' ),
+			)
+		);
 
 		// --- Info Box: title ---
-		$this->add_control( 'info_box_title', [
-			'label'     => __( 'Title', 'bw' ),
-			'type'      => Controls_Manager::TEXT,
-			'default'   => __( 'Info', 'bw' ),
-			'condition' => [ 'content_type' => 'info_box' ],
-		] );
+		$this->add_control(
+			'info_box_title',
+			array(
+				'label'     => __( 'Title', 'bw' ),
+				'type'      => Controls_Manager::TEXT,
+				'default'   => __( 'Info', 'bw' ),
+				'condition' => array( 'content_type' => 'info_box' ),
+			)
+		);
 
 		// --- Info Box: WYSIWYG content ---
-		$this->add_control( 'info_box_content', [
-			'label'     => __( 'Content', 'bw' ),
-			'type'      => Controls_Manager::WYSIWYG,
-			'default'   => '',
-			'condition' => [ 'content_type' => 'info_box' ],
-		] );
+		$this->add_control(
+			'info_box_content',
+			array(
+				'label'     => __( 'Content', 'bw' ),
+				'type'      => Controls_Manager::WYSIWYG,
+				'default'   => '',
+				'condition' => array( 'content_type' => 'info_box' ),
+			)
+		);
 
 		// --- Accordion ---
-		$this->add_control( 'accordion_divider', [
-			'type'  => Controls_Manager::DIVIDER,
-			'style' => 'thick',
-		] );
+		$this->add_control(
+			'accordion_divider',
+			array(
+				'type'  => Controls_Manager::DIVIDER,
+				'style' => 'thick',
+			)
+		);
 
-		$this->add_control( 'accordion_enabled', [
-			'label'        => __( 'Enable Accordion', 'bw' ),
-			'type'         => Controls_Manager::SWITCHER,
-			'label_on'     => __( 'On', 'bw' ),
-			'label_off'    => __( 'Off', 'bw' ),
-			'return_value' => 'yes',
-			'default'      => '',
-		] );
+		$this->add_control(
+			'accordion_enabled',
+			array(
+				'label'        => __( 'Enable Accordion', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+			)
+		);
 
-		$this->add_control( 'accordion_mobile', [
-			'label'        => __( 'Enable on Mobile / Tablet', 'bw' ),
-			'type'         => Controls_Manager::SWITCHER,
-			'label_on'     => __( 'On', 'bw' ),
-			'label_off'    => __( 'Off', 'bw' ),
-			'return_value' => 'yes',
-			'default'      => 'yes',
-			'condition'    => [ 'accordion_enabled' => 'yes' ],
-		] );
+		$this->add_control(
+			'accordion_mobile',
+			array(
+				'label'        => __( 'Enable on Mobile / Tablet', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+				'condition'    => array( 'accordion_enabled' => 'yes' ),
+			)
+		);
 
-		$this->add_control( 'accordion_desktop', [
-			'label'        => __( 'Enable on Desktop', 'bw' ),
-			'type'         => Controls_Manager::SWITCHER,
-			'label_on'     => __( 'On', 'bw' ),
-			'label_off'    => __( 'Off', 'bw' ),
-			'return_value' => 'yes',
-			'default'      => '',
-			'condition'    => [ 'accordion_enabled' => 'yes' ],
-		] );
+		$this->add_control(
+			'accordion_desktop',
+			array(
+				'label'        => __( 'Enable on Desktop', 'bw' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => __( 'On', 'bw' ),
+				'label_off'    => __( 'Off', 'bw' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => array( 'accordion_enabled' => 'yes' ),
+			)
+		);
 
 		$this->end_controls_section();
 
@@ -119,172 +146,242 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		// TAB: STYLE
 		// =========================================================
 
-		$this->start_controls_section( 'section_style_box', [
-			'label' => __( 'Box Style', 'bw' ),
-			'tab'   => Controls_Manager::TAB_STYLE,
-		] );
+		$this->start_controls_section(
+			'section_style_box',
+			array(
+				'label' => __( 'Box Style', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-		$this->add_control( 'box_border_color', [
-			'label'     => __( 'Border Color', 'bw' ),
-			'type'      => Controls_Manager::COLOR,
-			'default'   => '#000000',
-			'selectors' => [
-				'{{WRAPPER}} .bw-biblio-widget' => 'border-color: {{VALUE}};',
-			],
-		] );
+		$this->add_control(
+			'box_border_color',
+			array(
+				'label'     => __( 'Border Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#000000',
+				'selectors' => array(
+					'{{WRAPPER}} .bw-biblio-widget' => 'border-color: {{VALUE}};',
+				),
+			)
+		);
 
-		$this->add_control( 'box_border_width', [
-			'label'      => __( 'Border Width', 'bw' ),
-			'type'       => Controls_Manager::SLIDER,
-			'size_units' => [ 'px' ],
-			'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
-			'default'    => [ 'size' => 1, 'unit' => 'px' ],
-			'selectors'  => [
-				'{{WRAPPER}} .bw-biblio-widget' => 'border-width: {{SIZE}}{{UNIT}};',
-			],
-		] );
+		$this->add_control(
+			'box_border_width',
+			array(
+				'label'      => __( 'Border Width', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 10,
+					),
+				),
+				'default'    => array(
+					'size' => 1,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-biblio-widget' => 'border-width: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
 
-		$this->add_control( 'box_border_radius', [
-			'label'      => __( 'Border Radius', 'bw' ),
-			'type'       => Controls_Manager::SLIDER,
-			'size_units' => [ 'px' ],
-			'range'      => [ 'px' => [ 'min' => 0, 'max' => 50 ] ],
-			'default'    => [ 'size' => 8, 'unit' => 'px' ],
-			'selectors'  => [
-				'{{WRAPPER}} .bw-biblio-widget' => 'border-radius: {{SIZE}}{{UNIT}};',
-			],
-		] );
+		$this->add_control(
+			'box_border_radius',
+			array(
+				'label'      => __( 'Border Radius', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 50,
+					),
+				),
+				'default'    => array(
+					'size' => 8,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-biblio-widget' => 'border-radius: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
 
-		$this->add_responsive_control( 'box_padding', [
-			'label'      => __( 'Padding', 'bw' ),
-			'type'       => Controls_Manager::DIMENSIONS,
-			'size_units' => [ 'px', '%' ],
-			'default'    => [
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
+			'box_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-biblio-widget',
+			'padding',
+			array( 'px', '%' ),
+			array(
 				'top'    => 16,
 				'right'  => 16,
 				'bottom' => 16,
 				'left'   => 16,
 				'unit'   => 'px',
-			],
-			'selectors'  => [
-				'{{WRAPPER}} .bw-biblio-widget' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-			],
-		] );
+			)
+		);
 
 		$this->end_controls_section();
 
-		$this->start_controls_section( 'section_style_title', [
-			'label' => __( 'Title', 'bw' ),
-			'tab'   => Controls_Manager::TAB_STYLE,
-		] );
+		$this->start_controls_section(
+			'section_style_title',
+			array(
+				'label' => __( 'Title', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-		$this->add_group_control( Group_Control_Typography::get_type(), [
-			'name'     => 'title_typography',
-			'selector' => '{{WRAPPER}} .bw-biblio-title',
-		] );
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'title_typography',
+			'{{WRAPPER}} .bw-biblio-title'
+		);
 
-		$this->add_control( 'title_color', [
-			'label'     => __( 'Color', 'bw' ),
-			'type'      => Controls_Manager::COLOR,
-			'selectors' => [
-				'{{WRAPPER}} .bw-biblio-title' => 'color: {{VALUE}};',
-			],
-		] );
+		$this->add_control(
+			'title_color',
+			array(
+				'label'     => __( 'Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-biblio-title' => 'color: {{VALUE}};',
+				),
+			)
+		);
 
-		$this->add_responsive_control( 'title_padding', [
-			'label'      => __( 'Padding', 'bw' ),
-			'type'       => Controls_Manager::DIMENSIONS,
-			'size_units' => [ 'px', '%' ],
-			'default'    => [
+		BW_Widget_Helper::add_dimensions_control(
+			$this,
+			'title_padding',
+			__( 'Padding', 'bw' ),
+			'{{WRAPPER}} .bw-biblio-title',
+			'padding',
+			array( 'px', '%' ),
+			array(
 				'top'    => 0,
 				'right'  => 0,
 				'bottom' => 0,
 				'left'   => 0,
 				'unit'   => 'px',
-			],
-			'selectors'  => [
-				'{{WRAPPER}} .bw-biblio-title' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-			],
-		] );
+			)
+		);
 
 		$this->end_controls_section();
 
-		$this->start_controls_section( 'section_style_dividers', [
-			'label' => __( 'Row Dividers', 'bw' ),
-			'tab'   => Controls_Manager::TAB_STYLE,
-		] );
+		$this->start_controls_section(
+			'section_style_dividers',
+			array(
+				'label' => __( 'Row Dividers', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-		$this->add_control( 'divider_color', [
-			'label'     => __( 'Divider Color', 'bw' ),
-			'type'      => Controls_Manager::COLOR,
-			'default'   => '#d9d9d9',
-			'selectors' => [
-				'{{WRAPPER}} .bw-biblio-row:not(:last-child)' => 'border-bottom-color: {{VALUE}};',
-			],
-		] );
+		$this->add_control(
+			'divider_color',
+			array(
+				'label'     => __( 'Divider Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'default'   => '#d9d9d9',
+				'selectors' => array(
+					'{{WRAPPER}} .bw-biblio-row:not(:last-child)' => 'border-bottom-color: {{VALUE}};',
+				),
+			)
+		);
 
-		$this->add_control( 'divider_width', [
-			'label'      => __( 'Divider Weight', 'bw' ),
-			'type'       => Controls_Manager::SLIDER,
-			'size_units' => [ 'px' ],
-			'range'      => [ 'px' => [ 'min' => 0, 'max' => 10 ] ],
-			'default'    => [ 'size' => 1, 'unit' => 'px' ],
-			'selectors'  => [
-				'{{WRAPPER}} .bw-biblio-row:not(:last-child)' => 'border-bottom-width: {{SIZE}}{{UNIT}}; border-bottom-style: solid;',
-			],
-		] );
-
-		$this->end_controls_section();
-
-		$this->start_controls_section( 'section_style_labels', [
-			'label' => __( 'Labels Typography', 'bw' ),
-			'tab'   => Controls_Manager::TAB_STYLE,
-		] );
-
-		$this->add_group_control( Group_Control_Typography::get_type(), [
-			'name'     => 'labels_typography',
-			'selector' => '{{WRAPPER}} .bw-biblio-label',
-		] );
-
-		$this->add_control( 'labels_color', [
-			'label'     => __( 'Color', 'bw' ),
-			'type'      => Controls_Manager::COLOR,
-			'selectors' => [
-				'{{WRAPPER}} .bw-biblio-label' => 'color: {{VALUE}};',
-			],
-		] );
+		$this->add_control(
+			'divider_width',
+			array(
+				'label'      => __( 'Divider Weight', 'bw' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 10,
+					),
+				),
+				'default'    => array(
+					'size' => 1,
+					'unit' => 'px',
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .bw-biblio-row:not(:last-child)' => 'border-bottom-width: {{SIZE}}{{UNIT}}; border-bottom-style: solid;',
+				),
+			)
+		);
 
 		$this->end_controls_section();
 
-		$this->start_controls_section( 'section_style_values', [
-			'label' => __( 'Values Typography', 'bw' ),
-			'tab'   => Controls_Manager::TAB_STYLE,
-		] );
+		$this->start_controls_section(
+			'section_style_labels',
+			array(
+				'label' => __( 'Labels Typography', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-		$this->add_group_control( Group_Control_Typography::get_type(), [
-			'name'     => 'values_typography',
-			'selector' => '{{WRAPPER}} .bw-biblio-value',
-		] );
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'labels_typography',
+			'{{WRAPPER}} .bw-biblio-label'
+		);
 
-		$this->add_control( 'values_color', [
-			'label'     => __( 'Color', 'bw' ),
-			'type'      => Controls_Manager::COLOR,
-			'selectors' => [
-				'{{WRAPPER}} .bw-biblio-value' => 'color: {{VALUE}};',
-			],
-		] );
+		$this->add_control(
+			'labels_color',
+			array(
+				'label'     => __( 'Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-biblio-label' => 'color: {{VALUE}};',
+				),
+			)
+		);
 
 		$this->end_controls_section();
 
-		$this->start_controls_section( 'section_style_assets', [
-			'label' => __( 'Assets Typography', 'bw' ),
-			'tab'   => Controls_Manager::TAB_STYLE,
-		] );
+		$this->start_controls_section(
+			'section_style_values',
+			array(
+				'label' => __( 'Values Typography', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
 
-		$this->add_group_control( Group_Control_Typography::get_type(), [
-			'name'     => 'assets_typography',
-			'selector' => '{{WRAPPER}} .bw-biblio-row--assets .bw-biblio-value--assets-list',
-		] );
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'values_typography',
+			'{{WRAPPER}} .bw-biblio-value'
+		);
+
+		$this->add_control(
+			'values_color',
+			array(
+				'label'     => __( 'Color', 'bw' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .bw-biblio-value' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_style_assets',
+			array(
+				'label' => __( 'Assets Typography', 'bw' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		BW_Widget_Helper::add_typography_group(
+			$this,
+			'assets_typography',
+			'{{WRAPPER}} .bw-biblio-row--assets .bw-biblio-value--assets-list'
+		);
 
 		$this->end_controls_section();
 	}
@@ -298,9 +395,9 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		$content_type = isset( $settings['content_type'] ) ? $settings['content_type'] : 'product_details';
 
 		// For product-driven content types: resolve product before building DOM (bail early on failure).
-		$product = null;
-		$compatibility_rows = [];
-		if ( in_array( $content_type, [ 'product_details', 'compatibility' ], true ) ) {
+		$product            = null;
+		$compatibility_rows = array();
+		if ( in_array( $content_type, array( 'product_details', 'compatibility' ), true ) ) {
 			$product = $this->resolve_product();
 			if ( null === $product ) {
 				return;
@@ -316,7 +413,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
 		// Accordion settings.
 		$accordion_on      = isset( $settings['accordion_enabled'] ) && 'yes' === $settings['accordion_enabled'];
-		$accordion_mobile  = $accordion_on && isset( $settings['accordion_mobile'] )  && 'yes' === $settings['accordion_mobile'];
+		$accordion_mobile  = $accordion_on && isset( $settings['accordion_mobile'] ) && 'yes' === $settings['accordion_mobile'];
 		$accordion_desktop = $accordion_on && isset( $settings['accordion_desktop'] ) && 'yes' === $settings['accordion_desktop'];
 
 		// Title.
@@ -334,8 +431,10 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		$wrapper_cls = 'bw-biblio-widget';
 		if ( $accordion_on ) {
 			$wrapper_cls .= ' bw-biblio-accordion';
-			if ( $accordion_mobile )  { $wrapper_cls .= ' bw-biblio-accordion--mobile'; }
-			if ( $accordion_desktop ) { $wrapper_cls .= ' bw-biblio-accordion--desktop'; }
+			if ( $accordion_mobile ) {
+				$wrapper_cls .= ' bw-biblio-accordion--mobile'; }
+			if ( $accordion_desktop ) {
+				$wrapper_cls .= ' bw-biblio-accordion--desktop'; }
 		}
 
 		$this->add_render_attribute( 'wrapper', 'class', $wrapper_cls );
@@ -363,7 +462,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			$this->render_compatibility( $compatibility_rows );
 		} else {
 				$this->render_product_details( $product, $this->get_id() );
-			}
+		}
 
 		if ( $accordion_on ) {
 			echo '</div>'; // .bw-biblio-accordion__body-inner
@@ -394,8 +493,11 @@ class Widget_Bw_Product_Details extends Widget_Base {
 		}
 
 		$resolution = function_exists( 'bw_tbl_resolve_product_context_id' )
-			? bw_tbl_resolve_product_context_id( [ '__widget_class' => __CLASS__ ] )
-			: [ 'id' => absint( get_the_ID() ), 'source' => 'fallback' ];
+			? bw_tbl_resolve_product_context_id( array( '__widget_class' => __CLASS__ ) )
+			: array(
+				'id'     => absint( get_the_ID() ),
+				'source' => 'fallback',
+			);
 
 		$product_id = isset( $resolution['id'] ) ? absint( $resolution['id'] ) : 0;
 
@@ -439,7 +541,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
 		$digital_fields = function_exists( 'bw_get_digital_product_fields' )
 			? bw_get_digital_product_fields()
-			: [
+			: array(
 				'_digital_total_assets' => __( 'Total Assets', 'bw' ),
 				'_digital_assets_list'  => __( 'Assets List', 'bw' ),
 				'_digital_file_size'    => __( 'File size', 'bw' ),
@@ -449,11 +551,11 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				'_digital_publisher'    => __( 'Publisher', 'bw' ),
 				'_digital_year'         => __( 'Year', 'bw' ),
 				'_digital_technique'    => __( 'Technique', 'bw' ),
-			];
+			);
 
 		$book_fields = function_exists( 'bw_get_bibliographic_fields' )
 			? bw_get_bibliographic_fields()
-			: [
+			: array(
 				'_bw_biblio_title'     => __( 'Title', 'bw' ),
 				'_bw_biblio_author'    => __( 'Author', 'bw' ),
 				'_bw_biblio_publisher' => __( 'Publisher', 'bw' ),
@@ -464,11 +566,11 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				'_bw_biblio_pages'     => __( 'Pages', 'bw' ),
 				'_bw_biblio_edition'   => __( 'Edition', 'bw' ),
 				'_bw_biblio_condition' => __( 'Condition', 'bw' ),
-			];
+			);
 
 		$print_fields = function_exists( 'bw_get_prints_bibliographic_fields' )
 			? bw_get_prints_bibliographic_fields()
-			: [
+			: array(
 				'_print_artist'     => __( 'Artist', 'bw' ),
 				'_print_publisher'  => __( 'Publisher', 'bw' ),
 				'_print_year'       => __( 'Year', 'bw' ),
@@ -476,22 +578,22 @@ class Widget_Bw_Product_Details extends Widget_Base {
 				'_print_material'   => __( 'Material', 'bw' ),
 				'_print_plate_size' => __( 'Plate Size', 'bw' ),
 				'_print_condition'  => __( 'Condition', 'bw' ),
-			];
+			);
 
-		$sections = [
-			[
+		$sections = array(
+			array(
 				'id'     => 'digital',
 				'fields' => $digital_fields,
-			],
-			[
+			),
+			array(
 				'id'     => 'prints',
 				'fields' => $print_fields,
-			],
-			[
+			),
+			array(
 				'id'     => 'books',
 				'fields' => $book_fields,
-			],
-		];
+			),
+		);
 
 		foreach ( $sections as $section ) {
 			$rows = $this->get_section_rows( $product_id, $section['fields'] );
@@ -514,7 +616,7 @@ class Widget_Bw_Product_Details extends Widget_Base {
 
 				if ( $total_assets_row || $assets_list_row ) {
 					$total_assets_value = $total_assets_row ? esc_html( $total_assets_row['value'] ) : '';
-					$assets_list_value  = $assets_list_row  ? nl2br( esc_html( $assets_list_row['value'] ) ) : '';
+					$assets_list_value  = $assets_list_row ? nl2br( esc_html( $assets_list_row['value'] ) ) : '';
 					$assets_list_id     = 'bw-biblio-assets-list-content-' . sanitize_html_class( $widget_id ? $widget_id : (string) $product_id );
 
 					echo '<div class="bw-biblio-row bw-biblio-row--assets">';
@@ -532,8 +634,8 @@ class Widget_Bw_Product_Details extends Widget_Base {
 					? $this->render_formats_pills( $row['value'] )
 					: esc_html( $row['value'] );
 
-				$row_classes = [ 'bw-biblio-row' ];
-				if ( in_array( $row['meta'], [ '_bw_biblio_title', '_bw_biblio_author', '_bw_biblio_publisher', '_bw_biblio_binding', '_bw_biblio_edition', '_digital_publisher' ], true ) ) {
+				$row_classes = array( 'bw-biblio-row' );
+				if ( in_array( $row['meta'], array( '_bw_biblio_title', '_bw_biblio_author', '_bw_biblio_publisher', '_bw_biblio_binding', '_bw_biblio_edition', '_digital_publisher' ), true ) ) {
 					$row_classes[] = 'bw-biblio-row--long-text';
 				} else {
 					$row_classes[] = 'bw-biblio-row--compact';
@@ -582,19 +684,40 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			return bw_get_enabled_product_compatibility_rows( $product_id );
 		}
 
-		return [
-			[ 'meta' => '_bw_compatibility_adobe_illustrator_photoshop', 'label' => __( 'Adobe Illustrator, Photoshop', 'bw' ) ],
-			[ 'meta' => '_bw_compatibility_figma_sketch_adobe_xd', 'label' => __( 'Figma, Sketch, Adobe XD', 'bw' ) ],
-			[ 'meta' => '_bw_compatibility_affinity_designer_photo', 'label' => __( 'Affinity Designer & Photo', 'bw' ) ],
-			[ 'meta' => '_bw_compatibility_coreldraw_inkscape', 'label' => __( 'CorelDRAW, Inkscape', 'bw' ) ],
-			[ 'meta' => '_bw_compatibility_canva_powerpoint', 'label' => __( 'Canva, PowerPoint', 'bw' ) ],
-			[ 'meta' => '_bw_compatibility_cricut_silhouette', 'label' => __( 'Cricut, Silhouette', 'bw' ) ],
-			[ 'meta' => '_bw_compatibility_blender_cinema4d', 'label' => __( 'Blender, Cinema 4D', 'bw' ) ],
-		];
+		return array(
+			array(
+				'meta'  => '_bw_compatibility_adobe_illustrator_photoshop',
+				'label' => __( 'Adobe Illustrator, Photoshop', 'bw' ),
+			),
+			array(
+				'meta'  => '_bw_compatibility_figma_sketch_adobe_xd',
+				'label' => __( 'Figma, Sketch, Adobe XD', 'bw' ),
+			),
+			array(
+				'meta'  => '_bw_compatibility_affinity_designer_photo',
+				'label' => __( 'Affinity Designer & Photo', 'bw' ),
+			),
+			array(
+				'meta'  => '_bw_compatibility_coreldraw_inkscape',
+				'label' => __( 'CorelDRAW, Inkscape', 'bw' ),
+			),
+			array(
+				'meta'  => '_bw_compatibility_canva_powerpoint',
+				'label' => __( 'Canva, PowerPoint', 'bw' ),
+			),
+			array(
+				'meta'  => '_bw_compatibility_cricut_silhouette',
+				'label' => __( 'Cricut, Silhouette', 'bw' ),
+			),
+			array(
+				'meta'  => '_bw_compatibility_blender_cinema4d',
+				'label' => __( 'Blender, Cinema 4D', 'bw' ),
+			),
+		);
 	}
 
 	private function get_section_rows( $product_id, $fields ) {
-		$rows = [];
+		$rows = array();
 		foreach ( $fields as $meta_key => $label ) {
 			$value = get_post_meta( $product_id, $meta_key, true );
 			if ( '_bw_artist_name' === $meta_key && '' === $value ) {
@@ -603,11 +726,11 @@ class Widget_Bw_Product_Details extends Widget_Base {
 			if ( '' === $value ) {
 				continue;
 			}
-			$rows[] = [
+			$rows[] = array(
 				'meta'  => $meta_key,
 				'label' => $label,
 				'value' => $value,
-			];
+			);
 		}
 		return $rows;
 	}
