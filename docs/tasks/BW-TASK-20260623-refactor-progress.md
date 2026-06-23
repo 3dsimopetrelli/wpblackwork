@@ -57,12 +57,12 @@ This file is the single source of truth for the overnight loop. After each step,
 - [x] **Checkpoint PASSED:** helper pattern sound; no helper fixes needed. Each pilot's register_controls() proven byte-identical via capture harness.
 
 **Step 2.2 — SWEEP the remaining 24 widgets.** Same protocol, one widget per commit (small batches OK only if trivially identical). A widget that has *no* matching duplication just gets skipped — note it, don't force a change.
-- [ ] `class-bw-about-menu-widget.php`
-- [ ] `class-bw-animated-banner-widget.php`
-- [ ] `class-bw-basic-slide-widget.php`
-- [ ] `class-bw-big-text-widget.php`
-- [ ] `class-bw-divider-widget.php`
-- [ ] `class-bw-go-to-app-widget.php`
+- [x] `class-bw-about-menu-widget.php` @ ca036ff0 — dim x2, typo x1
+- [x] `class-bw-animated-banner-widget.php` @ 06e6d37f — typo x1, dim x1
+- [x] `class-bw-basic-slide-widget.php` — SKIPPED (no exact matches; only candidate had key-order mismatch)
+- [x] `class-bw-big-text-widget.php` @ b352817f — typo x1, dim x1
+- [x] `class-bw-divider-widget.php` @ 44ab5444 — color x1
+- [x] `class-bw-go-to-app-widget.php` @ 3e25b7f5 — typo x2
 - [ ] `class-bw-hero-slide-widget.php`
 - [ ] `class-bw-mosaic-slider-widget.php`
 - [ ] `class-bw-presentation-slide-widget.php`
@@ -88,6 +88,6 @@ This file is the single source of truth for the overnight loop. After each step,
 
 ---
 
-**Last action:** Phase 2 helpers + 4 pilots committed (72b69d69 / 94068877 / 16490932 / 96dc4e89 / 6edb8362). Capture harness gate green on all. Starting Step 2.2 sweep of the remaining 24 widgets.
+**Last action:** Phase 2 sweep batch 1 done & committed (about-menu/animated-banner/big-text/divider/go-to-app; basic-slide skipped). All capture diffs EMPTY. Continuing sweep batch 2.
 
 **Final summary:** _(loop fills this in before stopping)_
