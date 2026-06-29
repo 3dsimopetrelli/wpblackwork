@@ -7,9 +7,18 @@
  * overrides). All asset handles, dependencies, versions (filemtime), localize
  * payloads and hook priorities are preserved exactly.
  *
- * Extracted verbatim from blackwork-core-plugin.php (Phase 1 bootstrap
- * decomposition, BW-TASK-20260623). Function names and hook registrations are
- * preserved unchanged.
+ * Extracted from blackwork-core-plugin.php (Phase 1 bootstrap decomposition,
+ * BW-TASK-20260623). Function names and hook registrations are preserved
+ * unchanged.
+ *
+ * IMPORTANT — asset paths must use the plugin-root constants BW_MEW_URL /
+ * BW_MEW_PATH, never plugin_dir_url( __FILE__ ) / __DIR__. This file lives in
+ * includes/assets/, so __FILE__-relative paths resolve to
+ * includes/assets/assets/... which does not exist (all assets live at the
+ * plugin root assets/). Using __FILE__/__DIR__ here re-introduces the 404
+ * regression documented in BW-TASK-20260629 (Product Slider/Grid assets, embla,
+ * smart header, etc. all failing to load). See bw_register_widget_assets() in
+ * includes/helpers.php for the canonical pattern.
  *
  * @package BW_Elementor_Widgets
  */

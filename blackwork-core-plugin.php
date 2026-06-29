@@ -281,10 +281,12 @@ add_action('woocommerce_init', 'bw_initialize_woocommerce_components', 5);
  *
  * Extracted from this bootstrap (Phase 1, BW-TASK-20260623):
  *  - includes/assets/asset-registry.php         widget/embla/panel asset register + enqueue
+ *  - includes/assets/asset-validator.php        debug-only registered-asset 404 guard
  *  - includes/widgets/widget-unregistration.php deprecated-widget cleanup
  *  - includes/assets/cdn-sri-manager.php         CDN SRI attribute injection
  */
 require_once plugin_dir_path(__FILE__) . 'includes/assets/asset-registry.php';
+require_once plugin_dir_path(__FILE__) . 'includes/assets/asset-validator.php';
 require_once plugin_dir_path(__FILE__) . 'includes/widgets/widget-unregistration.php';
 require_once plugin_dir_path(__FILE__) . 'includes/assets/cdn-sri-manager.php';
 
