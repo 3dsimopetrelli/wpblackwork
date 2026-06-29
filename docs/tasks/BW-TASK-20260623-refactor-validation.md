@@ -1,0 +1,160 @@
+# BW-TASK-20260623 Refactor Validation
+
+- Date: 2026-06-29 10:39:03 CEST
+- Branch tested: `main`
+- Commit SHA tested: `7c1567a5900a921b62c1b7d336e3663536c84f26`
+- Validator: Codex
+- Final recommendation: `not safe`
+
+## Scope
+
+Validate the refactor currently merged into `main` without starting new refactor phases and without changing settings or WooCommerce architecture.
+
+## Commands Run
+
+```bash
+git status --short --branch
+git checkout main
+git pull
+date "+%Y-%m-%d %H:%M:%S %Z"
+git rev-parse HEAD
+git branch --show-current
+rg --files | rg "composer\.phar$|composer\.json$|composer\.lock$"
+git diff --name-only HEAD~30..HEAD -- '*.php'
+rg -n "svg-upload-handler|asset-registry|cdn-sri-manager|widget-unregistration|class-bw-widget-helper" blackwork-core-plugin.php includes
+ls -l includes/svg-upload/svg-upload-handler.php includes/assets/asset-registry.php includes/assets/cdn-sri-manager.php includes/widgets/widget-unregistration.php includes/class-bw-widget-helper.php
+"$HOME/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php" vendor/bin/phpcs -d memory_limit=512M --standard=phpcs.xml.dist blackwork-core-plugin.php
+"$HOME/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php" -l blackwork-core-plugin.php
+for f in $(git diff --name-only HEAD~30..HEAD -- '*.php'); do "$HOME/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php" -l "$f"; done
+sed -n '30,45p' blackwork-core-plugin.php
+sed -n '200,210p' blackwork-core-plugin.php
+sed -n '283,290p' blackwork-core-plugin.php
+sed -n '1,220p' ../../../wp-config.php
+tail -n 80 ../../../wp-content/debug.log
+lsof -nP -iTCP -sTCP:LISTEN | head -n 80
+curl -I -s http://127.0.0.1
+"$HOME/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php" -r '$m=@new mysqli("127.0.0.1","root","root","blackwork"); ...'
+```
+
+## Check Results
+
+### 1. Latest `main`
+
+- Pass: `git checkout main`
+- Pass: `git pull`
+- Result: local `main` is up to date with `origin/main`
+
+### 2. Dependency and lint checks
+
+- Fail: `php composer.phar install`
+  - `php` is not on PATH in this shell
+  - `composer.phar` is not present in the repository
+- Fail: `php composer.phar run lint:main`
+  - same blocker as above
+- Pass with equivalent fallback:
+  - local PHP runtime found at `~/Library/Application Support/Local/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php`
+  - `vendor/bin/phpcs` exists
+  - fallback lint command passed against `blackwork-core-plugin.php`
+
+### 3. PHP syntax checks on recently changed PHP files
+
+- Pass: `blackwork-core-plugin.php`
+- Pass: all PHP files returned by `git diff --name-only HEAD~30..HEAD -- '*.php'`
+- Result: no syntax errors detected
+
+### 4. Required extracted files exist and are loaded
+
+- Pass: `includes/svg-upload/svg-upload-handler.php`
+- Pass: `includes/assets/asset-registry.php`
+- Pass: `includes/assets/cdn-sri-manager.php`
+- Pass: `includes/widgets/widget-unregistration.php`
+- Pass: `includes/class-bw-widget-helper.php`
+- Pass: `blackwork-core-plugin.php` requires them directly
+  - `includes/svg-upload/svg-upload-handler.php`
+  - `includes/class-bw-widget-helper.php`
+  - `includes/assets/asset-registry.php`
+  - `includes/widgets/widget-unregistration.php`
+  - `includes/assets/cdn-sri-manager.php`
+
+### 5. Runtime smoke test in local WordPress
+
+- Fail: could not verify homepage/shop/category/product/cart popup/header/search/Media Library/SVG upload/Elementor editor in a live local runtime
+- Root blockers:
+  - local MySQL for database `blackwork` was not reachable
+  - `mysqli("127.0.0.1", "root", "root", "blackwork")` returned `Connection refused`
+  - no HTTP listener was serving this WordPress installation on `127.0.0.1`
+  - starting a temporary local PHP server from the sandboxed session failed with `Failed to listen ... Operation not permitted`
+
+### 6. Elementor widget regression test
+
+- Fail: not executable because the local WordPress runtime and Elementor editor were not reachable
+- Widgets not runtime-validated:
+  - License Table
+  - Accordion
+  - Newsletter Subscription
+  - Button
+  - Hero Slide
+  - Product Slider
+  - Static Showcase
+  - Showcase Slide
+  - Product Grid
+  - Product Details
+  - Related Products
+  - Tags
+  - Title Product
+
+### 7. Browser console / PHP logs
+
+- Fail: browser console and Elementor editor JS could not be checked because runtime was unavailable
+- Partial pass: inspected existing `wp-content/debug.log`
+- Findings in existing historical log:
+  - old fatal errors from `blackwork-plugin-old`
+  - Elementor cloud-library 403 fatals from 2025
+  - PHP 8.2 deprecations for dynamic properties in `includes/woocommerce-overrides/class-bw-google-pay-gateway.php`
+  - missing dependency notice for `bw-presentation-slide-script` requiring `slick-js`
+- Note: these log entries are historical and were not generated by this validation session
+
+## Regressions Found
+
+### Confirmed direct regressions caused by the refactor
+
+- None confirmed
+
+### Validation blockers / unresolved risks
+
+- Repository does not contain `composer.phar`, so the exact requested Composer commands are not runnable as written
+- Local WordPress runtime for this checkout is not currently executable because the expected MySQL backend is not reachable
+- Because runtime was unavailable, no frontend, admin, Media Library, SVG upload, cart popup, search, or Elementor widget behavior could be conclusively validated
+
+## Fixes Applied
+
+- None
+
+## Screenshots
+
+- None captured
+- Reason: local WordPress runtime and Elementor editor were not reachable during this validation session
+
+## Safe / Not Safe Decision
+
+- `not safe`
+
+Reason:
+
+- Static validation passed for file presence, bootstrap wiring, and PHP syntax
+- But the requested runtime validation could not be completed
+- Without live verification of frontend, admin flows, and Elementor widgets, `main` cannot be signed off as safe to continue from
+
+## Next Minimal Action
+
+1. Bring up the local WordPress runtime for this exact installation:
+   - start the MySQL service backing database `blackwork`
+   - expose the site on a reachable local URL or allow a temporary loopback PHP server
+2. Re-run only the blocked runtime section of this validation:
+   - smoke pages
+   - Media Library
+   - SVG upload
+   - Elementor editor
+   - listed widget render/control checks
+3. If a regression reproduces in runtime, fix only that direct regression and commit it separately as:
+   - `fix(refactor): describe exact regression fixed`
