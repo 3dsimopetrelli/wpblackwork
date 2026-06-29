@@ -7,9 +7,18 @@
  * overrides). All asset handles, dependencies, versions (filemtime), localize
  * payloads and hook priorities are preserved exactly.
  *
- * Extracted verbatim from blackwork-core-plugin.php (Phase 1 bootstrap
- * decomposition, BW-TASK-20260623). Function names and hook registrations are
- * preserved unchanged.
+ * Extracted from blackwork-core-plugin.php (Phase 1 bootstrap decomposition,
+ * BW-TASK-20260623). Function names and hook registrations are preserved
+ * unchanged.
+ *
+ * IMPORTANT — asset paths must use the plugin-root constants BW_MEW_URL /
+ * BW_MEW_PATH, never plugin_dir_url( __FILE__ ) / __DIR__. This file lives in
+ * includes/assets/, so __FILE__-relative paths resolve to
+ * includes/assets/assets/... which does not exist (all assets live at the
+ * plugin root assets/). Using __FILE__/__DIR__ here re-introduces the 404
+ * regression documented in BW-TASK-20260629 (Product Slider/Grid assets, embla,
+ * smart header, etc. all failing to load). See bw_register_widget_assets() in
+ * includes/helpers.php for the canonical pattern.
  *
  * @package BW_Elementor_Widgets
  */
@@ -19,44 +28,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function bw_register_embla_assets() {
-	$embla_core_file = __DIR__ . '/assets/js/vendor/embla-carousel.umd.js';
+	$embla_core_file = BW_MEW_PATH . 'assets/js/vendor/embla-carousel.umd.js';
 	$embla_core_ver  = file_exists( $embla_core_file ) ? filemtime( $embla_core_file ) : '8.6.0';
 
 	wp_register_script(
 		'embla-js',
-		plugin_dir_url( __FILE__ ) . 'assets/js/vendor/embla-carousel.umd.js',
+		BW_MEW_URL . 'assets/js/vendor/embla-carousel.umd.js',
 		array(),
 		$embla_core_ver,
 		true
 	);
 
-	$embla_autoplay_file = __DIR__ . '/assets/js/vendor/embla-carousel-autoplay.umd.js';
+	$embla_autoplay_file = BW_MEW_PATH . 'assets/js/vendor/embla-carousel-autoplay.umd.js';
 	$embla_autoplay_ver  = file_exists( $embla_autoplay_file ) ? filemtime( $embla_autoplay_file ) : '8.1.7';
 
 	wp_register_script(
 		'embla-autoplay-js',
-		plugin_dir_url( __FILE__ ) . 'assets/js/vendor/embla-carousel-autoplay.umd.js',
+		BW_MEW_URL . 'assets/js/vendor/embla-carousel-autoplay.umd.js',
 		array( 'embla-js' ),
 		$embla_autoplay_ver,
 		true
 	);
 
-	$bw_embla_core_css_file = __DIR__ . '/assets/css/bw-embla-core.css';
+	$bw_embla_core_css_file = BW_MEW_PATH . 'assets/css/bw-embla-core.css';
 	$bw_embla_core_css_ver  = file_exists( $bw_embla_core_css_file ) ? filemtime( $bw_embla_core_css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-embla-core-css',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-embla-core.css',
+		BW_MEW_URL . 'assets/css/bw-embla-core.css',
 		array(),
 		$bw_embla_core_css_ver
 	);
 
-	$bw_embla_core_js_file = __DIR__ . '/assets/js/bw-embla-core.js';
+	$bw_embla_core_js_file = BW_MEW_PATH . 'assets/js/bw-embla-core.js';
 	$bw_embla_core_js_ver  = file_exists( $bw_embla_core_js_file ) ? filemtime( $bw_embla_core_js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-embla-core-js',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-embla-core.js',
+		BW_MEW_URL . 'assets/js/bw-embla-core.js',
 		array( 'embla-js', 'embla-autoplay-js' ),
 		$bw_embla_core_js_ver,
 		true
@@ -65,12 +74,12 @@ function bw_register_embla_assets() {
 add_action( 'init', 'bw_register_embla_assets' );
 
 function bw_register_fullbleed_style() {
-	$bw_custom_class_css_file = __DIR__ . '/assets/css/bw-custom-class.css';
+	$bw_custom_class_css_file = BW_MEW_PATH . 'assets/css/bw-custom-class.css';
 	$custom_class_version     = file_exists( $bw_custom_class_css_file ) ? filemtime( $bw_custom_class_css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-fullbleed-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-custom-class.css',
+		BW_MEW_URL . 'assets/css/bw-custom-class.css',
 		array(),
 		$custom_class_version
 	);
@@ -78,22 +87,22 @@ function bw_register_fullbleed_style() {
 add_action( 'init', 'bw_register_fullbleed_style' );
 
 function bw_enqueue_elementor_widget_panel_assets() {
-	$panel_css_file    = __DIR__ . '/assets/css/bw-elementor-widget-panel.css';
+	$panel_css_file    = BW_MEW_PATH . 'assets/css/bw-elementor-widget-panel.css';
 	$panel_css_version = file_exists( $panel_css_file ) ? filemtime( $panel_css_file ) : '1.0.0';
 
 	wp_enqueue_style(
 		'bw-elementor-widget-panel-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-elementor-widget-panel.css',
+		BW_MEW_URL . 'assets/css/bw-elementor-widget-panel.css',
 		array(),
 		$panel_css_version
 	);
 
-	$panel_js_file    = __DIR__ . '/assets/js/bw-elementor-widget-panel.js';
+	$panel_js_file    = BW_MEW_PATH . 'assets/js/bw-elementor-widget-panel.js';
 	$panel_js_version = file_exists( $panel_js_file ) ? filemtime( $panel_js_file ) : '1.0.0';
 
 	wp_enqueue_script(
 		'bw-elementor-widget-panel-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-elementor-widget-panel.js',
+		BW_MEW_URL . 'assets/js/bw-elementor-widget-panel.js',
 		array( 'jquery' ),
 		$panel_js_version,
 		true
@@ -111,12 +120,12 @@ function bw_enqueue_elementor_widget_panel_assets() {
 add_action( 'elementor/editor/after_enqueue_scripts', 'bw_enqueue_elementor_widget_panel_assets' );
 
 function bw_register_divider_style() {
-	$css_file = __DIR__ . '/assets/css/bw-divider.css';
+	$css_file = BW_MEW_PATH . 'assets/css/bw-divider.css';
 	$version  = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-divider-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-divider.css',
+		BW_MEW_URL . 'assets/css/bw-divider.css',
 		array(),
 		$version
 	);
@@ -192,56 +201,56 @@ function bw_register_about_menu_widget_assets() {
 }
 
 function bw_register_wallpost_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-wallpost.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-wallpost.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-wallpost-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-wallpost.css',
+		BW_MEW_URL . 'assets/css/bw-wallpost.css',
 		array(),
 		$css_version
 	);
 }
 
 function bw_register_related_products_widget_assets() {
-	$product_labels_css_file    = __DIR__ . '/assets/css/bw-product-labels.css';
+	$product_labels_css_file    = BW_MEW_PATH . 'assets/css/bw-product-labels.css';
 	$product_labels_css_version = file_exists( $product_labels_css_file ) ? filemtime( $product_labels_css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-product-labels-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-product-labels.css',
+		BW_MEW_URL . 'assets/css/bw-product-labels.css',
 		array(),
 		$product_labels_css_version
 	);
 
 	// Register product card CSS (shared)
-	$product_card_css_file    = __DIR__ . '/assets/css/bw-product-card.css';
+	$product_card_css_file    = BW_MEW_PATH . 'assets/css/bw-product-card.css';
 	$product_card_css_version = file_exists( $product_card_css_file ) ? filemtime( $product_card_css_file ) : '1.0.0';
-	$product_card_js_file     = __DIR__ . '/assets/js/bw-product-card.js';
+	$product_card_js_file     = BW_MEW_PATH . 'assets/js/bw-product-card.js';
 	$product_card_js_version  = file_exists( $product_card_js_file ) ? filemtime( $product_card_js_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-product-card-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-product-card.css',
+		BW_MEW_URL . 'assets/css/bw-product-card.css',
 		array( 'bw-product-labels-style' ),
 		$product_card_css_version
 	);
 
 	wp_register_script(
 		'bw-product-card-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-product-card.js',
+		BW_MEW_URL . 'assets/js/bw-product-card.js',
 		array(),
 		$product_card_js_version,
 		true
 	);
 
 	// Register related products widget CSS
-	$css_file    = __DIR__ . '/assets/css/bw-related-products.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-related-products.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-related-products-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-related-products.css',
+		BW_MEW_URL . 'assets/css/bw-related-products.css',
 		array( 'bw-wallpost-style', 'bw-product-card-style' ),
 		$css_version
 	);
@@ -280,22 +289,22 @@ function bw_enqueue_about_menu_widget_assets() {
 function bw_register_product_grid_widget_assets() {
 	static $product_grid_assets_localized = false;
 
-	$css_file    = __DIR__ . '/assets/css/bw-product-grid.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-product-grid.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-product-grid-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-product-grid.css',
+		BW_MEW_URL . 'assets/css/bw-product-grid.css',
 		array( 'bw-wallpost-style', 'bw-product-card-style' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-product-grid.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-product-grid.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-product-grid-js',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-product-grid.js',
+		BW_MEW_URL . 'assets/js/bw-product-grid.js',
 		array( 'jquery', 'imagesloaded', 'masonry' ),
 		$js_version,
 		true
@@ -347,23 +356,23 @@ function bw_enqueue_smart_header_assets() {
 	}
 
 	// Registra e carica CSS
-	$css_file    = __DIR__ . '/assets/css/bw-smart-header.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-smart-header.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '2.0.0';
 
 	wp_enqueue_style(
 		'bw-smart-header-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-smart-header.css',
+		BW_MEW_URL . 'assets/css/bw-smart-header.css',
 		array(),
 		$css_version
 	);
 
 	// Registra e carica JavaScript
-	$js_file    = __DIR__ . '/assets/js/bw-smart-header.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-smart-header.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '2.0.0';
 
 	wp_enqueue_script(
 		'bw-smart-header-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-smart-header.js',
+		BW_MEW_URL . 'assets/js/bw-smart-header.js',
 		array( 'jquery' ),
 		$js_version,
 		true // Carica nel footer
@@ -410,22 +419,22 @@ function bw_enqueue_wc_loader_overrides() {
 add_action( 'wp_enqueue_scripts', 'bw_enqueue_wc_loader_overrides', 20 );
 
 function bw_register_animated_banner_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-animated-banner.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-animated-banner.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-animated-banner-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-animated-banner.css',
+		BW_MEW_URL . 'assets/css/bw-animated-banner.css',
 		array(),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-animated-banner.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-animated-banner.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-animated-banner-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-animated-banner.js',
+		BW_MEW_URL . 'assets/js/bw-animated-banner.js',
 		array( 'jquery' ),
 		$js_version,
 		true
@@ -447,22 +456,22 @@ function bw_enqueue_animated_banner_widget_assets() {
 }
 
 function bw_register_static_showcase_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-static-showcase.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-static-showcase.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-static-showcase-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-static-showcase.css',
+		BW_MEW_URL . 'assets/css/bw-static-showcase.css',
 		array(),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-static-showcase.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-static-showcase.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-static-showcase-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-static-showcase.js',
+		BW_MEW_URL . 'assets/js/bw-static-showcase.js',
 		array(),
 		$js_version,
 		true
@@ -474,22 +483,22 @@ function bw_register_psychadelic_banner_widget_assets() {
 }
 
 function bw_register_price_variation_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-price-variation.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-price-variation.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-price-variation-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-price-variation.css',
+		BW_MEW_URL . 'assets/css/bw-price-variation.css',
 		array(),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-price-variation.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-price-variation.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-price-variation-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-price-variation.js',
+		BW_MEW_URL . 'assets/js/bw-price-variation.js',
 		array( 'jquery' ),
 		$js_version,
 		true
@@ -497,22 +506,22 @@ function bw_register_price_variation_widget_assets() {
 }
 
 function bw_register_trust_box_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-trust-box.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-trust-box.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-trust-box-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-trust-box.css',
+		BW_MEW_URL . 'assets/css/bw-trust-box.css',
 		array( 'bw-embla-core-css' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-trust-box.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-trust-box.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-trust-box-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-trust-box.js',
+		BW_MEW_URL . 'assets/js/bw-trust-box.js',
 		array( 'jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js' ),
 		$js_version,
 		true
@@ -520,22 +529,22 @@ function bw_register_trust_box_widget_assets() {
 }
 
 function bw_register_reviews_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-reviews.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-reviews.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-reviews-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-reviews.css',
+		BW_MEW_URL . 'assets/css/bw-reviews.css',
 		array(),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-reviews.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-reviews.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-reviews-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-reviews.js',
+		BW_MEW_URL . 'assets/js/bw-reviews.js',
 		array( 'jquery' ),
 		$js_version,
 		true
@@ -573,22 +582,22 @@ function bw_register_product_details_widget_assets() {
 }
 
 function bw_register_presentation_slide_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-presentation-slide.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-presentation-slide.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-presentation-slide-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-presentation-slide.css',
+		BW_MEW_URL . 'assets/css/bw-presentation-slide.css',
 		array( 'bw-embla-core-css' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-presentation-slide.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-presentation-slide.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-presentation-slide-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-presentation-slide.js',
+		BW_MEW_URL . 'assets/js/bw-presentation-slide.js',
 		array( 'jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js' ),
 		$js_version,
 		true
@@ -610,22 +619,22 @@ function bw_enqueue_presentation_slide_widget_assets() {
 }
 
 function bw_register_basic_slide_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-basic-slide.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-basic-slide.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-basic-slide-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-basic-slide.css',
+		BW_MEW_URL . 'assets/css/bw-basic-slide.css',
 		array( 'bw-embla-core-css' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-basic-slide.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-basic-slide.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-basic-slide-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-basic-slide.js',
+		BW_MEW_URL . 'assets/js/bw-basic-slide.js',
 		array( 'jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js' ),
 		$js_version,
 		true
@@ -633,22 +642,22 @@ function bw_register_basic_slide_widget_assets() {
 }
 
 function bw_register_product_slider_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-product-slider.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-product-slider.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-product-slider-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-product-slider.css',
+		BW_MEW_URL . 'assets/css/bw-product-slider.css',
 		array( 'bw-embla-core-css' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-product-slider.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-product-slider.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-product-slider-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-product-slider.js',
+		BW_MEW_URL . 'assets/js/bw-product-slider.js',
 		array( 'jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js' ),
 		$js_version,
 		true
@@ -656,22 +665,22 @@ function bw_register_product_slider_widget_assets() {
 }
 
 function bw_register_showcase_slide_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-showcase-slide.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-showcase-slide.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-showcase-slide-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-showcase-slide.css',
+		BW_MEW_URL . 'assets/css/bw-showcase-slide.css',
 		array( 'bw-embla-core-css' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-showcase-slide.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-showcase-slide.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-showcase-slide-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-showcase-slide.js',
+		BW_MEW_URL . 'assets/js/bw-showcase-slide.js',
 		array( 'jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js' ),
 		$js_version,
 		true
@@ -679,22 +688,22 @@ function bw_register_showcase_slide_widget_assets() {
 }
 
 function bw_register_mosaic_slider_widget_assets() {
-	$css_file    = __DIR__ . '/assets/css/bw-mosaic-slider.css';
+	$css_file    = BW_MEW_PATH . 'assets/css/bw-mosaic-slider.css';
 	$css_version = file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0';
 
 	wp_register_style(
 		'bw-mosaic-slider-style',
-		plugin_dir_url( __FILE__ ) . 'assets/css/bw-mosaic-slider.css',
+		BW_MEW_URL . 'assets/css/bw-mosaic-slider.css',
 		array( 'bw-product-card-style', 'bw-embla-core-css' ),
 		$css_version
 	);
 
-	$js_file    = __DIR__ . '/assets/js/bw-mosaic-slider.js';
+	$js_file    = BW_MEW_PATH . 'assets/js/bw-mosaic-slider.js';
 	$js_version = file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0';
 
 	wp_register_script(
 		'bw-mosaic-slider-script',
-		plugin_dir_url( __FILE__ ) . 'assets/js/bw-mosaic-slider.js',
+		BW_MEW_URL . 'assets/js/bw-mosaic-slider.js',
 		array( 'jquery', 'embla-js', 'embla-autoplay-js', 'bw-embla-core-js' ),
 		$js_version,
 		true
