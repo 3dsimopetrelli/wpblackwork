@@ -49,30 +49,37 @@ For a procedural file `X.php` with function groups G1…Gn:
 
 ## Progress
 
-### 3d — media-folders/runtime/ajax.php (1,282 → ~40 loader)  [ ] 
-Handlers are named fns guarded by `if ( ! function_exists() )`, registered by string callback (lines 34–44). Clean move.
+### 3d — media-folders/runtime/ajax.php (1,282 → 51 loader)  ✅ DONE @ 7fb37b5e
+Contiguous 3-way split (chosen over crud/meta/cache because read-handlers were non-contiguous — contiguous ranges = lower risk, byte-identical move).
 
-- [ ] `ajax-helpers.php` — `bw_mf_ajax_error`, `bw_mf_get_request_post_type`, `bw_mf_get_request_taxonomy`, `bw_mf_user_can_manage_folders`, `bw_mf_ajax_require`, `bw_mf_normalize_object_ids`, other shared helpers
-- [ ] `ajax-crud.php` — create/rename/delete/assign folder handlers
-- [ ] `ajax-meta.php` — color/pin/meta handlers (`bw_mf_ajax_set_folder_color`, `_reset_folder_color`, `_toggle_folder_pin`, `_update_folder_meta`)
-- [ ] `ajax-cache.php` — tree/counts/corner-markers (`bw_mf_ajax_get_folders_tree`, `_get_folder_counts`, `_get_corner_markers`)
-- [ ] ajax.php becomes loader (keep the 11 `add_action` registrations at top, or move each next to its handler — pick one, keep set identical)
-- [ ] Static gate green + commit
+- [x] `ajax-helpers.php` (142) — request/permission/normalize helpers (orig 46–173)
+- [x] `folder-counts.php` (706) — counts + cache engine + invalidation hooks (orig 175–866)
+- [x] `ajax-handlers.php` (429) — 11 wp_ajax endpoint handlers + shared term helper (orig 868–1282)
+- [x] ajax.php → loader: constants + 3 requires + 11 wp_ajax_* registrations
+- [x] Static gate: fn-set EXACT (36), hook-set EXACT (16 + 4 closures), bodies byte-identical, php -l clean, lint:main green
 
-### 3b — woocommerce/woocommerce-init.php (2,138 → ~40 loader)  [ ]
-49 functions / 49 hook registrations. Preserve `bw_mew_locate_template()` and `bw_mew_get_checkout_settings()`.
+### 3b — woocommerce/woocommerce-init.php (2,138 → 117 loader)  ✅ DONE @ 4372882e
+Moved 49 callback units (48 top-level + 1 guarded) via the PHP-tokenizer extractor `scratchpad/phpsplit.php`. Loader keeps the `plugins_loaded` init hub + file-scope registrations + requires.
 
-- [ ] `woocommerce/runtime/template-locator.php` — `bw_mew_locate_template` + template override plumbing
-- [ ] `woocommerce/runtime/checkout.php` — checkout hook callbacks
-- [ ] `woocommerce/runtime/cart.php` — cart hook callbacks
-- [ ] `woocommerce/runtime/account.php` — my-account hook callbacks
-- [ ] `woocommerce/runtime/assets.php` — WC asset enqueue callbacks
-- [ ] `woocommerce/runtime/misc.php` — anything not fitting the above (only if needed)
-- [ ] woocommerce-init.php becomes loader
-- [ ] Static gate green + commit(s)
+- [x] `runtime/templates.php` — locate_template + related-products assets
+- [x] `runtime/account.php` — account/my-account customizations (9)
+- [x] `runtime/auth-social.php` — Supabase bridge + social login (11)
+- [x] `runtime/checkout.php` — checkout layout/assets/headers/shipping (14 incl. guarded normalize)
+- [x] `runtime/order-received.php` — order-received/confirmation + wallet (5)
+- [x] `runtime/payment-gateways.php` — Stripe/PayPal/GPay (4)
+- [x] `runtime/cart.php` — cart layout/assets + coupon AJAX (4)
+- [x] Static gate: fn-set EXACT (50), hook-call set EXACT (49), 49 bodies byte-identical, php -l clean, lint:main green
 
-### 3a — admin/class-blackwork-site-settings.php (13,557 → ~400 manifest)  [ ]
-Procedural, 202 fns. Extract the import/export engine FIRST (≈88% of the file), then the rest. New home: `admin/site-settings/`.
+**TOOLING:** `scratchpad/phpmap.php` (top-level fn map) + `scratchpad/phpsplit.php` (manifest-driven verbatim extractor with docblock capture + rawRanges for guarded fns). Reused for 3a.
+
+### 3a — admin/class-blackwork-site-settings.php (13,557 → 47 loader)  ✅ DONE @ 90b404fa
+Procedural (202 top-level + 11 guarded fns). Moved via `scratchpad/phpsplit.php` + `classify_settings.php` (auto-assigned all 202 by name-prefix, 0 unclassified). 15 files under `admin/site-settings/`. Loader keeps constants + 20 top-level registrations + requires. Menu slug `blackwork-site-settings` preserved.
+
+Verification: fn-set EXACT (213), hook-set EXACT (20), all 202 bodies + guarded cluster byte-identical, php -l clean on 16 files, **dynamic load test** (all 15 files included together → 213 bw_ fns, no redeclare/parse/fatal), phpcs no net new violations, lint:main green.
+
+DEFERRED (need live-site validation): options-manager (typed get/save for 299 option calls); inline JS/CSS extraction from tab renderers. Both flagged in the 3a commit body.
+
+Original detailed extraction map (for reference):
 
 Import/export engine (do these commits first — biggest reduction):
 - [ ] `product-import-export/csv-template.php` — template registry + template download (`bw_product_import_template_*`, lines ~1371–1551)
@@ -97,13 +104,12 @@ Remaining groups:
 - [ ] Static gate green + commit(s)
 - [ ] **OPTIONAL, higher-risk, gated:** options-manager (`admin/site-settings/options-manager.php`) — typed get/save with defaults, introduced behind existing reads incrementally. Only if all above green. Flag clearly in commit.
 
-### 3c — checkout-subscribe-admin.php (3,221, singleton class)  [ ]
-CONSERVATIVE. Only statically-provable, stateless extractions.
+### 3c — checkout-subscribe-admin.php (3,221 → 2,977 admin + 261 settings)  ✅ DONE (conservative) @ 66690762
+The file held TWO classes. Extracted the self-contained settings store; deferred the singleton method-split.
 
-- [ ] Assess seams: Brevo settings defaults/validation (candidate for `class-bw-brevo-settings.php` if pure); API/scheduling already delegates to `BW_Brevo_Client`.
-- [ ] Extract only provable seams; keep the singleton and all method names intact via delegation.
-- [ ] If no clean static-provable seam: SKIP, log the reason here, leave for human review.
-- [ ] Static gate green + commit (or documented skip)
+- [x] Extracted `BW_Mail_Marketing_Settings` (guarded, orig lines 19–264) → `class-bw-mail-marketing-settings.php`, required before the admin class.
+- [x] Verification: reflection load test (both classes: IDENTICAL method+const sets vs pre-split), moved body + main class body byte-identical, php -l clean, phpcs phpcbf-fixable unchanged (3208), lint:main green.
+- [x] DEFERRED (logged, per rule #6): splitting the 67-method `BW_Checkout_Subscribe_Admin` singleton into traits (rendering / handling / Brevo service). Safe via traits but payment-adjacent → needs live-site validation.
 
 ---
 
@@ -118,4 +124,25 @@ _Populated by each sub-phase as it completes._
 
 ---
 
-**Last action:** Branch created off `main` @ bfc52687; runbook written. Next: execute 3d.
+**Last action:** Phase 3 COMPLETE on `refactor/phase3-file-splits`. All four sub-phases done (3d, 3b, 3a, 3c-conservative), each a bisectable commit, each passing the static-equivalence gate. Two items deferred to human-reviewed live-site work: the 3a options-manager + inline-asset extraction, and the 3c admin-singleton trait split.
+
+---
+
+## Final summary
+
+Phase 3 (file splits) complete on branch `refactor/phase3-file-splits`, off `main` @ bfc52687. All behavior-preserving; every step verified and committed individually (bisectable). No running WordPress was available, so verification was static-equivalence + dynamic load/reflection tests (no manual browser smoke — see the checklist above for what a human should run before merge).
+
+| Sub | File | Before | After (loader) | Commit |
+|---|---|---:|---:|---|
+| 3d | media-folders/runtime/ajax.php | 1,282 | 51 (+3 files) | 7fb37b5e |
+| 3b | woocommerce/woocommerce-init.php | 2,138 | 117 (+7 files) | 4372882e |
+| 3a | admin/class-blackwork-site-settings.php | 13,557 | 47 (+15 files) | 90b404fa |
+| 3c | checkout-subscribe-admin.php | 3,221 | 2,977 (+1 file) | 66690762 |
+
+**Tooling (reusable, in scratchpad):** `phpmap.php` (top-level fn map, curly-open-interpolation aware), `phpsplit.php` (manifest-driven verbatim extractor with docblock capture + rawRanges), `bodycmp.php` (per-fn byte-identity diff), `classify_settings.php` (prefix-based target assignment).
+
+**Verification totals:** 3d 36 fns + 16 hooks exact; 3b 50 fns + 49 hooks exact; 3a 213 fns + 20 hooks exact + dynamic load test (213 fns, no redeclare); 3c reflection-identical both classes. All moved bodies byte-identical. `php -l` clean on every file. `lint:main` green throughout (it only lints the bootstrap). Pre-existing per-module style baselines preserved to keep moves byte-identical; no net-new phpcs violations from any move.
+
+**Deferred (need live-site validation, NOT done):**
+- 3a: options-manager (typed get/save wrapper for the 299 get_option/update_option calls) and inline JS/CSS extraction from tab renderers → external files + wp_localize_script.
+- 3c: trait-based split of the BW_Checkout_Subscribe_Admin singleton (67 methods).
