@@ -92,32 +92,9 @@ function bw_mew_initialize_woocommerce_overrides()
 }
 add_action('plugins_loaded', 'bw_mew_initialize_woocommerce_overrides');
 
-add_action('wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20);
-
-add_action('wp_head', 'bw_mew_supabase_early_invite_redirect_hint', 1);
-
-add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
-
-add_action('template_redirect', 'bw_mew_handle_wallet_failed_return_redirect', 2);
-
-add_action('template_redirect', 'bw_mew_hide_logged_in_account_title', 9);
-
-/**
- * DEPRECATED FUNCTIONS
- *
- * The following functions have been moved to the BW_Social_Login class.
- * They are kept here as deprecated stubs for backward compatibility.
- * Use BW_Social_Login class methods directly instead.
- */
-
-add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100);
-
-add_filter('woocommerce_shipping_package_name', 'bw_mew_checkout_shipping_package_name', 10, 4);
-
-add_filter('woocommerce_cart_shipping_method_full_label', 'bw_mew_checkout_shipping_method_full_label', 10, 2);
-
-// --- Runtime split (3b, BW-TASK-20260629): callbacks moved to focused files; all
-// function names + hook registrations preserved (see files below). ---
+// --- Runtime split (3b, BW-TASK-20260629): callbacks moved to focused files.
+// Required before the hook registrations below so every referenced function is
+// defined at load time. All function names + registrations are preserved. ---
 require_once __DIR__ . '/runtime/templates.php';
 require_once __DIR__ . '/runtime/account.php';
 require_once __DIR__ . '/runtime/auth-social.php';
@@ -125,3 +102,12 @@ require_once __DIR__ . '/runtime/checkout.php';
 require_once __DIR__ . '/runtime/order-received.php';
 require_once __DIR__ . '/runtime/payment-gateways.php';
 require_once __DIR__ . '/runtime/cart.php';
+
+add_action('wp_enqueue_scripts', 'bw_mew_enqueue_supabase_bridge', 20);
+add_action('wp_head', 'bw_mew_supabase_early_invite_redirect_hint', 1);
+add_action('template_redirect', 'bw_mew_prevent_order_received_cache', 1);
+add_action('template_redirect', 'bw_mew_handle_wallet_failed_return_redirect', 2);
+add_action('template_redirect', 'bw_mew_hide_logged_in_account_title', 9);
+add_action('woocommerce_checkout_before_customer_details', 'bw_mew_render_express_divider', 100);
+add_filter('woocommerce_shipping_package_name', 'bw_mew_checkout_shipping_package_name', 10, 4);
+add_filter('woocommerce_cart_shipping_method_full_label', 'bw_mew_checkout_shipping_method_full_label', 10, 2);
