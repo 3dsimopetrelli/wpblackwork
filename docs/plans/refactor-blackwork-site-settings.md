@@ -1,6 +1,14 @@
 # Refactor: class-blackwork-site-settings.php
 
-## Status: ON HOLD
+## Status: SUPERSEDED (2026-06-29)
+**This plan is stale** — it measured the file at 4,108 lines; it is now 13,557. The
+authoritative Phase 3 plan is `docs/tasks/BW-TASK-20260623-full-refactoring-plan.md`
+(Phase 3), executed via `docs/tasks/BW-TASK-20260629-phase3-runbook.md`. Kept for
+historical reference only.
+
+---
+
+## (Historical) Status: ON HOLD
 **Reason:** Colleague is working on checkout page. Wait until checkout work is complete to avoid merge conflicts.
 
 ---
