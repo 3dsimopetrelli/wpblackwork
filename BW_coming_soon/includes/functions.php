@@ -197,9 +197,17 @@ function bw_show_coming_soon() {
     if (
         is_user_logged_in() ||
         is_admin() ||
+        (function_exists('wp_doing_ajax') && wp_doing_ajax()) ||
         (defined('REST_REQUEST') && REST_REQUEST) ||
         (defined('DOING_CRON') && DOING_CRON) ||
         (defined('WP_CLI') && WP_CLI)
+    ) {
+        return;
+    }
+
+    if (
+        function_exists('bw_custom_wp_login_is_custom_route_request') &&
+        bw_custom_wp_login_is_custom_route_request()
     ) {
         return;
     }

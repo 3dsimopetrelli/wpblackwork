@@ -56,6 +56,67 @@ if (!function_exists('bw_custom_wp_login_get_current_request_url')) {
     }
 }
 
+if (!function_exists('bw_custom_wp_login_get_home_path')) {
+    function bw_custom_wp_login_get_home_path()
+    {
+        $home_path = wp_parse_url(home_url('/'), PHP_URL_PATH);
+        if (!is_string($home_path) || '' === $home_path) {
+            return '/';
+        }
+
+        $home_path = '/' . trim($home_path, '/');
+
+        return '/' === $home_path ? '/' : untrailingslashit($home_path);
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_get_current_request_path')) {
+    function bw_custom_wp_login_get_current_request_path()
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+
+        return bw_custom_wp_login_normalize_route_path($request_uri);
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_normalize_route_path')) {
+    function bw_custom_wp_login_normalize_route_path($path)
+    {
+        $path = (string) $path;
+        if ('' === $path) {
+            return '/';
+        }
+
+        $path = wp_parse_url($path, PHP_URL_PATH);
+        if (!is_string($path) || '' === $path) {
+            return '/';
+        }
+
+        $path = '/' . ltrim($path, '/');
+        $path = untrailingslashit($path);
+        if ('' === $path) {
+            $path = '/';
+        }
+
+        $home_path = bw_custom_wp_login_get_home_path();
+        if ('/' !== $home_path) {
+            $home_prefix = $home_path . '/';
+            if ($path === $home_path) {
+                $path = '/';
+            } elseif (0 === strpos($path, $home_prefix)) {
+                $path = substr($path, strlen($home_path));
+                $path = '/' . ltrim((string) $path, '/');
+                $path = untrailingslashit($path);
+                if ('' === $path) {
+                    $path = '/';
+                }
+            }
+        }
+
+        return $path;
+    }
+}
+
 if (!function_exists('bw_custom_wp_login_allow_default_urls')) {
     function bw_custom_wp_login_allow_default_urls()
     {
@@ -129,6 +190,33 @@ if (!function_exists('bw_custom_wp_login_is_custom_url')) {
 
         $custom_url = bw_custom_wp_login_build_custom_url();
         return '' !== $custom_url && 0 === strpos($url, $custom_url);
+    }
+}
+
+if (!function_exists('bw_custom_wp_login_is_custom_route_request')) {
+    function bw_custom_wp_login_is_custom_route_request()
+    {
+        if (defined('BW_CUSTOM_WP_LOGIN_CUSTOM_ROUTE_REQUEST') && BW_CUSTOM_WP_LOGIN_CUSTOM_ROUTE_REQUEST) {
+            return true;
+        }
+
+        $slug = bw_custom_wp_login_get_slug();
+        if ('' === $slug) {
+            return false;
+        }
+
+        $request_path = bw_custom_wp_login_get_current_request_path();
+        $custom_route_path = bw_custom_wp_login_normalize_route_path(home_url('/' . $slug . '/'));
+        if ($request_path !== $custom_route_path) {
+            return false;
+        }
+
+        $query_var = get_query_var('bw_custom_login', '');
+        if ('' !== $query_var && '1' !== (string) $query_var) {
+            return false;
+        }
+
+        return true;
     }
 }
 
