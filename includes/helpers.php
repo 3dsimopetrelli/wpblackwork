@@ -436,3 +436,88 @@ if ( ! function_exists( 'bw_get_fallback_url' ) ) {
         return esc_url( home_url( '/' ) );
     }
 }
+
+if ( ! function_exists( 'bw_force_admin_list_table_draft_view' ) ) {
+    /**
+     * Ensure the Draft status link is always visible in admin list-table views.
+     *
+     * @param array<int|string, string> $views     Existing list-table view links.
+     * @param string                    $post_type Post type slug.
+     *
+     * @return array<int|string, string>
+     */
+    function bw_force_admin_list_table_draft_view( $views, $post_type ) {
+        $post_type = sanitize_key( (string) $post_type );
+
+        if ( ! in_array( $post_type, [ 'post', 'page', 'product' ], true ) ) {
+            return $views;
+        }
+
+        if ( ! is_array( $views ) ) {
+            return $views;
+        }
+
+        if ( isset( $views['draft'] ) ) {
+            return $views;
+        }
+
+        $counts = wp_count_posts( $post_type );
+        $draft_count = ( is_object( $counts ) && isset( $counts->draft ) ) ? absint( $counts->draft ) : 0;
+        $draft_url = add_query_arg(
+            [
+                'post_type'   => $post_type,
+                'post_status' => 'draft',
+            ],
+            admin_url( 'edit.php' )
+        );
+
+        $draft_view = sprintf(
+            '<a href="%s">%s <span class="count">(%s)</span></a>',
+            esc_url( $draft_url ),
+            esc_html__( 'Draft', 'bw' ),
+            esc_html( number_format_i18n( $draft_count ) )
+        );
+
+        $updated_views = [];
+        $inserted = false;
+
+        foreach ( $views as $key => $view ) {
+            $updated_views[ $key ] = $view;
+
+            if ( ! $inserted && in_array( (string) $key, [ 'publish', 'all' ], true ) ) {
+                $updated_views['draft'] = $draft_view;
+                $inserted = true;
+            }
+        }
+
+        if ( ! $inserted ) {
+            $updated_views['draft'] = $draft_view;
+        }
+
+        return $updated_views;
+    }
+}
+
+if ( ! function_exists( 'bw_force_admin_list_table_draft_view_post' ) ) {
+    function bw_force_admin_list_table_draft_view_post( $views ) {
+        return bw_force_admin_list_table_draft_view( $views, 'post' );
+    }
+}
+
+if ( ! function_exists( 'bw_force_admin_list_table_draft_view_page' ) ) {
+    function bw_force_admin_list_table_draft_view_page( $views ) {
+        return bw_force_admin_list_table_draft_view( $views, 'page' );
+    }
+}
+
+if ( ! function_exists( 'bw_force_admin_list_table_draft_view_product' ) ) {
+    function bw_force_admin_list_table_draft_view_product( $views ) {
+        return bw_force_admin_list_table_draft_view( $views, 'product' );
+    }
+}
+
+if ( is_admin() ) {
+    add_filter( 'views_edit-post', 'bw_force_admin_list_table_draft_view_post' );
+    add_filter( 'views_edit-page', 'bw_force_admin_list_table_draft_view_page' );
+    add_filter( 'views_edit-product', 'bw_force_admin_list_table_draft_view_product' );
+}
